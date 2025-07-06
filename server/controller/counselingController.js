@@ -42,12 +42,21 @@ const addCounseling = async (req, res) => {
 const getAllCounseling = async (req, res) => {
   const snapshot = await getCounselingsCollection().get();
 
-  const counselings = snapshot.docs.map((counseling) => ({
-    _id: counseling.id,
-    ...counseling.data(),
-  }));
+  try {
 
-  res.status(200).send(counselings);
+    if(snapshot.empty){
+        return res.status(404).send({error: `There is no counseling records available.`});
+    }
+
+    const counselings = snapshot.docs.map((counseling) => ({
+      _id: counseling.id,
+      ...counseling.data(),
+    }));
+
+    res.status(200).send(counselings);
+  } catch (error) {
+    res.status(404).send({error: `Failed to retrieve counseling records.`});
+  }
 };
 
 const getCounselings = async (req, res) => {
@@ -149,5 +158,5 @@ module.exports = {
   getAllCounseling,
   deleteCounseling,
   getCounselings,
-  updateCounseling
+  updateCounseling,
 };
