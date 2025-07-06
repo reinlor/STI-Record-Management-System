@@ -4,7 +4,8 @@ require("dotenv").config();
 const userRoutes = require("./routes/userRoutes");
 const registerRoute = require("./routes/registerRoute");
 const uploadRoute = require("./routes/uploadRoute");
-const recordRoute = require("./routes/recordRoute");
+const violationRoute = require("./routes/violationRoute");
+const counselingRoute = require("./routes/counselingRoute");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -17,7 +18,8 @@ app.use(express.json());
 app.use("/user", userRoutes);
 app.use("/register", registerRoute);
 app.use("/upload", uploadRoute);
-app.use("/record", recordRoute);
+app.use("/violation", violationRoute);
+app.use("/counseling", counselingRoute);
 
 // Start the server
 app.listen(PORT, () => {

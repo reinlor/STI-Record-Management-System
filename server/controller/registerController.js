@@ -161,7 +161,7 @@ const registerUser = async (req, res) => {
           otherConcerns,
         },
 
-        lifeCircumstances
+        lifeCircumstances,
       });
 
     res.status(201).json({ message: "User registered", id: sid });
