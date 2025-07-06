@@ -1,9 +1,7 @@
 const { getUserCollection } = require("../models/userModel.js");
 const admin = require("../firebase.js");
 
-/**
- * GET all users from Firestore
- */
+// Controller Function to retrieve all users
 const getUsers = async (req, res) => {
   try {
     const snapshot = await getUserCollection().get();
@@ -18,170 +16,54 @@ const getUsers = async (req, res) => {
   }
 };
 
-/**
- * UPDATE a user by ID
- */
-const updateUser = async (req, res) => {
-  const { id } = req.params;
-  const {
-    name,
-    section,
-    age,
-    nationality,
-    gender,
-    status,
-    birthPlace,
-    birthday,
-    religion,
-    contactNo,
-
-    permanentAddress,
-    currentAddress,
-    provincialAddress,
-
-    fName,
-    fAge,
-    fNationality,
-    fReligion,
-    fEducationalAttainment,
-    fOccupation,
-    fCompany,
-
-    mName,
-    mAge,
-    mNationality,
-    mReligion,
-    mEducationalAttainment,
-    mOccupation,
-    mCompany,
-
-    monthlyFamilyIncome,
-    statusOfParent,
-    siblingOrder,
-
-    eName,
-    eContact,
-
-    dateEnrolled,
-
-    shsSchoolName,
-    shsDateEnrolled,
-    shsWithHonors,
-
-    jhsSchoolName,
-    jhsDateEnrolled,
-    jhsWithHonors,
-
-    elemSchoolName,
-    elemDateEnrolled,
-    elemWithHonors,
-
-    hobbies,
-
-    currentConcerns,
-    otherConcerns,
-
-    lifeCircumstances,
-  } = req.body;
-
+// Controller Function to create user (Not final since microsoft login gamit ng)
+const addUser = async (req, res) => {
   try {
-    const userDocRef = getUserCollection().doc(id);
-    const userDocSnap = await userDocRef.get();
+    const newStudent = req.body;
+    const uid = newStudent.uid;
 
-    if (!userDocSnap.exists) {
-      return res.status(404).json({ error: "User not found" });
-    }
-
-    await userDocRef.update({
-      StudentProfile: {
-        name,
-        section,
-        age,
-        nationality,
-        gender,
-        status,
-        birthPlace,
-        birthday,
-        religion,
-      },
-
-      ContactInfo: {
-        contactNo,
-        address: { permanentAddress, currentAddress, provincialAddress },
-      },
-
-      FamilyBackground: {
-        fatherInfo: {
-          name: fName,
-          age: fAge,
-          nationality: fNationality,
-          religion: fReligion,
-          educationalAttainment: fEducationalAttainment,
-          occupation: fOccupation,
-          company: fCompany,
-        },
-
-        motherInfo: {
-          name: mName,
-          age: mAge,
-          nationality: mNationality,
-          religion: mReligion,
-          educationalAttainment: mEducationalAttainment,
-          occupation: mOccupation,
-          company: mCompany,
-        },
-
-        monthlyFamilyIncome,
-        statusOfParent,
-        siblingOrder,
-
-        emergency: {
-          name: eName,
-          contactNo: eContact,
-        },
-      },
-
-      EducationalBackground: {
-        dateEnrolled,
-
-        seniorHighSchool: {
-          schoolName: shsSchoolName,
-          dateEnrolled: shsDateEnrolled,
-          withHonors: shsWithHonors,
-        },
-
-        juniorHighSchool: {
-          schoolName: jhsSchoolName,
-          dateEnrolled: jhsDateEnrolled,
-          withHonors: jhsWithHonors,
-        },
-
-        elementary: {
-          schoolName: elemSchoolName,
-          dateEnrolled: elemDateEnrolled,
-          withHonors: elemWithHonors,
-        },
-      },
-
-      hobbies,
-
-      Health: {
-        currentConcerns: currentConcerns,
-        otherConcerns,
-      },
-
-      lifeCircumstances,
+    await getUserCollection().doc(uid).set(newStudent);
+    
+    res.status(201).json({ 
+      message: "Student registered successfully", 
+      id: uid 
     });
-
-    res.status(200).json({ message: `User ${id} updated successfully.` });
   } catch (error) {
-    res.status(500).json({ error: "Failed to update user" });
+    console.error("Registration error:", error);
+    res.status(500).json({ error: error.message });
   }
 };
 
-/**
- * DELETE a user by ID
- */
+// Controller Function to update user
+const updateUser = async (req, res) => {
+  try {
+    const { uid } = req.params;
+    const updates = req.body;
+
+    if (!updates || Object.keys(updates).length === 0) {
+      return res.status(400).json({ error: "No update data provided" });
+    }
+    const studentRef = getUserCollection().doc(uid);
+
+    const doc = await studentRef.get();
+    if (!doc.exists) {
+      return res.status(404).json({ error: "Student not found" });
+    }
+
+    await studentRef.set(updates, { merge: true });
+
+    res.status(200).json({ 
+      message: "Student updated successfully",
+      id: uid,
+      updates: updates
+    });
+  } catch (error) {
+    console.error("Update error:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// Controller Function to delete user (Papalitan ng archiving sa mga later dates)
 const deleteUser = async (req, res) => {
   try {
     const { id } = req.params;
@@ -214,4 +96,4 @@ const deleteUser = async (req, res) => {
   }
 };
 
-module.exports = { getUsers, deleteUser, updateUser };
+module.exports = { getUsers, addUser, deleteUser, updateUser };

@@ -1,8 +1,8 @@
 const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
-const userRoutes = require("./routes/userRoutes");
-const registerRoute = require("./routes/registerRoute");
+const userRoute = require("./routes/userRoute");
+const studentRoute = require("./routes/studentRoute");
 const uploadRoute = require("./routes/uploadRoute");
 const recordRoute = require("./routes/recordRoute");
 
@@ -14,8 +14,8 @@ app.use(cors());
 app.use(express.json());
 
 // Routes
-app.use("/user", userRoutes);
-app.use("/register", registerRoute);
+app.use("/user", userRoute);
+app.use("/student", studentRoute);
 app.use("/upload", uploadRoute);
 app.use("/record", recordRoute);
 
