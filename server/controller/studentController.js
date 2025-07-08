@@ -23,71 +23,153 @@ const studentSchema = Joi.object({
     address: {
       permanentAddress:  Joi.string().required(),
       currentAddress:    Joi.string().required(),
-      provincialAddress: Joi.string()
+      provincialAddress: Joi.string().optional()
     }
   },
 
   familyBackground:{
     fatherInfo: {
-      name:        Joi.string(),
-      age:         Joi.number(),
-      nationality: Joi.string(),
-      religion:    Joi.string(),
+      name:        Joi.string().optional(),
+      age:         Joi.number().optional(),
+      nationality: Joi.string().optional(),
+      religion:    Joi.string().optional(),
       educationalAttainment: Joi.string(),
-      occupation:  Joi.string(),
-      company:     Joi.string()
+      occupation:  Joi.string().optional(),
+      company:     Joi.string().optional()
     },
     motherInfo: {
-      name:        Joi.string(),
-      age:         Joi.number(),
-      nationality: Joi.string(),
-      religion:    Joi.string(),
+      name:        Joi.string().optional(),
+      age:         Joi.number().optional(),
+      nationality: Joi.string().optional(),
+      religion:    Joi.string().optional(),
       educationalAttainment: Joi.string(),
-      occupation:  Joi.string(),
-      company:     Joi.string()
+      occupation:  Joi.string().optional(),
+      company:     Joi.string().optional()
     },
-    monthlyFamilyIncome: Joi.number(),
-    statusOfParent:       Joi.string(),
-    siblingOrder:         Joi.array(),
+    monthlyFamilyIncome: Joi.number().optional(),
+    statusOfParent:       Joi.string().optional(),
+    siblingOrder:         Joi.array().optional(),
     emergency: {
-      name:        Joi.string(),
-      contactNo:   Joi.string().pattern(new RegExp('^[a-zA-Z0-9]{3,30}$'))
+      name:        Joi.string().optional(),
+      contactNo:   Joi.string().pattern(new RegExp('^[a-zA-Z0-9]{3,30}$')).optional()
     }
   },
 
   educationalBackground: {
-    dateEnrolled:  Joi.date(),
+    dateEnrolled:  Joi.date().optional(),
     seniorHighSchool: {
-      schoolName:  Joi.string(),
-      dateEnrolled:Joi.date(),
-      withHonors:  Joi.boolean()
+      schoolName:  Joi.string().optional(),
+      dateEnrolled:Joi.date().optional(),
+      withHonors:  Joi.boolean().optional()
     },
     juniorHighSchool: {
-      schoolName:  Joi.string(),
-      dateEnrolled:Joi.date(),
-      withHonors:  Joi.boolean()
+      schoolName:  Joi.string().optional(),
+      dateEnrolled:Joi.date().optional(),
+      withHonors:  Joi.boolean().optional()
     },
     elementary: {
-      schoolName:  Joi.string(),
-      dateEnrolled:Joi.date(),
-      withHonors:  Joi.boolean()
+      schoolName:  Joi.string().optional(),
+      dateEnrolled:Joi.date().optional(),
+      withHonors:  Joi.boolean().optional()
     },
   },
 
-  hobbies:         Joi.array(),
+  hobbies:         Joi.array().optional(),
 
   health: {
-    currentConcerns: Joi.array(),
-    otherConcerns:  Joi.string()
+    currentConcerns: Joi.array().optional(),
+    otherConcerns:  Joi.string().optional()
   },
 
-  lifeCircumstances: Joi.array()
+  lifeCircumstances: Joi.array().optional()
+})
+
+const updateSchema = Joi.object({
+  sid:            Joi.string().optional(),
+
+  studentProfile: {
+    name:         Joi.string().optional(),
+    section:      Joi.string().optional(),
+    age:          Joi.number().optional(),
+    nationality:  Joi.string().optional(),
+    gender:       Joi.string().optional(),
+    status:       Joi.string().optional(),
+    birthPlace:   Joi.string().optional(),
+    birthday:     Joi.date().optional(),
+    religion:     Joi.string().optional()
+  },
+
+  contactInfo: {
+    email:        Joi.string().email().required(),
+    contactNo:    Joi.string().pattern(new RegExp('^[a-zA-Z0-9]{3,30}$')),
+    address: {
+      permanentAddress:  Joi.string().required(),
+      currentAddress:    Joi.string().required(),
+      provincialAddress: Joi.string().optional()
+    }
+  },
+
+  familyBackground:{
+    fatherInfo: {
+      name:        Joi.string().optional(),
+      age:         Joi.number().optional(),
+      nationality: Joi.string().optional(),
+      religion:    Joi.string().optional(),
+      educationalAttainment: Joi.string(),
+      occupation:  Joi.string().optional(),
+      company:     Joi.string().optional()
+    },
+    motherInfo: {
+      name:        Joi.string().optional(),
+      age:         Joi.number().optional(),
+      nationality: Joi.string().optional(),
+      religion:    Joi.string().optional(),
+      educationalAttainment: Joi.string(),
+      occupation:  Joi.string().optional(),
+      company:     Joi.string().optional()
+    },
+    monthlyFamilyIncome: Joi.number().optional(),
+    statusOfParent:       Joi.string().optional(),
+    siblingOrder:         Joi.array().optional(),
+    emergency: {
+      name:        Joi.string().optional(),
+      contactNo:   Joi.string().pattern(new RegExp('^[a-zA-Z0-9]{3,30}$')).optional()
+    }
+  },
+
+  educationalBackground: {
+    dateEnrolled:  Joi.date().optional(),
+    seniorHighSchool: {
+      schoolName:  Joi.string().optional(),
+      dateEnrolled:Joi.date().optional(),
+      withHonors:  Joi.boolean().optional()
+    },
+    juniorHighSchool: {
+      schoolName:  Joi.string().optional(),
+      dateEnrolled:Joi.date().optional(),
+      withHonors:  Joi.boolean().optional()
+    },
+    elementary: {
+      schoolName:  Joi.string().optional(),
+      dateEnrolled:Joi.date().optional(),
+      withHonors:  Joi.boolean().optional()
+    },
+  },
+
+  hobbies:         Joi.array().optional(),
+
+  health: {
+    currentConcerns: Joi.array().optional(),
+    otherConcerns:  Joi.string().optional()
+  },
+
+  lifeCircumstances: Joi.array().optional()
 })
 
 // Controller Function for adding student data 
 const addStudent = async (req, res) => {
   try {
-    studentSchema.validate(req.body)
+    studentSchema.validate(req.body);
 
     const { error, value: newStudent } = studentSchema.validate(req.body);
     if (error) {
@@ -130,6 +212,12 @@ const updateStudent = async (req, res) => {
     if (!updates || Object.keys(updates).length === 0) {
       return res.status(400).json({ error: "No update data provided" });
     }
+    const { error, value: validatedUpdates } = updateSchema.validate(updates);
+
+    if (error) {
+      return res.status(400).json({ error: error.details[0].message });
+    }
+
     const studentRef = getStudentCollection().doc(sid);
 
     const doc = await studentRef.get();
@@ -137,12 +225,12 @@ const updateStudent = async (req, res) => {
       return res.status(404).json({ error: "Student not found" });
     }
 
-    await studentRef.set(updates, { merge: true });
+    await studentRef.set(validatedUpdates, { merge: true });
 
-    res.status(200).json({ 
+    res.status(200).json({
       message: "Student updated successfully",
       id: sid,
-      updates: updates
+      updates: validatedUpdates
     });
   } catch (error) {
     console.error("Update error:", error);

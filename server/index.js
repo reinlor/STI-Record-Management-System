@@ -4,7 +4,11 @@ require("dotenv").config();
 const userRoute = require("./routes/userRoute");
 const studentRoute = require("./routes/studentRoute");
 const uploadRoute = require("./routes/uploadRoute");
-const recordRoute = require("./routes/recordRoute");
+const violationRoute = require("./routes/violationRoute");
+const counselingRoute = require("./routes/counselingRoute");
+const slipRoute = require("./routes/slipRoute");
+const teacherRoute = require("./routes/teacherRoute");
+const referralRouter = require("./routes/referralRoute");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -17,7 +21,11 @@ app.use(express.json());
 app.use("/user", userRoute);
 app.use("/student", studentRoute);
 app.use("/upload", uploadRoute);
-app.use("/record", recordRoute);
+app.use("/violation", violationRoute);
+app.use("/counseling", counselingRoute);
+app.use("/slip", slipRoute);
+app.use("/teacher", teacherRoute);
+app.use("/referral", referralRouter);
 
 // Start the server
 app.listen(PORT, () => {
