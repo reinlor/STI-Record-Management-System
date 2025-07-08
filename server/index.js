@@ -7,6 +7,8 @@ const uploadRoute = require("./routes/uploadRoute");
 const violationRoute = require("./routes/violationRoute");
 const counselingRoute = require("./routes/counselingRoute");
 const slipRoute = require("./routes/slipRoute");
+const teacherRoute = require("./routes/teacherRoute");
+const referralRouter = require("./routes/referralRoute");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -22,6 +24,8 @@ app.use("/upload", uploadRoute);
 app.use("/violation", violationRoute);
 app.use("/counseling", counselingRoute);
 app.use("/slip", slipRoute);
+app.use("/teacher", teacherRoute);
+app.use("/referral", referralRouter);
 
 // Start the server
 app.listen(PORT, () => {
