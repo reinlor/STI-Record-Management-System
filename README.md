@@ -12,3 +12,6 @@ Walang pang description
 - Firebase
 - React
 - Node
+- CSS Tailwind
+- Joi Framework
+- Express JS
