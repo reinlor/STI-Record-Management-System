@@ -8,19 +8,12 @@ const {
 
 const addLateSlip = async (req, res) => {
   const { sid } = req.params;
-  const { name, program, section, email, reason, proofUrl, timeCreated } =
-    req.body;
+  const newSlip = req.body;
 
   try {
     await getLateSlipsCollection().add({
       sid,
-      name,
-      program,
-      section,
-      email,
-      reason,
-      proofUrl,
-      timeCreated,
+      ...newSlip,
     });
 
     res.status(200).send({ message: `Late slip added to Student: ${sid}` });
@@ -31,28 +24,12 @@ const addLateSlip = async (req, res) => {
 
 const addAbsentSlip = async (req, res) => {
   const { sid } = req.params;
-  const {
-    name,
-    program,
-    section,
-    email,
-    excuseLetterURL,
-    medicalCertificateURL,
-    guardianValidIDURL,
-    timeCreated,
-  } = req.body;
+  const newSlip = req.body;
 
   try {
     await getAbsentSlipsCollection().add({
       sid,
-      name,
-      program,
-      section,
-      email,
-      excuseLetterURL,
-      medicalCertificateURL,
-      guardianValidIDURL,
-      timeCreated,
+      ...newSlip,
     });
 
     res.status(200).send({ message: `Absent slip added to Student: ${sid}` });
@@ -63,17 +40,12 @@ const addAbsentSlip = async (req, res) => {
 
 const addIDPass = async (req, res) => {
   const { sid } = req.params;
-  const { name, program, section, email, reason, timeCreated } = req.body;
+  const newSlip = req.body;
 
   try {
     await getIDPassCollection().add({
       sid,
-      name,
-      program,
-      section,
-      email,
-      reason,
-      timeCreated,
+      ...newSlip,
     });
 
     res.status(200).send({ message: `ID slip added to Student: ${sid}` });
@@ -215,6 +187,27 @@ const getIDPass = async (req, res) => {
   }
 };
 
+const uploadImage = async (req, res) => {
+  try {
+    // Upload the image file from temporary upload directory to Cloudinary
+    const result = await cloudinary.uploader.upload(req.file.path, {
+      folder: "proofs", // Store inside "proofs" folder in your Cloudinary account
+    });
+
+    // Delete the local temporary file after successful upload
+    fs.unlinkSync(req.file.path);
+
+    // Return Cloudinary URL and public ID for further use
+    res.status(200).json({
+      imageUrl: result.secure_url,
+      publicID: result.public_id,
+    });
+  } catch (err) {
+    console.error("Cloudinary Image Upload Error:", err);
+    res.status(500).json({ error: "Failed to upload image." });
+  }
+};
+
 module.exports = {
   addLateSlip,
   getAllLateSlip,
@@ -224,5 +217,6 @@ module.exports = {
   getAbsentSlip,
   addIDPass,
   getAllIDPass,
-  getIDPass
+  getIDPass,
+  uploadImage,
 };
