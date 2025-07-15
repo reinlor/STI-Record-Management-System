@@ -1,0 +1,35 @@
+.adminLayout {
+  display: flex;
+  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.headerArea {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 100vh;
+  background: #fff;
+}
+
+.adminContent {
+  flex: 1;
+  padding: 0;
+  background: #fff;
+  color: #222;
+  overflow-y: auto;
+  align-content: flex-start;
+  box-sizing: border-box;
+  height: 100%;
+  min-height: 0;
+}
+
+.mainHeader {
+  width: 100%;
+  background: #1a1a2e;
+  color: #fff;
+  padding: 0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  margin: 0;
+}

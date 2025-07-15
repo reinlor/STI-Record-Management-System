@@ -1,0 +1,39 @@
+.card {
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+  padding: 20px;
+  transition: transform 0.2s ease;
+  width: 100%;
+  max-width: 400px;
+  min-height: 150px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.cardIcon {
+  font-size: 24px;
+  margin-right: 10px;
+}
+
+.cardTitle {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+}
+
+.cardContent {
+  font-size: 14px;
+  color: #555;
+}

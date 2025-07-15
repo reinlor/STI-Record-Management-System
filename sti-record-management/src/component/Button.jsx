@@ -1,20 +1,32 @@
 import { useNavigate } from "react-router-dom";
 
-function Button({ 
-    nav = '',
-    classname = ''
+export default function Button({ 
+    to = '',
+    onClick = null,
+    className = '',
+    type = 'button',
+    children
     }){
+
     const navigate = useNavigate();
+
+    const handleClick = () => {
+        if (onClick) {
+            onClick();
+        }
+        else if (to) {
+            navigate(to);
+        }
+    }
 
     return(
         <button
-            className={classname}
-            onClick={() => {
-                navigate(nav);
-            }}>
-            Go to {nav}
+            type={type}
+            onClick={handleClick}
+            className={`btn ${className}`}
+        >
+            
+            {children}
         </button>
-    )
+    );
 }
-
-export default Button;
