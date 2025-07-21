@@ -76,6 +76,7 @@ const updateTeacher = async (req, res) => {
   }
 };
 
+// Controller function for retrieving teacher data
 const getTeachers = async (req, res) => {
   try {
     const snapshot = await getTeacherCollection().get();
