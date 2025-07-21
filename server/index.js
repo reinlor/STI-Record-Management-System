@@ -1,16 +1,16 @@
 const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
-const userRoute = require("./routes/userRoute");
-const studentRoute = require("./routes/studentRoute");
-const uploadRoute = require("./routes/uploadRoute");
-const violationRoute = require("./routes/violationRoute");
-const counselingRoute = require("./routes/counselingRoute");
-const slipRoute = require("./routes/slipRoute");
-const teacherRoute = require("./routes/teacherRoute");
-const referralRouter = require("./routes/referralRoute");
-const assessmentExam = require("./routes/assessmentExamRoute");
-const assessmentReport = require("./routes/assessmentReportRoute")
+const userRoute = require("./firestore/main/routes/userRoute");
+const studentRoute = require("./firestore/main/routes/studentRoute");
+const uploadRoute = require("./firestore/main/routes/uploadRoute");
+const violationRoute = require("./firestore/main/routes/violationRoute");
+const counselingRoute = require("./firestore/main/routes/counselingRoute");
+const slipRoute = require("./firestore/main/routes/slipRoute");
+const teacherRoute = require("./firestore/main/routes/teacherRoute");
+const referralRouter = require("./firestore/main/routes/referralRoute");
+const assessmentExam = require("./firestore/main/routes/assessmentExamRoute");
+const assessmentReport = require("./firestore/main/routes/assessmentReportRoute")
 
 const app = express();
 const PORT = process.env.PORT || 5000;

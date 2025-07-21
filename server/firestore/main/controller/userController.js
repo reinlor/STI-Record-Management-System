@@ -1,5 +1,5 @@
 const { getUserCollection } = require("../models/userModel.js");
-const admin = require("../firebase.js");
+const admin = require("../../../firebase");
 
 // Controller Function to retrieve all users
 const getUsers = async (req, res) => {

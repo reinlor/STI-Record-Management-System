@@ -1,4 +1,3 @@
-const admin = require("../firebase");
 const Joi = require('joi');
 const { getTeacherCollection } = require("../models/teacherModel");
 

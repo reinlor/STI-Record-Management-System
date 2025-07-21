@@ -1,5 +1,5 @@
 // Importing necessary modules
-const cloudinary = require("../config/cloudinary.js"); // Cloudinary config for image uploading
+const cloudinary = require("../../../config/cloudinary.js"); // Cloudinary config for image uploading
 const { getUploadCollection } = require("../models/uploadModel.js"); // Firestore upload collection reference
 const fs = require("fs"); // File system module for removing temporary files
 

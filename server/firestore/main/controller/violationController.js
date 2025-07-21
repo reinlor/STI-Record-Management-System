@@ -1,6 +1,5 @@
 const { getViolationsCollection } = require("../models/violationModel");
 const Joi = require('joi');
-const admin = require("../firebase");
 
 // Violation Schema
 const violationSchema =  Joi.object({
