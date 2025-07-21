@@ -77,7 +77,7 @@ const StudentRecords = ({ onStudentSelect }) => {
         >
           <img src={defaultProfile} alt="Student" />
           <div>
-            <strong>{student.name}</strong>
+            <strong>{student.studentProfile.name}</strong>
             <p className={userStyle.studentId}>{student.id}</p>
             <p>Program: {student.studentProfile.section}</p>
             <p>Year Level: {student.studentProfile.section}</p>
