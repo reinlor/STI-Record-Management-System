@@ -1,0 +1,161 @@
+.recordsContainer {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 1.2rem;
+  background-color: hsl(0, 0%, 100%);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.recordsTitle {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  text-align: left;
+  color: #333;
+}
+
+.searchInput {
+  width: 95%;
+  padding: 0.8rem 1rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 16px;
+  margin-bottom: 1.5rem;
+  transition: border 0.2s;
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: #007bff;
+}
+
+.studentItem {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  background-color: #f9f9f9;
+  padding: 0.5rem 1rem;
+  margin-bottom: 0.7rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.studentItem:hover {
+  background-color: #e8f0ff;
+}
+
+.studentItem img {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #007bff;
+}
+
+.studentItem div {
+  flex: 1;
+}
+
+.studentItem strong {
+  font-size: 16px;
+  color: #222;
+}
+
+.studentId {
+  color: #007bff;
+  font-weight: 500;
+  font-size: 14px;
+  margin: 4px 0;
+}
+
+.studentItem p {
+  margin: 1px 0;
+  font-size: 13px;
+  color: #555;
+}
+
+.noResults {
+  text-align: center;
+  font-size: 16px;
+  color: #999;
+  margin-top: 2rem;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 2rem;
+}
+
+.pageButton {
+  background-color: #e0e0e0;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.pageButton:hover {
+  background-color: #007bff;
+  color: #fff;
+}
+
+.activePage {
+  background-color: #007bff;
+  color: #fff;
+}
+
+.controlButtons {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.2rem;
+}
+
+.leftButtons {
+  display: flex;
+  gap: 0.8rem;
+}
+
+.rightButtons {
+  display: flex;
+}
+
+.filterButton {
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+  color: #333;
+  padding: 5px 15px;
+  border-radius: 5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.filterButton:hover {
+  background-color: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
+.addStudentBTN {
+  background-color: #23923d;
+  color: white;
+  border: none;
+  padding: 5px 15px;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.addStudentBTN:hover {
+  background-color: #1b5e29;
+}
+
