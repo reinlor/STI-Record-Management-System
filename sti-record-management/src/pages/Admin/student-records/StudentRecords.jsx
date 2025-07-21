@@ -1,118 +1,31 @@
-import React, { use, useState } from "react";
+import React, { use, useState, useEffect } from "react";
 import defaultProfile from "../../../assets/karomi.jpg";
 import userStyle from "./student-module-css/s-records.module.css";
 import Button from "../../../component/Button.jsx";
-
-const studentData = [
-  {
-    id: "02000289482",
-    name: "Colinco, Jordan Vincent Bulfa",
-    email: "jordancolinco@gmail.com",
-    contactNo: "09950411879",
-    acadLevel: "College",
-    program: "BSIT",
-    yearLevel: "3rd Year",
-    section: "A",
-    gender: "Male",
-    birthDate: "April 14, 2003",
-    perAddress: "Blk 7 L 28 Vivace Subdivision Buhay na Tubig",
-    emergencyContact: "Jose Jovy Colinco",
-    emergencyContactNo: "09950411879",
-    healthConditions: "None",
-    image: defaultProfile,
-  },
-  {
-    id: "02000289483",
-    name: "Lor, Rehneil Bulfa",
-    email: "rehneillor@gmail.com",
-    contactNo: "09950411879",
-    acadLevel: "College",
-    program: "BSIT",
-    yearLevel: "3rd Year",
-    section: "C",
-    gender: "Male",
-    birthDate: "April 14, 2003",
-    perAddress: "Blk 7 L 28 Vivace Subdivision Buhay na Tubig",
-    emergencyContact: "Jose Jovy Colinco",
-    emergencyContactNo: "09950411879",
-    healthConditions: "None",
-    image: defaultProfile,
-  },
-  {
-    id: "02000289484",
-    name: "Colinco, Jordan Vincent Bulfa",
-    email: "jordancolinco@gmail.com",
-    contactNo: "09950411879",
-    acadLevel: "College",
-    program: "BSIT",
-    yearLevel: "3rd Year",
-    section: "A",
-    gender: "Male",
-    birthDate: "April 14, 2003",
-    perAddress: "Blk 7 L 28 Vivace Subdivision Buhay na Tubig",
-    emergencyContact: "Jose Jovy Colinco",
-    emergencyContactNo: "09950411879",
-    healthConditions: "None",
-    image: defaultProfile,
-  },
-  {
-    id: "02000289485",
-    name: "Colinco, Jordan Vincent Bulfa",
-    email: "jordancolinco@gmail.com",
-    contactNo: "09950411879",
-    acadLevel: "College",
-    program: "BSIT",
-    yearLevel: "3rd Year",
-    section: "A",
-    gender: "Male",
-    birthDate: "April 14, 2003",
-    perAddress: "Blk 7 L 28 Vivace Subdivision Buhay na Tubig",
-    emergencyContact: "Jose Jovy Colinco",
-    emergencyContactNo: "09950411879",
-    healthConditions: "None",
-    image: defaultProfile,
-  },
-  {
-    id: "02000289486",
-    name: "Colinco, Jordan Vincent Bulfa",
-    email: "jordancolinco@gmail.com",
-    contactNo: "09950411879",
-    acadLevel: "College",
-    program: "BSIT",
-    yearLevel: "3rd Year",
-    section: "A",
-    gender: "Male",
-    birthDate: "April 14, 2003",
-    perAddress: "Blk 7 L 28 Vivace Subdivision Buhay na Tubig",
-    emergencyContact: "Jose Jovy Colinco",
-    emergencyContactNo: "09950411879",
-    healthConditions: "None",
-    image: defaultProfile,
-  },
-  {
-    id: "02000289487",
-    name: "Colinco, Jordan Vincent Bulfa",
-    email: "jordancolinco@gmail.com",
-    contactNo: "09950411879",
-    acadLevel: "College",
-    program: "BSIT",
-    yearLevel: "3rd Year",
-    section: "A",
-    gender: "Male",
-    birthDate: "April 14, 2003",
-    perAddress: "Blk 7 L 28 Vivace Subdivision Buhay na Tubig",
-    emergencyContact: "Jose Jovy Colinco",
-    emergencyContactNo: "09950411879",
-    healthConditions: "None",
-    image: defaultProfile,
-  },
-  // Add more students here to test pagination
-];
+import axios from "axios";
 
 const StudentRecords = ({ onStudentSelect }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
+
+  // student data from firebase     -Renlor
+  const [studentData, setStudentData] = useState([]);
+  // loading ulit                   -Renlor
+  const [visible, setVisibility] = useState(false);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await axios.get(`http://localhost:5000/student/`);
+        setStudentData(response.data);
+      } catch (error) {
+        console.log("Error while fetching data", error);
+      }
+    };
+    fetchData();
+    setVisibility(true);
+  }, []);
 
   const filteredStudents = studentData.filter((student) =>
     student.id.includes(searchQuery)
@@ -130,7 +43,7 @@ const StudentRecords = ({ onStudentSelect }) => {
   };
 
   return (
-    <div className={userStyle.recordsContainer}>
+    <div className={`${userStyle.recordsContainer} ${visible ? 'visible' : 'hidden'}`}>
       <h2 className={userStyle.recordsTitle}>Student Records</h2>
 
       <input
@@ -147,27 +60,27 @@ const StudentRecords = ({ onStudentSelect }) => {
       {/*CONTROL BUTTONS*/}
       <div className={userStyle.controlButtons}>
         <div className={userStyle.leftButtons}>
-            <Button className={userStyle.filterButton}>Enrolled</Button>
-            <Button className={userStyle.filterButton}>Archived</Button>
+          <Button className={userStyle.filterButton}>Enrolled</Button>
+          <Button className={userStyle.filterButton}>Archived</Button>
         </div>
         <div className={userStyle.rightButtons}>
-            <Button className={userStyle.addStudentBTN}>Add Student</Button>
+          <Button className={userStyle.addStudentBTN}>Add Student</Button>
         </div>
       </div>
 
       {/*STUDENT LIST*/}
       {visibleStudents.map((student) => (
         <div
-          key={student.id}
+          key={student.sid}
           className={userStyle.studentItem}
           onClick={() => onStudentSelect(student)}
         >
-          <img src={student.image} alt="Student" />
+          <img src={defaultProfile} alt="Student" />
           <div>
             <strong>{student.name}</strong>
             <p className={userStyle.studentId}>{student.id}</p>
-            <p>Program: {student.program}</p>
-            <p>Year Level: {student.yearLevel}</p>
+            <p>Program: {student.studentProfile.section}</p>
+            <p>Year Level: {student.studentProfile.section}</p>
           </div>
         </div>
       ))}
@@ -181,9 +94,8 @@ const StudentRecords = ({ onStudentSelect }) => {
           {Array.from({ length: totalPages }, (_, i) => (
             <Button
               key={i + 1}
-              className={`${userStyle.pageButton} ${
-                currentPage === i + 1 ? userStyle.activePage : ""
-              }`}
+              className={`${userStyle.pageButton} ${currentPage === i + 1 ? userStyle.activePage : ""
+                }`}
               onClick={() => handlePageClick(i + 1)}
             >
               {i + 1}

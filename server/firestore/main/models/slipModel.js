@@ -1,4 +1,4 @@
-const admin = require("../../../firebase");
+const {admin} = require("../../../firebase");
 
 const getLateSlipsCollection = () => {
   return admin.firestore().collection("lateSlips");

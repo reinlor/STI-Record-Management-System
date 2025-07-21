@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, Outlet } from "react-router-dom";
 import { LoadingBarProvider, useLoadingBar } from "../component/LoadingBarProvider.jsx";
 import SideBar from "../component/SideBar.jsx";
@@ -8,6 +8,9 @@ import styles from "./layout-css/AdminLayout.module.css";
 function AdminLayoutContent() {
   const { start, complete } = useLoadingBar();
   const navigate = useNavigate();
+  
+  // Patangal kung may maisip na magandang logic  -renlor
+  const [visibility, setVisibility] = useState(false)
 
   const handleLogout = () => {
     navigate("/"); //Papunta sa Login Page
@@ -16,8 +19,11 @@ function AdminLayoutContent() {
   useEffect(() => {
     const loadData = async () => {
       start(); // Start Loading
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // Dummy Timer ng loading
+      await new Promise((resolve) => {
+        setTimeout(resolve, 1000);
+      }); // Dummy Timer ng loading
       complete(); // Finish Loading
+      setVisibility(true); 
     };
 
     loadData();
@@ -27,7 +33,7 @@ function AdminLayoutContent() {
     <div className={styles.adminLayout}>
       <SideBar />
 
-      <div className={styles.headerArea}>
+      <div className={`${styles.headerArea} ${visibility ? 'visible' : 'hidden'}`}>
         <Header 
             userName="Admin" 
             className={styles.mainHeader}

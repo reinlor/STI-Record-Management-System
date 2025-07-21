@@ -1,9 +1,27 @@
-#root {
+/* #root {
   max-width: 1280px;
   margin: 0 auto;
   padding: 2rem;
   text-align: center;
+} */
+
+/* 
+  Pa refine kung di needed
+  Basically for ano to hide and show content from loading na function
+  Pa ayos nalang na sakto sa CSS Tailwind at style niyo sa paggawa ng client-side
+*/
+.hidden {
+  visibility: hidden;
+  opacity: 0;
+  transition: visibility 0s 0.3s, opacity 0.3s ease-in-out;
 }
+
+.visible {
+  visibility: visible;
+  opacity: 1;
+  transition: visibility 0s, opacity 0.3s ease-in-out;
+}
+/* - MSG FROM Renlor */
 
 .logo {
   height: 6em;

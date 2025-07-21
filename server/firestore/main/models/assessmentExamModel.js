@@ -1,4 +1,4 @@
-const admin = require("../../../firebase");
+const {admin} = require("../../../firebase");
 
 const getAssessmentExamCollection = () => {
   return admin.firestore().collection("assessmentExams");

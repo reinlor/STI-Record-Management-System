@@ -13,7 +13,8 @@ import AdminStudentCases from './pages/Admin/student-cases/StudentCases.jsx';
 import AdminUsers from './pages/Admin/users/Users.jsx';
 import AdminBackNRestore from './pages/Admin/back-up-and-restore/BackNRestore.jsx';
 
-
+// What the helly yow bat di to naka define       -renlor (genuine question)
+import './app.css'  // <- originally nakatangal   -renlor
 
 export default function App() {
 
