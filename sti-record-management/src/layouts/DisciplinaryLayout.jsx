@@ -5,7 +5,7 @@ import SideBar from "../component/SideBar.jsx";
 import Header from "../component/Header.jsx";
 import styles from "./layout-css/AdminLayout.module.css";
 
-function AdminLayoutContent() {
+function DisciplinaryLayoutContent() {
   const { start, complete } = useLoadingBar();
   const navigate = useNavigate();
   
@@ -31,11 +31,11 @@ function AdminLayoutContent() {
 
   return (
     <div className={styles.adminLayout}>
-      <SideBar user='admin'/>
+      <SideBar user='disciplinary'/>
 
       <div className={`${styles.headerArea} ${visibility ? 'visible' : 'hidden'}`}>
         <Header 
-            userName="Admin" 
+            userName="Disciplinary" 
             className={styles.mainHeader}
             onLogout={handleLogout} 
         />
@@ -49,10 +49,10 @@ function AdminLayoutContent() {
   );
 }
 
-export default function AdminLayout() {
+export default function DisciplinaryLayout() {
   return (
     <LoadingBarProvider>
-      <AdminLayoutContent />
+      <DisciplinaryLayoutContent />
     </LoadingBarProvider>
   );
 }
