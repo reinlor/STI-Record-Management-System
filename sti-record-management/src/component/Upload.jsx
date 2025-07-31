@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import styles from "./Upload.module.css"; // Import modular CSS for styling
-import { toast } from "react-toastify";
+import styles from "./components-css/Upload.module.css"; // Import modular CSS for styling
+import { toast } from 'react-toastify';
 
 const Upload = () => {
   // =======================
