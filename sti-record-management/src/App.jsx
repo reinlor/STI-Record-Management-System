@@ -13,6 +13,16 @@ import AdminStudentCases from './pages/Admin/student-cases/StudentCases.jsx';
 import AdminUsers from './pages/Admin/users/Users.jsx';
 import AdminBackNRestore from './pages/Admin/back-up-and-restore/BackNRestore.jsx';
 
+import DisciplinaryLayout from './layouts/DisciplinaryLayout.jsx';
+import DisciplinaryDashboard from './pages/DisciplinaryOfficer/dashboard/Dashboard.jsx'
+import DisciplinaryStudentRecords from './pages/DisciplinaryOfficer/student-records/StudentRecords.jsx'
+import DisciplinaryStudentCases from './pages/DisciplinaryOfficer/student-cases/StudentCases.jsx'
+import DisciplinaryRequestSlip from './pages/DisciplinaryOfficer/request-slip/RequestSlip.jsx'
+import DisciplinaryRequestSlipHistory from './pages/DisciplinaryOfficer/request-slip/RequestSlipHistory.jsx'
+import DisciplinaryReferralForm from './pages/DisciplinaryOfficer/referral-form/ReferralForm.jsx'
+import DisciplinaryReferralFormHistory from './pages/DisciplinaryOfficer/referral-form/ReferralFormHistory.jsx'
+import DisciplinaryBackupNRestore from './pages/DisciplinaryOfficer/backup-and-restore/BackupNRestore.jsx'
+
 // What the helly yow bat di to naka define       -renlor (genuine question)
 import './app.css'  // <- originally nakatangal   -renlor
 
@@ -35,7 +45,17 @@ export default function App() {
           <Route path="back-n-restore" element={<AdminBackNRestore />}/>
         </Route>
 
-        {/* Admin */}
+        {/* Disciplinary Officer */}
+        <Route path="/disciplinary" element={<DisciplinaryLayout/>}>
+          <Route index element={<DisciplinaryDashboard/>}/>
+          <Route path="student-records" element={<DisciplinaryStudentRecords/>}/>
+          <Route path="student-cases" element={<DisciplinaryStudentCases/>}/>
+          <Route path="request-slip" element={<DisciplinaryRequestSlip/>}/>
+          <Route path="request-slip-history" element={<DisciplinaryRequestSlipHistory/>}/>
+          <Route path="referral-form" element={<DisciplinaryReferralForm/>}/>
+          <Route path="referral-form-history" element={<DisciplinaryReferralFormHistory/>}/>
+          <Route path="backup-n-restore" element={<DisciplinaryBackupNRestore/>}/>
+        </Route>
 
         {/* Student */}
 

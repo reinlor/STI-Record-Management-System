@@ -10,6 +10,9 @@ export default function Login() {
             <Button to="/admin" className={styles.loginBtn}>
                 Go to Admin Dashboard
             </Button>
+            <Button to="/disciplinary" className={styles.loginBtn}>
+                Go to Disciplinary Officer Dashboard
+            </Button>
             <Button to="/userManager" className={styles.userManagerBtn}>
                 Go to User Manager
             </Button>
