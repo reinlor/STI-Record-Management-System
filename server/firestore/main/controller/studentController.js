@@ -3,255 +3,260 @@ const Joi = require('joi');
 
 // Student Schema
 const studentSchema = Joi.object({
-  sid:            Joi.string().required(),
+  sid: Joi.string().required(),
 
-  studentProfile: {
-    name:         Joi.string().required(),
-    nickname:     Joi.string().required(),
-    section:      Joi.string().required(),
-    academicLevel:Joi.string().required(),
-    age:          Joi.number().required(),
-    nationality:  Joi.string().required(),
-    gender:       Joi.string().required(),
-    status:       Joi.string().required(),
-    birthPlace:   Joi.string().required(),
-    birthday:     Joi.string().required(),
-    religion:     Joi.string().required()
-  },
+  studentProfile: Joi.object({
+    name: Joi.string().required(),
+    nickname: Joi.string().required(),
+    section: Joi.string().required(),
+    academicLevel: Joi.string().required(),
+    age: Joi.number().required(),
+    nationality: Joi.string().required(),
+    gender: Joi.string().required(),
+    status: Joi.string().required(),
+    birthPlace: Joi.string().required(),
+    birthday: Joi.string().required(),
+    religion: Joi.string().required()
+  }).required(),
 
-  contactInfo: {
-    email:        Joi.string().email().required(),
-    contactNo:    Joi.string().pattern(new RegExp('^[a-zA-Z0-9]{3,30}$')),
-    homeNo:       Joi.string().required(),
-    workNo:       Joi.string().required(),
-    address: {
-      permanentAddress:  Joi.string().required(),
-      currentAddress:    Joi.string().required(),
-      provincialAddress: Joi.string().optional()
-    }
-  },
+  contactInfo: Joi.object({
+    email: Joi.string().email().required(),
+    contactNo: Joi.string().pattern(new RegExp('^[a-zA-Z0-9]{3,30}$')).empty(''),
+    homeNo: Joi.string().required(),
+    workNo: Joi.string().required(),
+    address: Joi.object({
+      permanentAddress: Joi.string().required(),
+      currentAddress: Joi.string().required(),
+      provincialAddress: Joi.string().empty('').optional()
+    }).required()
+  }).required(),
 
-  familyBackground:{
-    fatherInfo: {
-      name:        Joi.string().optional(),
-      age:         Joi.number().optional(),
-      nationality: Joi.string().optional(),
-      religion:    Joi.string().optional(),
-      birthday:    Joi.string().optional(),
-      educationalAttainment: Joi.string(),
-      occupation:  Joi.string().optional(),
-      contactNo:   Joi.string().optional(),
-      email:       Joi.string().email().optional()
-    },
-    motherInfo: {
-      name:        Joi.string().optional(),
-      age:         Joi.number().optional(),
-      nationality: Joi.string().optional(),
-      religion:    Joi.string().optional(),
-      birthday:    Joi.string().optional(),
-      educationalAttainment: Joi.string(),
-      occupation:  Joi.string().optional(),
-      contactNo:   Joi.string().optional(),
-      email:       Joi.string().email().optional()
-    },
-    guardian: {
-      name:        Joi.string().optional(),
-      relation:    Joi.string().optional(),
-      contactNo:   Joi.string().optional(),
-      email:       Joi.string().email().optional()
-    },
-    address:              Joi.string().optional(),
-    statusOfParent:       Joi.string().optional(),
-    siblings:             Joi.array().optional(),
-    birthOrder:           Joi.string().optional(),
-    emergency: {
-      name:        Joi.string().optional(),
-      contactNo:   Joi.string().pattern(new RegExp('^[a-zA-Z0-9]{3,30}$')).optional()
-    }
-  },
+  familyBackground: Joi.object({
+    fatherInfo: Joi.object({
+      name: Joi.string().empty('').optional(),
+      age: Joi.number().optional(),
+      nationality: Joi.string().empty('').optional(),
+      religion: Joi.string().empty('').optional(),
+      birthday: Joi.string().empty('').optional(),
+      educationalAttainment: Joi.string().empty('').optional(),
+      occupation: Joi.string().empty('').optional(),
+      contactNo: Joi.string().empty('').optional(),
+      email: Joi.string().email().empty('').optional()
+    }).empty({}).optional(),
 
-  educationalBackground: {
-    dateEnrolled:    Joi.date().optional(),
-    seniorHighSchool: {
-      schoolName:    Joi.string().optional(),
-      dateEnrolled:  Joi.string().optional()
-    },
-    juniorHighSchool: {
-      schoolName:    Joi.string().optional(),
-      dateEnrolled:  Joi.string().optional()
-    },
-    elementary: {
-      schoolName:    Joi.string().optional(),
-      dateEnrolled:  Joi.string().optional()
-    },
-    college: {
-      schoolName:    Joi.string().optional(),
-      dateEnrolled:  Joi.string().optional()
-    },
-    extraCurricular: Joi.string().optional(),
-    awards:          Joi.string().optional(),
-    likedSubject:    Joi.string().optional(),
-    leastSubject:    Joi.string().optional()               
-  },
+    motherInfo: Joi.object({
+      name: Joi.string().empty('').optional(),
+      age: Joi.number().optional(),
+      nationality: Joi.string().empty('').optional(),
+      religion: Joi.string().empty('').optional(),
+      birthday: Joi.string().empty('').optional(),
+      educationalAttainment: Joi.string().empty('').optional(),
+      occupation: Joi.string().empty('').optional(),
+      contactNo: Joi.string().empty('').optional(),
+      email: Joi.string().email().empty('').optional()
+    }).empty({}).optional(),
 
-  workExperience:{
-    name:          Joi.string().optional(),
-    duration:      Joi.string().optional(),
-    description:   Joi.string().optional(),
-    contactNo:     Joi.string().optional(),
-    email:         Joi.string().email().optional()
-  },
+    guardian: Joi.object({
+      name: Joi.string().empty('').optional(),
+      relation: Joi.string().empty('').optional(),
+      contactNo: Joi.string().empty('').optional(),
+      email: Joi.string().email().empty('').optional()
+    }).empty({}).optional(),
 
-  interests:{
-    sports:         Joi.string().optional(),
-    hobbies:        Joi.string().optional(),
-    talents:        Joi.string().optional(),
-    socioCivic:     Joi.string().optional(),
-    organization:   Joi.string().optional(),
-  },
+    address: Joi.string().empty('').optional(),
+    monthlyFamilyIncome: Joi.number().optional(),
+    statusOfParent: Joi.string().empty('').optional(),
+    siblings: Joi.array().items(Joi.any()).optional(),
+    birthOrder: Joi.string().empty('').optional(),
+    
+    emergency: Joi.object({
+      name: Joi.string().empty('').optional(),
+      contactNo: Joi.string().empty('').optional()
+    }).empty({}).optional()
+  }).empty({}).optional(),
 
-  health: {
-    hospitalized:   Joi.string().optional(),
-    reason:         Joi.string().optional(),
-    operation:      Joi.string().optional(),
-    illness:        Joi.string().optional(),
-    medicalCert:    Joi.string().optional(),
-    prescribedDrug: Joi.string().optional(),
-    hereditary:     Joi.string().optional(),
-    doctorLastSeen: Joi.string().optional(),
-  },
+  educationalBackground: Joi.object({
+    dateEnrolled: Joi.date().empty('').optional(),
+    seniorHighSchool: Joi.object({
+      schoolName: Joi.string().empty('').optional(),
+      dateEnrolled: Joi.string().empty('').optional()
+    }).empty({}).optional(),
+    juniorHighSchool: Joi.object({
+      schoolName: Joi.string().empty('').optional(),
+      dateEnrolled: Joi.string().empty('').optional()
+    }).empty({}).optional(),
+    elementary: Joi.object({
+      schoolName: Joi.string().empty('').optional(),
+      dateEnrolled: Joi.string().empty('').optional()
+    }).empty({}).optional(),
+    college: Joi.object({
+      schoolName: Joi.string().empty('').optional(),
+      dateEnrolled: Joi.string().empty('').optional()
+    }).empty({}).optional(),
+    extraCurricular: Joi.string().empty('').optional(),
+    awards: Joi.string().empty('').optional(),
+    likedSubject: Joi.string().empty('').optional(),
+    leastSubject: Joi.string().empty('').optional()
+  }).empty({}).optional(),
 
-  lifeCircumstances: {
-    recentLoss:     Joi.string().optional(),
-    currentConcern: Joi.string().optional(),
-  }
-})
+  workExperience: Joi.object({
+    name: Joi.string().empty('').optional(),
+    duration: Joi.string().empty('').optional(),
+    description: Joi.string().empty('').optional(),
+    contactNo: Joi.string().empty('').optional(),
+    email: Joi.string().email().empty('').optional()
+  }).empty({}).optional(),
+
+  interests: Joi.object({
+    sports: Joi.string().empty('').optional(),
+    hobbies: Joi.string().empty('').optional(),
+    talents: Joi.string().empty('').optional(),
+    socioCivic: Joi.string().empty('').optional(),
+    organization: Joi.string().empty('').optional(),
+  }).empty({}).optional(),
+
+  health: Joi.object({
+    hospitalized: Joi.string().empty('').optional(),
+    reason: Joi.string().empty('').optional(),
+    operation: Joi.string().empty('').optional(),
+    illness: Joi.string().empty('').optional(),
+    medicalCert: Joi.string().empty('').optional(),
+    prescribedDrug: Joi.string().empty('').optional(),
+    hereditary: Joi.string().empty('').optional(),
+    doctorLastSeen: Joi.string().empty('').optional(),
+  }).empty({}).optional(),
+
+  lifeCircumstances: Joi.object({
+    recentLoss: Joi.string().empty('').optional(),
+    currentConcern: Joi.string().empty('').optional(),
+  }).empty({}).optional()
+});
 
 const updateSchema = Joi.object({
-  sid:            Joi.string().optional(),
+  sid: Joi.string().empty('').optional(),
 
-  studentProfile: {
-    name:         Joi.string().optional(),
-    nickname:     Joi.string().optional(),
-    section:      Joi.string().optional(),
-    academicLevel:Joi.string().optional(),
-    age:          Joi.number().optional(),
-    nationality:  Joi.string().optional(),
-    gender:       Joi.string().optional(),
-    status:       Joi.string().optional(),
-    birthPlace:   Joi.string().optional(),
-    birthday:     Joi.string().optional(),
-    religion:     Joi.string().optional()
-  },
+  studentProfile: Joi.object({
+    name: Joi.string().empty('').optional(),
+    nickname: Joi.string().empty('').optional(),
+    section: Joi.string().empty('').optional(),
+    academicLevel: Joi.string().empty('').optional(),
+    age: Joi.number().optional(),
+    nationality: Joi.string().empty('').optional(),
+    gender: Joi.string().empty('').optional(),
+    status: Joi.string().empty('').optional(),
+    birthPlace: Joi.string().empty('').optional(),
+    birthday: Joi.string().empty('').optional(),
+    religion: Joi.string().empty('').optional()
+  }).empty({}).optional(),
 
-  contactInfo: {
-    email:        Joi.string().email().required(),
-    contactNo:    Joi.string().pattern(new RegExp('^[a-zA-Z0-9]{3,30}$')),
-    homeNo:       Joi.string().optional(),
-    workNo:       Joi.string().optional(),
-    address: {
-      permanentAddress:  Joi.string().required(),
-      currentAddress:    Joi.string().required(),
-      provincialAddress: Joi.string().optional()
-    }
-  },
+  contactInfo: Joi.object({
+    email: Joi.string().email().empty('').optional(),
+    contactNo: Joi.string().pattern(new RegExp('^[a-zA-Z0-9]{3,30}$')).empty('').optional(),
+    homeNo: Joi.string().empty('').optional(),
+    workNo: Joi.string().empty('').optional(),
+    address: Joi.object({
+      permanentAddress: Joi.string().empty('').optional(),
+      currentAddress: Joi.string().empty('').optional(),
+      provincialAddress: Joi.string().empty('').optional()
+    }).empty({}).optional()
+  }).empty({}).optional(),
 
-  familyBackground:{
-    fatherInfo: {
-      name:        Joi.string().optional(),
-      age:         Joi.number().optional(),
-      nationality: Joi.string().optional(),
-      religion:    Joi.string().optional(),
-      birthday:    Joi.string().optional(),
-      educationalAttainment: Joi.string(),
-      occupation:  Joi.string().optional(),
-      contactNo:   Joi.string().optional(),
-      email:       Joi.string().email().optional()
-    },
-    motherInfo: {
-      name:        Joi.string().optional(),
-      age:         Joi.number().optional(),
-      nationality: Joi.string().optional(),
-      religion:    Joi.string().optional(),
-      birthday:    Joi.string().optional(),
-      educationalAttainment: Joi.string(),
-      occupation:  Joi.string().optional(),
-      contactNo:   Joi.string().optional(),
-      email:       Joi.string().email().optional()
-    },
-    guardian: {
-      name:        Joi.string().optional(),
-      relation:    Joi.string().optional(),
-      contactNo:   Joi.string().optional(),
-      email:       Joi.string().email().optional()
-    },
-    address:              Joi.string().optional(),
-    monthlyFamilyIncome:  Joi.number().optional(),
-    statusOfParent:       Joi.string().optional(),
-    siblings:             Joi.array().optional(),
-    birthOrder:           Joi.string().optional(),
-    emergency: {
-      name:        Joi.string().optional(),
-      contactNo:   Joi.string().pattern(new RegExp('^[a-zA-Z0-9]{3,30}$')).optional()
-    }
-  },
+  familyBackground: Joi.object({
+    fatherInfo: Joi.object({
+      name: Joi.string().empty('').optional(),
+      age: Joi.number().optional(),
+      nationality: Joi.string().empty('').optional(),
+      religion: Joi.string().empty('').optional(),
+      birthday: Joi.string().empty('').optional(),
+      educationalAttainment: Joi.string().empty('').optional(),
+      occupation: Joi.string().empty('').optional(),
+      contactNo: Joi.string().empty('').optional(),
+      email: Joi.string().email().empty('').optional()
+    }).empty({}).optional(),
+    motherInfo: Joi.object({
+      name: Joi.string().empty('').optional(),
+      age: Joi.number().optional(),
+      nationality: Joi.string().empty('').optional(),
+      religion: Joi.string().empty('').optional(),
+      birthday: Joi.string().empty('').optional(),
+      educationalAttainment: Joi.string().empty('').optional(),
+      occupation: Joi.string().empty('').optional(),
+      contactNo: Joi.string().empty('').optional(),
+      email: Joi.string().email().empty('').optional()
+    }).empty({}).optional(),
+    guardian: Joi.object({
+      name: Joi.string().empty('').optional(),
+      relation: Joi.string().empty('').optional(),
+      contactNo: Joi.string().empty('').optional(),
+      email: Joi.string().email().empty('').optional()
+    }).empty({}).optional(),
+    address: Joi.string().empty('').optional(),
+    monthlyFamilyIncome: Joi.number().optional(),
+    statusOfParent: Joi.string().empty('').optional(),
+    siblings: Joi.array().items(Joi.any()).optional(),
+    birthOrder: Joi.string().empty('').optional(),
+    emergency: Joi.object({
+      name: Joi.string().empty('').optional(),
+      contactNo: Joi.string().empty('').optional()
+    }).empty({}).optional()
+  }).empty({}).optional(),
 
-  educationalBackground: {
-    dateEnrolled:    Joi.date().optional(),
-    seniorHighSchool: {
-      schoolName:    Joi.string().optional(),
-      dateEnrolled:  Joi.string().optional()
-    },
-    juniorHighSchool: {
-      schoolName:    Joi.string().optional(),
-      dateEnrolled:  Joi.string().optional()
-    },
-    elementary: {
-      schoolName:    Joi.string().optional(),
-      dateEnrolled:  Joi.string().optional()
-    },
-    college: {
-      schoolName:    Joi.string().optional(),
-      dateEnrolled:  Joi.string().optional()
-    },
-    extraCurricular: Joi.array().optional(),
-    awards:          Joi.array().optional(),
-    likedSubject:    Joi.string().optional(),
-    leastSubject:    Joi.string().optional()               
-  },
+  educationalBackground: Joi.object({
+    dateEnrolled: Joi.date().empty('').optional(),
+    seniorHighSchool: Joi.object({
+      schoolName: Joi.string().empty('').optional(),
+      dateEnrolled: Joi.string().empty('').optional()
+    }).empty({}).optional(),
+    juniorHighSchool: Joi.object({
+      schoolName: Joi.string().empty('').optional(),
+      dateEnrolled: Joi.string().empty('').optional()
+    }).empty({}).optional(),
+    elementary: Joi.object({
+      schoolName: Joi.string().empty('').optional(),
+      dateEnrolled: Joi.string().empty('').optional()
+    }).empty({}).optional(),
+    college: Joi.object({
+      schoolName: Joi.string().empty('').optional(),
+      dateEnrolled: Joi.string().empty('').optional()
+    }).empty({}).optional(),
+    extraCurricular: Joi.string().empty('').optional(),
+    awards: Joi.string().empty('').optional(),
+    likedSubject: Joi.string().empty('').optional(),
+    leastSubject: Joi.string().empty('').optional()
+  }).empty({}).optional(),
 
-  workExperience:{
-    name:          Joi.string().optional(),
-    duration:      Joi.string().optional(),
-    description:   Joi.string().optional(),
-    contactNo:     Joi.string().optional(),
-    email:         Joi.string().email().optional()
-  },
+  workExperience: Joi.object({
+    name: Joi.string().empty('').optional(),
+    duration: Joi.string().empty('').optional(),
+    description: Joi.string().empty('').optional(),
+    contactNo: Joi.string().empty('').optional(),
+    email: Joi.string().email().empty('').optional()
+  }).empty({}).optional(),
 
-  Interests:{
-    sports:         Joi.string().optional(),
-    hobbies:        Joi.string().optional(),
-    talents:        Joi.string().optional(),
-    socioCivic:     Joi.string().optional(),
-    organization:   Joi.string().optional(),
-  },
+  interests: Joi.object({
+    sports: Joi.string().empty('').optional(),
+    hobbies: Joi.string().empty('').optional(),
+    talents: Joi.string().empty('').optional(),
+    socioCivic: Joi.string().empty('').optional(),
+    organization: Joi.string().empty('').optional(),
+  }).empty({}).optional(),
 
-  health: {
-    hospitalized:   Joi.string().optional(),
-    reason:         Joi.string().optional(),
-    operation:      Joi.string().optional(),
-    illness:        Joi.string().optional(),
-    medicalCert:    Joi.string().optional(),
-    prescribedDrug: Joi.string().optional(),
-    hereditary:     Joi.string().optional(),
-    doctorLastSeen: Joi.string().optional(),
-  },
+  health: Joi.object({
+    hospitalized: Joi.string().empty('').optional(),
+    reason: Joi.string().empty('').optional(),
+    operation: Joi.string().empty('').optional(),
+    illness: Joi.string().empty('').optional(),
+    medicalCert: Joi.string().empty('').optional(),
+    prescribedDrug: Joi.string().empty('').optional(),
+    hereditary: Joi.string().empty('').optional(),
+    doctorLastSeen: Joi.string().empty('').optional(),
+  }).empty({}).optional(),
 
-  lifeCircumstances: {
-    recentLoss:     Joi.string().optional(),
-    currentConcern: Joi.string().optional(),
-  }
-})
+  lifeCircumstances: Joi.object({
+    recentLoss: Joi.string().empty('').optional(),
+    currentConcern: Joi.string().empty('').optional(),
+  }).empty({}).optional()
+});
 
 // Controller Function for adding student data 
 const addStudent = async (req, res) => {

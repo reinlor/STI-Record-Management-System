@@ -10,7 +10,9 @@ const slipRoute = require("./firestore/main/routes/slipRoute");
 const teacherRoute = require("./firestore/main/routes/teacherRoute");
 const referralRouter = require("./firestore/main/routes/referralRoute");
 const assessmentExam = require("./firestore/main/routes/assessmentExamRoute");
-const assessmentReport = require("./firestore/main/routes/assessmentReportRoute")
+const assessmentReport = require("./firestore/main/routes/assessmentReportRoute");
+const archiveRoute = require("./firestore/archive/routes/archiveRoute");
+const backupRoute = require("./firestore/backup/routes/backupRoute");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -29,7 +31,9 @@ app.use("/slip", slipRoute);
 app.use("/teacher", teacherRoute);
 app.use("/referral", referralRouter);        
 app.use("/exam", assessmentExam);
-app.use("/report", assessmentReport);             
+app.use("/report", assessmentReport);    
+app.use("/archive", archiveRoute);    
+app.use("/backup", backupRoute);     
  
 // Start the server
 app.listen(PORT, () => {

@@ -5,9 +5,9 @@ const Joi = require('joi');
 const violationSchema =  Joi.object({
   sid:                   Joi.string().required(),
   name:                  Joi.string().required(),
-  incidentDate:          Joi.date().required(),
+  incidentDate:          Joi.string().required(),
   incidentTime:          Joi.string().required(),
-  violation:             Joi.array().required(),
+  violation:             Joi.string().required(),
   description:           Joi.string().optional(),
   proofUrl:              Joi.string().required(),
   actionTaken:           Joi.string().required(),
@@ -17,9 +17,9 @@ const violationSchema =  Joi.object({
 const updateSchema =  Joi.object({
   sid:                   Joi.string().optional(),
   name:                  Joi.string().optional(),
-  incidentDate:          Joi.date().optional(),
+  incidentDate:          Joi.string().optional(),
   incidentTime:          Joi.string().optional(),
-  violation:             Joi.array().optional(),
+  violation:             Joi.string().optional(),
   description:           Joi.string().optional(),
   proofUrl:              Joi.string().optional(),
   actionTaken:           Joi.string().optional(),

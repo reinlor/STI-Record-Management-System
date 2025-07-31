@@ -5,9 +5,9 @@ const Joi = require('joi');
 const counselingSchema = Joi.object({
   sid:             Joi.string().required(),
   name:            Joi.string().required(),
-  incidentDate:    Joi.date().required(),
+  incidentDate:    Joi.string().required(),
   category:        Joi.string().required(),
-  concern:         Joi.array().required(),
+  concern:         Joi.string().required(),
   description:     Joi.string().optional(),
   proofUrl:        Joi.string().required(),
   actionTaken:     Joi.string().required(),
@@ -18,9 +18,9 @@ const counselingSchema = Joi.object({
 const updateSchema = Joi.object({
   sid:             Joi.string().optional(),
   name:            Joi.string().optional(),
-  incidentDate:    Joi.date().optional(),
+  incidentDate:    Joi.string().optional(),
   category:        Joi.string().optional(),
-  concern:         Joi.array().optional(),
+  concern:         Joi.string().optional(),
   description:     Joi.string().optional(),
   proofUrl:        Joi.string().optional(),
   actionTaken:     Joi.string().optional(),

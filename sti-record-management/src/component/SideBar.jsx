@@ -3,7 +3,7 @@ import styles from'./components-css/SideBar.module.css';
 
 export default function Sidebar() {
     const navigate = useNavigate();
-
+    
     const menuPages = [
       {label: "Dashboard", path: "/admin"},
       {label: "Student Records", path: "/admin/student-records"},

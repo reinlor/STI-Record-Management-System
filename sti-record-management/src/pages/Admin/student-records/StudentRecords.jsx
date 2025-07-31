@@ -9,7 +9,7 @@ const StudentRecords = ({ onStudentSelect }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
-  // student data from firebase     -Renlor
+  // Naka store dito ung student data from firebase     -Renlor
   const [studentData, setStudentData] = useState([]);
   // loading ulit                   -Renlor
   const [visible, setVisibility] = useState(false);
@@ -17,8 +17,20 @@ const StudentRecords = ({ onStudentSelect }) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get(`http://localhost:5000/student/`);
-        setStudentData(response.data);
+        const response = await axios.get("/student/");
+        const processedStudentData = response.data.map(student => {
+          const { program, section, level } = studentProgramAndSection(student.studentProfile.section);
+          return {
+            ...student,
+            studentProfile: {
+              ...student.studentProfile,
+              newProgram: program,
+              newSection: section,
+              newLevel: level
+            }
+          };
+        });
+        setStudentData(processedStudentData);
       } catch (error) {
         console.log("Error while fetching data", error);
       }
@@ -26,6 +38,47 @@ const StudentRecords = ({ onStudentSelect }) => {
     fetchData();
     setVisibility(true);
   }, []);
+
+  // Patangal kung may mas maayos na logic na niisip   -Renlor
+  const studentProgramAndSection = (fullSectionString) => {
+    if (!fullSectionString || fullSectionString === 'None') {
+      return { program: 'N/A', section: 'N/A' };
+    }
+
+    const parts = fullSectionString.split(' ');
+    let program = 'N/A';
+    let section = 'N/A';
+    let level = "N/A";
+
+    if (parts.length === 2) {
+      program = parts[0];
+      section = parts[1];
+    }
+    else {
+      const lastPart = parts[parts.length - 1];
+      if (lastPart.match(/^\d+\.\d+$/)) {
+        section = lastPart;
+        program = parts.slice(0, parts.length - 1).join(' ');
+      } else {
+        program = fullSectionString;
+        section = 'N/A';
+      }
+    }
+
+    if(section === "4.1" || section === "4.2"){
+      level = "4th Year"
+    }
+    else if(section === "3.1" || section === "3.2"){
+      level = "3rd Year"
+    }
+    else if(section === "2.1" || section === "2.2"){
+      level = "2nd Year"
+    }
+    else if(section === "1.1" || section === "1.2"){
+      level = "1st Year"
+    }
+    return { program, section, level };
+  };
 
   const filteredStudents = studentData.filter((student) =>
     student.id.includes(searchQuery)
