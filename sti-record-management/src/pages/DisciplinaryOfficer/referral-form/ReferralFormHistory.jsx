@@ -1,29 +1,28 @@
 import react, { useState } from 'react'
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom'
 
-function RefferalForm() {
-    const [display, setDisplay] = useState(false);
-    const [status, setStatus] = useState();
+function ReferralFormHistory() {
     const navigate = useNavigate();
+    const [display, setDisplay] = useState(false);
 
-    // Papatangal pag may axios na
+    // Patangal pag may axios na
     const sampleData = [{
         name: 'Alcantara, Venice Angelica',
         employeeNo: '02000000000',
         violation: 'Disrespectful Behavior',
-        referredStudent: 'Colinco, Jordan',
+        referredStudent: 'Lor, Rehneil',
         date: '07/31/2025',
-        status: 'In progress',
+        status: 'Resolved'
     }, {
         name: 'Alcantara, Venice Angelica',
         employeeNo: '02000000000',
         violation: 'Disrespectful Behavior',
-        referredStudent: 'De Pedro, Dionne',
+        referredStudent: 'Tugna, Sean',
         date: '07/31/2025',
-        status: 'In progress',
+        status: 'Resolved'
     }]
 
-    // Papalit pag may axios na
+    // Papalitan pag may axios na
     const displayReferralTable = sampleData.map((referrals) =>
         <tr>
             <td>{referrals.name}</td>
@@ -33,61 +32,44 @@ function RefferalForm() {
             <td>{referrals.date}</td>
             <td>{referrals.status}</td>
             <button
-                onClick={() => 
+                onClick={() =>
                     setDisplay(!display)
-                }>
+                }
+            >
                 Open
             </button>
         </tr>
     )
 
+    // Papalit kung may naiisip na mas maayos na logic
     const displayReferralData = () => {
         if (display) {
             return <>
-                <h3>Referral Form</h3>
-                <div>
-                    <p>Status
-                        <select>
-                            <option value="">On Going</option>
-                            <option value="Resolved">Resolved</option>
-                            {/* Add more option - Eneil */}
-                        </select>
-                    </p>
-                    <hr />
+                <h3>Referral Form</h3> <hr/>
 
+                <div>
                     <p>School Year: </p>
-                    <p>Tertiary (semester): </p>
-                    <p>Senior High (quarter): </p>
+                    <p>Tertiary (Semester): </p>
+                    <p>Senior High (Quarter): </p>
                     <p>Student Number: </p>
                     <p>Student Name: </p>
                     <p>Program and Section: </p>
-                    <p>Gender:  </p>
+                    <p>Gender: </p>
                     <p>Age: </p>
                     <p>Referred By: </p>
                     <p>Areas of Concern: </p>
                     <p>Action Required: </p>
-                    <p>Level of Priority: </p>
-                    <p>Action Taken Before Referral: </p>
+                    <p>Level of priority: </p>
+                    <p>Actions Taken before Referral: </p>
                     <input type='text'/>
                     <p>Reason for Referral/Comments: </p>
                     <input type='text'/>
                 </div>
 
                 <div>
-                    <p>Conselor's Initial Action: </p>
-                    <p>Counselor's Note: </p>
+                    <p>Counselor's Initial Action</p>
+                    <p>Counselor's Note</p>
                     <input type='text'/>
-                    <p>Counselor's Note: </p>
-                    <input type='text'/>
-                    <p>Send Email To: </p>
-                    <input type='text'/>
-                    <p>Subject:</p>
-                    <input type='text'/>
-                    <p>Body:</p>
-                    <input type='text'/>
-
-                    <button>Update</button>
-                    <button>Solved</button>
                 </div>
             </>
         }
@@ -96,24 +78,15 @@ function RefferalForm() {
 
     return (
         <div>
-            <h1>Referral Form Processing</h1>
-            <div>
-                <button
-                    onClick={()=>
-                        navigate("/disciplinary/referral-form-history")
-                    }
-                >History</button>
-                <input
-                    type="text"
-                    placeholder="Name/ID" />
-            </div>
+            <h1>Referral Form History</h1>
+            <input type="text" placeholder="Name ID" />
             <table>
                 <thead>
                     <tr>
                         <td>Name</td>
                         <td>Employee No.</td>
                         <td>Violation</td>
-                        <td>Reffered Student</td>
+                        <td>Referred Student</td>
                         <td>Date</td>
                         <td>Status</td>
                     </tr>
@@ -122,10 +95,9 @@ function RefferalForm() {
                     {displayReferralTable}
                 </tbody>
             </table>
-            
             {displayReferralData()}
         </div>
     )
 }
 
-export default RefferalForm;
+export default ReferralFormHistory;

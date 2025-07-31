@@ -20,6 +20,7 @@ import DisciplinaryStudentCases from './pages/DisciplinaryOfficer/student-cases/
 import DisciplinaryRequestSlip from './pages/DisciplinaryOfficer/request-slip/RequestSlip.jsx'
 import DisciplinaryRequestSlipHistory from './pages/DisciplinaryOfficer/request-slip/RequestSlipHistory.jsx'
 import DisciplinaryReferralForm from './pages/DisciplinaryOfficer/referral-form/ReferralForm.jsx'
+import DisciplinaryReferralFormHistory from './pages/DisciplinaryOfficer/referral-form/ReferralFormHistory.jsx'
 import DisciplinaryBackupNRestore from './pages/DisciplinaryOfficer/backup-and-restore/BackupNRestore.jsx'
 
 // What the helly yow bat di to naka define       -renlor (genuine question)
@@ -52,6 +53,7 @@ export default function App() {
           <Route path="request-slip" element={<DisciplinaryRequestSlip/>}/>
           <Route path="request-slip-history" element={<DisciplinaryRequestSlipHistory/>}/>
           <Route path="referral-form" element={<DisciplinaryReferralForm/>}/>
+          <Route path="referral-form-history" element={<DisciplinaryReferralFormHistory/>}/>
           <Route path="backup-n-restore" element={<DisciplinaryBackupNRestore/>}/>
         </Route>
 
