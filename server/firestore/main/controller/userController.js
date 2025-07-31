@@ -96,4 +96,32 @@ const deleteUser = async (req, res) => {
   }
 };
 
-module.exports = { getUsers, addUser, deleteUser, updateUser };
+const loginUser = async (req, res) => {
+  try {
+    const { uid, password } = req.body;
+
+    const snapshot = await getUserCollection().where("uid", "==", uid).get();
+
+    if(snapshot.empty){
+      return res.status(404).send({error: "User not found"});
+    }
+
+    const userPassword = snapshot.docs[0].data().password;
+
+    if(password !== userPassword){
+      return res.status(401).json({error: "Invalid password"})
+    }
+
+    else{
+      return res.status(200).json({
+        message: "Login Successful",
+        user: snapshot.docs[0].data()
+      })
+    }
+
+  } catch (error) {
+    res.status(500).send({error: "Failed to login user"})
+  }
+}
+
+module.exports = { getUsers, addUser, deleteUser, updateUser, loginUser };
