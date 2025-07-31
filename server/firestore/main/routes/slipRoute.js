@@ -1,6 +1,6 @@
 const express = require("express");
 
-const {addLateSlip, getAllLateSlip, getLateSlip, addAbsentSlip, getAllAbsentSlip, getAbsentSlip, addIDPass, getAllIDPass, getIDPass} = require("../controller/slipController");
+const {addLateSlip, getAllLateSlip, getLateSlip, addAbsentSlip, getAllAbsentSlip, getAbsentSlip, addIDPass, getAllIDPass, getIDPass, getAllSlips} = require("../controller/slipController");
 
 const router = express.Router();
 
@@ -18,5 +18,8 @@ router.get("/absentSlip/:sid", getAbsentSlip);       // For retrieving Absent Sl
 router.post("/IDPass/add/", addIDPass);              // For adding ID Pass submission
 router.get("/IDPass", getAllIDPass);                 // For retrieving all ID Pass submission
 router.get("/IDPass/:sid", getIDPass);               // For retrieving ID Pass submission by ID
+
+//All Slips
+router.get('/allSlips', getAllSlips);                // For retrieving all slips (Late, Absent, ID Pass)
 
 module.exports = router;

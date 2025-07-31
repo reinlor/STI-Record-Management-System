@@ -12,11 +12,13 @@ const lateSlipSchema = Joi.object({
   name:            Joi.string().required(),
   program:         Joi.string().required(),
   section:         Joi.string().required(),
+  typeOfSlip:      Joi.string().valid('Late Slip').required(),
   email:           Joi.string().email({ 
                             minDomainSegments: 2, 
                             tlds: { 
                               allow: ['com', 'net'] } }),
   reason:          Joi.string().required(),
+  attachmentCount: Joi.number().required(),
   proofUrl:        Joi.string().required(),
   status:          Joi.string().required(),
   timeCreated:     Joi.date().required()
@@ -27,6 +29,7 @@ const absentSlipSchema = Joi.object({
   name:            Joi.string().required(),
   program:         Joi.string().required(),
   section:         Joi.string().required(),
+  typeOfSlip:      Joi.string().valid('Absent Slip').required(),
   email:           Joi.string().email({ 
                             minDomainSegments: 2, 
                             tlds: { 
@@ -34,6 +37,7 @@ const absentSlipSchema = Joi.object({
   excuseLetterUrl: Joi.string().required(),
   medicalCertificateUrl: Joi.string().required(),
   guardianValidIDUrl: Joi.string().required(),
+  attachmentCount: Joi.number().required(),
   status:          Joi.string().required(),
   timeCreated:     Joi.date().required()
 });
@@ -43,11 +47,13 @@ const idPassSchema = Joi.object({
   name:            Joi.string().required(),
   program:         Joi.string().required(),
   section:         Joi.string().required(),
+  typeOfSlip:      Joi.string().valid('ID Slip').required(),
   email:           Joi.string().email({ 
                             minDomainSegments: 2, 
                             tlds: { 
                               allow: ['com', 'net'] } }),
   reason:          Joi.string().required(),
+  attachmentCount: Joi.number().required().default(0),
   status:          Joi.string().required(),
   timeCreated:     Joi.date().required()
 });
@@ -261,6 +267,42 @@ const uploadImage = async (req, res) => {
   }
 };
 
+// Controller Function for retrieving all slips
+const getAllSlips = async (req, res) => {
+  try {
+    const snapshot = await getLateSlipsCollection().get();
+    const snapshot2 = await getAbsentSlipsCollection().get();
+    const snapshot3 = await getIDPassCollection().get();
+
+    if (snapshot.empty && snapshot2.empty && snapshot3.empty) {
+      return res
+        .status(404)
+        .send({ error: `There is no available slips.` });
+    }
+
+    const lateSlips = snapshot.docs.map((lateSlip) => ({
+      _id: lateSlip.id,
+      ...lateSlip.data(),
+    }));
+
+    const absentSlips = snapshot2.docs.map((absentSlip) => ({
+      _id: absentSlip.id,
+      ...absentSlip.data()
+    }))
+
+    const IDPasses = snapshot3.docs.map((IDPass) => ({
+      _id: IDPass.id,
+      ...IDPass.data()
+    }))
+
+    allSlips = [...lateSlips, ...absentSlips, ...IDPasses]
+
+    res.status(200).json(allSlips);
+  } catch (error) {
+    res.status(404).json({ error: error.message });
+  }
+};
+
 module.exports = {
   addLateSlip,
   getAllLateSlip,
@@ -272,4 +314,5 @@ module.exports = {
   getAllIDPass,
   getIDPass,
   uploadImage,
+  getAllSlips
 };
