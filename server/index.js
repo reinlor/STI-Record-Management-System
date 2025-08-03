@@ -23,14 +23,14 @@ app.use(cors());
 app.use(express.json());
 
 // Routes
-app.use("/user", userRoute);                   
-app.use("/student", studentRoute);             
-app.use("/upload", uploadRoute);                
-app.use("/violation", violationRoute);          
-app.use("/counseling", counselingRoute);       
-app.use("/slip", slipRoute); 
+app.use("/user", userRoute);
+app.use("/student", studentRoute);
+app.use("/upload", uploadRoute);
+app.use("/violation", violationRoute);
+app.use("/counseling", counselingRoute);
+app.use("/slip", slipRoute);
 app.use("/teacher", teacherRoute);
-app.use("/referral", referralRouter);        
+app.use("/referral", referralRouter);
 app.use("/exam", assessmentExam);
 app.use("/report", assessmentReport);    
 app.use("/archive", archiveRoute);    

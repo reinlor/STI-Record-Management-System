@@ -21,7 +21,7 @@ const getAllImages = async (req, res) => {
     res.status(200).json(images);
   } catch (error) {
     console.error("Error fetching images:", error);
-    res.status(500).send({ error: "Failed to fetch images" });
+    res.status(500).json({ error: "Failed to fetch images" });
   }
 };
 
@@ -38,7 +38,7 @@ const deleteImage = async (req, res) => {
 
     // If document doesn't exist, send 404 error
     if (!docSnap.exists) {
-      return res.status(404).send({ error: "Image not found" });
+      return res.status(404).json({ error: "Image not found" });
     }
 
     // Extract Cloudinary public ID from Firestore document
@@ -51,10 +51,10 @@ const deleteImage = async (req, res) => {
     await docRef.delete();
 
     // Send success response
-    res.status(200).send({ message: "Image deleted successfully" });
+    res.status(200).json({ message: "Image deleted successfully" });
   } catch (error) {
     console.error("Error deleting image:", error);
-    res.status(500).send({ error: "Failed to delete image" });
+    res.status(500).json({ error: "Failed to delete image" });
   }
 };
 

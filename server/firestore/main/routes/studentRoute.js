@@ -4,6 +4,6 @@ const { addStudent, getStudent, updateStudent } = require("../controller/student
 
 router.get("/", getStudent);            // For retrieving all student data
 router.post("/create", addStudent);     // For creating student data
-router.put("/:sid", updateStudent);     // For retrieiving student data by ID
+router.put("/:sid", updateStudent);     // For retrieving student data by ID
 
 module.exports = router;

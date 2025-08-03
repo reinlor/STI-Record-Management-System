@@ -18,16 +18,18 @@ const StudentRecords = ({ onStudentSelect }) => {
     const fetchData = async () => {
       try {
         const response = await axios.get("/student/");
-        const processedStudentData = response.data.map(student => {
-          const { program, section, level } = studentProgramAndSection(student.studentProfile.section);
+        const processedStudentData = response.data.map((student) => {
+          const { program, section, level } = studentProgramAndSection(
+            student.studentProfile.section
+          );
           return {
             ...student,
             studentProfile: {
               ...student.studentProfile,
               newProgram: program,
               newSection: section,
-              newLevel: level
-            }
+              newLevel: level,
+            },
           };
         });
         setStudentData(processedStudentData);
@@ -41,41 +43,37 @@ const StudentRecords = ({ onStudentSelect }) => {
 
   // Patangal kung may mas maayos na logic na niisip   -Renlor
   const studentProgramAndSection = (fullSectionString) => {
-    if (!fullSectionString || fullSectionString === 'None') {
-      return { program: 'N/A', section: 'N/A' };
+    if (!fullSectionString || fullSectionString === "None") {
+      return { program: "N/A", section: "N/A" };
     }
 
-    const parts = fullSectionString.split(' ');
-    let program = 'N/A';
-    let section = 'N/A';
+    const parts = fullSectionString.split(" ");
+    let program = "N/A";
+    let section = "N/A";
     let level = "N/A";
 
     if (parts.length === 2) {
       program = parts[0];
       section = parts[1];
-    }
-    else {
+    } else {
       const lastPart = parts[parts.length - 1];
       if (lastPart.match(/^\d+\.\d+$/)) {
         section = lastPart;
-        program = parts.slice(0, parts.length - 1).join(' ');
+        program = parts.slice(0, parts.length - 1).join(" ");
       } else {
         program = fullSectionString;
-        section = 'N/A';
+        section = "N/A";
       }
     }
 
-    if(section === "4.1" || section === "4.2"){
-      level = "4th Year"
-    }
-    else if(section === "3.1" || section === "3.2"){
-      level = "3rd Year"
-    }
-    else if(section === "2.1" || section === "2.2"){
-      level = "2nd Year"
-    }
-    else if(section === "1.1" || section === "1.2"){
-      level = "1st Year"
+    if (section === "4.1" || section === "4.2") {
+      level = "4th Year";
+    } else if (section === "3.1" || section === "3.2") {
+      level = "3rd Year";
+    } else if (section === "2.1" || section === "2.2") {
+      level = "2nd Year";
+    } else if (section === "1.1" || section === "1.2") {
+      level = "1st Year";
     }
     return { program, section, level };
   };
@@ -96,7 +94,11 @@ const StudentRecords = ({ onStudentSelect }) => {
   };
 
   return (
-    <div className={`${userStyle.recordsContainer} ${visible ? 'visible' : 'hidden'}`}>
+    <div
+      className={`${userStyle.recordsContainer} ${
+        visible ? "visible" : "hidden"
+      }`}
+    >
       <h2 className={userStyle.recordsTitle}>Student Records</h2>
 
       <input
@@ -147,8 +149,9 @@ const StudentRecords = ({ onStudentSelect }) => {
           {Array.from({ length: totalPages }, (_, i) => (
             <Button
               key={i + 1}
-              className={`${userStyle.pageButton} ${currentPage === i + 1 ? userStyle.activePage : ""
-                }`}
+              className={`${userStyle.pageButton} ${
+                currentPage === i + 1 ? userStyle.activePage : ""
+              }`}
               onClick={() => handlePageClick(i + 1)}
             >
               {i + 1}

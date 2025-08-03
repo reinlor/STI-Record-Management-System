@@ -11,6 +11,7 @@ const Upload = () => {
   const [imageUrl, setImageUrl] = useState(""); // Stores Cloudinary image URL
   const [publicID, setPublicID] = useState(""); // Stores Cloudinary public ID
   const [images, setImages] = useState([]); // Stores list of all saved images from Firestore
+  const [preview, setPreview] = useState(null); // NEW: preview before upload
 
   // =======================
   // Fetch saved images on component mount
@@ -21,76 +22,70 @@ const Upload = () => {
 
   const fetchImages = async () => {
     try {
-      // Request all saved image metadata from backend
       const res = await axios.get("http://localhost:5000/upload/getImages");
-      setImages(res.data); // Store in state
+      setImages(res.data);
     } catch (error) {
       console.error("Error fetching images:", error);
     }
   };
 
   // =======================
-  // DELETE image by document ID from Firestore
+  // DELETE image
   // =======================
   const handleDeleteImage = async (id) => {
     try {
       await axios.delete(`http://localhost:5000/upload/${id}`);
-      // Update local state to remove the deleted image
       setImages((prev) => prev.filter((img) => img.id !== id));
-      
     } catch (error) {
       console.error("Delete image error:", error);
     }
   };
 
   // =======================
-  // ADD image to Firestore
-  // =======================
-  const handleAddImage = async () => {
-    // Ensure image has been uploaded first
-    if (!imageUrl || !publicID) {
-      alert("Please upload an image first.");
-      return;
-    }
-
-    try {
-      // Save image metadata to Firestore
-      const res = await axios.post("http://localhost:5000/upload/add", {
-        imageUrl,
-        publicID,
-      });
-
-      // Update local state with the newly added image
-      setImages((prev) => [...prev, res.data]);
-      setImageUrl(""); // Clear image preview
-      setPublicID(""); // Clear public ID
-    } catch (error) {
-      console.error("Add image error:", error);
-    }
-  };
-
-  // =======================
-  // Track file input change
+  // File input change handler (with preview)
   // =======================
   const handleFileChange = (e) => {
-    setFile(e.target.files[0]); // Store selected file in state
+    const selectedFile = e.target.files[0];
+    setFile(selectedFile);
+
+    if (selectedFile) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreview(reader.result); // show base64 preview
+      };
+      reader.readAsDataURL(selectedFile);
+    }
   };
 
   // =======================
-  // Upload image file to Cloudinary
+  // Upload image to Cloudinary
   // =======================
   const handleUpload = async () => {
     const formData = new FormData();
-    formData.append("image", file); // Append selected file
+    formData.append("image", file);
 
     try {
-      // Send POST request to backend which uploads to Cloudinary
       const res = await axios.post(
         "http://localhost:5000/upload/upload",
         formData
       );
-      setImageUrl(res.data.imageUrl); // Store Cloudinary image URL
-      setPublicID(res.data.publicID); // Store Cloudinary public ID
+
+      const uploadedUrl = res.data.imageUrl;
+      const uploadedID = res.data.publicID;
+
+      setImageUrl(uploadedUrl);
+      setPublicID(uploadedID);
+
+      // Now use the returned values directly
+      const res2 = await axios.post("http://localhost:5000/upload/add", {
+        imageUrl: uploadedUrl,
+        publicID: uploadedID,
+      });
+
+      setImages((prev) => [...prev, res2.data]);
+      setImageUrl("");
+      setPublicID("");
+      setPreview(null);
     } catch (error) {
       console.error("Upload failed:", error);
     }
@@ -103,23 +98,29 @@ const Upload = () => {
     <div className={styles.container}>
       <h2>Cloudinary Image Uploader</h2>
 
-      {/* Upload controls */}
       <div className={styles.uploadSection}>
         <input type="file" onChange={handleFileChange} />
         <button onClick={handleUpload}>Upload to Cloudinary</button>
-        <button onClick={handleAddImage}>Save to Firestore</button>
       </div>
 
-      {/* Preview uploaded image */}
-      {imageUrl && (
+      {/* Preview before upload */}
+      {preview && !imageUrl && (
         <div className={styles.preview}>
-          <h3>Preview</h3>
-          <p>Public ID: {publicID}</p>
-          <img src={imageUrl} alt="Preview" />
+          <h3>Preview Before Upload</h3>
+          <img src={preview} alt="Image Preview" />
         </div>
       )}
 
-      {/* Display gallery of saved images */}
+      {/* Preview after upload */}
+      {imageUrl && (
+        <div className={styles.preview}>
+          <h3>Uploaded Preview</h3>
+          <p>Public ID: {publicID}</p>
+          <img src={imageUrl} alt="Uploaded" />
+        </div>
+      )}
+
+      {/* Saved Images */}
       <div className={styles.gallery}>
         <h3>All Uploaded Images</h3>
         {images.length === 0 ? (
@@ -130,7 +131,9 @@ const Upload = () => {
               <div key={img.id} className={styles.card}>
                 <img src={img.imageUrl} alt={img.publicID} />
                 <p>{img.publicID}</p>
-                <button onClick={() => handleDeleteImage(img.id)}>Delete</button>
+                <button onClick={() => handleDeleteImage(img.id)}>
+                  Delete
+                </button>
               </div>
             ))}
           </div>
