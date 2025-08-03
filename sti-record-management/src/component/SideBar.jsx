@@ -17,7 +17,7 @@ export default function Sidebar({
             { label: "Users", path: "/admin/users" },
             { label: "Back Up and Restore", path: "/admin/back-n-restore" }
         ];
-        panelName = 'Disciplinary';
+        panelName = 'Admin';
     }
     // User =  Disciplinary Officer
     else if (user === 'disciplinary') {

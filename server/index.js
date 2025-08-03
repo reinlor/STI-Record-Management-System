@@ -13,6 +13,7 @@ const assessmentExam = require("./firestore/main/routes/assessmentExamRoute");
 const assessmentReport = require("./firestore/main/routes/assessmentReportRoute");
 const archiveRoute = require("./firestore/archive/routes/archiveRoute");
 const backupRoute = require("./firestore/backup/routes/backupRoute");
+const emailRoute = require("./modules/email/emailRoute")
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -33,7 +34,8 @@ app.use("/referral", referralRouter);
 app.use("/exam", assessmentExam);
 app.use("/report", assessmentReport);    
 app.use("/archive", archiveRoute);    
-app.use("/backup", backupRoute);     
+app.use("/backup", backupRoute); 
+app.use("/email", emailRoute)    
  
 // Start the server
 app.listen(PORT, () => {
