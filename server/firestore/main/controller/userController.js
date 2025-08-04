@@ -1,5 +1,5 @@
 const { getUserCollection } = require("../models/userModel.js");
-const admin = require("../../../firebase");
+const { admin } = require("../../../firebase");
 
 // Controller Function to retrieve all users
 const getUsers = async (req, res) => {
@@ -19,14 +19,29 @@ const getUsers = async (req, res) => {
 // Controller Function to create user (Not final since microsoft login gamit ng)
 const addUser = async (req, res) => {
   try {
-    const newStudent = req.body;
-    const uid = newStudent.uid;
+    const newUser = req.body;
 
-    await getUserCollection().doc(uid).set(newStudent);
-    
-    res.status(201).json({ 
-      message: "Student registered successfully", 
-      id: uid 
+    const userRecord = await admin.auth().createUser({
+      email: newUser.email,
+      password: newUser.password,
+      displayName: newUser.displayName,
+    });
+
+    const accountID = userRecord.uid;
+
+    if (!accountID) {
+      return res
+        .status(400)
+        .json({ error: "Failed to create user in Firebase Auth" });
+    }
+
+    await getUserCollection()
+      .doc(newUser.uid)
+      .set({ ...newUser, _id: accountID });
+
+    res.status(201).json({
+      message: "User registered successfully",
+      uid: newUser.uid,
     });
   } catch (error) {
     console.error("Registration error:", error);
@@ -52,10 +67,10 @@ const updateUser = async (req, res) => {
 
     await studentRef.set(updates, { merge: true });
 
-    res.status(200).json({ 
+    res.status(200).json({
       message: "Student updated successfully",
       id: uid,
-      updates: updates
+      updates: updates,
     });
   } catch (error) {
     console.error("Update error:", error);
@@ -96,32 +111,32 @@ const deleteUser = async (req, res) => {
   }
 };
 
-const loginUser = async (req, res) => {
-  try {
-    const { uid, password } = req.body;
+//Subject to changes depending on how authentication is handled in the frontend!!
+const authenticateUser = async (req, res) => {
+  const idToken = req.headers.authorization?.split("Bearer ")[1];
 
-    const snapshot = await getUserCollection().where("uid", "==", uid).get();
-
-    if(snapshot.empty){
-      return res.status(404).send({error: "User not found"});
-    }
-
-    const userPassword = snapshot.docs[0].data().password;
-
-    if(password !== userPassword){
-      return res.status(401).json({error: "Invalid password"})
-    }
-
-    else{
-      return res.status(200).json({
-        message: "Login Successful",
-        user: snapshot.docs[0].data()
-      })
-    }
-
-  } catch (error) {
-    res.status(500).send({error: "Failed to login user"})
+  if (!idToken) {
+    return res.status(401).send({ error: "No token provided" });
   }
-}
 
-module.exports = { getUsers, addUser, deleteUser, updateUser, loginUser };
+  try {
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    const uid = decodedToken.uid;
+
+    const userDoc = await getUserCollection().doc(uid).get();
+
+    if (!userDoc.exists) {
+      return res.status(404).send({ error: "User not found in Firestore" });
+    }
+
+    return res.status(200).json({
+      message: "Authenticated",
+      user: userDoc.data(),
+    });
+  } catch (error) {
+    console.error("Token verification failed:", error);
+    return res.status(401).send({ error: "Invalid token" });
+  }
+};
+
+module.exports = { getUsers, addUser, deleteUser, updateUser, authenticateUser };
