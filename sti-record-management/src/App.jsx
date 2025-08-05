@@ -2,6 +2,8 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 import Login from './login/Login.jsx';
 import UserManager from './component/UserManager.jsx';
+import LoginBeta from './login/LoginBeta.jsx';
+
 import Register from './component/Register.jsx';
 import Upload from './component/Upload.jsx';
 
@@ -34,6 +36,7 @@ export default function App() {
       <Routes>
         {/* Login Page*/}
         <Route path="/" element={<Login />} />
+        <Route path="/login" element={<LoginBeta />} />
         <Route path='/userManager' element={<UserManager/>}/>
 
         {/* Super-Admin */}

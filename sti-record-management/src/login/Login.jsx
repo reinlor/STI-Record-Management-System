@@ -5,7 +5,7 @@ export default function Login() {
     return (
         <div className={styles.loginContainer}>
         <div className={styles.loginCard}>
-            <h1 className={styles.title}>Welcome Back Nig</h1>
+            <h1 className={styles.title}>Placeholder Login</h1>
             <p className={styles.subtitle}>Please click below to continue.</p>
             <Button to="/admin" className={styles.loginBtn}>
                 Go to Admin Dashboard
