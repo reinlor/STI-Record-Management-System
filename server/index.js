@@ -13,7 +13,9 @@ const assessmentExam = require("./firestore/main/routes/assessmentExamRoute");
 const assessmentReport = require("./firestore/main/routes/assessmentReportRoute");
 const archiveRoute = require("./firestore/archive/routes/archiveRoute");
 const backupRoute = require("./firestore/backup/routes/backupRoute");
-const emailRoute = require("./modules/email/emailRoute")
+const emailRoute = require("./modules/email/emailRoute");
+const bulkUploadRoute = require("./firestore/main/bulk/bulkUploadRoute");
+const batchUpdateRoute = require("./firestore/main/batch/batchUpdateRoute");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -35,7 +37,9 @@ app.use("/exam", assessmentExam);
 app.use("/report", assessmentReport);    
 app.use("/archive", archiveRoute);    
 app.use("/backup", backupRoute); 
-app.use("/email", emailRoute)    
+app.use("/email", emailRoute);
+app.use("/bulk-upload", bulkUploadRoute);   
+app.use("/batch-update", batchUpdateRoute);
  
 // Start the server
 app.listen(PORT, () => {
