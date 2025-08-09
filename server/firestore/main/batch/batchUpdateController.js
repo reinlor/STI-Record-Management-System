@@ -7,7 +7,6 @@ const batchUpdateSection = async (req, res) => {
       .where('updateType', '==', 'sectionReset')
       .limit(1)
       .get();
-
     if (scheduleSnap.empty) {
       return res.status(404).json({ error: "No batch schedule found." });
     }

@@ -8,10 +8,13 @@ export default function Login() {
             <h1 className={styles.title}>Placeholder Login</h1>
             <p className={styles.subtitle}>Please click below to continue.</p>
             <Button to="/admin" className={styles.loginBtn}>
-                Go to Admin Dashboard
+                Go to Admin Page
             </Button>
             <Button to="/disciplinary" className={styles.loginBtn}>
-                Go to Disciplinary Officer Dashboard
+                Go to Disciplinary Officer Page
+            </Button>
+            <Button to="/Teacher" className={styles.loginBtn}>
+                Go to Teacher Page
             </Button>
             <Button to="/userManager" className={styles.userManagerBtn}>
                 Go to User Manager

@@ -25,6 +25,10 @@ import DisciplinaryReferralForm from './pages/DisciplinaryOfficer/referral-form/
 import DisciplinaryReferralFormHistory from './pages/DisciplinaryOfficer/referral-form/ReferralFormHistory.jsx'
 import DisciplinaryBackupNRestore from './pages/DisciplinaryOfficer/backup-and-restore/BackupNRestore.jsx'
 
+import TeacherHomepage from './pages/Teacher/TeacherHomepage.jsx';
+
+import PageNotFound from './pages/Others/PageNotFound.jsx';
+
 // What the helly yow bat di to naka define       -renlor (genuine question)
 import './app.css'  // <- originally nakatangal   -renlor
 
@@ -63,7 +67,11 @@ export default function App() {
         {/* Student */}
 
         {/* Teacher */}
-
+        <Route path='/teacher' element={<TeacherHomepage/>}>
+          
+        </Route>
+        {/* 404 Not Found */}
+        <Route path="*" element={<PageNotFound/>}/>
       </Routes>
     </Router>
   );
