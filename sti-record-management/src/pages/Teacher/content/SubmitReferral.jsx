@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import axios from 'axios';
 
 function SubmitReferralForm() {
     const [referral, setReferral] = useState({});
@@ -28,9 +29,14 @@ function SubmitReferralForm() {
         });
     }
 
-    const handleSubmit = (event) => {
+    const handleSubmit = async (event) => {
         event.preventDefault();
-        // Handle form submission logic here
+        try {
+            const res = await axios.post("/referral/add", referral);
+        } catch (error) {
+            console.error("Referral submission failed:", error.message);
+        }
+        
         console.log("Form submitted:", referral);
     };
 
@@ -165,7 +171,7 @@ function SubmitReferralForm() {
                         <input
                             type="text"
                             className="border border-gray-400 rounded px-3 py-2 w-full mt-1"
-                            value={referral.age || ""}
+                            value={Number(referral.age) || ""}
                             onChange={(e) => handleReferralForm(e, "age")}
                         />
                     </div>

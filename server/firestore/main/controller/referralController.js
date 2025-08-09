@@ -11,7 +11,7 @@ const referralSchema = Joi.object({
   section: Joi.string().required(),
   gender: Joi.string().required(),
   status: Joi.string().required(),
-  age: Joi.number().required(),
+  age: Joi.number().required().options({ convert: true }),
   referredBy: Joi.string().required(),
   areasOfConcern: Joi.string().required(),
   actionRequired: Joi.string().required(),
@@ -19,7 +19,7 @@ const referralSchema = Joi.object({
   actionTaken: Joi.string().required(),
   reasonForReferral: Joi.string().required(),
   initialAction: Joi.string().required(),
-  timeCreated: Joi.date().required(),
+  timeCreated: Joi.string().required(), //May changes pa dito
 });
 
 const updateSchema = Joi.object({
@@ -30,7 +30,7 @@ const updateSchema = Joi.object({
   section: Joi.string().optional(),
   gender: Joi.string().optional(),
   status: Joi.string().optional(),
-  age: Joi.string().optional(),
+  age: Joi.number().optional().options({ convert: true }),
   referredBy: Joi.string().optional(),
   areasOfConcern: Joi.string().optional(),
   actionRequired: Joi.string().optional(),
@@ -38,7 +38,7 @@ const updateSchema = Joi.object({
   actionTaken: Joi.string().optional(),
   reasonForReferral: Joi.string().optional(),
   initialAction: Joi.string().optional(),
-  timeCreated: Joi.date().optional(),
+  timeCreated: Joi.string().optional(),
 });
 
 // Controller Function for adding
@@ -52,7 +52,7 @@ const addReferral = async (req, res) => {
     }
     await getReferralFormCollection().doc().set(newReferral);
 
-    res.status(200).json({
+    res.status(201).json({
       message: `Referral form added successfully.`,
     });
   } catch (error) {
@@ -64,7 +64,7 @@ const addReferral = async (req, res) => {
 // Controller Function to update referrall submission
 const updateReferral = async (req, res) => {
   try {
-    const { id, sid } = req.params;
+    const { id } = req.params;
     const updates = req.body;
 
     if (!updates || Object.keys(updates).length === 0) {
@@ -84,8 +84,8 @@ const updateReferral = async (req, res) => {
 
     await referralRef.set(validatedUpdates, { merge: true });
 
-    res.status(200).json({
-      message: `Referral Form (${sid}) successfully updated.`,
+    res.status(201).json({
+      message: `Referral Form (${id}) successfully updated.`,
       updates: updates,
     });
   } catch (error) {
@@ -110,7 +110,7 @@ const getAllReferral = async (req, res) => {
       ...referral.data(),
     }));
 
-    res.status(201).json(referrals);
+    res.status(200).json(referrals);
   } catch (error) {
     console.error(`Referral form error: ${error}`);
     res.status(500).json({ error: error.message });

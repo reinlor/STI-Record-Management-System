@@ -1,23 +1,27 @@
-import React, { useState } from "react";
-
-const sampleData = [
-  {
-    name: "Vidal, John Paulo",
-    employeeNo: "02000293896",
-    violation: "Disrespectful Behavior",
-    referredStudent: "Lor, Rehneil B.",
-    date: "July 26, 2025",
-    status: "In progress",
-  },
-];
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 
 function ViewRequest() {
+  const [referralData, setReferralData] = useState([]);
   const [search, setSearch] = useState("");
 
-  const filtered = sampleData.filter(
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await axios.get("/referral/getAll");
+        setReferralData(res.data);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const filtered = referralData.filter(
     (row) =>
-      row.name.toLowerCase().includes(search.toLowerCase()) ||
-      row.employeeNo.includes(search)
+      (row.referredBy || "").toLowerCase().includes(search.toLowerCase()) ||
+      (row.employeeID || "").includes(search)
   );
 
   return (
@@ -48,11 +52,19 @@ function ViewRequest() {
           <tbody>
             {filtered.map((row, idx) => (
               <tr key={idx} className="border-b">
-                <td className="px-4 py-2">{row.name}</td>
-                <td className="px-4 py-2">{row.employeeNo}</td>
-                <td className="px-4 py-2">{row.violation}</td>
-                <td className="px-4 py-2">{row.referredStudent}</td>
-                <td className="px-4 py-2">{row.date}</td>
+                <td className="px-4 py-2">{row.referredBy}</td>
+                <td className="px-4 py-2">{row.employeeID}</td>
+                <td className="px-4 py-2">{row.reasonForReferral}</td>
+                <td className="px-4 py-2">{row.studentName}</td>
+                <td className="px-4 py-2">
+                  {row.timeCreated
+                    ? new Date(
+                        row.timeCreated.seconds
+                          ? row.timeCreated.seconds * 1000
+                          : row.timeCreated
+                      ).toLocaleDateString()
+                    : ""}
+                </td>
                 <td className="px-4 py-2">{row.status}</td>
                 <td className="px-4 py-2">
                   <button className="bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-800">
