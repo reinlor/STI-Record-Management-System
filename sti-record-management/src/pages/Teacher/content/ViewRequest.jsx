@@ -1,34 +1,17 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
+import React, { useState, useMemo } from "react";
 import DisplayInfo from "./DisplayInfo";
 
-function ViewRequest() {
-  const [referralData, setReferralData] = useState([]);
+function ViewRequest({ referralData = [], isLoading = false }) {
   const [search, setSearch] = useState("");
   const [selectedRow, setSelectedRow] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const employeeID = "02000111222";
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setIsLoading(true);
-        const res = await axios.get(`referral/get/employee/${employeeID}`);
-        setReferralData(res.data);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchData();
-  }, []);
-
-  const filtered = referralData.filter(
-    (row) =>
-      (row.referredBy || "").toLowerCase().includes(search.toLowerCase()) ||
-      (row.employeeID || "").includes(search)
-  );
+  const filtered = useMemo(() => {
+    return referralData.filter(
+      (row) =>
+        (row.referredBy || "").toLowerCase().includes(search.toLowerCase()) ||
+        (row.employeeID || "").includes(search)
+    );
+  }, [referralData, search]);
 
   return (
     <div className="bg-white rounded-xl shadow-lg p-6 mx-auto mt-8 w-full max-w-5xl">
@@ -36,7 +19,7 @@ function ViewRequest() {
         <span className="font-bold text-lg">Request History</span>
         <input
           type="text"
-          placeholder="Name/ ID"
+          placeholder="Name / ID"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="border border-gray-400 rounded px-3 py-2 w-64"
@@ -76,7 +59,7 @@ function ViewRequest() {
                   <td className="px-4 py-2">{row.status}</td>
                   <td className="px-4 py-2">
                     <button
-                      className="bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-800"
+                      className="bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-800 cursor-pointer"
                       onClick={() => setSelectedRow(row)}
                     >
                       Open
@@ -95,12 +78,9 @@ function ViewRequest() {
           </table>
         </div>
       )}
-      {/* Popup Modal */}
+
       {selectedRow && (
-        <DisplayInfo
-          data={selectedRow}
-          onClose={() => setSelectedRow(null)}
-        />
+        <DisplayInfo data={selectedRow} onClose={() => setSelectedRow(null)} />
       )}
     </div>
   );

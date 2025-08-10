@@ -37,7 +37,7 @@ function TeacherTopbar() {
                     <div className="absolute top-full right-0 mt-2 w-32 bg-white rounded-md shadow-lg py-1 z-10">
                         <button
                             onClick={handleLogout}
-                            className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-red-400 hover:text-white"
+                            className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-red-400 hover:text-white cursor-pointer"
                             onMouseLeave={() => setIsDropdownOpen(false)}
                         >
                             Logout

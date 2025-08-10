@@ -3,34 +3,20 @@ import TeacherCard from "./modules/TeacherCard";
 import TeacherTopbar from "./modules/TeacherTopbar";
 import SubmitReferralForm from "./content/SubmitReferral";
 import ViewRequest from "./content/ViewRequest";
-import axios from 'axios';
+import axios from "axios";
 
 function TeacherHomepage() {
     const [selected, setSelected] = useState(null);
     const [showSidebar, setShowSideBar] = useState(false);
-    const [teacherData, setTeacherData] = useState({});
-    const teacherID = '02000111222'
+    const [teacherData, setTeacherData] = useState(null);
+    const [referralData, setReferralData] = useState([]);
+    const [isLoading, setIsLoading] = useState(true); // moved here
+    const teacherID = "02000111222";
 
-    const sideBar = () => {
-        if (showSidebar) {
-            return (
-                <div className="flex flex-col gap-6 ml-8">
-                    <TeacherCard
-                        goto="submit"
-                        text="Submit Referral Form"
-                        selected={selected === "submit"}
-                        onClick={() => setSelected("submit")}
-                    />
-                    <TeacherCard
-                        goto="view"
-                        text="View Request History"
-                        selected={selected === "view"}
-                        onClick={() => setSelected("view")}
-                    />
-                </div>
-            )
-        }
-    }
+    const handleCancel = () => {
+        setSelected(null);
+        setShowSideBar(false);
+    };
 
     useEffect(() => {
         const fetchData = async () => {
@@ -38,17 +24,32 @@ function TeacherHomepage() {
                 const res = await axios.get(`/teacher/${teacherID}`);
                 setTeacherData(res.data);
             } catch (error) {
-                console.error("Error fetching data:", error);
+                console.error("Error fetching teacher data:", error);
+                setTeacherData({});
             }
-        }
+        };
+
+        const fetchReferral = async () => {
+            try {
+                setIsLoading(true);
+                const res = await axios.get(`/referral/get/employee/${teacherID}`);
+                setReferralData(res.data);
+            } catch (error) {
+                console.error("Error fetching referral data:", error);
+                setReferralData([]);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
         fetchData();
-    }, [teacherID])
+        fetchReferral();
+    }, [teacherID]);
 
     return (
         <div className="min-h-screen text-black bg-white bg-[url('/grid.svg')] bg-repeat">
             <TeacherTopbar />
             <div className="flex pt-8">
-                {/* Sidebar */}
                 {showSidebar && (
                     <div className="flex flex-col gap-6 ml-8">
                         <TeacherCard
@@ -65,19 +66,21 @@ function TeacherHomepage() {
                         />
                     </div>
                 )}
-                {/* Animated Content Panel */}
+
                 <div className="flex-1 flex justify-center items-start">
-                    <div
-                        className={`transition-all duration-500 ease-in-out w-full max-w-5xl`}
-                    >
-                        {selected === "submit" && (
+                    <div className={`transition-all duration-500 ease-in-out w-full max-w-5xl`}>
+                        {selected === "submit" && teacherData && (
                             <div className="animate-fade-in">
-                                <SubmitReferralForm teacher={teacherData} />
+                                <SubmitReferralForm teacher={teacherData} onCancel={handleCancel} />
                             </div>
                         )}
                         {selected === "view" && (
                             <div className="animate-fade-in">
-                                <ViewRequest />
+                                <ViewRequest
+                                    referralData={referralData}
+                                    isLoading={isLoading} // pass loading state
+                                    onCancel={handleCancel}
+                                />
                             </div>
                         )}
                         {!selected && (
@@ -89,7 +92,7 @@ function TeacherHomepage() {
                                         selected={false}
                                         onClick={() => {
                                             setSelected("submit");
-                                            setShowSideBar(true)
+                                            setShowSideBar(true);
                                         }}
                                     />
                                     <TeacherCard
@@ -98,7 +101,7 @@ function TeacherHomepage() {
                                         selected={false}
                                         onClick={() => {
                                             setSelected("view");
-                                            setShowSideBar(true)
+                                            setShowSideBar(true);
                                         }}
                                     />
                                 </div>
@@ -107,17 +110,17 @@ function TeacherHomepage() {
                     </div>
                 </div>
             </div>
-            {/* Tailwind animation utility */}
+
             <style>
                 {`
-          .animate-fade-in {
-            animation: fadeIn 0.5s;
-          }
-          @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px);}
-            to { opacity: 1; transform: translateY(0);}
-          }
-        `}
+                    .animate-fade-in {
+                        animation: fadeIn 0.5s;
+                    }
+                    @keyframes fadeIn {
+                        from { opacity: 0; transform: translateY(20px);}
+                        to { opacity: 1; transform: translateY(0);}
+                    }
+                `}
             </style>
         </div>
     );
