@@ -5,16 +5,20 @@ import DisplayInfo from "./DisplayInfo";
 function ViewRequest() {
   const [referralData, setReferralData] = useState([]);
   const [search, setSearch] = useState("");
-  const [selectedRow, setSelectedRow] = useState(null); // For modal
-  const employeeID = '02000111222';
+  const [selectedRow, setSelectedRow] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const employeeID = "02000111222";
 
   useEffect(() => {
     const fetchData = async () => {
       try {
+        setIsLoading(true);
         const res = await axios.get(`referral/get/employee/${employeeID}`);
         setReferralData(res.data);
       } catch (error) {
         console.error("Error fetching data:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
     fetchData();
@@ -38,48 +42,59 @@ function ViewRequest() {
           className="border border-gray-400 rounded px-3 py-2 w-64"
         />
       </div>
-      <div className="overflow-x-auto">
-        <table className="min-w-full text-left">
-          <thead>
-            <tr className="bg-gray-100">
-              <th className="px-4 py-2 font-semibold">NAME</th>
-              <th className="px-4 py-2 font-semibold">Employee No.</th>
-              <th className="px-4 py-2 font-semibold">Violation</th>
-              <th className="px-4 py-2 font-semibold">Referred Student</th>
-              <th className="px-4 py-2 font-semibold">Date</th>
-              <th className="px-4 py-2 font-semibold">Status</th>
-              <th className="px-4 py-2 font-semibold"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map((row, idx) => (
-              <tr key={idx} className="border-b">
-                <td className="px-4 py-2">{row.referredBy}</td>
-                <td className="px-4 py-2">{row.employeeID}</td>
-                <td className="px-4 py-2">{row.reasonForReferral}</td>
-                <td className="px-4 py-2">{row.studentName}</td>
-                <td className="px-4 py-2">{row.preparedDate}</td>
-                <td className="px-4 py-2">{row.status}</td>
-                <td className="px-4 py-2">
-                  <button
-                    className="bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-800"
-                    onClick={() => setSelectedRow(row)}
-                  >
-                    Open
-                  </button>
-                </td>
+
+      {isLoading ? (
+        <div className="flex justify-center items-center h-48">
+          <div className="flex space-x-2">
+            <div className="w-4 h-4 bg-blue-600 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+            <div className="w-4 h-4 bg-blue-600 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+            <div className="w-4 h-4 bg-blue-600 rounded-full animate-bounce"></div>
+          </div>
+        </div>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="min-w-full text-left">
+            <thead>
+              <tr className="bg-gray-100">
+                <th className="px-4 py-2 font-semibold">NAME</th>
+                <th className="px-4 py-2 font-semibold">Employee No.</th>
+                <th className="px-4 py-2 font-semibold">Violation</th>
+                <th className="px-4 py-2 font-semibold">Referred Student</th>
+                <th className="px-4 py-2 font-semibold">Date</th>
+                <th className="px-4 py-2 font-semibold">Status</th>
+                <th className="px-4 py-2 font-semibold"></th>
               </tr>
-            ))}
-            {filtered.length === 0 && (
-              <tr>
-                <td colSpan={7} className="text-center py-4 text-gray-500">
-                  No requests found.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {filtered.map((row, idx) => (
+                <tr key={idx} className="border-b">
+                  <td className="px-4 py-2">{row.referredBy}</td>
+                  <td className="px-4 py-2">{row.employeeID}</td>
+                  <td className="px-4 py-2">{row.reasonForReferral}</td>
+                  <td className="px-4 py-2">{row.studentName}</td>
+                  <td className="px-4 py-2">{row.preparedDate}</td>
+                  <td className="px-4 py-2">{row.status}</td>
+                  <td className="px-4 py-2">
+                    <button
+                      className="bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-800"
+                      onClick={() => setSelectedRow(row)}
+                    >
+                      Open
+                    </button>
+                  </td>
+                </tr>
+              ))}
+              {filtered.length === 0 && (
+                <tr>
+                  <td colSpan={7} className="text-center py-4 text-gray-500">
+                    No requests found.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
       {/* Popup Modal */}
       {selectedRow && (
         <DisplayInfo
