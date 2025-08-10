@@ -10,7 +10,7 @@ function TeacherHomepage() {
     const [showSidebar, setShowSideBar] = useState(false);
     const [teacherData, setTeacherData] = useState(null);
     const [referralData, setReferralData] = useState([]);
-    const [isLoading, setIsLoading] = useState(true); // moved here
+    const [isLoading, setIsLoading] = useState(true);
     const teacherID = "02000111222";
 
     const handleCancel = () => {
@@ -18,30 +18,30 @@ function TeacherHomepage() {
         setShowSideBar(false);
     };
 
+    const fetchReferral = async () => {
+        try {
+            setIsLoading(true);
+            const res = await axios.get(`/referral/get/employee/${teacherID}`);
+            setReferralData(res.data);
+        } catch (error) {
+            console.error("Error fetching referral data:", error);
+            setReferralData([]);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const fetchData = async () => {
+        try {
+            const res = await axios.get(`/teacher/${teacherID}`);
+            setTeacherData(res.data);
+        } catch (error) {
+            console.error("Error fetching teacher data:", error);
+            setTeacherData({});
+        }
+    };
+
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const res = await axios.get(`/teacher/${teacherID}`);
-                setTeacherData(res.data);
-            } catch (error) {
-                console.error("Error fetching teacher data:", error);
-                setTeacherData({});
-            }
-        };
-
-        const fetchReferral = async () => {
-            try {
-                setIsLoading(true);
-                const res = await axios.get(`/referral/get/employee/${teacherID}`);
-                setReferralData(res.data);
-            } catch (error) {
-                console.error("Error fetching referral data:", error);
-                setReferralData([]);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
         fetchData();
         fetchReferral();
     }, [teacherID]);
@@ -71,14 +71,18 @@ function TeacherHomepage() {
                     <div className={`transition-all duration-500 ease-in-out w-full max-w-5xl`}>
                         {selected === "submit" && teacherData && (
                             <div className="animate-fade-in">
-                                <SubmitReferralForm teacher={teacherData} onCancel={handleCancel} />
+                                <SubmitReferralForm
+                                    teacher={teacherData}
+                                    onCancel={handleCancel}
+                                    onSuccess={fetchReferral} 
+                                />
                             </div>
                         )}
                         {selected === "view" && (
                             <div className="animate-fade-in">
                                 <ViewRequest
                                     referralData={referralData}
-                                    isLoading={isLoading} // pass loading state
+                                    isLoading={isLoading}
                                     onCancel={handleCancel}
                                 />
                             </div>

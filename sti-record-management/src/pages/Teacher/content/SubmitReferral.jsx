@@ -2,10 +2,9 @@ import React, { useState, useEffect } from "react";
 import axios from 'axios';
 import toast, { Toaster } from 'react-hot-toast';
 
-function SubmitReferralForm({ teacher = {}, onCancel }) {
+function SubmitReferralForm({ teacher = {}, onCancel, onSuccess }) {
     const [referral, setReferral] = useState({});
-    const [isLoading, setIsLoading] = useState(true); // Added loading state
-    const teacherData = teacher;
+    const [isLoading, setIsLoading] = useState(true);
 
     function handleReferralForm(event, name) {
         const { value, type, checked } = event.target;
@@ -58,8 +57,17 @@ function SubmitReferralForm({ teacher = {}, onCancel }) {
 
         toast.promise(submissionPromise, {
             loading: 'Submitting referral...',
-            success: (response) => {
-                console.log("Form submitted successfully:", response.data);
+            success: () => {
+                console.log("Form submitted successfully");
+
+                setReferral(prev => ({
+                    referredBy: prev.referredBy,
+                    preparedBy: prev.preparedBy,
+                    preparedDate: prev.preparedDate
+                }));
+
+                if (onSuccess) onSuccess();
+
                 return `Referral for ${referralData.studentName} has been submitted!`;
             },
             error: (error) => {
@@ -126,7 +134,6 @@ function SubmitReferralForm({ teacher = {}, onCancel }) {
         setIsLoading(false);
     }, [teacher]);
 
-    // Conditional rendering based on isLoading state
     if (isLoading) {
         return (
             <div className="flex justify-center items-center h-48">
@@ -138,7 +145,6 @@ function SubmitReferralForm({ teacher = {}, onCancel }) {
             </div>
         );
     }
-
     return (
         <div className="bg-white rounded-xl shadow-lg p-8 mx-auto mt-8 w-full max-w-5xl">
             <Toaster
