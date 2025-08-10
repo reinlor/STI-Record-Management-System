@@ -13,6 +13,7 @@ export default defineConfig({
       "/slip": "http://localhost:5000",
       "/referral": "http://localhost:5000",
       "/violation": "http://localhost:5000",
+      "/teacher": "http://localhost:5000",
     },
   },
 })

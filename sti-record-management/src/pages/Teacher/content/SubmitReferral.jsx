@@ -1,18 +1,20 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from 'axios';
+import toast, { Toaster } from 'react-hot-toast';
 
-function SubmitReferralForm() {
+function SubmitReferralForm(
+    teacher = {}
+) {
     const [referral, setReferral] = useState({});
+    const teacherData = teacher;
 
     function handleReferralForm(event, name) {
         const { value, type, checked } = event.target;
         setReferral((prev) => {
             if (type === "radio") {
-                // For radio buttons, set the value directly
                 return { ...prev, [name]: value };
             }
             if (type === "checkbox") {
-                // For checkboxes, handle an array of values
                 const currentValues = prev[name] ? [...prev[name]] : [];
                 if (checked) {
                     currentValues.push(value);
@@ -24,20 +26,48 @@ function SubmitReferralForm() {
                 }
                 return { ...prev, [name]: currentValues };
             }
-            // For other input types, set the value directly
             return { ...prev, [name]: value };
         });
     }
 
     const handleSubmit = async (event) => {
         event.preventDefault();
-        try {
-            const res = await axios.post("/referral/add", referral);
-        } catch (error) {
-            console.error("Referral submission failed:", error.message);
-        }
-        
-        console.log("Form submitted:", referral);
+
+        const referralData = {
+            employeeID: referral.id,
+            schoolYear: referral.schoolYear,
+            studentName: referral.studentName,
+            program: referral.programSection,
+            gradeLevel: referral.gradeLevel,
+            gender: referral.gender,
+            status: referral.status,
+            age: referral.age,
+            referredBy: referral.referredBy,
+            areasOfConcern: referral.concerns,
+            actionRequired: 'awaiting for response',
+            levelOfPriority: referral.priorityLevel,
+            actionTaken: referral.actionsBefore,
+            reasonForReferral: referral.reasons,
+            initialAction: 'awaiting for response',
+            preparedDate: referral.preparedDate,
+            feedBackDate: 'awaiting for response',
+            receivedBy: 'awaiting for response',
+            receivedDate: 'awaiting for response',
+        };
+
+        const submissionPromise = axios.post("/referral/add", referralData);
+
+        toast.promise(submissionPromise, {
+            loading: 'Submitting referral...',
+            success: (response) => {
+                console.log("Form submitted successfully:", response.data);
+                return `Referral for ${referralData.studentName} has been submitted!`;
+            },
+            error: (error) => {
+                console.error("Referral submission failed:", error.message);
+                return `Failed to submit referral: ${error.message}`;
+            },
+        });
     };
 
     const handleQuarterSem = () => {
@@ -71,8 +101,38 @@ function SubmitReferralForm() {
         );
     };
 
+    useEffect(() => {
+        console.log(teacherData)
+        function formatDateForInput(date) {
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            return `${year}-${month}-${day}`; // Change format to yyyy-mm-dd
+        }
+
+        const currentDate = new Date();
+        const formattedDateForInput = formatDateForInput(currentDate);
+
+        const loadPredifinedData = () => {
+            setReferral(prev => ({
+                ...prev,
+                id: teacherData.teacher.uid,
+                referredBy: teacherData.teacher.name,
+                preparedBy: teacherData.teacher.name,
+                status: 'Pending',
+                preparedDate: formattedDateForInput
+            }))
+        };
+
+        loadPredifinedData();
+    }, [teacherData])
+
     return (
         <div className="bg-white rounded-xl shadow-lg p-8 mx-auto mt-8 w-full max-w-5xl">
+            <Toaster
+                position="top-right"
+                reverseOrder={false}
+            />
             <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
                 {/* Left Column */}
                 <div className="space-y-4">
@@ -157,15 +217,16 @@ function SubmitReferralForm() {
                             <span className="ml-2">Female</span>
                         </label>
                     </div>
-                    <div>
+                    {/* <div>
                         <label className="font-semibold">Status:</label>
                         <input
                             type="text"
                             className="border border-gray-400 rounded px-3 py-2 w-full mt-1"
                             value={referral.status || ""}
                             onChange={(e) => handleReferralForm(e, "status")}
+                            disabled
                         />
-                    </div>
+                    </div> */}
                     <div>
                         <label className="font-semibold">Age:</label>
                         <input
@@ -180,9 +241,9 @@ function SubmitReferralForm() {
                         <input
                             type="text"
                             className="border border-gray-400 rounded px-3 py-2 w-full mt-1"
-                            // papalitan soon ng automatic na magdidisplay yung pangalan ng user
-                            value={referral.referredBy || ""} 
+                            value={referral.referredBy || ""}
                             onChange={(e) => handleReferralForm(e, "referredBy")}
+                            disabled
                         />
                     </div>
                     <div>
@@ -256,15 +317,16 @@ function SubmitReferralForm() {
                             onChange={(e) => handleReferralForm(e, "reasons")}
                         />
                     </div>
-                    <div>
+                    {/* <div>
                         <label className="font-semibold">Counselor's Initial Action:</label>
                         <textarea
                             className="border border-gray-400 rounded px-3 py-2 w-full mt-1 resize-none h-32"
                             value={referral.counselorAction || ""}
                             onChange={(e) => handleReferralForm(e, "counselorAction")}
+                            disabled
                         />
-                    </div>
-                    <div>
+                    </div> */}
+                    {/* <div>
                         <label className="font-semibold">Feedback Date:</label>
                         <input
                             type="date"
@@ -272,7 +334,7 @@ function SubmitReferralForm() {
                             value={referral.feedbackDate || ""}
                             onChange={(e) => handleReferralForm(e, "feedbackDate")}
                         />
-                    </div>
+                    </div> */}
                     <div className="flex gap-2">
                         <div className="flex-1">
                             <label className="font-semibold">Prepared By:</label>
@@ -281,6 +343,7 @@ function SubmitReferralForm() {
                                 className="border border-gray-400 rounded px-3 py-2 w-full mt-1"
                                 value={referral.preparedBy || ""}
                                 onChange={(e) => handleReferralForm(e, "preparedBy")}
+                                disabled
                             />
                         </div>
                         <div className="flex-1">
@@ -290,10 +353,11 @@ function SubmitReferralForm() {
                                 className="border border-gray-400 rounded px-3 py-2 w-full mt-1"
                                 value={referral.preparedDate || ""}
                                 onChange={(e) => handleReferralForm(e, "preparedDate")}
+                                disabled
                             />
                         </div>
                     </div>
-                    <div className="flex gap-2">
+                    {/* <div className="flex gap-2">
                         <div className="flex-1">
                             <label className="font-semibold">Received By:</label>
                             <input
@@ -312,7 +376,7 @@ function SubmitReferralForm() {
                                 onChange={(e) => handleReferralForm(e, "receivedDate")}
                             />
                         </div>
-                    </div>
+                    </div> */}
                     <div className="flex justify-end gap-4 mt-8">
                         <button
                             type="button"

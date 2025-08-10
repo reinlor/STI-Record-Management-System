@@ -1,20 +1,22 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import DisplayInfo from "./DisplayInfo";
 
 function ViewRequest() {
   const [referralData, setReferralData] = useState([]);
   const [search, setSearch] = useState("");
+  const [selectedRow, setSelectedRow] = useState(null); // For modal
+  const employeeID = '02000111222';
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await axios.get("/referral/getAll");
+        const res = await axios.get(`referral/get/employee/${employeeID}`);
         setReferralData(res.data);
       } catch (error) {
         console.error("Error fetching data:", error);
       }
     };
-
     fetchData();
   }, []);
 
@@ -56,18 +58,13 @@ function ViewRequest() {
                 <td className="px-4 py-2">{row.employeeID}</td>
                 <td className="px-4 py-2">{row.reasonForReferral}</td>
                 <td className="px-4 py-2">{row.studentName}</td>
-                <td className="px-4 py-2">
-                  {row.timeCreated
-                    ? new Date(
-                        row.timeCreated.seconds
-                          ? row.timeCreated.seconds * 1000
-                          : row.timeCreated
-                      ).toLocaleDateString()
-                    : ""}
-                </td>
+                <td className="px-4 py-2">{row.preparedDate}</td>
                 <td className="px-4 py-2">{row.status}</td>
                 <td className="px-4 py-2">
-                  <button className="bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-800">
+                  <button
+                    className="bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-800"
+                    onClick={() => setSelectedRow(row)}
+                  >
                     Open
                   </button>
                 </td>
@@ -83,6 +80,13 @@ function ViewRequest() {
           </tbody>
         </table>
       </div>
+      {/* Popup Modal */}
+      {selectedRow && (
+        <DisplayInfo
+          data={selectedRow}
+          onClose={() => setSelectedRow(null)}
+        />
+      )}
     </div>
   );
 }

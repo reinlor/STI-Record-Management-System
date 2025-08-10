@@ -5,26 +5,30 @@ const { getReferralFormCollection } = require("../models/referralModel");
 const referralSchema = Joi.object({
   employeeID: Joi.string().required(),
   schoolYear: Joi.string().required(),
-  sid: Joi.string().required(),
+  gradeLevel: Joi.string().required(),
+  // sid: Joi.string().required(),
   studentName: Joi.string().required(),
   program: Joi.string().required(),
-  section: Joi.string().required(),
   gender: Joi.string().required(),
   status: Joi.string().required(),
   age: Joi.number().required().options({ convert: true }),
   referredBy: Joi.string().required(),
-  areasOfConcern: Joi.string().required(),
-  actionRequired: Joi.string().required(),
+  areasOfConcern: Joi.array().required(),
+  actionRequired: Joi.string().required().allow(''),
   levelOfPriority: Joi.string().required(),
   actionTaken: Joi.string().required(),
   reasonForReferral: Joi.string().required(),
-  initialAction: Joi.string().required(),
-  timeCreated: Joi.string().required(), //May changes pa dito
+  initialAction: Joi.string().required().allow(''),
+  preparedDate: Joi.string().required(),
+  feedBackDate: Joi.string().required().allow(''),
+  receivedBy: Joi.string().required().allow(''),
+  receivedDate: Joi.string().required().allow(''),
 });
 
 const updateSchema = Joi.object({
+  employeeID: Joi.string().optional(),
   schoolYear: Joi.string().optional(),
-  sid: Joi.string().optional(),
+  // sid: Joi.string().optional(),
   studentName: Joi.string().optional(),
   program: Joi.string().optional(),
   section: Joi.string().optional(),
@@ -32,13 +36,13 @@ const updateSchema = Joi.object({
   status: Joi.string().optional(),
   age: Joi.number().optional().options({ convert: true }),
   referredBy: Joi.string().optional(),
-  areasOfConcern: Joi.string().optional(),
-  actionRequired: Joi.string().optional(),
+  areasOfConcern: Joi.array().optional(),
+  actionRequired: Joi.string().optional().allow(''),
   levelOfPriority: Joi.string().optional(),
   actionTaken: Joi.string().optional(),
   reasonForReferral: Joi.string().optional(),
-  initialAction: Joi.string().optional(),
-  timeCreated: Joi.string().optional(),
+  initialAction: Joi.string().optional().allow(''),
+  preparedDate: Joi.string().optional(),
 });
 
 // Controller Function for adding
@@ -143,4 +147,30 @@ const getReferral = async (req, res) => {
   }
 };
 
-module.exports = { addReferral, updateReferral, getAllReferral, getReferral };
+// Controller function to display referral from a specific Employee No.
+const getReferralById = async (req, res) => {
+  try {
+    const { employeeID } = req.params;
+
+    if (!employeeID) {
+      return res.status(400).json({ error: "Employee ID is required" });
+    }
+
+    const snapshot = await getReferralFormCollection().where('employeeID', '==', employeeID).get();
+
+    if (snapshot.empty) {
+      return res.status(404).json({ error: "No referrals found for this employee ID" });
+    }
+
+    const referrals = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+
+    res.status(200).json(referrals);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+}
+
+module.exports = { addReferral, updateReferral, getAllReferral, getReferral, getReferralById };

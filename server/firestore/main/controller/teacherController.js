@@ -3,21 +3,25 @@ const { getTeacherCollection } = require("../models/teacherModel");
 
 // Teacher Schema
 const teacherSchema = Joi.object({
-  uid:      Joi.string().required(),
-  name:     Joi.string().required(),
-  email:    Joi.string().email({ 
-                         minDomainSegments: 2, 
-                        tlds: { 
-                        llow: ['com', 'net'] } }),
+  uid: Joi.string().required(),
+  name: Joi.string().required(),
+  email: Joi.string().email({
+    minDomainSegments: 2,
+    tlds: {
+      llow: ['com', 'net']
+    }
+  }),
 });
 
 const updateSchema = Joi.object({
-  uid:      Joi.string().optional(),
-  name:     Joi.string().optional(),
-  email:    Joi.string().email({ 
-                         minDomainSegments: 2, 
-                        tlds: { 
-                        llow: ['com', 'net'] } }).optional(),
+  uid: Joi.string().optional(),
+  name: Joi.string().optional(),
+  email: Joi.string().email({
+    minDomainSegments: 2,
+    tlds: {
+      llow: ['com', 'net']
+    }
+  }).optional(),
 });
 
 // Controller function for adding a teacher
@@ -27,14 +31,14 @@ const addTeacher = async (req, res) => {
 
     const { error, value: newTeacher } = teacherSchema.validate(req.body);
     if (error) {
-        return res.status(400).json({ error: error.details[0].message });
+      return res.status(400).json({ error: error.details[0].message });
     }
     const uid = newTeacher.uid;
     await getTeacherCollection().doc(uid).set(newTeacher);
-    
-    res.status(201).json({ 
-      message: "Teacher registered successfully", 
-      id: uid 
+
+    res.status(201).json({
+      message: "Teacher registered successfully",
+      id: uid
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -91,4 +95,28 @@ const getTeachers = async (req, res) => {
   }
 };
 
-module.exports = { addTeacher, updateTeacher, getTeachers };
+// Controller function for retrieving teacher data by ID
+const getTeacherByID = async (req, res) => {
+  try {
+    const { uid } = req.params;
+    const teacherRef = getTeacherCollection().doc(uid);
+    const doc = await teacherRef.get();
+
+    if(!doc.exists){
+      return res.status(404).json({
+        error: "Teacher not found"
+      });
+    }
+
+    res.status(200).json({
+        id:doc.id,
+        ...doc.data()
+      });
+  } catch (error) {
+    res.status(500).json({
+      error: error.message
+    })
+  }
+}
+
+module.exports = { addTeacher, updateTeacher, getTeachers, getTeacherByID };
