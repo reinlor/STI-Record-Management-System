@@ -10,7 +10,7 @@ export default function AddCaseModal({ open, onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-opacity-40">
-      <div className="bg-white rounded-lg shadow-lg w-[90vw] max-w-5xl p-6 relative">
+      <div className="bg-white rounded-lg shadow-lg w-[90vw] max-w-5xl p-6 relative overflow-y-auto max-h-[90vh] outline-solid outline-2 outline-gray-300">
 
             <div className='flex items-center '>
               {/* Close button */}
@@ -23,7 +23,7 @@ export default function AddCaseModal({ open, onClose }) {
 
               <h2 className="text-2xl font-bold mb-4">Add New Case</h2>
             </div>
-            
+
         <form className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
