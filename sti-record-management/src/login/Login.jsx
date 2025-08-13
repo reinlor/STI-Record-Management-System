@@ -13,12 +13,19 @@ export default function Login() {
             <Button to="/disciplinary" className={styles.loginBtn}>
                 Go to Disciplinary Officer Page
             </Button>
-            <Button to="/Teacher" className={styles.loginBtn}>
+            <Button to="/student" className={styles.loginBtn}>
+                Go to Student Page
+            </Button>
+            <Button to="/signup" className={styles.userManagerBtn}>
+                Go to Student Sign Up Initial Page
+            </Button>
+            <Button to="/Teacher" className={styles.userManagerBtn}>
                 Go to Teacher Page
             </Button>
             <Button to="/userManager" className={styles.userManagerBtn}>
                 Go to User Manager
             </Button>
+
         </div>
         </div>
     );

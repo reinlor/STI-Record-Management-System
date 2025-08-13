@@ -25,6 +25,9 @@ import DisciplinaryReferralForm from './pages/DisciplinaryOfficer/referral-form/
 import DisciplinaryReferralFormHistory from './pages/DisciplinaryOfficer/referral-form/ReferralFormHistory.jsx'
 import DisciplinaryBackupNRestore from './pages/DisciplinaryOfficer/backup-and-restore/BackupNRestore.jsx'
 
+import StudentHomepage from './pages/Student/StudentHomepage.jsx';
+import StudentSignup from './pages/Student/StudentSignup.jsx';
+
 import TeacherHomepage from './pages/Teacher/TeacherHomepage.jsx';
 
 import PageNotFound from './pages/Others/PageNotFound.jsx';
@@ -65,7 +68,12 @@ export default function App() {
         </Route>
 
         {/* Student */}
+        <Route path='/student' element={<StudentHomepage/>}>
 
+        </Route>
+        {/* Student Signup */}
+        <Route path="/signup" element={<StudentSignup />} />
+        
         {/* Teacher */}
         <Route path='/teacher' element={<TeacherHomepage/>}>
           
