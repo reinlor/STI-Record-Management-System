@@ -22,7 +22,7 @@ function ReferralFormProcessing() {
   // fetch list on mount
   useEffect(() => {
     axios
-      .get("/referral/")
+      .get("/referral/getAll")
       .then((res) => setReferralData(res.data))
       .catch((err) => console.error("Error fetching list:", err.message));
   }, []);
@@ -31,7 +31,7 @@ function ReferralFormProcessing() {
   const openForm = async (id) => {
     setDisplay(true);
     try {
-      const res = await axios.get(`/referral/${id}`);
+      const res = await axios.get(`/referral/get/${id}`);
       setSelectedReferral(res.data);
     } catch (err) {
       console.error("Error fetching detail:", err);
@@ -107,8 +107,7 @@ function ReferralFormProcessing() {
                   <td className="px-4 py-3">
                     <button
                       className="bg-gray-900 text-white px-6 py-1 rounded-full hover:bg-gray-700 transition"
-                      onClick={() => openForm(ref.id)}
-                    >
+                      onClick={() => openForm(ref.id)}>
                       Open
                     </button>
                   </td>
@@ -121,7 +120,7 @@ function ReferralFormProcessing() {
 
       {/* Modal */}
       {display && selectedReferral && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+        <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="bg-white w-11/12 md:w-3/4 lg:w-2/3 xl:w-1/2 rounded-lg shadow-lg overflow-y-auto max-h-[90vh] p-6 relative">
             {/* Close button */}
             <button
