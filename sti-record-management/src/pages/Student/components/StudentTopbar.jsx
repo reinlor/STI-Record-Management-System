@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Settings, LogOut } from 'lucide-react'; // Added logout icon
+import { Settings, LogOut } from 'lucide-react';
 import STILogo from '../../../assets/sti-logo.png';
 
 export default function StudentTopbar() {
@@ -27,50 +27,55 @@ export default function StudentTopbar() {
     };
 
     return (
-        <div className="w-full flex items-center justify-between bg-white border-b-2 border-blue-700 px-6 py-3">
+        <div className="w-full flex items-center justify-between bg-[#0172B9] shadow-lg px-4 md:px-8 py-3 relative z-10">
             {/* Left side */}
-            <div className="flex items-center">
-                <img src={STILogo} alt="STI Logo" className="w-14 h-10 mr-3" />
-                <h3 className="text-xl font-semibold text-black">
+            <div className="flex items-center space-x-3 md:space-x-4">
+                <img src={STILogo} alt="STI Logo" className="h-9 md:h-11" />
+                <h3 className="text-sm md:text-xl font-bold text-white tracking-wide">
                     Guidance and Counseling Online Slip Request
                 </h3>
             </div>
 
             {/* Settings + Dropdown */}
             <div ref={containerRef} className="relative">
-                <Settings
-                    className="w-10 h-10 text-gray-700 hover:text-blue-700 cursor-pointer p-2 border border-gray-300 rounded-full transition-colors duration-200"
+                <button
+                    className="p-2 md:p-3 text-white hover:text-blue-200 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50 rounded-full"
                     onClick={() => setIsDropdownOpen(open => !open)}
-                />
+                    aria-expanded={isDropdownOpen}
+                    aria-label="User settings menu"
+                >
+                    <Settings className="w-6 h-6 md:w-7 md:h-7" />
+                </button>
 
                 {isDropdownOpen && (
-                    <div
-                        className="absolute top-full right-0 mt-2 w-40 bg-white rounded-lg shadow-lg py-2 z-10 animate-fadeIn"
-                        style={{ animation: 'fadeIn 0.15s ease-in-out' }}
-                    >
+                    <div className="absolute top-full right-0 mt-3 w-40 bg-white rounded-lg shadow-xl py-2 z-20 animate-fade-in-up origin-top-right">
                         <button
                             onClick={handleLogout}
-                            className="flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 hover:bg-red-500 hover:text-white transition-colors duration-150"
+                            className="flex items-center gap-3 w-full px-4 py-2 text-sm text-gray-700 hover:bg-red-500 hover:text-white transition-colors duration-150"
                         >
                             <LogOut className="w-4 h-4" />
-                            Logout
+                            <span>Logout</span>
                         </button>
                     </div>
                 )}
             </div>
 
-            {/* Fade-in animation */}
-            <style>
-                {`
-                    @keyframes fadeIn {
-                        from { opacity: 0; transform: translateY(-4px); }
-                        to { opacity: 1; transform: translateY(0); }
+            {/* Custom fade-in animation */}
+            <style jsx>{`
+                .animate-fade-in-up {
+                    animation: fadeInUp 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+                }
+                @keyframes fadeInUp {
+                    from {
+                        opacity: 0;
+                        transform: translateY(10px);
                     }
-                    .animate-fadeIn {
-                        animation: fadeIn 0.15s ease-in-out;
+                    to {
+                        opacity: 1;
+                        transform: translateY(0);
                     }
-                `}
-            </style>
+                }
+            `}</style>
         </div>
     );
 }
