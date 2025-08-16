@@ -16,15 +16,20 @@ const getUsers = async (req, res) => {
   }
 };
 
-// Controller Function to create user (Not final since microsoft login gamit ng)
+// Controller Function to create user
 const addUser = async (req, res) => {
   try {
-    const newUser = req.body;
+    const { displayName, email, password, role, uid, ...additionalUserData } = req.body;
+
+    if (!uid || !email || !password) {
+      return res.status(400).json({ error: "Missing required fields: uid, email, and password." });
+    }
 
     const userRecord = await admin.auth().createUser({
-      email: newUser.email,
-      password: newUser.password,
-      displayName: newUser.displayName,
+      uid: uid,
+      email: email,
+      password: password,
+      displayName: displayName,
     });
 
     const accountID = userRecord.uid;
@@ -36,12 +41,18 @@ const addUser = async (req, res) => {
     }
 
     await getUserCollection()
-      .doc(newUser.uid)
-      .set({ ...newUser, _id: accountID });
+      .doc(accountID)
+      .set({
+        uid: accountID,
+        displayName: displayName,
+        email: email,
+        role: role,
+        ...additionalUserData,
+      });
 
     res.status(201).json({
       message: "User registered successfully",
-      uid: newUser.uid,
+      uid: accountID,
     });
   } catch (error) {
     console.error("Registration error:", error);

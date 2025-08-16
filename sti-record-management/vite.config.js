@@ -14,6 +14,7 @@ export default defineConfig({
       "/referral": "http://localhost:5000",
       "/violation": "http://localhost:5000",
       "/teacher": "http://localhost:5000",
+      "/user": "http://localhost:5000",
     },
   },
 })

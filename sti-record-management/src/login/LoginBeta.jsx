@@ -2,12 +2,14 @@ import React, { useState } from "react";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../firebaseClient";
 import { ToastContainer, toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
 function LoginBeta() {
     const [schoolId, setSchoolId] = useState("");
     const [password, setPassword] = useState("");
     const [errorMsg, setErrorMsg] = useState("");
     const [loading, setLoading] = useState(false);
+    const navigate = useNavigate();
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -17,9 +19,40 @@ function LoginBeta() {
         try {
             const userCredential = await signInWithEmailAndPassword(auth, schoolId, password);
             const user = userCredential.user;
-            setLoading(false);
-            toast('Welcome')
-            
+            const idToken = await user.getIdToken();
+
+            const response = await fetch("/user/authenticate", {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${idToken}`
+                }
+            });
+
+            if (response.ok) {
+                const { user: userData } = await response.json();
+                const userRole = userData.role;
+
+                setLoading(false);
+                toast('Welcome');
+
+                if (userRole === "Admin") {
+                    navigate("/admin");
+                } else if (userRole === "Disciplinary") {
+                    navigate("/disciplinary");
+                } else if (userRole === "Teacher") {
+                    navigate("/teacher");
+                } else if (userRole === "Student") {
+                    navigate("/student");
+                } else {
+                    navigate("/");
+                }
+            } else {
+                setLoading(false);
+                const errorData = await response.json();
+                setErrorMsg(errorData.error || "An error occurred during authentication.");
+            }
+
         } catch (error) {
             setErrorMsg(error.message);
             setLoading(false);

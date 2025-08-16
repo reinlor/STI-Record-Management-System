@@ -42,7 +42,7 @@ export default function App() {
     <Router>
       <Routes>
         {/* Login Page*/}
-        <Route path="/" element={<Login />} />
+        <Route path="/" element={<LoginBeta />} />
         <Route path="/login" element={<LoginBeta />} />
         <Route path='/userManager' element={<UserManager/>}/>
 
