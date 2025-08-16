@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
 
 import Login from './login/Login.jsx';
 import UserManager from './component/UserManager.jsx';
@@ -14,6 +15,7 @@ import AdminStudentLayout from './pages/Admin/student-records/StudentLayout.jsx'
 import AdminStudentCases from './pages/Admin/student-cases/StudentCases.jsx';
 import AdminUsers from './pages/Admin/users/Users.jsx';
 import AdminBackNRestore from './pages/Admin/back-up-and-restore/BackNRestore.jsx';
+import WellnessGeneration from './pages/Admin/wellness-assessment/WellnessAssessment.jsx';
 
 import DisciplinaryLayout from './layouts/DisciplinaryLayout.jsx';
 import DisciplinaryDashboard from './pages/DisciplinaryOfficer/dashboard/Dashboard.jsx'
@@ -36,6 +38,10 @@ import PageNotFound from './pages/Others/PageNotFound.jsx';
 import './app.css'  // <- originally nakatangal   -renlor
 
 export default function App() {
+  const stored = (() => {
+    try { return JSON.parse(localStorage.getItem('currentUser')); } catch(e) { return null; }
+  })();
+  const [user, setUser] = useState(stored);
 
   return (
     // DITO YUNG ROUTER MGA 🥷
@@ -53,6 +59,7 @@ export default function App() {
           <Route path="student-cases" element={<AdminStudentCases />}/>
           <Route path="users" element={<AdminUsers />}/>
           <Route path="back-n-restore" element={<AdminBackNRestore />}/>
+          <Route path="wellness" element={<WellnessGeneration/>}/>
         </Route>
 
         {/* Disciplinary Officer */}

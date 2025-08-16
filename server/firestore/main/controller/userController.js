@@ -89,7 +89,7 @@ const updateUser = async (req, res) => {
   }
 };
 
-// Controller Function to delete user (Papalitan ng archiving sa mga later dates)
+// Controller Function to delete user
 const deleteUser = async (req, res) => {
   try {
     const { id } = req.params;
@@ -122,32 +122,61 @@ const deleteUser = async (req, res) => {
   }
 };
 
-//Subject to changes depending on how authentication is handled in the frontend!!
+// ✅ Authenticate User & Set Secure Cookie
 const authenticateUser = async (req, res) => {
-  const idToken = req.headers.authorization?.split("Bearer ")[1];
-
-  if (!idToken) {
-    return res.status(401).send({ error: "No token provided" });
-  }
-
   try {
+    const idToken = req.body.idToken;
+    if (!idToken) {
+      return res.status(401).json({ error: "No token provided" });
+    }
+
     const decodedToken = await admin.auth().verifyIdToken(idToken);
     const uid = decodedToken.uid;
 
     const userDoc = await getUserCollection().doc(uid).get();
-
     if (!userDoc.exists) {
-      return res.status(404).send({ error: "User not found in Firestore" });
+      return res.status(404).json({ error: "User not found in Firestore" });
     }
+
+    res.cookie("session", idToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production", 
+      sameSite: "strict",
+      maxAge: 1000 * 60 * 60 * 24, 
+    });
 
     return res.status(200).json({
       message: "Authenticated",
       user: userDoc.data(),
     });
+
   } catch (error) {
     console.error("Token verification failed:", error);
-    return res.status(401).send({ error: "Invalid token" });
+    return res.status(401).json({ error: "Invalid token" });
   }
 };
 
-module.exports = { getUsers, addUser, deleteUser, updateUser, authenticateUser };
+// ✅ Middleware to Protect Routes
+const requireAuth = async (req, res, next) => {
+  try {
+    const token = req.cookies.session;
+    if (!token) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    const decodedToken = await admin.auth().verifyIdToken(token);
+    req.user = decodedToken;
+    next();
+  } catch (error) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+};
+
+module.exports = { 
+  getUsers, 
+  addUser, 
+  deleteUser, 
+  updateUser, 
+  authenticateUser,
+  requireAuth
+};

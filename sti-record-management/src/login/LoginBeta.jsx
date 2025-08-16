@@ -3,6 +3,7 @@ import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../firebaseClient";
 import { ToastContainer, toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 function LoginBeta() {
     const [schoolId, setSchoolId] = useState("");
@@ -17,45 +18,51 @@ function LoginBeta() {
         setLoading(true);
 
         try {
+            // Firebase login
             const userCredential = await signInWithEmailAndPassword(auth, schoolId, password);
             const user = userCredential.user;
             const idToken = await user.getIdToken();
 
-            const response = await fetch("/user/authenticate", {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${idToken}`
+            // Axios request to backend
+            const response = await axios.post(
+                "/user/authenticate",
+                { idToken },
+                {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${idToken}`,
+                    },
+                    withCredentials: true,
                 }
-            });
+            );
 
-            if (response.ok) {
-                const { user: userData } = await response.json();
-                const userRole = userData.role;
+            const { user: userData } = response.data;
+            const userRole = userData.role;
 
-                setLoading(false);
-                toast('Welcome');
-
-                if (userRole === "Admin") {
-                    navigate("/admin");
-                } else if (userRole === "Disciplinary") {
-                    navigate("/disciplinary");
-                } else if (userRole === "Teacher") {
-                    navigate("/teacher");
-                } else if (userRole === "Student") {
-                    navigate("/student");
-                } else {
-                    navigate("/");
-                }
-            } else {
-                setLoading(false);
-                const errorData = await response.json();
-                setErrorMsg(errorData.error || "An error occurred during authentication.");
-            }
-
-        } catch (error) {
-            setErrorMsg(error.message);
             setLoading(false);
+            toast.success("Welcome!");
+
+            // Redirect by role
+            if (userRole === "Admin") {
+                navigate("/admin");
+            } else if (userRole === "Disciplinary") {
+                navigate("/disciplinary");
+            } else if (userRole === "Teacher") {
+                navigate("/teacher");
+            } else if (userRole === "Student") {
+                navigate("/student");
+            } else {
+                navigate("/");
+            }
+        } catch (error) {
+            setLoading(false);
+            if (error.response) {
+                // Error from backend
+                setErrorMsg(error.response.data.error || "Authentication failed.");
+            } else {
+                // Network or other error
+                setErrorMsg("The email or password might be incorrect");
+            }
         }
     };
 

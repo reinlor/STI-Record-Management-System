@@ -15,7 +15,8 @@ export default function Sidebar({
             { label: "Student Records", path: "/admin/student-records" },
             { label: "Student Cases", path: "/admin/student-cases" },
             { label: "Users", path: "/admin/users" },
-            { label: "Back Up and Restore", path: "/admin/back-n-restore" }
+            { label: "Back Up and Restore", path: "/admin/back-n-restore" },
+            { label: "Wellness Assessment", path: "/admin/wellness" },
         ];
         panelName = 'Admin';
     }
