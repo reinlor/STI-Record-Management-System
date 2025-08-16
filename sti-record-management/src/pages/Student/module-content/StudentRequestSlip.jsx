@@ -1,21 +1,30 @@
 import React, { useState } from 'react';
+import { createRoot } from 'react-dom/client';
 
-// The main component for your Request Slip module
+//MOCK DATA
+const studentProfile = {
+    studentName: "Juan Dela Cruz",
+    studentID: "02000389463",
+    program: "BSIT 4.1A",
+    email: "juan@example.com"
+};
+
+// Main component for the Student Request Slip module
 export default function StudentRequestSlip() {
     // State to manage the active slip type (tab)
     const [activeSlip, setActiveSlip] = useState('Absent');
-    
-    // State to hold form data, could be expanded for different fields
+
+    // State to hold form data. Attachments is now an array of objects to allow for individual removal.
     const [formData, setFormData] = useState({
-        fullName: '',
-        studentNumber: '',
-        program: '',
-        yearAndSection: '',
-        email: '',
+        // Pre-fill with student profile data
+        studentName: studentProfile.studentName,
+        studentID: studentProfile.studentID,
+        program: studentProfile.program,
+        email: studentProfile.email,
         reason: '',
         dateAbsent: '',
         daysAbsent: '',
-        attachments: null,
+        attachments: [],
     });
 
     // Handle input changes
@@ -24,16 +33,38 @@ export default function StudentRequestSlip() {
         setFormData(prevData => ({ ...prevData, [name]: value }));
     };
 
-    // Handle file changes
+    // Handle new file selection and add them to the attachments array
     const handleFileChange = (e) => {
-        setFormData(prevData => ({ ...prevData, attachments: e.target.files }));
+        const newFiles = Array.from(e.target.files).map(file => ({
+            id: crypto.randomUUID(),
+            file: file,
+            name: file.name
+        }));
+
+        setFormData(prevData => ({
+            ...prevData,
+            attachments: [...prevData.attachments, ...newFiles]
+        }));
+        e.target.value = null;
+    };
+
+    // Handle file removal from the list
+    const handleRemoveFile = (fileId) => {
+        setFormData(prevData => ({
+            ...prevData,
+            attachments: prevData.attachments.filter(item => item.id !== fileId)
+        }));
     };
 
     // Handle form submission
     const handleSubmit = (e) => {
         e.preventDefault();
         console.log('Submitting form for:', activeSlip, formData);
-        alert(`Submitting form for ${activeSlip}.`);
+        const messageBox = document.createElement('div');
+        messageBox.className = 'fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-blue-600 text-white p-4 rounded-lg shadow-xl animate-fade-in z-50';
+        messageBox.textContent = `Submitting form for ${activeSlip}.`;
+        document.body.appendChild(messageBox);
+        setTimeout(() => messageBox.remove(), 2000);
     };
 
     // Tab data for rendering
@@ -74,7 +105,7 @@ export default function StudentRequestSlip() {
                 {/* Main Form Content */}
                 <form onSubmit={handleSubmit} className="space-y-6">
                     {/* Common Student Information Section */}
-                    <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
+                    <div className="bg-gray-50 p-6 rounded-lg shadow-inner border border-gray-200">
                         <h2 className="text-xl font-bold text-gray-700 mb-4">Student Information</h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
@@ -82,43 +113,30 @@ export default function StudentRequestSlip() {
                                 <input
                                     type="text"
                                     name="fullName"
-                                    value={formData.fullName}
-                                    onChange={handleChange}
+                                    value={formData.studentName}
                                     className={inputClasses}
-                                    required
+                                    readOnly
                                 />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Student Number</label>
                                 <input
                                     type="text"
-                                    name="studentNumber"
-                                    value={formData.studentNumber}
-                                    onChange={handleChange}
+                                    name="studentID"
+                                    value={formData.studentID}
                                     className={inputClasses}
-                                    required
+                                    readOnly
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Program/Strand</label>
+                                {/* Label updated to "Program and Year/Section" */}
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Program and Year/Section</label>
                                 <input
                                     type="text"
                                     name="program"
                                     value={formData.program}
-                                    onChange={handleChange}
                                     className={inputClasses}
-                                    required
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Year and Section</label>
-                                <input
-                                    type="text"
-                                    name="yearAndSection"
-                                    value={formData.yearAndSection}
-                                    onChange={handleChange}
-                                    className={inputClasses}
-                                    required
+                                    readOnly
                                 />
                             </div>
                             <div>
@@ -127,18 +145,17 @@ export default function StudentRequestSlip() {
                                     type="email"
                                     name="email"
                                     value={formData.email}
-                                    onChange={handleChange}
                                     className={inputClasses}
-                                    required
+                                    readOnly
                                 />
                             </div>
                         </div>
                     </div>
 
                     {/* Conditional Slip-specific Fields */}
-                    <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
+                    <div className="bg-gray-50 p-6 rounded-lg shadow-inner border border-gray-200">
                         <h2 className="text-xl font-bold text-gray-700 mb-4">{activeSlip} Slip Details</h2>
-                        
+
                         {/* Fields for Absent Slip */}
                         {activeSlip === 'Absent' && (
                             <div className="space-y-4">
@@ -172,7 +189,7 @@ export default function StudentRequestSlip() {
                                         onChange={handleChange}
                                         rows="4"
                                         className={inputClasses}
-                                        placeholder="Please provide a detailed reason for your absence."
+                                        placeholder="Please provide a detailed explanation for your reason."
                                         required
                                     ></textarea>
                                 </div>
@@ -192,22 +209,22 @@ export default function StudentRequestSlip() {
                                         onChange={handleChange}
                                         rows="4"
                                         className={inputClasses}
-                                        placeholder={`Please provide a detailed reason for your ${activeSlip.toLowerCase()}.`}
+                                        placeholder={`Please provide a detailed explanation for your reason.`}
                                         required
                                     ></textarea>
                                 </div>
                             </div>
                         )}
                     </div>
-                    
+
                     {/* Attachment Section */}
-                    <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
+                    <div className="bg-gray-50 p-6 rounded-lg shadow-inner border border-gray-200">
                         <h2 className="text-xl font-bold text-gray-700 mb-2">Attachments</h2>
-                        
-                        {/* Absent Slip Attachments Description */}
+
+                        {/* Conditional attachment info based on slip type */}
                         {activeSlip === 'Absent' && (
-                            <div className="mb-4">
-                                <p className="text-sm font-medium text-gray-700 mb-2">
+                            <div className="mb-4 text-gray-700">
+                                <p className="text-sm font-medium mb-2">
                                     Please attach the following documents:
                                 </p>
                                 <ul className="list-disc list-inside text-gray-600 text-sm space-y-1">
@@ -217,43 +234,80 @@ export default function StudentRequestSlip() {
                                 </ul>
                             </div>
                         )}
-                        
-                        {/* Other Slip Attachments Description */}
                         {(activeSlip === 'Late' || activeSlip === 'Uniform Pass' || activeSlip === 'ID Pass') && (
                             <p className="text-sm font-medium text-gray-700 mb-4">
                                 Please attach proof for your request.
                             </p>
                         )}
-                        
-                        <label className="flex flex-col items-center justify-center w-full h-40 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors duration-200">
-                            <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                                <svg
-                                    className="w-10 h-10 mb-3 text-gray-400"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth="2"
-                                        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v8"
-                                    ></path>
-                                </svg>
-                                <p className="mb-2 text-sm text-gray-500">
-                                    <span className="font-semibold">Click to upload</span>
-                                </p>
-                                <p className="text-xs text-gray-500">PDF, JPG, PNG, etc.</p>
-                            </div>
+
+                        {/* "Upload File" button to trigger file input */}
+                        <label className="inline-block">
+                            <button
+                                type="button"
+                                onClick={() => document.getElementById('file-input').click()}
+                                className="py-2 px-4 bg-blue-600 text-white font-semibold rounded-md shadow-sm hover:bg-blue-700 transition-colors duration-200"
+                            >
+                                Upload File
+                            </button>
                             <input
+                                id="file-input"
                                 type="file"
                                 name="attachments"
                                 onChange={handleFileChange}
                                 multiple
                                 className="hidden"
+                                accept=".pdf,image/*"
                             />
                         </label>
+
+                        {/* File preview cards */}
+                        <div className="flex flex-wrap gap-4 mt-4">
+                            {formData.attachments.map(item => {
+                                const isPdf = item.name.toLowerCase().endsWith('.pdf');
+                                const isImage = item.name.toLowerCase().match(/\.(jpg|jpeg|png|gif)$/);
+
+                                return (
+                                    <div key={item.id} className="group relative flex items-center gap-2 p-3 bg-white border border-gray-200 rounded-lg shadow-sm transition-all duration-200 ease-in-out hover:shadow-lg max-w-[250px]">
+                                        {/* File Icon Container */}
+                                        <div className={`flex-shrink-0 p-2 rounded-md ${isPdf ? 'bg-red-100 text-red-500' : 'bg-green-100 text-green-500'}`}>
+                                            {/* Conditional SVG for PDF and Image */}
+                                            {isPdf ? (
+                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
+                                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                                    <path fillRule="evenodd" d="M10 12.5a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-2a.5.5 0 0 1 .5-.5h1zM14 12.5a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-2a.5.5 0 0 1 .5-.5h1zM10.5 15.5h3v1h-3v-1z"></path>
+                                                </svg>
+                                            ) : isImage ? (
+                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
+                                                    <path d="M15 8c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 1c-2.76 0-5 2.24-5 5v5c0 2.76 2.24 5 5 5s5-2.24 5-5v-5c0-2.76-2.24-5-5-5z"></path>
+                                                </svg>
+                                            ) : (
+                                                // Default file icon
+                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
+                                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                                    <path d="M14 2v6h6"></path>
+                                                </svg>
+                                            )}
+                                        </div>
+
+                                        {/* File name */}
+                                        <span className="flex-grow text-sm font-medium text-gray-700 truncate">{item.name}</span>
+
+                                        {/* Remove button */}
+                                        <button
+                                            type="button"
+                                            onClick={() => handleRemoveFile(item.id)}
+                                            className="absolute -top-2 -right-2 p-1 rounded-full bg-red-600 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                                            aria-label="Remove file"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                );
+                            })}
+                        </div>
                     </div>
 
                     {/* Action Buttons */}
@@ -262,15 +316,14 @@ export default function StudentRequestSlip() {
                             type="button"
                             onClick={() => {
                                 setFormData({
-                                    fullName: '',
-                                    studentNumber: '',
-                                    program: '',
-                                    yearAndSection: '',
-                                    email: '',
+                                    studentName: studentProfile.studentName,
+                                    studentID: studentProfile.studentID,
+                                    program: studentProfile.program,
+                                    email: studentProfile.email,
                                     reason: '',
                                     dateAbsent: '',
                                     daysAbsent: '',
-                                    attachments: null,
+                                    attachments: [],
                                 });
                             }}
                             className="py-2 px-6 bg-white border border-gray-300 rounded-md text-gray-700 font-semibold shadow-sm hover:bg-gray-100 transition-colors duration-200"
@@ -299,4 +352,4 @@ export default function StudentRequestSlip() {
             </style>
         </div>
     );
-}
+};

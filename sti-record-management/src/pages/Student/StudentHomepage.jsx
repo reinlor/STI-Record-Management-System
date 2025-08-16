@@ -3,6 +3,7 @@ import StudentTopBar from './components/StudentTopbar.jsx';
 import StudentCard from './components/StudentCard.jsx';
 import ProfileView from './module-content/ProfileView.jsx';
 import StudentRequestSlip from './module-content/StudentRequestSlip.jsx'; 
+import StudentViewRequest from './module-content/StudentViewRequest.jsx';
 
 import WellnessCheck from './module-content/WellnessCheck.jsx';
 
@@ -27,6 +28,8 @@ export default function StudentHomepage() {
                 return <WellnessCheck />;
             case "request":
                 return <StudentRequestSlip />;
+            case "history":
+                return <StudentViewRequest />;
             default:
                 return (
                     <div className="animate-fade-in text-center mt-12">

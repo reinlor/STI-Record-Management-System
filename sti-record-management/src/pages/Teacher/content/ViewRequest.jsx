@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from "react";
 import DisplayInfo from "./DisplayInfo";
 
-function ViewRequest({ referralData = [], isLoading = false }) {
+export default function ViewRequest({ referralData = [], isLoading = false }) {
   const [search, setSearch] = useState("");
   const [selectedRow, setSelectedRow] = useState(null);
 
@@ -9,68 +9,90 @@ function ViewRequest({ referralData = [], isLoading = false }) {
     return referralData.filter(
       (row) =>
         (row.referredBy || "").toLowerCase().includes(search.toLowerCase()) ||
-        (row.employeeID || "").includes(search)
+        (row.studentName || "").toLowerCase().includes(search.toLowerCase()) ||
+        (row.employeeID || "").toLowerCase().includes(search.toLowerCase()) ||
+        (row.status || "").toLowerCase().includes(search.toLowerCase())
     );
   }, [referralData, search]);
 
+  const getStatusClasses = (status) => {
+    switch (status) {
+      case "Approved":
+        return "bg-green-100 text-green-700 font-medium";
+      case "Pending":
+        return "bg-yellow-100 text-yellow-700 font-medium";
+      case "Rejected":
+        return "bg-red-100 text-red-700 font-medium";
+      default:
+        return "bg-gray-200 text-gray-700 font-medium";
+    }
+  };
+
   return (
-    <div className="bg-white rounded-xl shadow-lg p-6 mx-auto mt-8 w-full max-w-5xl">
-      <div className="flex justify-between items-center mb-4">
-        <span className="font-bold text-lg">Request History</span>
+    <div className="bg-white rounded-3xl shadow-xl p-6 md:p-8 mx-auto mt-10 w-full max-w-6xl font-sans border border-gray-100">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+        <h2 className="text-3xl font-extrabold text-gray-800 tracking-tight mb-4 md:mb-0">
+          Referral History
+        </h2>
         <input
           type="text"
-          placeholder="Name / ID"
+          placeholder="Search by name, ID, or status"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="border border-gray-400 rounded px-3 py-2 w-64"
+          className="w-full md:w-80 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200"
         />
       </div>
 
       {isLoading ? (
         <div className="flex justify-center items-center h-48">
-          <div className="flex space-x-2">
-            <div className="w-4 h-4 bg-blue-600 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
-            <div className="w-4 h-4 bg-blue-600 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
-            <div className="w-4 h-4 bg-blue-600 rounded-full animate-bounce"></div>
+          <div className="flex space-x-3">
+            <div className="w-5 h-5 bg-blue-600 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+            <div className="w-5 h-5 bg-blue-600 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+            <div className="w-5 h-5 bg-blue-600 rounded-full animate-bounce"></div>
           </div>
         </div>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-left">
-            <thead>
-              <tr className="bg-gray-100">
-                <th className="px-4 py-2 font-semibold">NAME</th>
-                <th className="px-4 py-2 font-semibold">Employee No.</th>
-                <th className="px-4 py-2 font-semibold">Violation</th>
-                <th className="px-4 py-2 font-semibold">Referred Student</th>
-                <th className="px-4 py-2 font-semibold">Date</th>
-                <th className="px-4 py-2 font-semibold">Status</th>
-                <th className="px-4 py-2 font-semibold"></th>
+        <div className="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
+          <table className="min-w-full text-left table-auto">
+            <thead className="bg-gray-50 border-b border-gray-200">
+              <tr>
+                <th className="px-6 py-3 text-sm font-semibold text-gray-600 tracking-wide">Referred By</th>
+                <th className="px-6 py-3 text-sm font-semibold text-gray-600 tracking-wide">Employee No.</th>
+                <th className="px-6 py-3 text-sm font-semibold text-gray-600 tracking-wide">Student</th>
+                <th className="px-6 py-3 text-sm font-semibold text-gray-600 tracking-wide">Reason</th>
+                <th className="px-6 py-3 text-sm font-semibold text-gray-600 tracking-wide">Date</th>
+                <th className="px-6 py-3 text-sm font-semibold text-gray-600 tracking-wide">Status</th>
+                <th className="px-6 py-3 text-sm font-semibold text-gray-600 tracking-wide">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {filtered.map((row, idx) => (
-                <tr key={idx} className="border-b">
-                  <td className="px-4 py-2">{row.referredBy}</td>
-                  <td className="px-4 py-2">{row.employeeID}</td>
-                  <td className="px-4 py-2">{row.reasonForReferral}</td>
-                  <td className="px-4 py-2">{row.studentName}</td>
-                  <td className="px-4 py-2">{row.preparedDate}</td>
-                  <td className="px-4 py-2">{row.status}</td>
-                  <td className="px-4 py-2">
-                    <button
-                      className="bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-800 cursor-pointer"
-                      onClick={() => setSelectedRow(row)}
-                    >
-                      Open
-                    </button>
-                  </td>
-                </tr>
-              ))}
-              {filtered.length === 0 && (
+              {filtered.length > 0 ? (
+                filtered.map((row, idx) => (
+                  <tr key={idx} className="bg-white border-b hover:bg-gray-50 transition-colors duration-150 ease-in-out">
+                    <td className="px-6 py-4 text-sm font-medium text-gray-800">{row.referredBy || "-"}</td>
+                    <td className="px-6 py-4 text-sm text-gray-600">{row.employeeID || "-"}</td>
+                    <td className="px-6 py-4 text-sm text-gray-600">{row.studentName || "-"}</td>
+                    <td className="px-6 py-4 text-sm text-gray-600">{row.reasonForReferral || "-"}</td>
+                    <td className="px-6 py-4 text-sm text-gray-600">{row.preparedDate || "-"}</td>
+                    <td className="px-6 py-4 text-sm">
+                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusClasses(row.status)}`}>
+                        {row.status || "-"}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-sm">
+                      <button
+                        className="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-transform duration-100 transform active:scale-95"
+                        onClick={() => setSelectedRow(row)}
+                      >
+                        View
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
                 <tr>
-                  <td colSpan={7} className="text-center py-4 text-gray-500">
-                    No requests found.
+                  <td colSpan={7} className="text-center py-6 text-gray-500 text-lg">
+                    No referrals found.
                   </td>
                 </tr>
               )}
@@ -85,5 +107,3 @@ function ViewRequest({ referralData = [], isLoading = false }) {
     </div>
   );
 }
-
-export default ViewRequest;

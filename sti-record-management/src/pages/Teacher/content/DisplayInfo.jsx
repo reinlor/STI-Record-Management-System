@@ -1,100 +1,96 @@
 import React from "react";
+import { X, User, Info, Calendar, MessageSquare } from "lucide-react";
 
-function DisplayInfo({ data, onClose }) {
+export default function DisplayInfo({ data, onClose }) {
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-white/30">
-            <div className="bg-white rounded-xl shadow-2xl p-8 w-full max-w-3xl relative animate-fade-in">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm bg-black/30">
+            <div className="bg-white rounded-2xl shadow-2xl p-6 md:p-8 w-full max-w-6xl relative animate-fade-in border border-gray-200">
                 <button
                     onClick={onClose}
-                    className="absolute top-4 right-4 text-gray-500 hover:text-red-600 text-xl font-bold"
+                    className="absolute top-4 right-4 text-gray-500 hover:text-gray-900 transition-colors duration-200"
                 >
-                    &times;
+                    <X size={24} />
                 </button>
-                <h2 className="text-2xl font-bold mb-6 text-blue-700 text-center">Referral Details</h2>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    {/* Referral Information */}
-                    <div>
-                        <h3 className="font-bold text-lg mb-2 text-blue-700">Referral Info</h3>
-                        <div className="space-y-2">
-                            <div>
-                                <span className="font-semibold">School Year:</span> {data.schoolYear}
-                            </div>
-                            <div>
-                                <span className="font-semibold">Referred By:</span> {data.referredBy}
-                            </div>
-                            <div>
-                                <span className="font-semibold">Employee No.:</span> {data.employeeID}
-                            </div>
-                            <div>
-                                <span className="font-semibold">Prepared Date:</span> {data.preparedDate}
-                            </div>
-                            <div>
-                                <span className="font-semibold">Reason For Referral:</span> {data.reasonForReferral}
-                            </div>
-                            <div>
-                                <span className="font-semibold">Level of Priority:</span> {data.levelOfPriority}
-                            </div>
+
+                <div className="text-center mb-6">
+                    <h2 className="text-3xl font-extrabold text-gray-800 tracking-tight">Referral Details</h2>
+                    <p className="text-gray-500 mt-1">Detailed information about the student referral.</p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {/* Referral Information Card */}
+                    <div className="bg-gray-50 p-6 rounded-xl border border-gray-200 shadow-sm">
+                        <div className="flex items-center text-blue-500 mb-3">
+                            <Info size={20} className="mr-2" />
+                            <h3 className="font-bold text-lg">Referral Info</h3>
+                        </div>
+                        <div className="space-y-3 text-sm text-gray-700">
+                            <p><span className="font-semibold text-gray-900">School Year:</span> {data.schoolYear || "-"}</p>
+                            <p><span className="font-semibold text-gray-900">Referred By:</span> {data.referredBy || "-"}</p>
+                            <p><span className="font-semibold text-gray-900">Employee No.:</span> {data.employeeID || "-"}</p>
+                            <p><span className="font-semibold text-gray-900">Prepared Date:</span> {data.preparedDate || "-"}</p>
+                            <p><span className="font-semibold text-gray-900">Reason For Referral:</span> {data.reasonForReferral || "-"}</p>
+                            <p><span className="font-semibold text-gray-900">Level of Priority:</span> {data.levelOfPriority || "-"}</p>
                         </div>
                     </div>
 
-                    {/* Student Referred Information */}
-                    <div>
-                        <h3 className="font-bold text-lg mb-2 text-blue-700">Student</h3>
-                        <div className="space-y-2">
-                            <div>
-                                <span className="font-semibold">Student Name:</span> {data.studentName}
-                            </div>
-                            <div>
-                                <span className="font-semibold">Program:</span> {data.program}
-                            </div>
-                            <div>
-                                <span className="font-semibold">Gender:</span> {data.gender}
-                            </div>
-                            <div>
-                                <span className="font-semibold">Age:</span> {data.age}
-                            </div>
-                            <div>
-                                <span className="font-semibold">Status:</span> {data.status}
-                            </div>
+                    {/* Student Information Card */}
+                    <div className="bg-gray-50 p-6 rounded-xl border border-gray-200 shadow-sm">
+                        <div className="flex items-center text-blue-500 mb-3">
+                            <User size={20} className="mr-2" />
+                            <h3 className="font-bold text-lg">Student</h3>
+                        </div>
+                        <div className="space-y-3 text-sm text-gray-700">
+                            <p><span className="font-semibold text-gray-900">Student Name:</span> {data.studentName || "-"}</p>
+                            <p><span className="font-semibold text-gray-900">Program:</span> {data.program || "-"}</p>
+                            <p><span className="font-semibold text-gray-900">Gender:</span> {data.gender || "-"}</p>
+                            <p><span className="font-semibold text-gray-900">Age:</span> {data.age || "-"}</p>
+                            <p className="flex items-center">
+                                <span className="font-semibold text-gray-900 mr-2">Status:</span>
+                                <span className={`px-2 py-1 rounded-full text-xs font-bold ${
+                                    data.status === "Approved" ? "bg-green-100 text-green-700" :
+                                    data.status === "Pending" ? "bg-yellow-100 text-yellow-700" :
+                                    data.status === "Rejected" ? "bg-red-100 text-red-700" :
+                                    "bg-gray-200 text-gray-700"
+                                }`}>
+                                    {data.status || "-"}
+                                </span>
+                            </p>
                         </div>
                     </div>
-                    {/* Counselor Action Information */}
-                    <div>
-                        <h3 className="font-bold text-lg mb-2 text-blue-700">Counselor's Action</h3>
-                        <div className="space-y-2">
-                            <div>
-                                <span className="font-semibold">Received By:</span> {data.receivedBy}
-                            </div>
-                            <div>
-                                <span className="font-semibold">Initial Action:</span> {data.initialAction}
-                            </div>
-                            <div>
-                                <span className="font-semibold">Action Required:</span> {data.actionRequired}
-                            </div>
-                            <div>
-                                <span className="font-semibold">Received Date:</span> {data.receivedDate}
-                            </div>
-                            <div>
-                                <span className="font-semibold">Feedback Update Date:</span> {data.feedBackDate}
-                            </div>
+
+                    {/* Counselor's Action Card */}
+                    <div className="bg-gray-50 p-6 rounded-xl border border-gray-200 shadow-sm">
+                        <div className="flex items-center text-blue-500 mb-3">
+                            <MessageSquare size={20} className="mr-2" />
+                            <h3 className="font-bold text-lg">Counselor's Action</h3>
+                        </div>
+                        <div className="space-y-3 text-sm text-gray-700">
+                            <p><span className="font-semibold text-gray-900">Received By:</span> {data.receivedBy || "-"}</p>
+                            <p><span className="font-semibold text-gray-900">Initial Action:</span> {data.initialAction || "-"}</p>
+                            <p><span className="font-semibold text-gray-900">Action Required:</span> {data.actionRequired || "-"}</p>
+                            <p><span className="font-semibold text-gray-900">Received Date:</span> {data.receivedDate || "-"}</p>
+                            <p><span className="font-semibold text-gray-900">Feedback Update Date:</span> {data.feedBackDate || "-"}</p>
                         </div>
                     </div>
                 </div>
             </div>
-            {/* Animation */}
-            <style>
-                {`
-          .animate-fade-in {
-            animation: fadeInModal 0.3s;
-          }
-          @keyframes fadeInModal {
-            from { opacity: 0; transform: scale(0.95);}
-            to { opacity: 1; transform: scale(1);}
-          }
-        `}
-            </style>
+
+            <style jsx>{`
+                .animate-fade-in {
+                    animation: fadeInModal 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                }
+                @keyframes fadeInModal {
+                    from {
+                        opacity: 0;
+                        transform: scale(0.95) translateY(10px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: scale(1) translateY(0);
+                    }
+                }
+            `}</style>
         </div>
     );
 }
-
-export default DisplayInfo;
