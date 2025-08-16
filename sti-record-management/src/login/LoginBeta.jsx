@@ -67,10 +67,10 @@ function LoginBeta() {
                     <h2 className="text-3xl font-bold mb-8 text-center text-black">Login</h2>
                     <form className="w-full flex flex-col items-center" onSubmit={handleLogin}>
                         <div className="w-full mb-4">
-                            <label className="block text-sm font-medium mb-1 text-black">School ID</label>
+                            <label className="block text-sm font-medium mb-1 text-black">Email</label>
                             <input
                                 type="text"
-                                placeholder="School ID"
+                                placeholder="Email"
                                 value={schoolId}
                                 onChange={(e) => setSchoolId(e.target.value)}
                                 className="w-full px-3 py-2 border border-[#232b3e] rounded focus:outline-none focus:ring-2 focus:ring-[#232b3e] text-black"
