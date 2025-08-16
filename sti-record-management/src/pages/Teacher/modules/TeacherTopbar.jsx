@@ -1,52 +1,81 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import DefaultPic from '../../../assets/user.png';
+import { Settings, LogOut } from 'lucide-react';
 import STILogo from '../../../assets/sti-logo.png';
 
-function TeacherTopbar() {
+export default function TeacherTopbar() {
     const navigate = useNavigate();
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const containerRef = useRef(null);
+
+    // Close dropdown on outside click
+    useEffect(() => {
+        function handleClickOutside(event) {
+            if (
+                containerRef.current &&
+                !containerRef.current.contains(event.target)
+            ) {
+                setIsDropdownOpen(false);
+            }
+        }
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
     const handleLogout = () => {
         navigate('/');
     };
 
     return (
-        <div className="w-full flex items-center justify-between bg-white border-b-2 border-blue-700 px-6 py-3">
-            <div className="flex items-center">
-                <img
-                    src={STILogo}
-                    alt='STI Logo'
-                    className="w-14 h-10 mr-3"
-                />
-                <h3 className="text-xl font-semibold text-black">
+        <div className="w-full flex items-center justify-between bg-[#0172B9] shadow-lg px-4 md:px-8 py-3 relative z-10">
+            {/* Left side */}
+            <div className="flex items-center space-x-3 md:space-x-4">
+                <img src={STILogo} alt="STI Logo" className="h-9 md:h-11" />
+                <h3 className="text-sm md:text-xl font-bold text-white tracking-wide">
                     Guidance and Counseling Online Slip Request
                 </h3>
             </div>
-            <div 
-                className="relative" 
-                onMouseEnter={() => setIsDropdownOpen(true)}
-            >
-                <img
-                    src={DefaultPic}
-                    alt='Profile Picture'
-                    className="w-10 h-10 rounded-full border border-gray-300 cursor-pointer"
-                />
-                
+
+            {/* Settings + Dropdown */}
+            <div ref={containerRef} className="relative">
+                <button
+                    className="p-2 md:p-3 text-white hover:text-blue-200 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50 rounded-full"
+                    onClick={() => setIsDropdownOpen(open => !open)}
+                    aria-expanded={isDropdownOpen}
+                    aria-label="User settings menu"
+                >
+                    <Settings className="w-6 h-6 md:w-7 md:h-7" />
+                </button>
+
                 {isDropdownOpen && (
-                    <div className="absolute top-full right-0 mt-2 w-32 bg-white rounded-md shadow-lg py-1 z-10">
+                    <div className="absolute top-full right-0 mt-3 w-40 bg-white rounded-lg shadow-xl py-2 z-20 animate-fade-in-up origin-top-right">
                         <button
                             onClick={handleLogout}
-                            className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-red-400 hover:text-white cursor-pointer"
-                            onMouseLeave={() => setIsDropdownOpen(false)}
+                            className="flex items-center gap-3 w-full px-4 py-2 text-sm text-gray-700 hover:bg-red-500 hover:text-white transition-colors duration-150"
                         >
-                            Logout
+                            <LogOut className="w-4 h-4" />
+                            <span>Logout</span>
                         </button>
                     </div>
                 )}
             </div>
+
+            {/* Custom fade-in animation */}
+            <style jsx>{`
+                .animate-fade-in-up {
+                    animation: fadeInUp 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+                }
+                @keyframes fadeInUp {
+                    from {
+                        opacity: 0;
+                        transform: translateY(10px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateY(0);
+                    }
+                }
+            `}</style>
         </div>
     );
 }
-
-export default TeacherTopbar;
