@@ -1,6 +1,7 @@
 const { getStudentCollection } = require("../models/studentModel.js");
-const Joi = require('joi');
+const Joi = require("joi");
 
+// Student Schema
 // Student Schema
 const studentSchema = Joi.object({
   sid: Joi.string().required(),
@@ -258,21 +259,21 @@ const updateSchema = Joi.object({
   }).empty({}).optional()
 });
 
-// Controller Function for adding student data 
+// Controller Function for adding student data
 const addStudent = async (req, res) => {
   try {
     studentSchema.validate(req.body);
 
     const { error, value: newStudent } = studentSchema.validate(req.body);
     if (error) {
-        return res.status(400).json({ error: error.details[0].message });
+      return res.status(400).json({ error: error.details[0].message });
     }
     const sid = newStudent.sid;
     await getStudentCollection().doc(sid).set(newStudent);
-    
-    res.status(201).json({ 
-      message: "Student registered successfully", 
-      id: sid 
+
+    res.status(201).json({
+      message: "Student registered successfully",
+      id: sid,
     });
   } catch (error) {
     console.error("Registration error:", error);
@@ -281,17 +282,31 @@ const addStudent = async (req, res) => {
 };
 
 // Controller Function for retrieving student data
-const getStudent = async (req, res) => {
+const getStudents = async (req, res) => {
   try {
     const snapshot = await getStudentCollection().get();
-    const students = snapshot.docs.map((doc) => ({ 
-      id: doc.id, 
-      ...doc.data() 
+    const students = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
     }));
     res.status(200).send(students);
   } catch (error) {
     console.error("Get students error:", error);
     res.status(500).send({ error: "Failed to fetch students" });
+  }
+};
+
+const getStudent = async (req, res) => {
+  const { sid } = req.params;
+  try {
+    const doc = await getStudentCollection().doc(sid).get();
+    if (!doc.exists) {
+      return res.status(404).json({ error: "Student not found" });
+    }
+    res.json(doc.data());
+  } catch (error) {
+    console.error("Error fetching student:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 };
 
@@ -322,7 +337,7 @@ const updateStudent = async (req, res) => {
     res.status(200).json({
       message: "Student updated successfully",
       id: sid,
-      updates: validatedUpdates
+      updates: validatedUpdates,
     });
   } catch (error) {
     console.error("Update error:", error);
@@ -332,4 +347,4 @@ const updateStudent = async (req, res) => {
 
 // Controller Function for archiving student data (Wala pa)
 
-module.exports = { addStudent, getStudent, updateStudent };
+module.exports = { addStudent, getStudents, updateStudent, getStudent };
