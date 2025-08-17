@@ -91,11 +91,21 @@ export default function ViewRequestModal({ data, onClose }) {
               <h3 className="font-bold text-lg">Attachments</h3>
             </div>
             <div className="space-y-3 text-sm text-gray-700">
-              {data.attachments && data.attachments.length > 0 ? (
+              {Array.isArray(data.proofUrl) && data.proofUrl.length > 0 ? (
                 <ul className="list-disc list-inside space-y-1">
-                  {data.attachments.map((file, idx) => (
-                    <li key={idx} className="flex items-center"><Paperclip size={16} className="mr-2 text-gray-400" />{file}</li>
+                  {data.proofUrl.map((file, idx) => (
+                    <li key={idx} className="flex items-center">
+                      <Paperclip size={16} className="mr-2 text-gray-400" />
+                      {file}
+                    </li>
                   ))}
+                </ul>
+              ) : data.proofUrl ? (
+                <ul className="list-disc list-inside space-y-1">
+                  <li className="flex items-center">
+                    <Paperclip size={16} className="mr-2 text-gray-400" />
+                    {data.proofUrl}
+                  </li>
                 </ul>
               ) : (
                 <p>None</p>
@@ -105,7 +115,7 @@ export default function ViewRequestModal({ data, onClose }) {
         </div>
       </div>
 
-      <style jsx>{`
+      <style>{`
         .animate-fade-in {
           animation: fadeInModal 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
