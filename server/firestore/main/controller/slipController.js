@@ -34,12 +34,14 @@ const absentSlipSchema = Joi.object({
                             minDomainSegments: 2, 
                             tlds: { 
                               allow: ['com', 'net'] } }),
+  reason:          Joi.string().required(),
   excuseLetterUrl: Joi.string().required(),
   medicalCertificateUrl: Joi.string().required(),
   guardianValidIDUrl: Joi.string().required(),
   attachmentCount: Joi.number().required(),
   status:          Joi.string().required(),
-  timeCreated:     Joi.date().required()
+  timeCreated:     Joi.date().required(),
+  daysAbsent:      Joi.number().required()
 });
 
 const idPassSchema = Joi.object({
@@ -246,33 +248,49 @@ const getIDPass = async (req, res) => {
   }
 };
 
-const uploadImage = async (req, res) => {
-  try {
-    // Upload the image file from temporary upload directory to Cloudinary
-    const result = await cloudinary.uploader.upload(req.file.path, {
-      folder: "proofs", // Store inside "proofs" folder in your Cloudinary account
-    });
-
-    // Delete the local temporary file after successful upload
-    fs.unlinkSync(req.file.path);
-
-    // Return Cloudinary URL and public ID for further use
-    res.status(200).json({
-      imageUrl: result.secure_url,
-      publicID: result.public_id,
-    });
-  } catch (err) {
-    console.error("Cloudinary Image Upload Error:", err);
-    res.status(500).json({ error: "Failed to upload image." });
-  }
-};
-
 // Controller Function for retrieving all slips
 const getAllSlips = async (req, res) => {
   try {
     const snapshot = await getLateSlipsCollection().get();
     const snapshot2 = await getAbsentSlipsCollection().get();
     const snapshot3 = await getIDPassCollection().get();
+
+    if (snapshot.empty && snapshot2.empty && snapshot3.empty) {
+      return res
+        .status(404)
+        .send({ error: `There is no available slips.` });
+    }
+
+    const lateSlips = snapshot.docs.map((lateSlip) => ({
+      _id: lateSlip.id,
+      ...lateSlip.data(),
+    }));
+
+    const absentSlips = snapshot2.docs.map((absentSlip) => ({
+      _id: absentSlip.id,
+      ...absentSlip.data()
+    }))
+
+    const IDPasses = snapshot3.docs.map((IDPass) => ({
+      _id: IDPass.id,
+      ...IDPass.data()
+    }))
+
+    allSlips = [...lateSlips, ...absentSlips, ...IDPasses]
+
+    res.status(200).json(allSlips);
+  } catch (error) {
+    res.status(404).json({ error: error.message });
+  }
+};
+
+const getAllSlipsById = async (req, res) => {
+  const { sid } = req.params;
+
+  try {
+    const snapshot = await getLateSlipsCollection().where("sid", "==", sid).get();
+    const snapshot2 = await getAbsentSlipsCollection().where("sid", "==", sid).get();
+    const snapshot3 = await getIDPassCollection().where("sid", "==", sid).get();
 
     if (snapshot.empty && snapshot2.empty && snapshot3.empty) {
       return res
@@ -313,6 +331,6 @@ module.exports = {
   addIDPass,
   getAllIDPass,
   getIDPass,
-  uploadImage,
-  getAllSlips
+  getAllSlips,
+  getAllSlipsById
 };

@@ -1,6 +1,6 @@
 const express = require("express");
 
-const {addLateSlip, getAllLateSlip, getLateSlip, addAbsentSlip, getAllAbsentSlip, getAbsentSlip, addIDPass, getAllIDPass, getIDPass, getAllSlips} = require("../controller/slipController");
+const {addLateSlip, getAllLateSlip, getLateSlip, addAbsentSlip, getAllAbsentSlip, getAbsentSlip, addIDPass, getAllIDPass, getIDPass, getAllSlips, getAllSlipsById} = require("../controller/slipController");
 
 const router = express.Router();
 
@@ -21,5 +21,6 @@ router.get("/IDPass/:sid", getIDPass);               // For retrieving ID Pass s
 
 //All Slips
 router.get('/allSlips', getAllSlips);                // For retrieving all slips (Late, Absent, ID Pass)
+router.get('/allSlips/:sid', getAllSlipsById);      // For retrieving all slips by Student ID
 
 module.exports = router;

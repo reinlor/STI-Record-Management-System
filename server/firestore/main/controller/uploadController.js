@@ -82,30 +82,39 @@ const uploadImage = async (req, res) => {
   }
 };
 
-// =====================
-// Add uploaded image details to Firestore
-// =====================
-const addImage = async (req, res) => {
-  const { imageUrl, publicID } = req.body; // Extract from frontend request body
-
-  const newImage = { imageUrl, publicID }; // Create a new image object
-
+const uploadImages = async (req, res) => {
   try {
-    // Save the image object as a new document in Firestore
-    const docRef = await getUploadCollection().add(newImage);
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({ error: "No files uploaded" });
+    }
+    if (req.files.length > 3) {
+      return res.status(400).json({ error: "Maximum 3 images allowed" });
+    }
 
-    // Respond with the newly created document ID and data
-    res.status(201).send({ id: docRef.id, ...newImage });
-  } catch (error) {
-    console.error("Error adding image:", error);
-    res.status(500).send({ error: "Failed to add image" });
+    const uploadResults = [];
+    for (const file of req.files) {
+      const result = await cloudinary.uploader.upload(file.path, {
+        folder: "uploads",
+      });
+      fs.unlinkSync(file.path); // Remove temp file
+      uploadResults.push({
+        imageUrl: result.secure_url,
+        publicID: result.public_id,
+      });
+    }
+
+    res.status(200).json(uploadResults);
+  } catch (err) {
+    console.error("Cloudinary Upload Error:", err);
+    res.status(500).json({ error: "Failed to upload images" });
   }
 };
+
 
 // Export controller functions for use in Express routes
 module.exports = {
   uploadImage,
-  addImage,
   getAllImages,
   deleteImage,
+  uploadImages
 };
