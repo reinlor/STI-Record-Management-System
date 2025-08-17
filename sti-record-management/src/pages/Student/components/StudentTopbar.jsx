@@ -61,7 +61,7 @@ export default function StudentTopbar() {
             </div>
 
             {/* Custom fade-in animation */}
-            <style jsx>{`
+            <style>{`
                 .animate-fade-in-up {
                     animation: fadeInUp 0.2s cubic-bezier(0.4, 0, 0.2, 1);
                 }

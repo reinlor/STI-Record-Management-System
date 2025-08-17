@@ -1,4 +1,7 @@
-const Joi = require('joi');
+const Joi = require("joi");
+
+const cloudinary = require("../../../config/cloudinary.js");
+const fs = require("fs");
 
 const {
   getLateSlipsCollection,
@@ -8,102 +11,188 @@ const {
 
 // SLIPS / Passes Schema
 const lateSlipSchema = Joi.object({
-  sid:             Joi.string().required(),
-  name:            Joi.string().required(),
-  program:         Joi.string().required(),
-  section:         Joi.string().required(),
-  typeOfSlip:      Joi.string().valid('Late Slip').required(),
-  email:           Joi.string().email({ 
-                            minDomainSegments: 2, 
-                            tlds: { 
-                              allow: ['com', 'net'] } }),
-  reason:          Joi.string().required(),
+  sid: Joi.string().required(),
+  name: Joi.string().required(),
+  program: Joi.string().optional(),
+  section: Joi.string().required(),
+  typeOfSlip: Joi.string().valid("Late Slip").required(),
+  email: Joi.string().email({
+    minDomainSegments: 2,
+    tlds: {
+      allow: ["com", "net"],
+    },
+  }),
+  reason: Joi.string().required(),
   attachmentCount: Joi.number().required(),
-  proofUrl:        Joi.string().required(),
-  status:          Joi.string().required(),
-  timeCreated:     Joi.date().required()
+  proofUrl: Joi.string().required(),
+  status: Joi.string().required(),
+  timeCreated: Joi.date().required(),
 });
 
 const absentSlipSchema = Joi.object({
-  sid:             Joi.string().required(),
-  name:            Joi.string().required(),
-  program:         Joi.string().required(),
-  section:         Joi.string().required(),
-  typeOfSlip:      Joi.string().valid('Absent Slip').required(),
-  email:           Joi.string().email({ 
-                            minDomainSegments: 2, 
-                            tlds: { 
-                              allow: ['com', 'net'] } }),
+  sid: Joi.string().required(),
+  name: Joi.string().required(),
+  program: Joi.string().optional(),
+  section: Joi.string().required(),
+  typeOfSlip: Joi.string().valid("Absent Slip").required(),
+  email: Joi.string().email({
+    minDomainSegments: 2,
+    tlds: {
+      allow: ["com", "net"],
+    },
+  }),
+  reason: Joi.string().required(),
   excuseLetterUrl: Joi.string().required(),
   medicalCertificateUrl: Joi.string().required(),
   guardianValidIDUrl: Joi.string().required(),
   attachmentCount: Joi.number().required(),
-  status:          Joi.string().required(),
-  timeCreated:     Joi.date().required()
+  status: Joi.string().required(),
+  timeCreated: Joi.date().required(),
+  daysAbsent: Joi.number().required(),
 });
 
 const idPassSchema = Joi.object({
-  sid:             Joi.string().required(),
-  name:            Joi.string().required(),
-  program:         Joi.string().required(),
-  section:         Joi.string().required(),
-  typeOfSlip:      Joi.string().valid('ID Slip').required(),
-  email:           Joi.string().email({ 
-                            minDomainSegments: 2, 
-                            tlds: { 
-                              allow: ['com', 'net'] } }),
-  reason:          Joi.string().required(),
+  sid: Joi.string().required(),
+  name: Joi.string().required(),
+  program: Joi.string().optional(),
+  section: Joi.string().required(),
+  typeOfSlip: Joi.string().valid("ID Slip").required(),
+  proofUrl: Joi.string().required(),
+  email: Joi.string().email({
+    minDomainSegments: 2,
+    tlds: {
+      allow: ["com", "net"],
+    },
+  }),
+  reason: Joi.string().required(),
   attachmentCount: Joi.number().required().default(0),
-  status:          Joi.string().required(),
-  timeCreated:     Joi.date().required()
+  status: Joi.string().required(),
+  timeCreated: Joi.date().required(),
 });
 
 // Controller function for adding Late Slip
 const addLateSlip = async (req, res) => {
   try {
-    lateSlipSchema.validate(req.body);
-    const { error, value: newLateSlip } = lateSlipSchema.validate(req.body);
-    if (error) {
-        return res.status(400).json({ error: error.details[0].message });
+    // Upload files to Cloudinary and assign URLs
+    let proofUrl = "";
+    if (req.files && req.files.length > 0) {
+      if (req.files[0]) {
+        const result = await cloudinary.uploader.upload(req.files[0].path, {
+          folder: "slip-attachments",
+        });
+        proofUrl = result.secure_url;
+        fs.unlinkSync(req.files[0].path);
+      }
+    }
+
+    const slipData = {
+      ...req.body,
+      proofUrl,
+      attachmentCount: req.files ? req.files.length : 0,
+      status: "Pending",
+      timeCreated: new Date(),
     };
+
+    const { error, value: newLateSlip } = lateSlipSchema.validate(slipData);
+    if (error) {
+      return res.status(400).json({ error: error.details[0].message });
+    }
     await getLateSlipsCollection().doc().set(newLateSlip);
-    const name = newLateSlip.name;
-    res.status(200).send({ message: `Late slip added to Student: ${name}` });
+    res
+      .status(200)
+      .send({ message: `Late slip added to Student: ${newLateSlip.name}` });
   } catch (error) {
-    res.status(404).send({ error: error.message });
+    res.status(500).send({ error: error.message });
   }
 };
 
 // Controller Function For adding Absent Slip
 const addAbsentSlip = async (req, res) => {
   try {
-    absentSlipSchema.validate(req.body);
-    const { error, value: newAbsentSlip } = absentSlipSchema.validate(req.body);
-    if (error) {
-        return res.status(400).json({ error: error.details[0].message });
+    // Upload files to Cloudinary and assign URLs
+    let excuseLetterUrl = "",
+      medicalCertificateUrl = "",
+      guardianValidIDUrl = "";
+    if (req.files && req.files.length > 0) {
+      if (req.files[0]) {
+        const result = await cloudinary.uploader.upload(req.files[0].path, {
+          folder: "slip-attachments",
+        });
+        excuseLetterUrl = result.secure_url;
+        fs.unlinkSync(req.files[0].path);
+      }
+      if (req.files[1]) {
+        const result = await cloudinary.uploader.upload(req.files[1].path, {
+          folder: "slip-attachments",
+        });
+        medicalCertificateUrl = result.secure_url;
+        fs.unlinkSync(req.files[1].path);
+      }
+      if (req.files[2]) {
+        const result = await cloudinary.uploader.upload(req.files[2].path, {
+          folder: "slip-attachments",
+        });
+        guardianValidIDUrl = result.secure_url;
+        fs.unlinkSync(req.files[2].path);
+      }
+    }
+
+    const slipData = {
+      ...req.body,
+      excuseLetterUrl,
+      medicalCertificateUrl,
+      guardianValidIDUrl,
+      attachmentCount: req.files ? req.files.length : 0,
+      status: "Pending",
+      timeCreated: new Date(),
     };
+
+    const { error, value: newAbsentSlip } = absentSlipSchema.validate(slipData);
+    if (error) {
+      return res.status(400).json({ error: error.details[0].message });
+    }
     await getAbsentSlipsCollection().doc().set(newAbsentSlip);
-    const name = newAbsentSlip.name;
-    res.status(200).send({ message: `Absent slip added to Student: ${name}` });
+    res
+      .status(200)
+      .send({ message: `Absent slip added to Student: ${newAbsentSlip.name}` });
   } catch (error) {
-    res.status(404).send({ error: error.message });
+    res.status(500).send({ error: error.message });
   }
 };
-
 
 // Controller Function for adding ID Pass
 const addIDPass = async (req, res) => {
   try {
-    idPassSchema.validate(req.body);
-    const { error, value: newIDPass } = idPassSchema.validate(req.body);
-    if (error) {
-        return res.status(400).json({ error: error.details[0].message });
+    // Upload files to Cloudinary and assign URLs
+    let proofUrl = "";
+    if (req.files && req.files.length > 0) {
+      if (req.files[0]) {
+        const result = await cloudinary.uploader.upload(req.files[0].path, {
+          folder: "slip-attachments",
+        });
+        proofUrl = result.secure_url;
+        fs.unlinkSync(req.files[0].path);
+      }
+    }
+
+    const slipData = {
+      ...req.body,
+      proofUrl,
+      attachmentCount: req.files ? req.files.length : 0,
+      status: "Pending",
+      timeCreated: new Date(),
     };
+
+    const { error, value: newIDPass } = idPassSchema.validate(slipData);
+    if (error) {
+      return res.status(400).json({ error: error.details[0].message });
+    }
     await getIDPassCollection().doc().set(newIDPass);
-    const name = newIDPass.name;
-    res.status(200).send({ message: `ID pass added to Student: ${name}` });
+    res
+      .status(200)
+      .send({ message: `ID Pass added to Student: ${newIDPass.name}` });
   } catch (error) {
-    res.status(404).send({ error: error.message });
+    res.status(500).send({ error: error.message });
   }
 };
 
@@ -246,27 +335,6 @@ const getIDPass = async (req, res) => {
   }
 };
 
-const uploadImage = async (req, res) => {
-  try {
-    // Upload the image file from temporary upload directory to Cloudinary
-    const result = await cloudinary.uploader.upload(req.file.path, {
-      folder: "proofs", // Store inside "proofs" folder in your Cloudinary account
-    });
-
-    // Delete the local temporary file after successful upload
-    fs.unlinkSync(req.file.path);
-
-    // Return Cloudinary URL and public ID for further use
-    res.status(200).json({
-      imageUrl: result.secure_url,
-      publicID: result.public_id,
-    });
-  } catch (err) {
-    console.error("Cloudinary Image Upload Error:", err);
-    res.status(500).json({ error: "Failed to upload image." });
-  }
-};
-
 // Controller Function for retrieving all slips
 const getAllSlips = async (req, res) => {
   try {
@@ -275,9 +343,7 @@ const getAllSlips = async (req, res) => {
     const snapshot3 = await getIDPassCollection().get();
 
     if (snapshot.empty && snapshot2.empty && snapshot3.empty) {
-      return res
-        .status(404)
-        .send({ error: `There is no available slips.` });
+      return res.status(404).send({ error: `There is no available slips.` });
     }
 
     const lateSlips = snapshot.docs.map((lateSlip) => ({
@@ -287,15 +353,54 @@ const getAllSlips = async (req, res) => {
 
     const absentSlips = snapshot2.docs.map((absentSlip) => ({
       _id: absentSlip.id,
-      ...absentSlip.data()
-    }))
+      ...absentSlip.data(),
+    }));
 
     const IDPasses = snapshot3.docs.map((IDPass) => ({
       _id: IDPass.id,
-      ...IDPass.data()
-    }))
+      ...IDPass.data(),
+    }));
 
-    allSlips = [...lateSlips, ...absentSlips, ...IDPasses]
+    allSlips = [...lateSlips, ...absentSlips, ...IDPasses];
+
+    res.status(200).json(allSlips);
+  } catch (error) {
+    res.status(404).json({ error: error.message });
+  }
+};
+
+const getAllSlipsById = async (req, res) => {
+  const { sid } = req.params;
+
+  try {
+    const snapshot = await getLateSlipsCollection()
+      .where("sid", "==", sid)
+      .get();
+    const snapshot2 = await getAbsentSlipsCollection()
+      .where("sid", "==", sid)
+      .get();
+    const snapshot3 = await getIDPassCollection().where("sid", "==", sid).get();
+
+    if (snapshot.empty && snapshot2.empty && snapshot3.empty) {
+      return res.status(404).send({ error: `There is no available slips.` });
+    }
+
+    const lateSlips = snapshot.docs.map((lateSlip) => ({
+      _id: lateSlip.id,
+      ...lateSlip.data(),
+    }));
+
+    const absentSlips = snapshot2.docs.map((absentSlip) => ({
+      _id: absentSlip.id,
+      ...absentSlip.data(),
+    }));
+
+    const IDPasses = snapshot3.docs.map((IDPass) => ({
+      _id: IDPass.id,
+      ...IDPass.data(),
+    }));
+
+    allSlips = [...lateSlips, ...absentSlips, ...IDPasses];
 
     res.status(200).json(allSlips);
   } catch (error) {
@@ -313,6 +418,6 @@ module.exports = {
   addIDPass,
   getAllIDPass,
   getIDPass,
-  uploadImage,
-  getAllSlips
+  getAllSlips,
+  getAllSlipsById,
 };

@@ -6,7 +6,7 @@ const path = require("path");
 // Import controller functions for handling image logic
 const {
   uploadImage,
-  addImage,
+  uploadImages,
   getAllImages,
   deleteImage,
 } = require("../controller/uploadController.js");
@@ -35,9 +35,8 @@ const upload = multer({
 // First uploads the file to the server using multer, then passes it to the Cloudinary uploader in the controller
 router.post("/upload", upload.single("image"), uploadImage);
 
-// ✅ POST image metadata (URL and public ID) to Firestore
-// After uploading to Cloudinary, this saves the image info to Firestore
-router.post("/add", addImage);
+// ✅ POST multiple images to Cloudinary (1-3 images)
+router.post("/add-multiple", upload.array("images", 3), uploadImages);
 
 // ✅ DELETE an image document from Firestore by document ID
 // Called by passing the Firestore document ID as a URL parameter (e.g., /upload2/123456)

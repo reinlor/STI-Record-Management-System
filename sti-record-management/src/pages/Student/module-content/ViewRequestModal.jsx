@@ -25,13 +25,13 @@ export default function ViewRequestModal({ data, onClose }) {
               <h3 className="font-bold text-lg">Student Information</h3>
             </div>
             <div className="space-y-3 text-sm text-gray-700">
-              <p><span className="font-semibold text-gray-900">Full Name:</span> {data.fullName || "-"}</p>
+              <p><span className="font-semibold text-gray-900">Full Name:</span> {data.name || "-"}</p>
 
-              <p><span className="font-semibold text-gray-900">Student Number:</span> {data.studentNumber || "-"}</p>
+              <p><span className="font-semibold text-gray-900">Student Number:</span> {data.sid || "-"}</p>
 
               <p><span className="font-semibold text-gray-900">Program/Strand:</span> {data.program || "-"}</p>
 
-              <p><span className="font-semibold text-gray-900">Year and Section:</span> {data.yearAndSection || "-"}</p>
+              <p><span className="font-semibold text-gray-900">Year and Section:</span> {data.section || "-"}</p>
 
               <p><span className="font-semibold text-gray-900">Email:</span> {data.email || "-"}</p>
             </div>
@@ -44,8 +44,8 @@ export default function ViewRequestModal({ data, onClose }) {
               <h3 className="font-bold text-lg">Slip Details</h3>
             </div>
             <div className="space-y-3 text-sm text-gray-700">
-              <p><span className="font-semibold text-gray-900">Slip Type:</span> {data.slipType || "-"}</p>
-              {data.slipType === "Absent Slip" && (
+              <p><span className="font-semibold text-gray-900">Slip Type:</span> {data.typeOfSlip || "-"}</p>
+              {data.typeOfSlip === "Absent Slip" && (
                 <>
                   <p><span className="font-semibold text-gray-900">Date of Absent:</span> {data.dateAbsent || "-"}</p>
 
@@ -54,7 +54,7 @@ export default function ViewRequestModal({ data, onClose }) {
                   <p><span className="font-semibold text-gray-900">Reason:</span> {data.reason || "-"}</p>
                 </>
               )}
-              {(data.slipType === "Late Slip" || data.slipType === "ID Pass" || data.slipType === "Uniform Pass") && (
+              {(data.typeOfSlip === "Late Slip" || data.typeOfSlip === "ID Pass" || data.typeOfSlip === "Uniform Pass") && (
                 <p><span className="font-semibold text-gray-900">Reason:</span> {data.reason || "-"}</p>
               )}
             </div>
@@ -91,11 +91,21 @@ export default function ViewRequestModal({ data, onClose }) {
               <h3 className="font-bold text-lg">Attachments</h3>
             </div>
             <div className="space-y-3 text-sm text-gray-700">
-              {data.attachments && data.attachments.length > 0 ? (
+              {Array.isArray(data.proofUrl) && data.proofUrl.length > 0 ? (
                 <ul className="list-disc list-inside space-y-1">
-                  {data.attachments.map((file, idx) => (
-                    <li key={idx} className="flex items-center"><Paperclip size={16} className="mr-2 text-gray-400" />{file}</li>
+                  {data.proofUrl.map((file, idx) => (
+                    <li key={idx} className="flex items-center">
+                      <Paperclip size={16} className="mr-2 text-gray-400" />
+                      {file}
+                    </li>
                   ))}
+                </ul>
+              ) : data.proofUrl ? (
+                <ul className="list-disc list-inside space-y-1">
+                  <li className="flex items-center">
+                    <Paperclip size={16} className="mr-2 text-gray-400" />
+                    {data.proofUrl}
+                  </li>
                 </ul>
               ) : (
                 <p>None</p>
@@ -105,7 +115,7 @@ export default function ViewRequestModal({ data, onClose }) {
         </div>
       </div>
 
-      <style jsx>{`
+      <style>{`
         .animate-fade-in {
           animation: fadeInModal 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }

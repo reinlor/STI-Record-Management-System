@@ -1,25 +1,42 @@
 const express = require("express");
+const multer = require("multer");
+const path = require("path");
 
-const {addLateSlip, getAllLateSlip, getLateSlip, addAbsentSlip, getAllAbsentSlip, getAbsentSlip, addIDPass, getAllIDPass, getIDPass, getAllSlips} = require("../controller/slipController");
+const {
+  addLateSlip,
+  getAllLateSlip,
+  getLateSlip,
+  addAbsentSlip,
+  getAllAbsentSlip,
+  getAbsentSlip,
+  addIDPass,
+  getAllIDPass,
+  getIDPass,
+  getAllSlips,
+  getAllSlipsById
+} = require("../controller/slipController");
 
 const router = express.Router();
 
+const upload = multer({ dest: path.join(__dirname, "../uploads") });
+
 // Late Slips
-router.post("/lateSlip/add/", addLateSlip);          // For adding Late Slip submission
-router.get("/lateSlip", getAllLateSlip);             // For retrieving all Late Slip submission
-router.get("/lateSlip/:sid", getLateSlip);           // For retrieving Late Slip submission by ID
+router.post("/lateSlip/add/", upload.array("attachments", 3), addLateSlip);
+router.get("/lateSlip", getAllLateSlip);
+router.get("/lateSlip/:sid", getLateSlip);
 
 // Absent Slips
-router.post("/absentSlip/add/", addAbsentSlip);      // For adding Absent Slip submission
-router.get("/absentSlip", getAllAbsentSlip);         // For retrieving Absent all Slip submission
-router.get("/absentSlip/:sid", getAbsentSlip);       // For retrieving Absent Slip submission by ID
+router.post("/absentSlip/add/", upload.array("attachments", 3), addAbsentSlip);
+router.get("/absentSlip", getAllAbsentSlip);
+router.get("/absentSlip/:sid", getAbsentSlip);
 
 // ID Pass
-router.post("/IDPass/add/", addIDPass);              // For adding ID Pass submission
-router.get("/IDPass", getAllIDPass);                 // For retrieving all ID Pass submission
-router.get("/IDPass/:sid", getIDPass);               // For retrieving ID Pass submission by ID
+router.post("/IDPass/add/", upload.array("attachments", 3), addIDPass);
+router.get("/IDPass", getAllIDPass);
+router.get("/IDPass/:sid", getIDPass);
 
 //All Slips
-router.get('/allSlips', getAllSlips);                // For retrieving all slips (Late, Absent, ID Pass)
+router.get('/allSlips', getAllSlips);
+router.get('/allSlips/:sid', getAllSlipsById);
 
 module.exports = router;
