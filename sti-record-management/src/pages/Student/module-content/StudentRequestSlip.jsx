@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { createRoot } from "react-dom/client";
 import axios from "axios";
+import { Paperclip } from "lucide-react";
 
 //MOCK DATA
 /*
@@ -58,11 +59,15 @@ export default function StudentRequestSlip() {
 
   // Handle new file selection and add them to the attachments array
   const handleFileChange = (e) => {
-    const newFiles = Array.from(e.target.files).map((file) => ({
-      id: crypto.randomUUID(),
-      file: file,
-      name: file.name,
-    }));
+    const newFiles = Array.from(e.target.files)
+      .filter(file => !formData.attachments.some(att => att.name === file.name)) // Prevent duplicates
+      .slice(0, 3 - formData.attachments.length) // Limit to 3 total
+
+      .map((file) => ({
+        id: crypto.randomUUID(),
+        file: file,
+        name: file.name,
+      }));
 
     setFormData((prevData) => ({
       ...prevData,
@@ -125,9 +130,11 @@ export default function StudentRequestSlip() {
         attachments: [],
       }));
     } catch (error) {
+      console.error(error);
       alert(
         error.response?.data?.error ||
-          "Failed to submit slip. Please try again."
+        error.message ||
+        "Failed to submit slip. Please try again."
       );
     }
   };
@@ -143,6 +150,14 @@ export default function StudentRequestSlip() {
   // Tailwind classes for consistent input styling
   const inputClasses =
     "w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500";
+
+  if (!student) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <span className="text-gray-500 text-lg">Loading student info...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="animate-fade-in min-h-screen flex flex-col items-center pt-4 font-sans">
@@ -459,10 +474,11 @@ export default function StudentRequestSlip() {
               type="button"
               onClick={() => {
                 setFormData({
-                  name: studentProfile.name,
-                  sid: studentProfile.sid,
-                  section: studentProfile.section,
-                  email: studentProfile.email,
+                  name: student?.studentProfile?.name || "",
+                  sid: student?.sid || "",
+                  section: student?.studentProfile?.section || "",
+                  program: student?.studentProfile?.program || "",
+                  email: student?.contactInfo?.email || "",
                   reason: "",
                   dateAbsent: "",
                   daysAbsent: "",

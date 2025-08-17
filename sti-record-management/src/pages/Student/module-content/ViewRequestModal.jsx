@@ -96,7 +96,14 @@ export default function ViewRequestModal({ data, onClose }) {
                   {data.proofUrl.map((file, idx) => (
                     <li key={idx} className="flex items-center">
                       <Paperclip size={16} className="mr-2 text-gray-400" />
-                      {file}
+                      <a
+                        href={file}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 underline break-all"
+                      >
+                        {file}
+                      </a>
                     </li>
                   ))}
                 </ul>
@@ -104,7 +111,14 @@ export default function ViewRequestModal({ data, onClose }) {
                 <ul className="list-disc list-inside space-y-1">
                   <li className="flex items-center">
                     <Paperclip size={16} className="mr-2 text-gray-400" />
-                    {data.proofUrl}
+                    <a
+                      href={data.proofUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 underline break-all"
+                    >
+                      {data.proofUrl}
+                    </a>
                   </li>
                 </ul>
               ) : (

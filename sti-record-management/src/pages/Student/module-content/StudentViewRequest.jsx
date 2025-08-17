@@ -101,7 +101,13 @@ export default function StudentViewRequest({ isLoading = false }) {
                       {row.typeOfSlip}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-600">
-                      {row.dateSubmitted}
+                      {row.timeCreated
+                        ? typeof row.timeCreated === "string"
+                          ? new Date(row.timeCreated).toLocaleString()
+                          : row.timeCreated._seconds
+                          ? new Date(row.timeCreated._seconds * 1000).toLocaleString()
+                          : "-"
+                        : "-"}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-600">
                       {row.reason}
