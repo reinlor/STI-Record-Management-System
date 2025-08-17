@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import historyIcon from "../../../assets/history.png";
-import closeIcon from "../../../assets/closeblack.png";
+import historyW from "../../../assets/history.png";
+import closeB from "../../../assets/closeblack.png";
 
 function ReferralFormProcessing() {
   const navigate = useNavigate();
 
   // controls table vs. modal
-  const [display, setDisplay] = useState(false);
+  const [display, setDisplay] = useState(false); // Controls modal visibility
+  const [isLoading, setIsLoading] = useState(true); // State for loading indicator for the table
 
   // holds the list of pending referrals
   const [referralData, setReferralData] = useState([]);
@@ -21,18 +22,123 @@ function ReferralFormProcessing() {
 
   // fetch list on mount
   useEffect(() => {
-    axios
-      .get("/referral/getAll")
-      .then((res) => setReferralData(res.data))
-      .catch((err) => console.error("Error fetching list:", err.message));
+    const fetchReferrals = async () => {
+      setIsLoading(true); // Start loading animation for the table
+      try {
+        // Placeholder for API call. Replace with actual axios.get("/referral/getAll")
+        // For demonstration, using a mock API call with a delay
+        /*
+        const mockData = [
+          {
+            id: '1',
+            referredBy: 'John Doe',
+            employeeID: 'EMP001',
+            reasonForReferral: 'Academic Performance issues',
+            studentName: 'Alice Smith',
+            date: '2023-01-15',
+            status: 'On going', // Updated status to 'On going' for testing purposes
+            schoolYear: '2023-2024',
+            semester: '1st Semester',
+            quarter: 'N/A',
+            sid: 'STU001',
+            program: 'BSIT',
+            section: 'A',
+            gender: 'Female',
+            age: '19',
+            areasOfConcern: 'Academics, Stress',
+            actionRequired: 'Counseling Session',
+            levelOfPriority: 'High',
+            actionTaken: 'Contacted parents, discussed with teachers',
+            initialAction: 'Initial meeting scheduled for next week.',
+            counselorNote: 'This student needs immediate attention regarding their declining grades and increased signs of stress. Follow-up required within 3 days.',
+            emailTo: 'alice.smith@example.com',
+            emailSubject: 'Follow-up on Referral Form',
+            emailBody: 'Please proceed to the Guidance and Counseling Office at your earliest convenience to discuss your recent referral.'
+          },
+          {
+            id: '2',
+            referredBy: 'Jane Doe',
+            employeeID: 'EMP002',
+            reasonForReferral: 'Behavioral issues; consistent tardiness and disruptive behavior in class.',
+            studentName: 'Bob Johnson',
+            date: '2023-02-20',
+            status: 'Resolved',
+            schoolYear: '2023-2024',
+            semester: 'N/A',
+            quarter: '2nd Quarter',
+            sid: 'STU002',
+            program: 'SHS Arts',
+            section: 'B',
+            gender: 'Male',
+            age: '17',
+            areasOfConcern: 'Conduct, Peer interaction',
+            actionRequired: 'Mediation, Parental guidance',
+            levelOfPriority: 'Medium',
+            actionTaken: 'Spoke with student, observed in class. Issued a warning for tardiness.',
+            initialAction: 'Follow-up meeting with student and parents planned to discuss behavioral improvements.',
+            counselorNote: 'Student showed remorse during initial discussion. Parents contacted and are cooperative. Will monitor behavior over the next two weeks.',
+            emailTo: 'bob.johnson@example.com',
+            emailSubject: 'Referral Form Update - Action Taken',
+            emailBody: 'Your referral has been reviewed and initial actions have been taken. Please note the new scheduled meeting with your counselor.'
+          },
+          {
+            id: '3',
+            referredBy: 'Michael Brown',
+            employeeID: 'EMP003',
+            reasonForReferral: 'Social anxiety, difficulty participating in group activities.',
+            studentName: 'Charlie Davis',
+            date: '2023-03-10',
+            status: 'Pending',
+            schoolYear: '2023-2024',
+            semester: '2nd Semester',
+            quarter: 'N/A',
+            sid: 'STU003',
+            program: 'BS Psychology',
+            section: 'C',
+            gender: 'Male',
+            age: '20',
+            areasOfConcern: 'Social, Emotional',
+            actionRequired: 'Individual counseling, Peer support group recommendation',
+            levelOfPriority: 'High',
+            actionTaken: 'Initial assessment conducted. Identified high levels of social anxiety.',
+            initialAction: 'Recommended a series of individual counseling sessions. Exploring options for a suitable peer support group.',
+            counselorNote: 'Charlie seems overwhelmed in large groups. Need to build trust and provide a safe space for him to express himself. Will prioritize individual sessions.',
+            emailTo: '', // Can be empty if no email is sent yet
+            emailSubject: '',
+            emailBody: ''
+          }
+        ];
+        
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate network delay
+        setReferralData(mockData);
+        */
+        const res = await axios.get("/referral/getAll");
+        setReferralData(res.data);
+      } catch (err) {
+        console.error("Error fetching list:", err.message);
+      } finally {
+        setIsLoading(false); // End loading animation for the table
+      }
+    };
+    fetchReferrals();
   }, []);
+
 
   // open the modal and fetch one referral’s details
   const openForm = async (id) => {
-    setDisplay(true);
+    setDisplay(true); // Show the modal immediately
+    setSelectedReferral(null); // Clear previous selection to show modal loading spinner
     try {
+      // Placeholder for API call. Replace with actual axios.get(`/referral/get/${id}`)
+      // For demonstration, find from mockData
+      /*
+      const foundReferral = referralData.find(ref => ref.id === id);
+      await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
+      setSelectedReferral(foundReferral);
+      */
+
       const res = await axios.get(`/referral/get/${id}`);
-      setSelectedReferral(res.data);
+      setSelectedReferral(res.data); // Set the fetched referral details
     } catch (err) {
       console.error("Error fetching detail:", err);
     }
@@ -40,8 +146,8 @@ function ReferralFormProcessing() {
 
   // close the modal & reset
   const closeForm = () => {
-    setDisplay(false);
-    setSelectedReferral(null);
+    setDisplay(false); // Hide the modal
+    setSelectedReferral(null); // Clear the selected referral data
   };
 
   // filter logic stays the same
@@ -52,194 +158,295 @@ function ReferralFormProcessing() {
   );
 
   return (
-    <div className="bg-gray-100 min-h-screen p-3">
-      <div className="bg-white shadow-md p-4 rounded-lg">
-
+    <div className="bg-gray-100 h-screen overflow-hidden custom-scrollbar">
+      <div className="p-3 h-full overflow-y-auto">
+      <div className="bg-white shadow-md p-4 rounded-l">
         {/* Header */}
         <div className="flex text-left mb-2">
           <p className="text-4xl font-bold">Referral Form Processing</p>
         </div>
 
-        
         <div className="flex items-center justify-between mb-4">
-              <p className="text-gray-500">View pending Referral Forms</p>
+          <p className="text-gray-500">View pending Referral Forms</p>
 
-        <div className="flex gap-2">
-      
-        {/* History Button */}
-          <button
-            className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-full hover:bg-gray-700 transition"
-            onClick={() => navigate("/disciplinary/referral-form-history")}
-          >
-            History
-            <img
-              src={historyIcon}
-              alt="history"
-              className="w-5 h-5 object-cover rounded"
-            />
-          </button>
-        
-        {/* Search Bar */}
-                <div className="relative w-64">
-                  <input
-                    type="text"
-                    placeholder="Name/ ID"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    className="w-full border border-gray-300 rounded-full px-4 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-gray-300"
-                  />
-                  <span className="absolute right-3 top-3 text-gray-400">
-                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24">
-                      <path
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M21 21l-4.35-4.35M11 19a8 8 0 1 1 0-16 8 8 0 0 1 0 16z"
-                      />
-                    </svg>
-                  </span>
-                </div>
-        </div>
-      </div>
-
-        {/* Table */}
-        <div className="bg-white rounded-lg shadow-md overflow-x-auto">
-          <table className="w-full text-left">
-            <thead>
-              <tr className="bg-gray-200 text-gray-700">
-                <th className="px-4 py-3">Name</th>
-                <th className="px-4 py-3">Employee No.</th>
-                <th className="px-4 py-3">Reason</th>
-                <th className="px-4 py-3">Student</th>
-                <th className="px-4 py-3">Date</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((ref) => (
-                <tr key={ref.id} className="hover:bg-gray-100 transition">
-                  <td className="px-4 py-3">{ref.referredBy}</td>
-                  <td className="px-4 py-3">{ref.employeeID}</td>
-                  <td className="px-4 py-3">{ref.reasonForReferral}</td>
-                  <td className="px-4 py-3">{ref.studentName}</td>
-                  <td className="px-4 py-3">{ref.date}</td>
-                  <td className="px-4 py-3">{ref.status}</td>
-                  <td className="px-4 py-3">
-                    <button
-                      className="bg-gray-900 text-white px-6 py-1 rounded-full hover:bg-gray-700 transition"
-                      onClick={() => openForm(ref.id)}>
-                      Open
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Modal */}
-      {display && selectedReferral && (
-        <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white w-11/12 md:w-3/4 lg:w-2/3 xl:w-1/2 rounded-lg shadow-lg overflow-y-auto max-h-[90vh] p-6 relative">
-            {/* Close button */}
+          <div className="flex gap-2">
+            {/* History Button */}
             <button
-              onClick={closeForm}
-              className="absolute top-4 right-4 text-gray-700 hover:text-black"
+              className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-full hover:bg-gray-700 transition"
+              onClick={() => navigate("/disciplinary/referral-form-history")}
             >
-              <img src={closeIcon} alt="close" className="w-7 h-7 object-cover rounded" />
+              History
+              {/* History Icon */}
+              <img src={historyW} alt="history" className="w-5 h-5 object-cover rounded" />
             </button>
-          
-            <h2 className="text-2xl font-bold mb-4">Referral Form Details</h2>
-            <hr className="mb-4" />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <p>
-                  <strong>Referral ID:</strong> {selectedReferral.id}
-                </p>
-                <p>
-                  <strong>School Year:</strong> {selectedReferral.schoolYear || "-"}
-                </p>
-                <p>
-                  <strong>Student No.:</strong> {selectedReferral.sid || "-"}
-                </p>
-                <p>
-                  <strong>Name:</strong> {selectedReferral.studentName || "-"}
-                </p>
-                <p>
-                  <strong>Program & Section:</strong>{" "}
-                  {selectedReferral.program} - {selectedReferral.section}
-                </p>
-                <p>
-                  <strong>Gender:</strong> {selectedReferral.gender}
-                </p>
-                <p>
-                  <strong>Age:</strong> {selectedReferral.age}
-                </p>
-                <p>
-                  <strong>Referred By:</strong> {selectedReferral.referredBy}
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <p>
-                  <strong>Reason for Referral:</strong>{" "}
-                  {selectedReferral.reasonForReferral}
-                </p>
-                <p>
-                  <strong>Areas of Concern:</strong> {selectedReferral.areasOfConcern}
-                </p>
-                <p>
-                  <strong>Action Required:</strong> {selectedReferral.actionRequired}
-                </p>
-                <p>
-                  <strong>Priority Level:</strong> {selectedReferral.levelOfPriority}
-                </p>
-                <p className="font-semibold">Actions Taken Before Referral:</p>
-                <textarea
-                  readOnly
-                  value={selectedReferral.actionTaken}
-                  rows={3}
-                  className="w-full border rounded p-2 resize-none"
-                />
-                <p className="font-semibold">Counselor’s Initial Action:</p>
-                <textarea
-                  readOnly
-                  value={selectedReferral.initialAction}
-                  rows={5}
-                  className="w-full border rounded p-2 resize-none"
-                />
-              </div>
-            </div>
-
-            {/* Email / Update */}
-            <div className="mt-6 space-y-3">
-              <p className="font-semibold">Counselor's Note:</p>
-              <textarea className="w-full border rounded p-2 resize-none" rows={3} />
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                <input
-                  type="text"
-                  placeholder="Send Email To"
-                  className="border rounded p-2"
-                />
-                <input type="text" placeholder="Subject" className="border rounded p-2" />
-                <input type="text" placeholder="Body" className="border rounded p-2" />
-              </div>
-              <div className="flex gap-2 mt-4">
-                <button className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-                  Update
-                </button>
-                <button className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
-                  Solved
-                </button>
-              </div>
+            {/* Search Bar */}
+            <div className="relative w-64">
+              <input
+                type="text"
+                placeholder="Name/ ID"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full border border-gray-300 rounded-full px-4 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-gray-300"
+              />
+              <span className="absolute right-3 top-3 text-gray-400">
+                <svg width="16" height="16" fill="none" viewBox="0 0 24 24">
+                  <path
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M21 21l-4.35-4.35M11 19a8 8 0 1 1 0-16 8 8 0 0 1 0 16z"
+                  />
+                </svg>
+              </span>
             </div>
           </div>
         </div>
+
+        {/* Table Section */}
+        <div className="bg-white rounded-lg shadow-md overflow-x-auto">
+          {isLoading ? (
+            // Table Loading Skeleton
+            <div className="flex justify-center items-center h-48 p-4">
+              <div className="animate-pulse flex flex-col space-y-4 w-full">
+                <div className="h-8 bg-gray-200 rounded-md"></div>
+                <div className="h-8 bg-gray-200 rounded-md w-11/12"></div>
+                <div className="h-8 bg-gray-200 rounded-md w-10/12"></div>
+                <div className="h-8 bg-gray-200 rounded-md w-full"></div>
+                <div className="h-8 bg-gray-200 rounded-md w-9/12"></div>
+              </div>
+            </div>
+          ) : (
+            // Actual Table
+            <table className="w-full text-left">
+              <thead>
+                <tr className="bg-gray-200 text-gray-700">
+                  <th className="px-4 py-3 font-semibold">Name</th>
+                  <th className="px-4 py-3 font-semibold">Employee No.</th>
+                  <th className="px-4 py-3 font-semibold">Reason</th>
+                  <th className="px-4 py-3 font-semibold">Student</th>
+                  <th className="px-4 py-3 font-semibold">Date</th>
+                  <th className="px-4 py-3 font-semibold">Status</th>
+                  <th className="px-4 py-3"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.length > 0 ? (
+                  filtered.map((ref) => (
+                    <tr key={ref.id} className="hover:bg-gray-100 transition">
+                      <td className="px-4 py-3 text-gray-800 font-medium">{ref.referredBy}</td>
+                      <td className="px-4 py-3 text-gray-800">{ref.employeeID}</td>
+                      <td className="px-4 py-3 text-gray-700">{ref.reasonForReferral}</td>
+                      <td className="px-4 py-3 text-gray-700">{ref.studentName}</td>
+                      <td className="px-4 py-3 text-gray-700">{ref.date}</td>
+                      <td
+                        className={`px-4 py-3 font-semibold ${
+                          ref.status === 'Resolved' ? 'text-green-600' : 'text-gray-600' // Assuming pending is yellow/orange
+                        }`}
+                      >
+                        {ref.status}
+                      </td>
+                      <td className="px-4 py-3">
+                        <button
+                          className="bg-gray-900 text-white px-6 py-1 rounded-full hover:bg-gray-700 transition duration-200 shadow-md"
+                          onClick={() => openForm(ref.id)}
+                        >
+                          Open
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="7" className="text-center py-4 text-gray-500">
+                      No pending referral forms found.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
+
+      {/* Modal - Conditional rendering based on 'display' state */}
+      {display && (
+        <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 transition-opacity duration-300 ease-out opacity-100">
+          <div className="bg-white w-11/12 md:w-5/6 lg:w-4/5 xl:w-4/5 rounded-lg shadow-lg overflow-y-auto max-h-[90vh] p-6 relative transform transition-all duration-300 ease-out scale-100 custom-scrollbar">
+            
+            {/* Modal Header with Status and Close button */}
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-2xl font-bold text-gray-800">Request Slip Form</h2>
+              <div className="flex items-center gap-4">
+                {selectedReferral && (
+                  <span
+                    className={`font-semibold text-lg ${
+                      selectedReferral.status === 'Resolved' ? 'text-green-600' : 'text-orange-500' // Using orange for 'On going' or 'Pending'
+                    }`}
+                  >
+                    Status: {selectedReferral.status}
+                  </span>
+                )}
+                <button
+                  onClick={closeForm}
+                  className="text-gray-700 hover:text-black transition-transform hover:scale-110"
+                >
+                  {/* Close Icon */}
+                  <img src={closeB} alt="closeb" className="w-7 h-7 object-cover rounded " /> 
+                </button>
+              </div>
+            </div>
+            <hr className="mb-4 border-gray-300" />
+
+            {selectedReferral ? ( // Show content if referral is loaded
+              <div className="flex flex-col md:flex-row gap-6">
+                {/* Left Column */}
+                <div className="flex-1 space-y-3">
+                  <p>
+                    <strong className="text-gray-700">School Year:</strong>{" "}
+                    <span className="text-gray-600">{selectedReferral.schoolYear || "-"}</span>
+                  </p>
+                  <p>
+                    <strong className="text-gray-700">Tertiary (Semester):</strong>{" "}
+                    <span className="text-gray-600">{selectedReferral.semester || "-"}</span>
+                  </p>
+                  <p>
+                    <strong className="text-gray-700">Senior High (Quarter):</strong>{" "}
+                    <span className="text-gray-600">{selectedReferral.quarter || "-"}</span>
+                  </p>
+                  <p>
+                    <strong className="text-gray-700">Student Number:</strong>{" "}
+                    <span className="text-gray-600">{selectedReferral.sid || "-"}</span>
+                  </p>
+                  <p>
+                    <strong className="text-gray-700">Student’s Name:</strong>{" "}
+                    <span className="text-gray-600">{selectedReferral.studentName || "-"}</span>
+                  </p>
+                  <p>
+                    <strong className="text-gray-700">Program and Section:</strong>{" "}
+                    <span className="text-gray-600">{selectedReferral.program || "-"}  {selectedReferral.section || "-"}</span>
+                  </p>
+                  <p>
+                    <strong className="text-gray-700">Gender:</strong>{" "}
+                    <span className="text-gray-600">{selectedReferral.gender || "-"}</span>
+                  </p>
+                  <p>
+                    <strong className="text-gray-700">Age:</strong>{" "}
+                    <span className="text-gray-600">{selectedReferral.age || "-"}</span>
+                  </p>
+                  <p>
+                    <strong className="text-gray-700">Referred By:</strong>{" "}
+                    <span className="text-gray-600">{selectedReferral.referredBy || "-"}</span>
+                  </p>
+                  <p>
+                    <strong className="text-gray-700">Areas of Concern:</strong>{" "}
+                    <span className="text-gray-600">{selectedReferral.areasOfConcern || "-"}</span>
+                  </p>
+                  <p>
+                    <strong className="text-gray-700">Action Required:</strong>{" "}
+                    <span className="text-gray-600">{selectedReferral.actionRequired || "-"}</span>
+                  </p>
+                  <p>
+                    <strong className="text-gray-700">Level of Priority:</strong>{" "}
+                    <span className="text-gray-600">{selectedReferral.levelOfPriority || "-"}</span>
+                  </p>
+
+                  <div>
+                    <p className="font-semibold text-gray-700 mb-1">Actions Taken before Referral:</p>
+                    <textarea
+                      readOnly
+                      value={selectedReferral.actionTaken || ""}
+                      className="w-full border border-gray-300 rounded-md p-3 mt-1 resize-none bg-gray-50 text-gray-700 focus:outline-none focus:ring-1 focus:ring-gray-300"
+                      rows={3}
+                    />
+                  </div>
+
+                  <div>
+                    <p className="font-semibold text-gray-700 mb-1">Reasons for Referral / Comments:</p>
+                    <textarea
+                      readOnly
+                      value={selectedReferral.reasonForReferral || ""}
+                      className="w-full border border-gray-300 rounded-md p-3 mt-1 resize-none bg-gray-50 text-gray-700 focus:outline-none focus:ring-1 focus:ring-gray-300"
+                      rows={3}
+                    />
+                  </div>
+                </div>
+
+                {/* Right Column */}
+                <div className="flex-1 space-y-3">
+                  <p className="font-semibold text-gray-700 mb-1">Counselor’s Initial Action:</p>
+                  <textarea
+                    readOnly
+                    value={selectedReferral.initialAction || ""}
+                    className="w-full border border-gray-300 rounded-md p-3 resize-none bg-gray-50 text-gray-700 focus:outline-none focus:ring-1 focus:ring-gray-300"
+                    rows={10}
+                  />
+
+                  {/* Email / Update Section */}
+                  <div className="mt-6 space-y-3">
+                    <p className="font-semibold text-gray-700">Counselor's Note:</p>
+                    <textarea
+                      className="w-full border border-gray-300 rounded-md p-3 resize-none focus:outline-none focus:ring-2 focus:ring-blue-300"
+                      rows={3}
+                      placeholder="Add notes here..."
+                      defaultValue={selectedReferral.counselorNote || ""}
+                    />
+
+                    {/* Send Email To */}
+                    <div className="flex items-center gap-3">
+                      <p className="font-bold text-gray-800 flex-shrink-0">Send Email To:</p>
+                      <input
+                        type="text"
+                        placeholder=" "
+                        className="flex-grow border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                        defaultValue={selectedReferral.emailTo || ""}
+                      />
+                    </div>
+
+                    {/* Subject */}
+                    <div className="flex items-center gap-3">
+                      <p className="font-bold text-gray-800 flex-shrink-0">Subject:</p>
+                      <input
+                        type="text"
+                        placeholder="Referral Form Update"
+                        className="flex-grow border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                        defaultValue={selectedReferral.emailSubject || ""}
+                      />
+                    </div>
+
+                    {/* Body */}
+                    <div>
+                      <p className="font-bold text-gray-800 mb-1">Body:</p>
+                      <textarea
+                        placeholder="Please proceed to the Guidance and Counseling Office"
+                        className="w-full border border-gray-300 rounded-md p-2 resize-none focus:outline-none focus:ring-2 focus:ring-blue-300"
+                        rows={5} // Adjust rows as needed for preview
+                        defaultValue={selectedReferral.emailBody || ""}
+                      />
+                    </div>
+
+                    <div className="flex gap-3 mt-4 justify-end"> {/* Aligned buttons to the right */}
+                      <button className="bg-blue-600 text-white px-6 py-2 rounded-full hover:bg-blue-700 transition duration-200 shadow-md">
+                        Update
+                      </button>
+                      <button className="bg-green-600 text-white px-6 py-2 rounded-full hover:bg-green-700 transition duration-200 shadow-md">
+                        Solved
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              // Modal Loading Spinner
+              <div className="flex justify-center items-center h-64">
+                <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-gray-900"></div>
+              </div>
+            )}
+          </div>
+        </div>
       )}
+    </div>
     </div>
   );
 }

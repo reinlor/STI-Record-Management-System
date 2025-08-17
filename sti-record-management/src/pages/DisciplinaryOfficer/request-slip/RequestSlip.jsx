@@ -96,10 +96,10 @@ function RequestSlip() {
                     value: selectedSlip.status,
                     className:
                       selectedSlip.status === "Approved"
-                        ? "text-green-600"
+                        ? "text-green-600 font-bold"
                         : selectedSlip.status === "Rejected"
-                        ? "text-red-600"
-                        : "text-gray-600",
+                        ? "text-red-600 font-bold"
+                        : "text-gray-600 font-bold",
                   },
                   { label: "Reason: ", value: selectedSlip.reason },
                   { label: "Days Absent: ", value: selectedSlip.daysAbsent },
@@ -202,7 +202,18 @@ function RequestSlip() {
       <td className="px-4 py-3">{slips.sid}</td>
       <td className="px-4 py-3">{slips.typeOfSlip}</td>
       <td className="px-4 py-3">{slips.Date}</td>
-      <td className="px-4 py-3">{slips.status}</td>
+      {/* STATUS with conditional styling */}
+      <td
+        className={`px-4 py-3 font-semibold ${
+          slips.status === "Approved"
+            ? "text-green-600"
+            : slips.status === "Rejected"
+            ? "text-red-600"
+            : "text-gray-600"
+        }`}
+      >
+        {slips.status}
+      </td>
       <td className="px-4 py-3">{slips.reason}</td>
       <td className="px-4 py-3">{slips.attachmentCount}</td>
       <td className="px-4 py-3">
