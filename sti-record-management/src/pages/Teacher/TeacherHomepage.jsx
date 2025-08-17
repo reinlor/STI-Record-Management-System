@@ -11,7 +11,7 @@ function TeacherHomepage() {
     const [teacherData, setTeacherData] = useState(null);
     const [referralData, setReferralData] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
-    const teacherID = "02000111222";
+    const teacherID = "02000200000";
 
     const handleCancel = () => {
         setSelected(null);
@@ -33,7 +33,7 @@ function TeacherHomepage() {
 
     const fetchData = async () => {
         try {
-            const res = await axios.get(`/teacher/${teacherID}`);
+            const res = await axios.get(`/user/get/${teacherID}`);
             setTeacherData(res.data);
         } catch (error) {
             console.error("Error fetching teacher data:", error);

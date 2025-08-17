@@ -16,6 +16,30 @@ const getUsers = async (req, res) => {
   }
 };
 
+// Controller function for retrieving teacher data by ID
+const getUserByID = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userRef = getUserCollection().doc(id);
+    const doc = await userRef.get();
+
+    if(!doc.exists){
+      return res.status(404).json({
+        error: "Teacher not found"
+      });
+    }
+
+    res.status(200).json({
+        id:doc.id,
+        ...doc.data()
+      });
+  } catch (error) {
+    res.status(500).json({
+      error: error.message
+    })
+  }
+}
+
 // Controller Function to create user
 const addUser = async (req, res) => {
   try {
@@ -178,5 +202,6 @@ module.exports = {
   deleteUser, 
   updateUser, 
   authenticateUser,
-  requireAuth
+  requireAuth,
+  getUserByID
 };

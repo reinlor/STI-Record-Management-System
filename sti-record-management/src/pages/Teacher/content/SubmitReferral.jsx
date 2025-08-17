@@ -109,7 +109,7 @@ function SubmitReferralForm({ teacher = {}, onCancel, onSuccess }) {
     };
 
     useEffect(() => {
-        if (!teacher || !teacher.uid || !teacher.name) {
+        if (!teacher || !teacher.uid || !teacher.displayName) {
             return;
         }
 
@@ -125,9 +125,9 @@ function SubmitReferralForm({ teacher = {}, onCancel, onSuccess }) {
 
         setReferral(prev => ({
             ...prev,
-            id: teacher.uid,
-            referredBy: teacher.name,
-            preparedBy: teacher.name,
+            id: teacher.id,
+            referredBy: teacher.displayName,
+            preparedBy: teacher.displayName,
             status: 'Pending',
             preparedDate: formattedDateForInput
         }));

@@ -7,101 +7,147 @@ import closeIcon from "../../../assets/closeblack.png";
 function ReferralFormProcessing() {
   const navigate = useNavigate();
 
-  // controls table vs. modal
   const [display, setDisplay] = useState(false);
-
-  // holds the list of pending referrals
   const [referralData, setReferralData] = useState([]);
-
-  // holds the referral object when you click Open
-  const [selectedReferral, setSelectedReferral] = useState(null);
-
-  // search filter
+  const [selectedReferral, setSelectedReferral] = useState({});
+  const [teacherData, setTeacherData] = useState([]);
   const [search, setSearch] = useState("");
+  const [counselorNote, setCounselorNote] = useState("");
+  const [emailTo, setEmailTo] = useState("");
+  const [emailSubject, setEmailSubject] = useState("");
+  const [emailBody, setEmailBody] = useState("");
 
-  // fetch list on mount
   useEffect(() => {
-    axios
-      .get("/referral/getAll")
-      .then((res) => setReferralData(res.data))
-      .catch((err) => console.error("Error fetching list:", err.message));
+    async function fetchData() {
+      try {
+        const response = await axios.get(`/referral/getAll`);
+        setReferralData(response.data);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    }
+    fetchData();
   }, []);
 
-  // open the modal and fetch one referral’s details
-  const openForm = async (id) => {
-    setDisplay(true);
-    try {
-      const res = await axios.get(`/referral/get/${id}`);
-      setSelectedReferral(res.data);
-    } catch (err) {
-      console.error("Error fetching detail:", err);
-    }
-  };
-
-  // close the modal & reset
   const closeForm = () => {
     setDisplay(false);
     setSelectedReferral(null);
+    setCounselorNote("");
+    setEmailTo("");
+    setEmailSubject("");
+    setEmailBody("");
   };
 
-  // filter logic stays the same
+  const handleOpenModal = (ref) => {
+    setSelectedReferral(ref);
+    setDisplay(true);
+    setCounselorNote(ref.counselorNote || "");
+  };
+
+  const handleUpdate = async (newStatus) => {
+    try {
+      const updatedData = {
+        ...selectedReferral,
+        counselorNote: counselorNote,
+        status: newStatus || selectedReferral.status,
+      };
+
+      await axios.put(`referral/update/${selectedReferral.id}`, updatedData);
+
+      const response = await axios.get(`${API_URL}/getAll`);
+      setReferralData(response.data);
+
+      closeForm();
+    } catch (error) {
+      console.error("Error updating referral:", error);
+    }
+  };
+
   const filtered = referralData.filter(
     (ref) =>
-      ref.referredBy?.toLowerCase().includes(search.toLowerCase()) ||
-      ref.studentName?.toLowerCase().includes(search.toLowerCase())
+      (ref.referredBy?.toLowerCase().includes(search.toLowerCase()) ||
+        ref.studentName?.toLowerCase().includes(search.toLowerCase())) &&
+      ref.status === 'Pending'
   );
+
+  const displayInfo = () => {
+    if (filtered.length === 0) {
+      return (
+        <tr>
+          <td colSpan="7" className="text-center py-5 text-gray-500">
+            No pending referrals found.
+          </td>
+        </tr>
+      );
+    }
+
+    return filtered.map((ref) => (
+      <tr key={ref.id} className="hover:bg-gray-100 transition">
+        <td className="px-4 py-3">{ref.referredBy}</td>
+        <td className="px-4 py-3">{ref.employeeID}</td>
+        <td className="px-4 py-3">{ref.reasonForReferral}</td>
+        <td className="px-4 py-3">{ref.studentName}</td>
+        <td className="px-4 py-3">{ref.date}</td>
+        <td className="px-4 py-3">{ref.status}</td>
+        <td className="px-4 py-3">
+          <button
+            className="bg-gray-900 text-white px-6 py-1 rounded-full hover:bg-gray-700 transition"
+            onClick={() => handleOpenModal(ref)}
+          >
+            Open
+          </button>
+        </td>
+      </tr>
+    ));
+  };
 
   return (
     <div className="bg-gray-100 min-h-screen p-3">
       <div className="bg-white shadow-md p-4 rounded-lg">
-
         {/* Header */}
         <div className="flex text-left mb-2">
           <p className="text-4xl font-bold">Referral Form Processing</p>
         </div>
 
-        
         <div className="flex items-center justify-between mb-4">
-              <p className="text-gray-500">View pending Referral Forms</p>
+          <p className="text-gray-500">View pending Referral Forms</p>
+          <div className="flex gap-2">
+            {/* History Button */}
+            <button
+              className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-full hover:bg-gray-700 transition"
+              onClick={() => navigate("/disciplinary/referral-form-history")}
+            >
+              History
+              <img
+                src={historyIcon}
+                alt="history"
+                className="w-5 h-5 object-cover rounded"
+              />
+            </button>
 
-        <div className="flex gap-2">
-      
-        {/* History Button */}
-          <button
-            className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-full hover:bg-gray-700 transition"
-            onClick={() => navigate("/disciplinary/referral-form-history")}
-          >
-            History
-            <img
-              src={historyIcon}
-              alt="history"
-              className="w-5 h-5 object-cover rounded"
-            />
-          </button>
-        
-        {/* Search Bar */}
-                <div className="relative w-64">
-                  <input
-                    type="text"
-                    placeholder="Name/ ID"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    className="w-full border border-gray-300 rounded-full px-4 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-gray-300"
+            {/* Search Bar */}
+            <div className="relative w-64">
+              <input
+                type="text"
+                placeholder="Name/ ID"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full border border-gray-300 rounded-full px-4 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-gray-300"
+              />
+              <span className="absolute right-3 top-3 text-gray-400">
+                <svg width="16" height="16" fill="none" viewBox="0 0 24 24">
+                  <path
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M21 21l-4.35-4.35M11 19a8 8 0 1 1 0-16 8 8 0 0 1 0 16z"
                   />
-                  <span className="absolute right-3 top-3 text-gray-400">
-                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24">
-                      <path
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M21 21l-4.35-4.35M11 19a8 8 0 1 1 0-16 8 8 0 0 1 0 16z"
-                      />
-                    </svg>
-                  </span>
-                </div>
+                </svg>
+              </span>
+            </div>
+          </div>
         </div>
-      </div>
 
         {/* Table */}
         <div className="bg-white rounded-lg shadow-md overflow-x-auto">
@@ -118,23 +164,7 @@ function ReferralFormProcessing() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((ref) => (
-                <tr key={ref.id} className="hover:bg-gray-100 transition">
-                  <td className="px-4 py-3">{ref.referredBy}</td>
-                  <td className="px-4 py-3">{ref.employeeID}</td>
-                  <td className="px-4 py-3">{ref.reasonForReferral}</td>
-                  <td className="px-4 py-3">{ref.studentName}</td>
-                  <td className="px-4 py-3">{ref.date}</td>
-                  <td className="px-4 py-3">{ref.status}</td>
-                  <td className="px-4 py-3">
-                    <button
-                      className="bg-gray-900 text-white px-6 py-1 rounded-full hover:bg-gray-700 transition"
-                      onClick={() => openForm(ref.id)}>
-                      Open
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {displayInfo()}
             </tbody>
           </table>
         </div>
@@ -151,7 +181,7 @@ function ReferralFormProcessing() {
             >
               <img src={closeIcon} alt="close" className="w-7 h-7 object-cover rounded" />
             </button>
-          
+
             <h2 className="text-2xl font-bold mb-4">Referral Form Details</h2>
             <hr className="mb-4" />
 
@@ -218,21 +248,46 @@ function ReferralFormProcessing() {
             {/* Email / Update */}
             <div className="mt-6 space-y-3">
               <p className="font-semibold">Counselor's Note:</p>
-              <textarea className="w-full border rounded p-2 resize-none" rows={3} />
+              <textarea
+                value={counselorNote}
+                onChange={(e) => setCounselorNote(e.target.value)}
+                className="w-full border rounded p-2 resize-none"
+                rows={3}
+              />
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <input
                   type="text"
                   placeholder="Send Email To"
+                  value={emailTo}
+                  onChange={(e) => setEmailTo(e.target.value)}
                   className="border rounded p-2"
                 />
-                <input type="text" placeholder="Subject" className="border rounded p-2" />
-                <input type="text" placeholder="Body" className="border rounded p-2" />
+                <input
+                  type="text"
+                  placeholder="Subject"
+                  value={emailSubject}
+                  onChange={(e) => setEmailSubject(e.target.value)}
+                  className="border rounded p-2"
+                />
+                <input
+                  type="text"
+                  placeholder="Body"
+                  value={emailBody}
+                  onChange={(e) => setEmailBody(e.target.value)}
+                  className="border rounded p-2"
+                />
               </div>
               <div className="flex gap-2 mt-4">
-                <button className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                <button
+                  onClick={() => handleUpdate("In Progress")}
+                  className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                >
                   Update
                 </button>
-                <button className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+                <button
+                  onClick={() => handleUpdate("Resolved")}
+                  className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+                >
                   Solved
                 </button>
               </div>
