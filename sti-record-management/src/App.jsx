@@ -48,7 +48,7 @@ export default function App() {
     <Router>
       <Routes>
         {/* Login Page*/}
-        <Route path="/" element={<LoginBeta />} />
+        <Route path="/" element={<PageNotFound />} />
         <Route path="/login" element={<LoginBeta />} />
         <Route path='/userManager' element={<UserManager/>}/>
 
