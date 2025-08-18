@@ -1,4 +1,5 @@
 const Joi = require("joi");
+const { Timestamp } = require("firebase-admin").firestore;
 
 const cloudinary = require("../../../config/cloudinary.js");
 const fs = require("fs");
@@ -87,6 +88,8 @@ const addLateSlip = async (req, res) => {
 
     const slipData = {
       ...req.body,
+      name: req.body.name?.trim(),
+      sid: req.body.sid?.trim(),
       proofUrl,
       attachmentCount: req.files ? req.files.length : 0,
       status: "Pending",
@@ -100,7 +103,7 @@ const addLateSlip = async (req, res) => {
     await getLateSlipsCollection().doc().set(newLateSlip);
     res
       .status(200)
-      .send({ message: `Late slip added to Student: ${newLateSlip.name}` });
+      .send({ message: `Late slip added to Student: ${newLateSlip.name}`, slip: newLateSlip });
   } catch (error) {
     res.status(500).send({ error: error.message });
   }
@@ -139,6 +142,8 @@ const addAbsentSlip = async (req, res) => {
 
     const slipData = {
       ...req.body,
+      name: req.body.name?.trim(),
+      sid: req.body.sid?.trim(),
       excuseLetterUrl,
       medicalCertificateUrl,
       guardianValidIDUrl,
@@ -177,6 +182,8 @@ const addIDPass = async (req, res) => {
 
     const slipData = {
       ...req.body,
+      name: req.body.name?.trim(),
+      sid: req.body.sid?.trim(),
       proofUrl,
       attachmentCount: req.files ? req.files.length : 0,
       status: "Pending",
