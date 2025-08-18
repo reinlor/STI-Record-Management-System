@@ -14,6 +14,7 @@ export default defineConfig({
       "/teacher": "http://localhost:5000",
       "/user": "http://localhost:5000",
       "/exam": "http://localhost:5000",
+      "/email": "http://localhost:5000",
     },
   },
 })

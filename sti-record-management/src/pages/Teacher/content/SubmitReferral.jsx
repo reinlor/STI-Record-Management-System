@@ -51,6 +51,7 @@ function SubmitReferralForm({ teacher = {}, onCancel, onSuccess }) {
             feedBackDate: 'awaiting for response',
             receivedBy: 'awaiting for response',
             receivedDate: 'awaiting for response',
+            email: referral.email
         };
 
         const submissionPromise = axios.post("/referral/add", referralData);
@@ -63,7 +64,7 @@ function SubmitReferralForm({ teacher = {}, onCancel, onSuccess }) {
                 setReferral(prev => ({
                     referredBy: prev.referredBy,
                     preparedBy: prev.preparedBy,
-                    preparedDate: prev.preparedDate
+                    preparedDate: prev.preparedDate,
                 }));
 
                 if (onSuccess) onSuccess();
@@ -129,6 +130,7 @@ function SubmitReferralForm({ teacher = {}, onCancel, onSuccess }) {
             referredBy: teacher.displayName,
             preparedBy: teacher.displayName,
             status: 'Pending',
+            email: teacher.email,
             preparedDate: formattedDateForInput
         }));
         setIsLoading(false);

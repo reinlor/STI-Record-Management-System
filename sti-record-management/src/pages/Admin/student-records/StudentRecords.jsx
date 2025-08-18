@@ -1,4 +1,4 @@
-import React, { use, useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import defaultProfile from "../../../assets/karomi.jpg";
 import userStyle from "./student-module-css/s-records.module.css";
 import Button from "../../../component/Button.jsx";
@@ -9,9 +9,7 @@ const StudentRecords = ({ onStudentSelect }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
-  // Naka store dito ung student data from firebase     -Renlor
   const [studentData, setStudentData] = useState([]);
-  // loading ulit                   -Renlor
   const [visible, setVisibility] = useState(false);
 
   useEffect(() => {
@@ -41,7 +39,6 @@ const StudentRecords = ({ onStudentSelect }) => {
     setVisibility(true);
   }, []);
 
-  // Patangal kung may mas maayos na logic na niisip   -Renlor
   const studentProgramAndSection = (fullSectionString) => {
     if (!fullSectionString || fullSectionString === "None") {
       return { program: "N/A", section: "N/A" };
@@ -79,7 +76,7 @@ const StudentRecords = ({ onStudentSelect }) => {
   };
 
   const filteredStudents = studentData.filter((student) =>
-    student.id.includes(searchQuery)
+    student.id.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const totalPages = Math.ceil(filteredStudents.length / itemsPerPage);
@@ -94,13 +91,8 @@ const StudentRecords = ({ onStudentSelect }) => {
   };
 
   return (
-    <div
-      className={`${userStyle.recordsContainer} ${
-        visible ? "visible" : "hidden"
-      }`}
-    >
+    <div className={`${userStyle.recordsContainer} ${visible ? "visible" : "hidden"}`}>
       <h2 className={userStyle.recordsTitle}>Student Records</h2>
-
       <input
         type="text"
         className={userStyle.searchInput}
@@ -108,11 +100,9 @@ const StudentRecords = ({ onStudentSelect }) => {
         value={searchQuery}
         onChange={(e) => {
           setSearchQuery(e.target.value);
-          setCurrentPage(1); // Reset page on new search
+          setCurrentPage(1);
         }}
       />
-
-      {/*CONTROL BUTTONS*/}
       <div className={userStyle.controlButtons}>
         <div className={userStyle.leftButtons}>
           <Button className={userStyle.filterButton}>Enrolled</Button>
@@ -122,8 +112,6 @@ const StudentRecords = ({ onStudentSelect }) => {
           <Button className={userStyle.addStudentBTN}>Add Student</Button>
         </div>
       </div>
-
-      {/*STUDENT LIST*/}
       {visibleStudents.map((student) => (
         <div
           key={student.sid}
@@ -139,11 +127,9 @@ const StudentRecords = ({ onStudentSelect }) => {
           </div>
         </div>
       ))}
-
       {filteredStudents.length === 0 && (
         <p className={userStyle.noResults}>No student found.</p>
       )}
-
       {totalPages > 1 && (
         <div className={userStyle.pagination}>
           {Array.from({ length: totalPages }, (_, i) => (

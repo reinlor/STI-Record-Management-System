@@ -7,6 +7,7 @@ const referralSchema = Joi.object({
   schoolYear: Joi.string().required(),
   gradeLevel: Joi.string().required(),
   // sid: Joi.string().required(),
+  email: Joi.string().required(),
   studentName: Joi.string().required(),
   program: Joi.string().required(),
   gender: Joi.string().required(),
@@ -28,7 +29,9 @@ const referralSchema = Joi.object({
 const updateSchema = Joi.object({
   employeeID: Joi.string().optional(),
   schoolYear: Joi.string().optional(),
+  gradeLevel: Joi.string().optional(),
   // sid: Joi.string().optional(),
+  email: Joi.string().optional(),
   studentName: Joi.string().optional(),
   program: Joi.string().optional(),
   section: Joi.string().optional(),
@@ -43,6 +46,9 @@ const updateSchema = Joi.object({
   reasonForReferral: Joi.string().optional(),
   initialAction: Joi.string().optional().allow(''),
   preparedDate: Joi.string().optional(),
+  feedBackDate: Joi.string().optional().allow(''),
+  receivedBy: Joi.string().optional().allow(''),
+  receivedDate: Joi.string().optional().allow(''),
 });
 
 // Controller Function for adding
@@ -69,16 +75,22 @@ const addReferral = async (req, res) => {
 const updateReferral = async (req, res) => {
   try {
     const { id } = req.params;
-    const updates = req.body;
+
+    // --- The Critical Change ---
+    // Destructure req.body to remove the 'id' property before validation.
+    // The rest operator (...) puts all other properties into 'updates'.
+    const { id: _, ...updates } = req.body;
 
     if (!updates || Object.keys(updates).length === 0) {
       return res.status(400).json({ error: "No update data provided" });
     }
 
+    // Now, validate the 'updates' object which no longer contains the 'id'
     const { error, value: validatedUpdates } = updateSchema.validate(updates);
     if (error) {
       return res.status(400).json({ error: error.details[0].message });
     }
+
     const referralRef = getReferralFormCollection().doc(id);
 
     const doc = await referralRef.get();
@@ -86,6 +98,7 @@ const updateReferral = async (req, res) => {
       return res.status(404).json({ error: "Student not found" });
     }
 
+    // Firestore update call is perfect.
     await referralRef.set(validatedUpdates, { merge: true });
 
     res.status(201).json({
