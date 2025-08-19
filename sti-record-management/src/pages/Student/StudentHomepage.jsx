@@ -21,7 +21,7 @@ export default function StudentHomepage() {
       default:
         return (
           <div className="animate-fade-in text-center mt-12">
-            <p className="text-gray-600">Module content will appear here.</p>
+            <p className="text-gray-600 text-xl">Module content will appear here.</p>
           </div>
         );
     }
@@ -30,10 +30,8 @@ export default function StudentHomepage() {
   return (
     <div className="min-h-screen text-black bg-white bg-[url('/grid.svg')] bg-repeat">
       <StudentTopBar selected={selected} setSelected={setSelected} />
-      <div className="flex pt-8 justify-center">
-        <div className="w-full max-w-5xl transition-all duration-500 ease-in-out">
-          {renderModule()}
-        </div>
+      <div className="px-0 w-full">
+        {renderModule()}
       </div>
       <style>
         {`
