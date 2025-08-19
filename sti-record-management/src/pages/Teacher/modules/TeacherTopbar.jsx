@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Settings, LogOut } from 'lucide-react';
 import STILogo from '../../../assets/sti-logo.png';
 
-export default function TeacherTopbar() {
+export default function TeacherTopbar({onLogout }) {
     const navigate = useNavigate();
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const containerRef = useRef(null);
@@ -21,10 +21,6 @@ export default function TeacherTopbar() {
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
-
-    const handleLogout = () => {
-        navigate('/');
-    };
 
     return (
         <div className="w-full flex items-center justify-between bg-[#0172B9] shadow-lg px-4 md:px-8 py-3 relative z-10">
@@ -50,7 +46,7 @@ export default function TeacherTopbar() {
                 {isDropdownOpen && (
                     <div className="absolute top-full right-0 mt-3 w-40 bg-white rounded-lg shadow-xl py-2 z-20 animate-fade-in-up origin-top-right">
                         <button
-                            onClick={handleLogout}
+                            onClick={onLogout}
                             className="flex items-center gap-3 w-full px-4 py-2 text-sm text-gray-700 hover:bg-red-500 hover:text-white transition-colors duration-150"
                         >
                             <LogOut className="w-4 h-4" />

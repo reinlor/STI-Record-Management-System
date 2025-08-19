@@ -243,12 +243,8 @@ function ReferralFormProcessing() {
                       <span className="text-gray-600">{selectedReferral.schoolYear || "-"}</span>
                     </p>
                     <p>
-                      <strong className="text-gray-700">Tertiary (Semester):</strong>{" "}
-                      <span className="text-gray-600">{selectedReferral.semester || "-"}</span>
-                    </p>
-                    <p>
-                      <strong className="text-gray-700">Senior High (Quarter):</strong>{" "}
-                      <span className="text-gray-600">{selectedReferral.quarter || "-"}</span>
+                      <strong className="text-gray-700">Grade Level:</strong>{" "}
+                      <span className="text-gray-600">{selectedReferral.gradeLevel || "-"}</span>
                     </p>
                     <p>
                       <strong className="text-gray-700">Student Number:</strong>{" "}
@@ -260,7 +256,7 @@ function ReferralFormProcessing() {
                     </p>
                     <p>
                       <strong className="text-gray-700">Program and Section:</strong>{" "}
-                      <span className="text-gray-600">{selectedReferral.program || "-"}  {selectedReferral.section || "-"}</span>
+                      <span className="text-gray-600">{selectedReferral.program || "-"}</span>
                     </p>
                     <p>
                       <strong className="text-gray-700">Gender:</strong>{" "}

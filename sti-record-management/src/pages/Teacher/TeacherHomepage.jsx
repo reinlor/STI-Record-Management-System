@@ -1,24 +1,25 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import TeacherCard from "./modules/TeacherCard";
 import TeacherTopbar from "./modules/TeacherTopbar";
 import SubmitReferralForm from "./content/SubmitReferral";
 import ViewRequest from "./content/ViewRequest";
 import axios from "axios";
+import { AuthContext } from "../../AuthProvider";
 
 function TeacherHomepage() {
+    const { authData, logout } = useContext(AuthContext);
     const [selected, setSelected] = useState(null);
     const [showSidebar, setShowSideBar] = useState(false);
     const [teacherData, setTeacherData] = useState(null);
     const [referralData, setReferralData] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
-    const teacherID = "02000200000";
 
     const handleCancel = () => {
         setSelected(null);
         setShowSideBar(false);
     };
 
-    const fetchReferral = async () => {
+    const fetchReferral = async (teacherID) => {
         try {
             setIsLoading(true);
             const res = await axios.get(`/referral/get/employee/${teacherID}`);
@@ -31,7 +32,7 @@ function TeacherHomepage() {
         }
     };
 
-    const fetchData = async () => {
+    const fetchData = async (teacherID) => {
         try {
             const res = await axios.get(`/user/get/${teacherID}`);
             setTeacherData(res.data);
@@ -42,13 +43,21 @@ function TeacherHomepage() {
     };
 
     useEffect(() => {
-        fetchData();
-        fetchReferral();
-    }, [teacherID]);
+        if (!authData) {
+            console.log("Auth data not ready yet:", authData);
+            return;
+        }
+
+        const teacherID = authData.user?.uid;
+        console.log("Mounted teacher ID: ", authData.uid);
+
+        fetchData(teacherID);
+        fetchReferral(teacherID);
+    }, [authData]);
 
     return (
         <div className="min-h-screen text-black bg-white bg-[url('/grid.svg')] bg-repeat">
-            <TeacherTopbar />
+            <TeacherTopbar onLogout ={logout}/>
             <div className="flex pt-8">
                 {showSidebar && (
                     <div className="flex flex-col gap-6 ml-8">
@@ -74,7 +83,7 @@ function TeacherHomepage() {
                                 <SubmitReferralForm
                                     teacher={teacherData}
                                     onCancel={handleCancel}
-                                    onSuccess={fetchReferral} 
+                                    onSuccess={fetchReferral}
                                 />
                             </div>
                         )}

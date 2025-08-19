@@ -35,9 +35,7 @@ function DisciplinaryLayoutContent() {
 
       <div className={`${styles.headerArea} ${visibility ? 'visible' : 'hidden'}`}>
         <Header 
-            userName="Disciplinary" 
             className={styles.mainHeader}
-            onLogout={handleLogout} 
         />
 
         <div className={styles.adminContent}>

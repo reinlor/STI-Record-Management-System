@@ -35,9 +35,7 @@ function AdminLayoutContent() {
 
       <div className={`${styles.headerArea} ${visibility ? 'visible' : 'hidden'}`}>
         <Header 
-            userName="Admin" 
             className={styles.mainHeader}
-            onLogout={handleLogout} 
         />
 
         <div className={styles.adminContent}>

@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../firebaseClient";
 import { ToastContainer, toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { AuthContext } from "../AuthProvider.jsx";
 
 function LoginBeta() {
     const [schoolId, setSchoolId] = useState("");
@@ -11,6 +12,9 @@ function LoginBeta() {
     const [errorMsg, setErrorMsg] = useState("");
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
+
+    // Use the context to get the login function
+    const { login } = useContext(AuthContext);
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -25,22 +29,33 @@ function LoginBeta() {
 
             // Axios request to backend
             const response = await axios.post(
-                "/user/authenticate",
-                { idToken },
-                {
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${idToken}`,
-                    },
-                    withCredentials: true,
-                }
+                "/user/authenticate", {
+                idToken
+            }, {
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${idToken}`,
+                },
+                withCredentials: true,
+            }
             );
 
-            const { user: userData } = response.data;
+            const {
+                user: userData
+            } = response.data;
             const userRole = userData.role;
+            const userDisplayName = userData.displayName;
+
+            console.log("Logged in user:", userData);
+            console.log("Role:", userRole);
+            console.log("Display Name:", userDisplayName);
+            console.log("UID:", userData.uid);
 
             setLoading(false);
             toast.success("Welcome!");
+
+            // Update the global state with the user data, role, and displayName
+            login(userData, userRole, userDisplayName);
 
             // Redirect by role
             if (userRole === "Admin") {
@@ -56,6 +71,7 @@ function LoginBeta() {
             }
         } catch (error) {
             setLoading(false);
+            console.error("Login Error:", error);
             if (error.response) {
                 // Error from backend
                 setErrorMsg(error.response.data.error || "Authentication failed.");
@@ -67,7 +83,7 @@ function LoginBeta() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <div className="min-h-screen flex items-center justify-center bg-gray-100 font-sans">
             <div className="flex w-[700px] h-[450px] rounded-3xl shadow-3xl bg-white overflow-hidden">
                 <div className="w-1/2 bg-[#0172B9] flex items-center justify-center p-8">
                     <div className="text-white text-center">
