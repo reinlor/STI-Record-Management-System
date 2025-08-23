@@ -103,7 +103,10 @@ const addLateSlip = async (req, res) => {
     await getLateSlipsCollection().doc().set(newLateSlip);
     res
       .status(200)
-      .send({ message: `Late slip added to Student: ${newLateSlip.name}`, slip: newLateSlip });
+      .send({
+        message: `Late slip added to Student: ${newLateSlip.name}`,
+        slip: newLateSlip,
+      });
   } catch (error) {
     res.status(500).send({ error: error.message });
   }
@@ -131,12 +134,21 @@ const addAbsentSlip = async (req, res) => {
         medicalCertificateUrl = result.secure_url;
         fs.unlinkSync(req.files[1].path);
       }
+
+      if (!req.files[1]){
+        medicalCertificateUrl = "Empty";
+      }
+
       if (req.files[2]) {
         const result = await cloudinary.uploader.upload(req.files[2].path, {
           folder: "slip-attachments",
         });
         guardianValidIDUrl = result.secure_url;
         fs.unlinkSync(req.files[2].path);
+      }
+
+      if (!req.files[2]){
+        guardianValidIDUrl = "Empty";
       }
     }
 

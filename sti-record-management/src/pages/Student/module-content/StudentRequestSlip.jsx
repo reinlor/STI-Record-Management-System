@@ -3,15 +3,6 @@ import { createRoot } from "react-dom/client";
 import axios from "axios";
 import { Paperclip } from "lucide-react";
 
-//MOCK DATA
-/*
-const studentProfile = {
-    studentName: "Juan Dela Cruz",
-    studentID: "02000389463",
-    program: "BSIT 4.1A",
-    email: "juan@example.com"
-};*/
-
 // Main component for the Student Request Slip module
 export default function StudentRequestSlip() {
   // State to manage the active slip type (tab)
@@ -28,7 +19,7 @@ export default function StudentRequestSlip() {
           name: res.data.studentProfile.name || "",
           sid: res.data.sid || "",
           section: res.data.studentProfile.section || "",
-          program: res.data.studentProfile.program || "BSIT", // <-- set actual program
+          program: res.data.studentProfile.program || "", // <-- set actual program
           email: res.data.contactInfo.email || "",
         }));
       } catch (error) {
@@ -60,7 +51,9 @@ export default function StudentRequestSlip() {
   // Handle new file selection and add them to the attachments array
   const handleFileChange = (e) => {
     const newFiles = Array.from(e.target.files)
-      .filter(file => !formData.attachments.some(att => att.name === file.name)) // Prevent duplicates
+      .filter(
+        (file) => !formData.attachments.some((att) => att.name === file.name)
+      ) // Prevent duplicates
       .slice(0, 3 - formData.attachments.length) // Limit to 3 total
 
       .map((file) => ({
@@ -92,7 +85,7 @@ export default function StudentRequestSlip() {
     form.append("name", formData.name);
     form.append("sid", formData.sid);
     form.append("section", formData.section);
-    form.append("program", formData.program); 
+    form.append("program", formData.program);
     form.append("email", formData.email);
     form.append("reason", formData.reason);
 
@@ -133,8 +126,8 @@ export default function StudentRequestSlip() {
       console.error(error);
       alert(
         error.response?.data?.error ||
-        error.message ||
-        "Failed to submit slip. Please try again."
+          error.message ||
+          "Failed to submit slip. Please try again."
       );
     }
   };
@@ -225,11 +218,7 @@ export default function StudentRequestSlip() {
                 <input
                   type="text"
                   name="program"
-                  value={
-                    formData.program
-                      ? `${formData.program}${formData.section ? " " + formData.section : ""}`
-                      : ""
-                  }
+                  value={formData.program + " " + formData.section}
                   className={inputClasses}
                   readOnly
                 />
