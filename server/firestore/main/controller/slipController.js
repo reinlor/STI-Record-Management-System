@@ -130,7 +130,7 @@ const addLateSlip = async (req, res) => {
   }
 };
 
-// Controller function for adding Uniform Slip
+// Controller function for adding Uniform Pass
 const addUniformPass = async (req, res) => {
   try {
     // Upload files to Cloudinary and assign URLs
@@ -395,7 +395,7 @@ const getUniformPass = async (req, res) => {
 
     if (snapshot.empty) {
       return res.status(404).send({
-        error: `There is no available uniform slips for Student: ${sid}`,
+        error: `There is no available uniform passes for Student: ${sid}`,
       });
     }
 
