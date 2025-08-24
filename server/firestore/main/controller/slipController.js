@@ -94,6 +94,7 @@ const idPassSchema = Joi.object({
 
 // Controller function for adding Late Slip
 const addLateSlip = async (req, res) => {
+  const uploadedPublicIds = [];
   try {
     // Upload files to Cloudinary and assign URLs
     let proofUrl = "";
@@ -103,6 +104,7 @@ const addLateSlip = async (req, res) => {
           folder: "slip-attachments",
         });
         proofUrl = result.secure_url;
+        uploadedPublicIds.push(result.public_id);
         fs.unlinkSync(req.files[0].path);
       }
     }
@@ -119,6 +121,10 @@ const addLateSlip = async (req, res) => {
 
     const { error, value: newLateSlip } = lateSlipSchema.validate(slipData);
     if (error) {
+      // Clean up uploaded files if validation fails
+      for (const public_id of uploadedPublicIds) {
+        await cloudinary.uploader.destroy(public_id);
+      }
       return res.status(400).json({ error: error.details[0].message });
     }
     await getLateSlipsCollection().doc().set(newLateSlip);
@@ -127,12 +133,19 @@ const addLateSlip = async (req, res) => {
       slip: newLateSlip,
     });
   } catch (error) {
+    // Clean up uploaded files if any error occurs
+    if (uploadedPublicIds.length) {
+      for (const public_id of uploadedPublicIds) {
+        await cloudinary.uploader.destroy(public_id);
+      }
+    }
     res.status(500).send({ error: error.message });
   }
 };
 
 // Controller function for adding Uniform Pass
 const addUniformPass = async (req, res) => {
+  const uploadedPublicIds = [];
   try {
     // Upload files to Cloudinary and assign URLs
     let proofUrl = "";
@@ -142,6 +155,7 @@ const addUniformPass = async (req, res) => {
           folder: "slip-attachments",
         });
         proofUrl = result.secure_url;
+        uploadedPublicIds.push(result.public_id);
         fs.unlinkSync(req.files[0].path);
       }
     }
@@ -159,6 +173,10 @@ const addUniformPass = async (req, res) => {
     const { error, value: newUniformPass } =
       uniformPassSchema.validate(slipData);
     if (error) {
+      // Clean up uploaded files if validation fails
+      for (const public_id of uploadedPublicIds) {
+        await cloudinary.uploader.destroy(public_id);
+      }
       return res.status(400).json({ error: error.details[0].message });
     }
     await getUniformPassCollection().doc().set(newUniformPass);
@@ -167,23 +185,32 @@ const addUniformPass = async (req, res) => {
       slip: newUniformPass,
     });
   } catch (error) {
+    // Clean up uploaded files if any error occurs
+    if (uploadedPublicIds.length) {
+      for (const public_id of uploadedPublicIds) {
+        await cloudinary.uploader.destroy(public_id);
+      }
+    }
     res.status(500).send({ error: error.message });
   }
 };
 
 // Controller Function For adding Absent Slip
 const addAbsentSlip = async (req, res) => {
+  // Track uploaded files' public_ids for cleanup
+  const uploadedPublicIds = [];
   try {
-    // Upload files to Cloudinary and assign URLs
     let excuseLetterUrl = "",
       medicalCertificateUrl = "",
       guardianValidIDUrl = "";
+
     if (req.files && req.files.length > 0) {
       if (req.files[0]) {
         const result = await cloudinary.uploader.upload(req.files[0].path, {
           folder: "slip-attachments",
         });
         excuseLetterUrl = result.secure_url;
+        uploadedPublicIds.push(result.public_id); // Track for cleanup
         fs.unlinkSync(req.files[0].path);
       }
       if (req.files[1]) {
@@ -191,21 +218,20 @@ const addAbsentSlip = async (req, res) => {
           folder: "slip-attachments",
         });
         medicalCertificateUrl = result.secure_url;
+        uploadedPublicIds.push(result.public_id);
         fs.unlinkSync(req.files[1].path);
       }
-
       if (!req.files[1]) {
         medicalCertificateUrl = "Empty";
       }
-
       if (req.files[2]) {
         const result = await cloudinary.uploader.upload(req.files[2].path, {
           folder: "slip-attachments",
         });
         guardianValidIDUrl = result.secure_url;
+        uploadedPublicIds.push(result.public_id);
         fs.unlinkSync(req.files[2].path);
       }
-
       if (!req.files[2]) {
         guardianValidIDUrl = "Empty";
       }
@@ -221,10 +247,16 @@ const addAbsentSlip = async (req, res) => {
       attachmentCount: req.files ? req.files.length : 0,
       status: "Pending",
       timeCreated: new Date(),
+      dateAbsent: req.body.dateAbsent,
+      dateAbsentEnd: req.body.dateAbsentEnd,
     };
 
     const { error, value: newAbsentSlip } = absentSlipSchema.validate(slipData);
     if (error) {
+      // Clean up uploaded files if validation fails
+      for (const public_id of uploadedPublicIds) {
+        await cloudinary.uploader.destroy(public_id);
+      }
       return res.status(400).json({ error: error.details[0].message });
     }
     await getAbsentSlipsCollection().doc().set(newAbsentSlip);
@@ -232,12 +264,19 @@ const addAbsentSlip = async (req, res) => {
       .status(200)
       .send({ message: `Absent slip added to Student: ${newAbsentSlip.name}` });
   } catch (error) {
+    // Clean up uploaded files if any error occurs
+    if (uploadedPublicIds.length) {
+      for (const public_id of uploadedPublicIds) {
+        await cloudinary.uploader.destroy(public_id);
+      }
+    }
     res.status(500).send({ error: error.message });
   }
 };
 
 // Controller Function for adding ID Pass
 const addIDPass = async (req, res) => {
+  const uploadedPublicIds = [];
   try {
     // Upload files to Cloudinary and assign URLs
     let proofUrl = "";
@@ -247,6 +286,7 @@ const addIDPass = async (req, res) => {
           folder: "slip-attachments",
         });
         proofUrl = result.secure_url;
+        uploadedPublicIds.push(result.public_id);
         fs.unlinkSync(req.files[0].path);
       }
     }
@@ -263,6 +303,10 @@ const addIDPass = async (req, res) => {
 
     const { error, value: newIDPass } = idPassSchema.validate(slipData);
     if (error) {
+      // Clean up uploaded files if validation fails
+      for (const public_id of uploadedPublicIds) {
+        await cloudinary.uploader.destroy(public_id);
+      }
       return res.status(400).json({ error: error.details[0].message });
     }
     await getIDPassCollection().doc().set(newIDPass);
@@ -270,6 +314,12 @@ const addIDPass = async (req, res) => {
       .status(200)
       .send({ message: `ID Pass added to Student: ${newIDPass.name}` });
   } catch (error) {
+    // Clean up uploaded files if any error occurs
+    if (uploadedPublicIds.length) {
+      for (const public_id of uploadedPublicIds) {
+        await cloudinary.uploader.destroy(public_id);
+      }
+    }
     res.status(500).send({ error: error.message });
   }
 };
