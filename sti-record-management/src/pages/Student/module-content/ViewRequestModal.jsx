@@ -1,5 +1,14 @@
 import React from "react";
-import { X, User, FileText, Paperclip, Clock, Calendar, MessageSquare, Info } from "lucide-react";
+import {
+  X,
+  User,
+  FileText,
+  Paperclip,
+  Clock,
+  Calendar,
+  MessageSquare,
+  Info,
+} from "lucide-react";
 
 export default function ViewRequestModal({ data, onClose }) {
   return (
@@ -13,8 +22,12 @@ export default function ViewRequestModal({ data, onClose }) {
         </button>
 
         <div className="text-center mb-6">
-          <h2 className="text-3xl font-extrabold text-gray-800 tracking-tight">Request Slip Details</h2>
-          <p className="text-gray-500 mt-1">Detailed information about the student's request.</p>
+          <h2 className="text-3xl font-extrabold text-gray-800 tracking-tight">
+            Request Slip Details
+          </h2>
+          <p className="text-gray-500 mt-1">
+            Detailed information about the student's request.
+          </p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -25,15 +38,36 @@ export default function ViewRequestModal({ data, onClose }) {
               <h3 className="font-bold text-lg">Student Information</h3>
             </div>
             <div className="space-y-3 text-sm text-gray-700">
-              <p><span className="font-semibold text-gray-900">Full Name:</span> {data.name || "-"}</p>
+              <p>
+                <span className="font-semibold text-gray-900">Full Name:</span>{" "}
+                {data.name || "-"}
+              </p>
 
-              <p><span className="font-semibold text-gray-900">Student Number:</span> {data.sid || "-"}</p>
+              <p>
+                <span className="font-semibold text-gray-900">
+                  Student Number:
+                </span>{" "}
+                {data.sid || "-"}
+              </p>
 
-              <p><span className="font-semibold text-gray-900">Program/Strand:</span> {data.program || "-"}</p>
+              <p>
+                <span className="font-semibold text-gray-900">
+                  Program/Strand:
+                </span>{" "}
+                {data.program || "-"}
+              </p>
 
-              <p><span className="font-semibold text-gray-900">Year and Section:</span> {data.section || "-"}</p>
+              <p>
+                <span className="font-semibold text-gray-900">
+                  Year and Section:
+                </span>{" "}
+                {data.section || "-"}
+              </p>
 
-              <p><span className="font-semibold text-gray-900">Email:</span> {data.email || "-"}</p>
+              <p>
+                <span className="font-semibold text-gray-900">Email:</span>{" "}
+                {data.email || "-"}
+              </p>
             </div>
           </div>
 
@@ -44,18 +78,43 @@ export default function ViewRequestModal({ data, onClose }) {
               <h3 className="font-bold text-lg">Slip Details</h3>
             </div>
             <div className="space-y-3 text-sm text-gray-700">
-              <p><span className="font-semibold text-gray-900">Slip Type:</span> {data.typeOfSlip || "-"}</p>
+              <p>
+                <span className="font-semibold text-gray-900">Slip Type:</span>{" "}
+                {data.typeOfSlip || "-"}
+              </p>
               {data.typeOfSlip === "Absent Slip" && (
                 <>
-                  <p><span className="font-semibold text-gray-900">Date of Absent:</span> {data.dateAbsent || "-"}</p>
+                  <p>
+                    <span className="font-semibold text-gray-900">
+                      Date of Absent:
+                    </span>{" "}
+                    {data.dateAbsent
+                      ? new Date(data.dateAbsent).toLocaleDateString("en-PH")
+                      : "-"}
+                  </p>
 
-                  <p><span className="font-semibold text-gray-900">No. of Days Absent:</span> {data.daysAbsent || "-"}</p>
+                  <p>
+                    <span className="font-semibold text-gray-900">
+                      End of Date of Absent:
+                    </span>{" "}
+                    {data.dateAbsentEnd
+                      ? new Date(data.dateAbsentEnd).toLocaleDateString("en-PH")
+                      : "-"}
+                  </p>
 
-                  <p><span className="font-semibold text-gray-900">Reason:</span> {data.reason || "-"}</p>
+                  <p>
+                    <span className="font-semibold text-gray-900">Reason:</span>{" "}
+                    {data.reason || "-"}
+                  </p>
                 </>
               )}
-              {(data.typeOfSlip === "Late Slip" || data.typeOfSlip === "ID Pass" || data.typeOfSlip === "Uniform Pass") && (
-                <p><span className="font-semibold text-gray-900">Reason:</span> {data.reason || "-"}</p>
+              {(data.typeOfSlip === "Late Slip" ||
+                data.typeOfSlip === "ID Pass" ||
+                data.typeOfSlip === "Uniform Pass") && (
+                <p>
+                  <span className="font-semibold text-gray-900">Reason:</span>{" "}
+                  {data.reason || "-"}
+                </p>
               )}
             </div>
           </div>
@@ -68,19 +127,34 @@ export default function ViewRequestModal({ data, onClose }) {
             </div>
             <div className="space-y-3 text-sm text-gray-700">
               <p className="flex items-center">
-                <span className="font-semibold text-gray-900 mr-2">Status:</span>
-                <span className={`px-2 py-1 rounded-full text-xs font-bold ${
-                  data.status === "Approved" ? "bg-green-100 text-green-700" :
-                  data.status === "Pending" ? "bg-yellow-100 text-yellow-700" :
-                  data.status === "Rejected" ? "bg-red-100 text-red-700" :
-                  "bg-gray-200 text-gray-700"
-                }`}>
+                <span className="font-semibold text-gray-900 mr-2">
+                  Status:
+                </span>
+                <span
+                  className={`px-2 py-1 rounded-full text-xs font-bold ${
+                    data.status === "Approved"
+                      ? "bg-green-100 text-green-700"
+                      : data.status === "Pending"
+                      ? "bg-yellow-100 text-yellow-700"
+                      : data.status === "Rejected"
+                      ? "bg-red-100 text-red-700"
+                      : "bg-gray-200 text-gray-700"
+                  }`}
+                >
                   {data.status || "-"}
                 </span>
               </p>
-              <p><span className="font-semibold text-gray-900">Processed Date:</span> {data.processedDate || "-"}</p>
+              <p>
+                <span className="font-semibold text-gray-900">
+                  Processed Date:
+                </span>{" "}
+                {data.processedDate || "-"}
+              </p>
 
-              <p><span className="font-semibold text-gray-900">Remarks:</span> {data.remarks || "-"}</p>
+              <p>
+                <span className="font-semibold text-gray-900">Remarks:</span>{" "}
+                {data.remarks || "-"}
+              </p>
             </div>
           </div>
 

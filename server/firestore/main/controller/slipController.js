@@ -69,7 +69,8 @@ const absentSlipSchema = Joi.object({
   attachmentCount: Joi.number().required(),
   status: Joi.string().required(),
   timeCreated: Joi.date().required(),
-  daysAbsent: Joi.number().required(),
+  dateAbsent: Joi.string().required(),
+  dateAbsentEnd: Joi.string().required(),
 });
 
 const idPassSchema = Joi.object({
@@ -515,9 +516,7 @@ const getAllSlipsById = async (req, res) => {
     const snapshot2 = await getAbsentSlipsCollection()
       .where("sid", "==", sid)
       .get();
-    const snapshot3 = await getIDPassCollection()
-      .where("sid", "==", sid)
-      .get();
+    const snapshot3 = await getIDPassCollection().where("sid", "==", sid).get();
     const snapshot4 = await getUniformPassCollection()
       .where("sid", "==", sid)
       .get();

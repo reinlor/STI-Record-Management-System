@@ -38,7 +38,7 @@ export default function StudentRequestSlip() {
     email: "",
     reason: "",
     dateAbsent: "",
-    daysAbsent: "",
+    dateAbsentEnd: "",
     attachments: [],
   });
 
@@ -91,7 +91,7 @@ export default function StudentRequestSlip() {
 
     if (activeSlip === "Absent") {
       form.append("typeOfSlip", "Absent Slip");
-      form.append("daysAbsent", formData.daysAbsent);
+      form.append("dateAbsentEnd", formData.dateAbsentEnd);
       form.append("dateAbsent", formData.dateAbsent);
     } else if (activeSlip === "Late") {
       form.append("typeOfSlip", "Late Slip");
@@ -124,7 +124,7 @@ export default function StudentRequestSlip() {
         ...prev,
         reason: "",
         dateAbsent: "",
-        daysAbsent: "",
+        dateAbsentEnd: "",
         attachments: [],
       }));
     } catch (error) {
@@ -267,12 +267,12 @@ export default function StudentRequestSlip() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    No. of Days Absent
+                    End of Date of Absent
                   </label>
                   <input
-                    type="number"
-                    name="daysAbsent"
-                    value={formData.daysAbsent}
+                    type="date"
+                    name="dateAbsentEnd"
+                    value={formData.dateAbsentEnd}
                     onChange={handleChange}
                     className={inputClasses}
                     required
@@ -475,7 +475,7 @@ export default function StudentRequestSlip() {
                   email: student?.contactInfo?.email || "",
                   reason: "",
                   dateAbsent: "",
-                  daysAbsent: "",
+                  dateAbsentEnd: "",
                   attachments: [],
                 });
               }}
