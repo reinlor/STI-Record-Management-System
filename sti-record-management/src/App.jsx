@@ -27,6 +27,18 @@ import DisciplinaryReferralForm from './pages/DisciplinaryOfficer/referral-form/
 import DisciplinaryReferralFormHistory from './pages/DisciplinaryOfficer/referral-form/ReferralFormHistory.jsx'
 import DisciplinaryBackupNRestore from './pages/DisciplinaryOfficer/backup-and-restore/BackupNRestore.jsx'
 
+import GuidanceLayout from './layouts/AdminLayout.jsx'
+import GuidanceDashboard from './pages/GuidancePersonnel/dashboard/Dashboard.jsx'
+import GuidanceStudentRecords from './pages/GuidancePersonnel/student-records/StudentRecords.jsx'
+import GuidanceStudentCases from './pages/GuidancePersonnel/student-cases/StudentCases.jsx'
+import GuidanceReferralForm from './pages/GuidancePersonnel/referral-form/ReferralForm.jsx'
+import GuidanceReferralFormHistory from './pages/GuidancePersonnel/referral-form/ReferralFormHistory.jsx'
+import GuidanceRequestSlip from './pages/GuidancePersonnel/request-slip/RequestSlip.jsx'
+import GuidanceRequestSlipHistory from './pages/GuidancePersonnel/request-slip/RequestSlipHistory.jsx'
+import GuidanceUsers from './pages/GuidancePersonnel/users/Users.jsx'
+import GuidanceBackNRestore from './pages/GuidancePersonnel/backup-and-restore/BackupNRestore.jsx'
+import GuidanceWellnessGeneration from './pages/GuidancePersonnel/wellness-assessment/WellnessAssessment.jsx'
+
 import StudentHomepage from './pages/Student/StudentHomepage.jsx';
 import StudentSignup from './pages/Student/StudentSignup.jsx';
 
@@ -76,11 +88,25 @@ function App() {
             <Route path="backup-n-restore" element={<DisciplinaryBackupNRestore />} />
           </Route>
 
+          {/* Guidance Personnel */}
+          <Route path='/guidance' element={<ProtectedRoute requiredRole={["Admin", "Disciplinary"]}><GuidanceLayout/></ProtectedRoute>}>
+            <Route index element={<GuidanceDashboard/>}/>
+            <Route path="student-records" element={<GuidanceStudentRecords/>}/>
+            <Route path="student-cases" element={<GuidanceStudentCases/>}/>
+            <Route path="users" element={<GuidanceUsers/>}/>
+            <Route path="request-slip" element={<GuidanceRequestSlip/>}/>
+            <Route path="request-slip-history" element={<GuidanceRequestSlipHistory/>}/>
+            <Route path="referral-form" element={<GuidanceReferralForm/>}/>
+            <Route path="referral-form-history" element={<GuidanceReferralFormHistory/>}/>
+            <Route path="back-n-restore" element={<GuidanceBackNRestore/>}/>
+            <Route path="wellness" element={<GuidanceWellnessGeneration/>}/>
+          </Route>
+
           {/* Protected Student Routes */}
-          <Route path='/student' element={<ProtectedRoute requiredRole="Student"><StudentHomepage /></ProtectedRoute>} />
+          <Route path='/pupil' element={<ProtectedRoute requiredRole="Student"><StudentHomepage /></ProtectedRoute>}/>
 
           {/* Protected Teacher Routes */}
-          <Route path='/teacher' element={<ProtectedRoute requiredRole="Teacher"><TeacherHomepage /></ProtectedRoute>} />
+          <Route path='/educator' element={<ProtectedRoute requiredRole="Teacher"><TeacherHomepage /></ProtectedRoute>} />
 
           {/* 404 Not Found */}
           <Route path="*" element={<PageNotFound />} />

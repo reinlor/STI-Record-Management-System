@@ -31,7 +31,7 @@ function AdminLayoutContent() {
 
   return (
     <div className={styles.adminLayout}>
-      <SideBar user='admin'/>
+      <SideBar/>
 
       <div className={`${styles.headerArea} ${visibility ? 'visible' : 'hidden'}`}>
         <Header 

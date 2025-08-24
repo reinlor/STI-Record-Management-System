@@ -1,41 +1,33 @@
 import { useNavigate } from "react-router-dom";
 import styles from './components-css/SideBar.module.css';
+import { AuthContext } from '../AuthProvider.jsx';
+import { useContext } from 'react';
 
-export default function Sidebar({
-    user = ''
-}) {
+
+export default function Sidebar() {
+    const { authData, logout } = useContext(AuthContext);
+
     const navigate = useNavigate();
     let menuPages = [];
     let panelName = '';
 
-    // User = admin
-    if (user === 'admin') {
+    if (!authData.user.access) {
         menuPages = [
-            { label: "Dashboard", path: "/admin" },
-            { label: "Student Records", path: "/admin/student-records" },
-            { label: "Student Cases", path: "/admin/student-cases" },
-            { label: "Users", path: "/admin/users" },
-            { label: "Back Up and Restore", path: "/admin/back-n-restore" },
-            { label: "Wellness Assessment", path: "/admin/wellness" },
-        ];
-        panelName = 'Admin';
-    }
-    // User =  Disciplinary Officer
-    else if (user === 'disciplinary') {
+            { label: "Dashboard", path: "/guidance" }
+        ]
+    } else {
         menuPages = [
-            { label: "Dashboard", path: "/disciplinary" },
-            { label: "Student Records", path: "/disciplinary/student-records" },
-            { label: "Student Cases", path: "/disciplinary/student-cases" },
-            { label: "Request Slip", path: "/disciplinary/request-slip" },
-            { label: "Referral Form", path: "/disciplinary/referral-form" },
-            { label: "Backup and Restore", path: "/disciplinary/backup-n-restore" }
-        ];
-        panelName = 'Disciplinary';
+            authData.user.access.dashboard.canView ? { label: "Dashboard", path: "/guidance" } : null,
+            authData.user.access.studentRecords.canView ? { label: "Student Records", path: "/guidance/student-records" } : null,
+            authData.user.access.studentCases.canView ? { label: "Student Cases", path: "/guidance/student-cases" } : null,
+            authData.user.access.userManagement.canView ? { label: "Users", path: "/guidance/users" } : null,
+            authData.user.access.requestSlip.canView ? { label: "Request Slips", path: "/guidance/request-slip" } : null,
+            authData.user.access.referralForm.canView ? { label: "Referral Forms", path: "/guidance/referral-form" } : null,
+            authData.user.access.backupRestore.canView ? { label: "Back Up and Restore", path: "/guidance/back-n-restore" } : null,
+            authData.user.access.wellness.canView ? { label: "Wellness Assessment", path: "/guidance/wellness" } : null,
+        ].filter(Boolean);
     }
-
-    // User = Teacher
-
-    // User = Student
+    panelName = authData.role;
 
     return (
         <>
