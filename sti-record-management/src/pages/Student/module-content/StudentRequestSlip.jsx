@@ -1,9 +1,17 @@
 import React, { useState, useEffect } from "react";
 import { createRoot } from "react-dom/client";
 import axios from "axios";
-import { Paperclip } from "lucide-react";
+import {
+  FileText,
+  Clock,
+  IdCard,
+  Shirt,
+  Upload,
+  Trash2,
+  CalendarDays,
+  CircleCheck,
+} from "lucide-react";
 
-// Main component for the Student Request Slip module
 export default function StudentRequestSlip() {
   // State to manage the active slip type (tab)
   const [activeSlip, setActiveSlip] = useState("Absent");
@@ -19,7 +27,7 @@ export default function StudentRequestSlip() {
           name: res.data.studentProfile.name || "",
           sid: res.data.sid || "",
           section: res.data.studentProfile.section || "",
-          program: res.data.studentProfile.program || "", // <-- set actual program
+          program: res.data.studentProfile.program || "",
           email: res.data.contactInfo.email || "",
         }));
       } catch (error) {
@@ -37,8 +45,8 @@ export default function StudentRequestSlip() {
     program: "",
     email: "",
     reason: "",
-    dateAbsent: "",
-    daysAbsent: "",
+    startDateAbsent: "",
+    endDateAbsent: "",
     attachments: [],
   });
 
@@ -53,9 +61,8 @@ export default function StudentRequestSlip() {
     const newFiles = Array.from(e.target.files)
       .filter(
         (file) => !formData.attachments.some((att) => att.name === file.name)
-      ) // Prevent duplicates
-      .slice(0, 3 - formData.attachments.length) // Limit to 3 total
-
+      )
+      .slice(0, 3 - formData.attachments.length)
       .map((file) => ({
         id: crypto.randomUUID(),
         file: file,
@@ -79,115 +86,136 @@ export default function StudentRequestSlip() {
 
   // Handle form submission
   const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    const form = new FormData();
-    form.append("name", formData.name);
-    form.append("sid", formData.sid);
-    form.append("section", formData.section);
-    form.append("program", formData.program);
-    form.append("email", formData.email);
-    form.append("reason", formData.reason);
-
-    if (activeSlip === "Absent") {
-      form.append("typeOfSlip", "Absent Slip");
-      form.append("daysAbsent", formData.daysAbsent);
-      form.append("dateAbsent", formData.dateAbsent);
-    } else if (activeSlip === "Late") {
-      form.append("typeOfSlip", "Late Slip");
-    } else if (activeSlip === "ID Pass") {
-      form.append("typeOfSlip", "ID Slip");
-    }
-
-    // Attach files (up to 3)
-    formData.attachments.forEach((item) => {
-      form.append("attachments", item.file);
-    });
-
-    // Choose endpoint based on slip type
-    let endpoint = "";
-    if (activeSlip === "Absent") endpoint = "/slip/absentSlip/add";
-    else if (activeSlip === "Late") endpoint = "/slip/lateSlip/add";
-    else if (activeSlip === "ID Pass") endpoint = "/slip/IDPass/add";
-
-    try {
-      await axios.post(endpoint, form, {
-        headers: { "Content-Type": "multipart/form-data" },
+      e.preventDefault();
+  
+      const form = new FormData();
+      form.append("name", formData.name);
+      form.append("sid", formData.sid);
+      form.append("section", formData.section);
+      form.append("program", formData.program);
+      form.append("email", formData.email);
+      form.append("reason", formData.reason);
+  
+      if (activeSlip === "Absent") {
+          form.append("typeOfSlip", "Absent Slip");
+          form.append("endDateAbsent", formData.endDateAbsent);
+          form.append("startDateAbsent", formData.startDateAbsent);
+      } else if (activeSlip === "Late") {
+          form.append("typeOfSlip", "Late Slip");
+      } else if (activeSlip === "ID Pass") {
+          form.append("typeOfSlip", "ID Slip");
+      }
+  
+      // Attach files (up to 3)
+      formData.attachments.forEach((item) => {
+          form.append("attachments", item.file);
       });
-      alert("Slip submitted successfully!");
-      setFormData((prev) => ({
-        ...prev,
-        reason: "",
-        dateAbsent: "",
-        daysAbsent: "",
-        attachments: [],
-      }));
-    } catch (error) {
-      console.error(error);
-      alert(
-        error.response?.data?.error ||
-          error.message ||
-          "Failed to submit slip. Please try again."
-      );
-    }
+  
+      // Choose endpoint based on slip type
+      let endpoint = "";
+      if (activeSlip === "Absent") endpoint = "/slip/absentSlip/add";
+      else if (activeSlip === "Late") endpoint = "/slip/lateSlip/add";
+      else if (activeSlip === "ID Pass") endpoint = "/slip/IDPass/add";
+  
+      try {
+          await axios.post(endpoint, form, {
+              headers: { "Content-Type": "multipart/form-data" },
+          });
+          alert("Slip submitted successfully!");
+          setFormData((prev) => ({
+              ...prev,
+              reason: "",
+              startDateAbsent: "",
+              endDateAbsent: "",
+              attachments: [],
+          }));
+      } catch (error) {
+          console.error(error);
+          alert(
+              error.response?.data?.error ||
+              error.message ||
+              "Failed to submit slip. Please try again."
+          );
+      }
   };
-
+  
   // Tab data for rendering
   const slipTypes = [
-    { id: "Absent", label: "Absent Slip", icon: "📝" },
-    { id: "Late", label: "Late Slip", icon: "⏰" },
-    { id: "ID Pass", label: "ID Pass", icon: "🆔" },
-    { id: "Uniform Pass", label: "Uniform Pass", icon: "👕" },
+    { id: "Absent", label: "Absent Slip", icon: FileText },
+    { id: "Late", label: "Late Slip", icon: Clock },
+    { id: "ID Pass", label: "ID Pass", icon: IdCard },
+    { id: "Uniform Pass", label: "Uniform Pass", icon: Shirt },
   ];
 
   // Tailwind classes for consistent input styling
   const inputClasses =
-    "w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500";
+    "w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-800 focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition-all duration-200";
 
   if (!student) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-screen bg-gray-100">
         <span className="text-gray-500 text-lg">Loading student info...</span>
       </div>
     );
   }
 
   return (
-    <div className="animate-fade-in min-h-screen flex flex-col items-center pt-4 font-sans">
-      <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-4xl">
+    <div className="min-h-screen flex flex-col items-center py-12 px-4 bg-gray-100 font-sans">
+      <style>
+        {`
+          @keyframes smooth-fade-in {
+            from {
+              opacity: 0;
+              transform: translateY(10px);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
+          .animate-smooth-fade-in {
+            animation: smooth-fade-in 0.3s ease-out forwards;
+          }
+        `}
+      </style>
+      <div className="bg-white rounded-2xl shadow-xl p-8 w-full container mx-auto border border-gray-200 animate-smooth-fade-in">
         {/* Header and Tabs */}
-        <h2 className="text-3xl font-extrabold text-gray-800 mb-6 border-b pb-4">
-          Request Slip
-        </h2>
+        <div className="flex items-center justify-between mb-8 pb-4 border-b border-gray-200">
+          <h2 className="text-3xl font-extrabold text-gray-900">
+            Student Request Slip
+          </h2>
+          <CircleCheck className="text-yellow-400 w-8 h-8" />
+        </div>
 
-        <div className="flex flex-wrap gap-2 mb-8">
+        <div className="flex flex-wrap gap-2 mb-10">
           {slipTypes.map((slip) => (
             <button
               key={slip.id}
               type="button"
               onClick={() => setActiveSlip(slip.id)}
-              className={`flex items-center gap-2 py-2 px-4 rounded-full text-sm font-semibold transition-colors duration-200 ${
+              className={`flex items-center gap-2 py-3 px-4 rounded-xl text-sm font-semibold transition-all duration-300 transform hover:-translate-y-0.5 shadow-sm ${
                 activeSlip === slip.id
-                  ? "bg-blue-600 text-white shadow-md"
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                  ? "bg-yellow-400 text-black shadow-lg"
+                  : "bg-gray-200 text-gray-700 hover:bg-gray-300 hover:text-black"
               }`}
             >
-              <span className="text-lg">{slip.icon}</span>
+              <slip.icon className="w-5 h-5" />
               {slip.label}
             </button>
           ))}
         </div>
 
         {/* Main Form Content */}
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-8">
           {/* Common Student Information Section */}
-          <div className="bg-gray-50 p-6 rounded-lg shadow-inner border border-gray-200">
-            <h2 className="text-xl font-bold text-gray-700 mb-4">
+          <div className="bg-gray-50 p-6 rounded-xl shadow-inner border border-gray-200">
+            <h2 className="text-xl font-bold text-gray-700 mb-4 flex items-center gap-2">
+              <IdCard className="w-6 h-6 text-gray-500" />
               Student Information
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Full Name
                 </label>
                 <input
@@ -199,7 +227,7 @@ export default function StudentRequestSlip() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Student Number
                 </label>
                 <input
@@ -211,8 +239,7 @@ export default function StudentRequestSlip() {
                 />
               </div>
               <div>
-                {/* Label updated to "Program and Year/Section" */}
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Program and Year/Section
                 </label>
                 <input
@@ -224,7 +251,7 @@ export default function StudentRequestSlip() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Email
                 </label>
                 <input
@@ -239,42 +266,51 @@ export default function StudentRequestSlip() {
           </div>
 
           {/* Conditional Slip-specific Fields */}
-          <div className="bg-gray-50 p-6 rounded-lg shadow-inner border border-gray-200">
-            <h2 className="text-xl font-bold text-gray-700 mb-4">
+          <div className="bg-gray-50 p-6 rounded-xl shadow-inner border border-gray-200">
+            <h2 className="text-xl font-bold text-gray-700 mb-4 flex items-center gap-2">
+              <FileText className="w-6 h-6 text-gray-500" />
               {activeSlip} Slip Details
             </h2>
 
             {/* Fields for Absent Slip */}
             {activeSlip === "Absent" && (
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Date of Absent
-                  </label>
-                  <input
-                    type="date"
-                    name="dateAbsent"
-                    value={formData.dateAbsent}
-                    onChange={handleChange}
-                    className={inputClasses}
-                    required
-                  />
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Start Date of Absence
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="date"
+                        name="startDateAbsent"
+                        value={formData.startDateAbsent}
+                        onChange={handleChange}
+                        className={inputClasses}
+                        required
+                      />
+                      <CalendarDays className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      End Date of Absence
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="date"
+                        name="endDateAbsent"
+                        value={formData.endDateAbsent}
+                        onChange={handleChange}
+                        className={inputClasses}
+                        required
+                      />
+                      <CalendarDays className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                    </div>
+                  </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    No. of Days Absent
-                  </label>
-                  <input
-                    type="number"
-                    name="daysAbsent"
-                    value={formData.daysAbsent}
-                    onChange={handleChange}
-                    className={inputClasses}
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
                     Reason for Absent
                   </label>
                   <textarea
@@ -282,7 +318,7 @@ export default function StudentRequestSlip() {
                     value={formData.reason}
                     onChange={handleChange}
                     rows="4"
-                    className={inputClasses}
+                    className={`${inputClasses} resize-none`}
                     placeholder="Please provide a detailed explanation for your reason."
                     required
                   ></textarea>
@@ -294,9 +330,9 @@ export default function StudentRequestSlip() {
             {(activeSlip === "Late" ||
               activeSlip === "Uniform Pass" ||
               activeSlip === "ID Pass") && (
-              <div className="space-y-4">
+              <div className="space-y-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
                     Reason for{" "}
                     {activeSlip === "Late"
                       ? "being late"
@@ -309,7 +345,7 @@ export default function StudentRequestSlip() {
                     value={formData.reason}
                     onChange={handleChange}
                     rows="4"
-                    className={inputClasses}
+                    className={`${inputClasses} resize-none`}
                     placeholder={`Please provide a detailed explanation for your reason.`}
                     required
                   ></textarea>
@@ -319,11 +355,11 @@ export default function StudentRequestSlip() {
           </div>
 
           {/* Attachment Section */}
-          <div className="bg-gray-50 p-6 rounded-lg shadow-inner border border-gray-200">
-            <h2 className="text-xl font-bold text-gray-700 mb-2">
+          <div className="bg-gray-50 p-6 rounded-xl shadow-inner border border-gray-200">
+            <h2 className="text-xl font-bold text-gray-700 mb-4 flex items-center gap-2">
+              <Upload className="w-6 h-6 text-gray-500" />
               Attachments
             </h2>
-
             {/* Conditional attachment info based on slip type */}
             {activeSlip === "Absent" && (
               <div className="mb-4 text-gray-700">
@@ -347,12 +383,12 @@ export default function StudentRequestSlip() {
               </p>
             )}
 
-            {/* "Upload File" button to trigger file input */}
-            <label className="inline-block">
+            {/* "Upload File" button */}
+            <label className="inline-block cursor-pointer">
               <button
                 type="button"
                 onClick={() => document.getElementById("file-input").click()}
-                className="py-2 px-4 bg-blue-600 text-white font-semibold rounded-md shadow-sm hover:bg-blue-700 transition-colors duration-200"
+                className="py-2.5 px-6 bg-yellow-400 text-black font-semibold rounded-lg shadow-md hover:bg-yellow-500 hover:shadow-lg hover:-translate-y-0.5 transform transition-all duration-300"
               >
                 Upload File
               </button>
@@ -368,65 +404,32 @@ export default function StudentRequestSlip() {
             </label>
 
             {/* File preview cards */}
-            <div className="flex flex-wrap gap-4 mt-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-6">
               {formData.attachments.map((item) => {
                 const isPdf = item.name.toLowerCase().endsWith(".pdf");
-                const isImage = item.name
-                  .toLowerCase()
-                  .match(/\.(jpg|jpeg|png|gif)$/);
 
                 return (
                   <div
                     key={item.id}
-                    className="group relative flex items-center gap-2 p-3 bg-white border border-gray-200 rounded-lg shadow-sm transition-all duration-200 ease-in-out hover:shadow-lg max-w-[250px]"
+                    className="group relative flex flex-col items-center p-4 bg-white border border-gray-200 rounded-lg shadow-sm transition-all duration-200 ease-in-out hover:shadow-lg hover:border-yellow-400"
                   >
-                    {/* File Icon Container */}
+                    {/* File Icon */}
                     <div
-                      className={`flex-shrink-0 p-2 rounded-md ${
+                      className={`flex-shrink-0 p-3 rounded-full mb-3 ${
                         isPdf
                           ? "bg-red-100 text-red-500"
                           : "bg-green-100 text-green-500"
                       }`}
                     >
-                      {/* Conditional SVG for PDF and Image */}
                       {isPdf ? (
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-6 w-6"
-                          viewBox="0 0 24 24"
-                          fill="currentColor"
-                        >
-                          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                          <path
-                            fillRule="evenodd"
-                            d="M10 12.5a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-2a.5.5 0 0 1 .5-.5h1zM14 12.5a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-2a.5.5 0 0 1 .5-.5h1zM10.5 15.5h3v1h-3v-1z"
-                          ></path>
-                        </svg>
-                      ) : isImage ? (
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-6 w-6"
-                          viewBox="0 0 24 24"
-                          fill="currentColor"
-                        >
-                          <path d="M15 8c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 1c-2.76 0-5 2.24-5 5v5c0 2.76 2.24 5 5 5s5-2.24 5-5v-5c0-2.76-2.24-5-5-5z"></path>
-                        </svg>
+                        <FileText className="w-8 h-8" />
                       ) : (
-                        // Default file icon
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-6 w-6"
-                          viewBox="0 0 24 24"
-                          fill="currentColor"
-                        >
-                          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                          <path d="M14 2v6h6"></path>
-                        </svg>
+                        <CalendarDays className="w-8 h-8" />
                       )}
                     </div>
 
                     {/* File name */}
-                    <span className="flex-grow text-sm font-medium text-gray-700 truncate">
+                    <span className="text-sm font-medium text-gray-800 text-center truncate w-full">
                       {item.name}
                     </span>
 
@@ -434,22 +437,10 @@ export default function StudentRequestSlip() {
                     <button
                       type="button"
                       onClick={() => handleRemoveFile(item.id)}
-                      className="absolute -top-2 -right-2 p-1 rounded-full bg-red-600 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                      className="absolute -top-3 -right-3 p-1 rounded-full bg-red-600 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
                       aria-label="Remove file"
                     >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-4 w-4"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                      </svg>
+                      <Trash2 className="w-5 h-5" />
                     </button>
                   </div>
                 );
@@ -469,35 +460,24 @@ export default function StudentRequestSlip() {
                   program: student?.studentProfile?.program || "",
                   email: student?.contactInfo?.email || "",
                   reason: "",
-                  dateAbsent: "",
-                  daysAbsent: "",
+                  startDateAbsent: "",
+                  endDateAbsent: "",
                   attachments: [],
                 });
               }}
-              className="py-2 px-6 bg-white border border-gray-300 rounded-md text-gray-700 font-semibold shadow-sm hover:bg-gray-100 transition-colors duration-200"
+              className="py-2.5 px-6 bg-gray-200 border-none rounded-xl text-gray-800 font-semibold shadow-sm hover:bg-gray-300 transition-colors duration-200"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="py-2 px-6 bg-blue-600 text-white font-semibold rounded-md shadow-md hover:bg-blue-700 transition-colors duration-200"
+              className="py-2.5 px-6 bg-yellow-400 text-black font-semibold rounded-xl shadow-lg hover:bg-yellow-500 hover:-translate-y-0.5 transform transition-all duration-200"
             >
               Submit
             </button>
           </div>
         </form>
       </div>
-      <style>
-        {`
-                    .animate-fade-in {
-                        animation: fadeIn 0.5s;
-                    }
-                    @keyframes fadeIn {
-                        from { opacity: 0; transform: translateY(20px); }
-                        to { opacity: 1; transform: translateY(0); }
-                    }
-                `}
-      </style>
     </div>
   );
 }
