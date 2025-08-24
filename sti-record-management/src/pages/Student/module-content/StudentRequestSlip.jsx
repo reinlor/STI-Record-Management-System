@@ -19,7 +19,7 @@ export default function StudentRequestSlip() {
           name: res.data.studentProfile.name || "",
           sid: res.data.sid || "",
           section: res.data.studentProfile.section || "",
-          program: res.data.studentProfile.program || "", // <-- set actual program
+          program: res.data.studentProfile.program || "",
           email: res.data.contactInfo.email || "",
         }));
       } catch (error) {
