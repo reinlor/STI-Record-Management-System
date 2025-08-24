@@ -45,13 +45,8 @@ export default function StudentRequestSlip() {
     program: "",
     email: "",
     reason: "",
-<<<<<<< HEAD
-    dateAbsent: "",
-    dateAbsentEnd: "",
-=======
     startDateAbsent: "",
     endDateAbsent: "",
->>>>>>> origin/jordan-v4
     attachments: [],
   });
 
@@ -91,64 +86,6 @@ export default function StudentRequestSlip() {
 
   // Handle form submission
   const handleSubmit = async (e) => {
-<<<<<<< HEAD
-    e.preventDefault();
-
-    const form = new FormData();
-    form.append("name", formData.name);
-    form.append("sid", formData.sid);
-    form.append("section", formData.section);
-    form.append("program", formData.program);
-    form.append("email", formData.email);
-    form.append("reason", formData.reason);
-
-    if (activeSlip === "Absent") {
-      form.append("typeOfSlip", "Absent Slip");
-      form.append("dateAbsentEnd", formData.dateAbsentEnd);
-      form.append("dateAbsent", formData.dateAbsent);
-    } else if (activeSlip === "Late") {
-      form.append("typeOfSlip", "Late Slip");
-    } else if (activeSlip === "ID Pass") {
-      form.append("typeOfSlip", "ID Slip");
-    } else if (activeSlip === "ID Pass") {
-      form.append("typeOfSlip", "ID Slip");
-    } else if (activeSlip === "Uniform Pass") {
-      form.append("typeOfSlip", "Uniform Pass");
-    }
-
-    // Attach files (up to 3)
-    formData.attachments.forEach((item) => {
-      form.append("attachments", item.file);
-    });
-
-    // Choose endpoint based on slip type
-    let endpoint = "";
-    if (activeSlip === "Absent") endpoint = "/slip/absentSlip/add";
-    else if (activeSlip === "Late") endpoint = "/slip/lateSlip/add";
-    else if (activeSlip === "ID Pass") endpoint = "/slip/IDPass/add";
-    else if (activeSlip === "Uniform Pass") endpoint = "/slip/uniformSlip/add";
-
-    try {
-      await axios.post(endpoint, form, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-      alert("Slip submitted successfully!");
-      setFormData((prev) => ({
-        ...prev,
-        reason: "",
-        dateAbsent: "",
-        dateAbsentEnd: "",
-        attachments: [],
-      }));
-    } catch (error) {
-      console.error(error);
-      alert(
-        error.response?.data?.error ||
-          error.message ||
-          "Failed to submit slip. Please try again."
-      );
-    }
-=======
       e.preventDefault();
   
       const form = new FormData();
@@ -200,7 +137,6 @@ export default function StudentRequestSlip() {
               "Failed to submit slip. Please try again."
           );
       }
->>>>>>> origin/jordan-v4
   };
   
   // Tab data for rendering
@@ -374,24 +310,7 @@ export default function StudentRequestSlip() {
                   </div>
                 </div>
                 <div>
-<<<<<<< HEAD
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    End of Date of Absent
-                  </label>
-                  <input
-                    type="date"
-                    name="dateAbsentEnd"
-                    value={formData.dateAbsentEnd}
-                    onChange={handleChange}
-                    className={inputClasses}
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-=======
                   <label className="block text-sm font-medium text-gray-700 mb-2">
->>>>>>> origin/jordan-v4
                     Reason for Absent
                   </label>
                   <textarea
@@ -541,13 +460,8 @@ export default function StudentRequestSlip() {
                   program: student?.studentProfile?.program || "",
                   email: student?.contactInfo?.email || "",
                   reason: "",
-<<<<<<< HEAD
-                  dateAbsent: "",
-                  dateAbsentEnd: "",
-=======
                   startDateAbsent: "",
                   endDateAbsent: "",
->>>>>>> origin/jordan-v4
                   attachments: [],
                 });
               }}
