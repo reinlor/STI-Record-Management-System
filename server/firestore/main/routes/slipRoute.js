@@ -13,7 +13,10 @@ const {
   getAllIDPass,
   getIDPass,
   getAllSlips,
-  getAllSlipsById
+  getAllSlipsById,
+  addUniformPass,
+  getAllUniformPass,
+  getUniformPass
 } = require("../controller/slipController");
 
 const router = express.Router();
@@ -34,6 +37,11 @@ router.get("/absentSlip/:sid", getAbsentSlip);
 router.post("/IDPass/add/", upload.array("attachments", 3), addIDPass);
 router.get("/IDPass", getAllIDPass);
 router.get("/IDPass/:sid", getIDPass);
+
+// Uniform Slips
+router.post("/uniformSlip/add/", upload.array("attachments", 3), addUniformPass);
+router.get("/uniformSlip", getAllUniformPass);
+router.get("/uniformSlip/:sid", getUniformPass);
 
 //All Slips
 router.get('/allSlips', getAllSlips);

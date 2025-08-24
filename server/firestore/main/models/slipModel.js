@@ -12,8 +12,13 @@ const getIDPassCollection = () => {
   return admin.firestore().collection("idPassSlips");
 };
 
+const getUniformPassCollection = () => {
+  return admin.firestore().collection("uniformPasses");
+};
+
 module.exports = {
   getLateSlipsCollection,
   getAbsentSlipsCollection,
   getIDPassCollection,
+  getUniformPassCollection,
 };

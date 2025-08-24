@@ -97,6 +97,10 @@ export default function StudentRequestSlip() {
       form.append("typeOfSlip", "Late Slip");
     } else if (activeSlip === "ID Pass") {
       form.append("typeOfSlip", "ID Slip");
+    } else if (activeSlip === "ID Pass") {
+      form.append("typeOfSlip", "ID Slip");
+    } else if (activeSlip === "Uniform Pass") {
+      form.append("typeOfSlip", "Uniform Pass");
     }
 
     // Attach files (up to 3)
@@ -109,6 +113,7 @@ export default function StudentRequestSlip() {
     if (activeSlip === "Absent") endpoint = "/slip/absentSlip/add";
     else if (activeSlip === "Late") endpoint = "/slip/lateSlip/add";
     else if (activeSlip === "ID Pass") endpoint = "/slip/IDPass/add";
+    else if (activeSlip === "Uniform Pass") endpoint = "/slip/uniformSlip/add";
 
     try {
       await axios.post(endpoint, form, {
@@ -218,7 +223,7 @@ export default function StudentRequestSlip() {
                 <input
                   type="text"
                   name="program"
-                  value={formData.program + " " + formData.section}
+                  value={`${formData.program} ${formData.section}`}
                   className={inputClasses}
                   readOnly
                 />
@@ -343,7 +348,7 @@ export default function StudentRequestSlip() {
               activeSlip === "Uniform Pass" ||
               activeSlip === "ID Pass") && (
               <p className="text-sm font-medium text-gray-700 mb-4">
-                Please attach proof for your request.
+                Please attach one (1) proof for your request.
               </p>
             )}
 

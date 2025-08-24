@@ -8,6 +8,7 @@ const {
   getLateSlipsCollection,
   getAbsentSlipsCollection,
   getIDPassCollection,
+  getUniformPassCollection,
 } = require("../models/slipModel");
 
 // SLIPS / Passes Schema
@@ -17,6 +18,25 @@ const lateSlipSchema = Joi.object({
   program: Joi.string().optional(),
   section: Joi.string().required(),
   typeOfSlip: Joi.string().valid("Late Slip").required(),
+  email: Joi.string().email({
+    minDomainSegments: 2,
+    tlds: {
+      allow: ["com", "net"],
+    },
+  }),
+  reason: Joi.string().required(),
+  attachmentCount: Joi.number().required(),
+  proofUrl: Joi.string().required(),
+  status: Joi.string().required(),
+  timeCreated: Joi.date().required(),
+});
+
+const uniformPassSchema = Joi.object({
+  sid: Joi.string().required(),
+  name: Joi.string().required(),
+  program: Joi.string().optional(),
+  section: Joi.string().required(),
+  typeOfSlip: Joi.string().valid("Uniform Pass").required(),
   email: Joi.string().email({
     minDomainSegments: 2,
     tlds: {
@@ -101,12 +121,50 @@ const addLateSlip = async (req, res) => {
       return res.status(400).json({ error: error.details[0].message });
     }
     await getLateSlipsCollection().doc().set(newLateSlip);
-    res
-      .status(200)
-      .send({
-        message: `Late slip added to Student: ${newLateSlip.name}`,
-        slip: newLateSlip,
-      });
+    res.status(200).send({
+      message: `Late slip added to Student: ${newLateSlip.name}`,
+      slip: newLateSlip,
+    });
+  } catch (error) {
+    res.status(500).send({ error: error.message });
+  }
+};
+
+// Controller function for adding Uniform Slip
+const addUniformPass = async (req, res) => {
+  try {
+    // Upload files to Cloudinary and assign URLs
+    let proofUrl = "";
+    if (req.files && req.files.length > 0) {
+      if (req.files[0]) {
+        const result = await cloudinary.uploader.upload(req.files[0].path, {
+          folder: "slip-attachments",
+        });
+        proofUrl = result.secure_url;
+        fs.unlinkSync(req.files[0].path);
+      }
+    }
+
+    const slipData = {
+      ...req.body,
+      name: req.body.name?.trim(),
+      sid: req.body.sid?.trim(),
+      proofUrl,
+      attachmentCount: req.files ? req.files.length : 0,
+      status: "Pending",
+      timeCreated: new Date(),
+    };
+
+    const { error, value: newUniformPass } =
+      uniformPassSchema.validate(slipData);
+    if (error) {
+      return res.status(400).json({ error: error.details[0].message });
+    }
+    await getUniformPassCollection().doc().set(newUniformPass);
+    res.status(200).send({
+      message: `Uniform pass added to Student: ${newUniformPass.name}`,
+      slip: newUniformPass,
+    });
   } catch (error) {
     res.status(500).send({ error: error.message });
   }
@@ -135,7 +193,7 @@ const addAbsentSlip = async (req, res) => {
         fs.unlinkSync(req.files[1].path);
       }
 
-      if (!req.files[1]){
+      if (!req.files[1]) {
         medicalCertificateUrl = "Empty";
       }
 
@@ -147,7 +205,7 @@ const addAbsentSlip = async (req, res) => {
         fs.unlinkSync(req.files[2].path);
       }
 
-      if (!req.files[2]){
+      if (!req.files[2]) {
         guardianValidIDUrl = "Empty";
       }
     }
@@ -237,6 +295,28 @@ const getAllLateSlip = async (req, res) => {
   }
 };
 
+// Controller Function for retrieving all Uniform Pass
+const getAllUniformPass = async (req, res) => {
+  try {
+    const snapshot = await getUniformPassCollection().get();
+
+    if (snapshot.empty) {
+      return res
+        .status(404)
+        .send({ error: `There is no available uniform passes.` });
+    }
+
+    const uniformPasses = snapshot.docs.map((uniformPass) => ({
+      _id: uniformPass.id,
+      ...uniformPass.data(),
+    }));
+
+    res.status(200).send(uniformPasses);
+  } catch (error) {
+    res.status(404).send({ error: error.message });
+  }
+};
+
 // Controller Function for retrieving all absent Slip
 const getAllAbsentSlip = async (req, res) => {
   try {
@@ -304,6 +384,32 @@ const getLateSlip = async (req, res) => {
   }
 };
 
+// Controller Function for retriving Uniform Pass by SID
+const getUniformPass = async (req, res) => {
+  const { sid } = req.params;
+
+  try {
+    const snapshot = await getUniformPassCollection()
+      .where("sid", "==", sid)
+      .get();
+
+    if (snapshot.empty) {
+      return res.status(404).send({
+        error: `There is no available uniform slips for Student: ${sid}`,
+      });
+    }
+
+    const uniformPasses = snapshot.docs.map((uniformPass) => ({
+      _id: uniformPass.id,
+      ...uniformPass.data(),
+    }));
+
+    res.status(200).send(uniformPasses);
+  } catch (error) {
+    res.status(404).send({ error: error.message });
+  }
+};
+
 // Controller Function for retrieving Absent Slip by SID
 const getAbsentSlip = async (req, res) => {
   const { sid } = req.params;
@@ -360,8 +466,14 @@ const getAllSlips = async (req, res) => {
     const snapshot = await getLateSlipsCollection().get();
     const snapshot2 = await getAbsentSlipsCollection().get();
     const snapshot3 = await getIDPassCollection().get();
+    const snapshot4 = await getUniformPassCollection().get();
 
-    if (snapshot.empty && snapshot2.empty && snapshot3.empty) {
+    if (
+      snapshot.empty &&
+      snapshot2.empty &&
+      snapshot3.empty &&
+      snapshot4.empty
+    ) {
       return res.status(404).send({ error: `There is no available slips.` });
     }
 
@@ -380,7 +492,12 @@ const getAllSlips = async (req, res) => {
       ...IDPass.data(),
     }));
 
-    allSlips = [...lateSlips, ...absentSlips, ...IDPasses];
+    const uniformPasses = snapshot4.docs.map((uniformPass) => ({
+      _id: uniformPass.id,
+      ...uniformPass.data(),
+    }));
+
+    allSlips = [...lateSlips, ...absentSlips, ...IDPasses, ...uniformPasses];
 
     res.status(200).json(allSlips);
   } catch (error) {
@@ -398,9 +515,19 @@ const getAllSlipsById = async (req, res) => {
     const snapshot2 = await getAbsentSlipsCollection()
       .where("sid", "==", sid)
       .get();
-    const snapshot3 = await getIDPassCollection().where("sid", "==", sid).get();
+    const snapshot3 = await getIDPassCollection()
+      .where("sid", "==", sid)
+      .get();
+    const snapshot4 = await getUniformPassCollection()
+      .where("sid", "==", sid)
+      .get();
 
-    if (snapshot.empty && snapshot2.empty && snapshot3.empty) {
+    if (
+      snapshot.empty &&
+      snapshot2.empty &&
+      snapshot3.empty &&
+      snapshot4.empty
+    ) {
       return res.status(404).send({ error: `There is no available slips.` });
     }
 
@@ -419,7 +546,12 @@ const getAllSlipsById = async (req, res) => {
       ...IDPass.data(),
     }));
 
-    allSlips = [...lateSlips, ...absentSlips, ...IDPasses];
+    const uniformPasses = snapshot4.docs.map((uniformPass) => ({
+      _id: uniformPass.id,
+      ...uniformPass.data(),
+    }));
+
+    allSlips = [...lateSlips, ...absentSlips, ...IDPasses, ...uniformPasses];
 
     res.status(200).json(allSlips);
   } catch (error) {
@@ -437,6 +569,9 @@ module.exports = {
   addIDPass,
   getAllIDPass,
   getIDPass,
+  addUniformPass,
+  getAllUniformPass,
+  getUniformPass,
   getAllSlips,
   getAllSlipsById,
 };
