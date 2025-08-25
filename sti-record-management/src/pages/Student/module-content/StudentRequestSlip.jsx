@@ -45,8 +45,8 @@ export default function StudentRequestSlip() {
     program: "",
     email: "",
     reason: "",
-    startDateAbsent: "",
-    endDateAbsent: "",
+    dateAbsent: "",
+    dateAbsentEnd: "",
     attachments: [],
   });
 
@@ -98,12 +98,14 @@ export default function StudentRequestSlip() {
   
       if (activeSlip === "Absent") {
           form.append("typeOfSlip", "Absent Slip");
-          form.append("endDateAbsent", formData.endDateAbsent);
-          form.append("startDateAbsent", formData.startDateAbsent);
+          form.append("dateAbsentEnd", formData.dateAbsentEnd);
+          form.append("dateAbsent", formData.dateAbsent);
       } else if (activeSlip === "Late") {
           form.append("typeOfSlip", "Late Slip");
       } else if (activeSlip === "ID Pass") {
           form.append("typeOfSlip", "ID Slip");
+      } else if (activeSlip === "Uniform Pass") {
+          form.append("typeOfSlip", "Uniform Pass");
       }
   
       // Attach files (up to 3)
@@ -116,6 +118,7 @@ export default function StudentRequestSlip() {
       if (activeSlip === "Absent") endpoint = "/slip/absentSlip/add";
       else if (activeSlip === "Late") endpoint = "/slip/lateSlip/add";
       else if (activeSlip === "ID Pass") endpoint = "/slip/IDPass/add";
+      else if (activeSlip === "Uniform Pass") endpoint = "/slip/uniformSlip/add";
   
       try {
           await axios.post(endpoint, form, {
@@ -125,8 +128,8 @@ export default function StudentRequestSlip() {
           setFormData((prev) => ({
               ...prev,
               reason: "",
-              startDateAbsent: "",
-              endDateAbsent: "",
+              dateAbsent: "",
+              dateAbsentEnd: "",
               attachments: [],
           }));
       } catch (error) {
@@ -283,8 +286,8 @@ export default function StudentRequestSlip() {
                     <div className="relative">
                       <input
                         type="date"
-                        name="startDateAbsent"
-                        value={formData.startDateAbsent}
+                        name="dateAbsent"
+                        value={formData.dateAbsent}
                         onChange={handleChange}
                         className={inputClasses}
                         required
@@ -299,8 +302,8 @@ export default function StudentRequestSlip() {
                     <div className="relative">
                       <input
                         type="date"
-                        name="endDateAbsent"
-                        value={formData.endDateAbsent}
+                        name="dateAbsentEnd"
+                        value={formData.dateAbsentEnd}
                         onChange={handleChange}
                         className={inputClasses}
                         required
@@ -364,7 +367,7 @@ export default function StudentRequestSlip() {
             {activeSlip === "Absent" && (
               <div className="mb-4 text-gray-700">
                 <p className="text-sm font-medium mb-2">
-                  Please attach the following documents:
+                  Please attach the following documents (make sure to upload them in order as listed below):
                 </p>
                 <ul className="list-disc list-inside text-gray-600 text-sm space-y-1">
                   <li>Excuse letter (if 1-2 days absent only)</li>
@@ -407,6 +410,9 @@ export default function StudentRequestSlip() {
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-6">
               {formData.attachments.map((item) => {
                 const isPdf = item.name.toLowerCase().endsWith(".pdf");
+                const isImage = item.name
+                  .toLowerCase()
+                  .match(/\.(jpeg|jpg|png|gif)$/);
 
                 return (
                   <div
@@ -460,8 +466,8 @@ export default function StudentRequestSlip() {
                   program: student?.studentProfile?.program || "",
                   email: student?.contactInfo?.email || "",
                   reason: "",
-                  startDateAbsent: "",
-                  endDateAbsent: "",
+                  dateAbsent: "",
+                  dateAbsentEnd: "",
                   attachments: [],
                 });
               }}
