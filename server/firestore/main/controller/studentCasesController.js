@@ -1,4 +1,4 @@
-const { getViolationsCollection } = require("../models/violationModel");
+const { getViolationsCollection } = require("../models/studentCasesModel");
 const Joi = require('joi');
 
 // Violation Schema

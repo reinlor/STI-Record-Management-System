@@ -1,5 +1,5 @@
 const express = require("express");
-const { addViolation, deleteViolation, getAllViolations, getViolations, updateViolation } = require("../controller/violationController");
+const { addViolation, deleteViolation, getAllViolations, getViolations, updateViolation } = require("../controller/studentCasesController");
 const router = express.Router();
 
 router.post("/add", addViolation);                // For adding new violations
