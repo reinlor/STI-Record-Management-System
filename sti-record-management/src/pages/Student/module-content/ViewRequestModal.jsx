@@ -72,8 +72,8 @@ export default function ViewRequestModal({ data, onClose }) {
                 {renderField("Processed Date", data.processedDate)}
                 {data.typeOfSlip === "Absent Slip" && (
                   <>
-                    {renderField("Start Date of Absence", data.startDateAbsent)}
-                    {renderField("End Date of Absence", data.endDateAbsent)}
+                    {renderField("Start Date of Absence", data.dateAbsent)}
+                    {renderField("End Date of Absence", data.dateAbsentEnd)}
                   </>
                 )}
                 <div className="space-y-3 md:col-span-2">

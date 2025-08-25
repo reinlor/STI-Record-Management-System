@@ -45,8 +45,8 @@ export default function StudentRequestSlip() {
     program: "",
     email: "",
     reason: "",
-    startDateAbsent: "",
-    endDateAbsent: "",
+    dateAbsent: "",
+    dateAbsentEnd: "",
     attachments: [],
   });
 
@@ -98,8 +98,8 @@ export default function StudentRequestSlip() {
   
       if (activeSlip === "Absent") {
           form.append("typeOfSlip", "Absent Slip");
-          form.append("endDateAbsent", formData.endDateAbsent);
-          form.append("startDateAbsent", formData.startDateAbsent);
+          form.append("dateAbsentEnd", formData.dateAbsentEnd);
+          form.append("dateAbsent", formData.dateAbsent);
       } else if (activeSlip === "Late") {
           form.append("typeOfSlip", "Late Slip");
       } else if (activeSlip === "ID Pass") {
@@ -125,8 +125,8 @@ export default function StudentRequestSlip() {
           setFormData((prev) => ({
               ...prev,
               reason: "",
-              startDateAbsent: "",
-              endDateAbsent: "",
+              dateAbsent: "",
+              dateAbsentEnd: "",
               attachments: [],
           }));
       } catch (error) {
@@ -283,8 +283,8 @@ export default function StudentRequestSlip() {
                     <div className="relative">
                       <input
                         type="date"
-                        name="startDateAbsent"
-                        value={formData.startDateAbsent}
+                        name="dateAbsent"
+                        value={formData.dateAbsent}
                         onChange={handleChange}
                         className={inputClasses}
                         required
@@ -299,8 +299,8 @@ export default function StudentRequestSlip() {
                     <div className="relative">
                       <input
                         type="date"
-                        name="endDateAbsent"
-                        value={formData.endDateAbsent}
+                        name="dateAbsentEnd"
+                        value={formData.dateAbsentEnd}
                         onChange={handleChange}
                         className={inputClasses}
                         required
@@ -460,8 +460,8 @@ export default function StudentRequestSlip() {
                   program: student?.studentProfile?.program || "",
                   email: student?.contactInfo?.email || "",
                   reason: "",
-                  startDateAbsent: "",
-                  endDateAbsent: "",
+                  dateAbsent: "",
+                  dateAbsentEnd: "",
                   attachments: [],
                 });
               }}
