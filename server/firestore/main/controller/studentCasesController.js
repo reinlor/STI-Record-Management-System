@@ -3,18 +3,18 @@ const Joi = require('joi');
 
 // Violation Schema
 const violationSchema =  Joi.object({
-  sid:                   Joi.string().required(),
-  name:                  Joi.string().required(),
-  initiationDate:        Joi.string().required(),
-  initialTime:           Joi.string().required(),
-  counselingType:        Joi.string().required(),
-  detailedDescription:   Joi.string().optional(),
-  proofDescription:      Joi.string().required(),
-  actionTaken:           Joi.string().required(),
-  dateOfAction:          Joi.string().required(),
-  status:                Joi.string().required(),
-  notes:                 Joi.string().required(),
-  proofUrl:              Joi.string().required(),
+  sid:                   Joi.string().required().empty(''),
+  name:                  Joi.string().required().empty(''),
+  initiationDate:        Joi.string().required().empty(''),
+  initialTime:           Joi.string().required().empty(''),
+  counselingType:        Joi.string().required().empty(''),
+  detailedDescription:   Joi.string().required().empty(''),
+  proofDescription:      Joi.string().required().empty(''),
+  actionTaken:           Joi.string().required().empty(''),
+  dateOfAction:          Joi.string().required().empty(''),
+  status:                Joi.string().required().empty(''),
+  notes:                 Joi.string().required().empty(''),
+  proofUrl:              Joi.string().required().empty(''),
 })
 const updateSchema =  Joi.object({
   sid:                   Joi.string().optional(),
