@@ -1,23 +1,16 @@
 import React, { useState, useEffect, useContext } from "react";
-import TeacherCard from "./modules/TeacherCard";
 import TeacherTopbar from "./modules/TeacherTopbar";
 import SubmitReferralForm from "./content/SubmitReferral";
 import ViewRequest from "./content/ViewRequest";
 import axios from "axios";
 import { AuthContext } from "../../AuthProvider";
 
-function TeacherHomepage() {
+export default function TeacherHomepage() {
     const { authData, logout } = useContext(AuthContext);
-    const [selected, setSelected] = useState(null);
-    const [showSidebar, setShowSideBar] = useState(false);
+    const [selected, setSelected] = useState("submit");
     const [teacherData, setTeacherData] = useState(null);
     const [referralData, setReferralData] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
-
-    const handleCancel = () => {
-        setSelected(null);
-        setShowSideBar(false);
-    };
 
     const fetchReferral = async (teacherID) => {
         try {
@@ -43,87 +36,43 @@ function TeacherHomepage() {
     };
 
     useEffect(() => {
-        if (!authData) {
-            console.log("Auth data not ready yet:", authData);
-            return;
-        }
-
+        if (!authData) return;
         const teacherID = authData.user?.uid;
-        console.log("Mounted teacher ID: ", authData.uid);
-
         fetchData(teacherID);
         fetchReferral(teacherID);
     }, [authData]);
 
+    const renderModule = () => {
+        switch (selected) {
+            case "submit":
+                return teacherData && (
+                    <SubmitReferralForm
+                        teacher={teacherData}
+                        onSuccess={() => fetchReferral(authData.user?.uid)}
+                    />
+                );
+            case "view":
+                return (
+                    <ViewRequest
+                        referralData={referralData}
+                        isLoading={isLoading}
+                    />
+                );
+            default:
+                return (
+                    <div className="animate-fade-in text-center mt-12">
+                        <p className="text-gray-600 text-xl">Module content will appear here.</p>
+                    </div>
+                );
+        }
+    };
+
     return (
         <div className="min-h-screen text-black bg-white bg-[url('/grid.svg')] bg-repeat">
-            <TeacherTopbar onLogout ={logout}/>
-            <div className="flex pt-8">
-                {showSidebar && (
-                    <div className="flex flex-col gap-6 ml-8">
-                        <TeacherCard
-                            goto="submit"
-                            text="Submit Referral Form"
-                            selected={selected === "submit"}
-                            onClick={() => setSelected("submit")}
-                        />
-                        <TeacherCard
-                            goto="view"
-                            text="View Request History"
-                            selected={selected === "view"}
-                            onClick={() => setSelected("view")}
-                        />
-                    </div>
-                )}
-
-                <div className="flex-1 flex justify-center items-start">
-                    <div className={`transition-all duration-500 ease-in-out w-full max-w-5xl`}>
-                        {selected === "submit" && teacherData && (
-                            <div className="animate-fade-in">
-                                <SubmitReferralForm
-                                    teacher={teacherData}
-                                    onCancel={handleCancel}
-                                    onSuccess={fetchReferral}
-                                />
-                            </div>
-                        )}
-                        {selected === "view" && (
-                            <div className="animate-fade-in">
-                                <ViewRequest
-                                    referralData={referralData}
-                                    isLoading={isLoading}
-                                    onCancel={handleCancel}
-                                />
-                            </div>
-                        )}
-                        {!selected && (
-                            <div className="flex justify-center items-center h-[500px]">
-                                <div className="flex gap-8">
-                                    <TeacherCard
-                                        goto="submit"
-                                        text="Submit Referral Form"
-                                        selected={false}
-                                        onClick={() => {
-                                            setSelected("submit");
-                                            setShowSideBar(true);
-                                        }}
-                                    />
-                                    <TeacherCard
-                                        goto="view"
-                                        text="View Request History"
-                                        selected={false}
-                                        onClick={() => {
-                                            setSelected("view");
-                                            setShowSideBar(true);
-                                        }}
-                                    />
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                </div>
+            <TeacherTopbar selected={selected} setSelected={setSelected} onLogout={logout} />
+            <div className="px-0 w-full">
+                {renderModule()}
             </div>
-
             <style>
                 {`
                     .animate-fade-in {
@@ -138,5 +87,3 @@ function TeacherHomepage() {
         </div>
     );
 }
-
-export default TeacherHomepage;
