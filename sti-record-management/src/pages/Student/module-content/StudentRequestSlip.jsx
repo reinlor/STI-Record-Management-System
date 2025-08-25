@@ -104,6 +104,8 @@ export default function StudentRequestSlip() {
           form.append("typeOfSlip", "Late Slip");
       } else if (activeSlip === "ID Pass") {
           form.append("typeOfSlip", "ID Slip");
+      } else if (activeSlip === "Uniform Pass") {
+          form.append("typeOfSlip", "Uniform Pass");
       }
   
       // Attach files (up to 3)
@@ -116,6 +118,7 @@ export default function StudentRequestSlip() {
       if (activeSlip === "Absent") endpoint = "/slip/absentSlip/add";
       else if (activeSlip === "Late") endpoint = "/slip/lateSlip/add";
       else if (activeSlip === "ID Pass") endpoint = "/slip/IDPass/add";
+      else if (activeSlip === "Uniform Pass") endpoint = "/slip/uniformSlip/add";
   
       try {
           await axios.post(endpoint, form, {
@@ -407,6 +410,9 @@ export default function StudentRequestSlip() {
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-6">
               {formData.attachments.map((item) => {
                 const isPdf = item.name.toLowerCase().endsWith(".pdf");
+                const isImage = item.name
+                  .toLowerCase()
+                  .match(/\.(jpeg|jpg|png|gif)$/);
 
                 return (
                   <div
