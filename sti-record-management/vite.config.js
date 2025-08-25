@@ -10,7 +10,7 @@ export default defineConfig({
       "/student": "http://localhost:5000",
       "/slip": "http://localhost:5000",
       "/referral": "http://localhost:5000",
-      "/violation": "http://localhost:5000",
+      "/cases": "http://localhost:5000",
       "/teacher": "http://localhost:5000",
       "/user": "http://localhost:5000",
       "/exam": "http://localhost:5000",

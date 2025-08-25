@@ -14,7 +14,7 @@ const violationSchema =  Joi.object({
   dateOfAction:          Joi.string().required().empty(''),
   status:                Joi.string().required().empty(''),
   notes:                 Joi.string().required().empty(''),
-  proofUrl:              Joi.string().required().empty(''),
+  proofUrl:              Joi.string().optional().empty(''),
 })
 const updateSchema =  Joi.object({
   sid:                   Joi.string().optional(),

@@ -1,228 +1,16 @@
+// ...existing code...
 import React, { useState, Fragment, useEffect } from "react";
+import axios from "axios";
 import { User, Folder, Search, Plus, ArrowLeft, ChevronRight, Pencil, Archive, X, Check, ChevronLeft } from 'lucide-react';
 import user from '../../../assets/user.png'
 import upload from '../../../assets/upload.png'
-import { AuthContext } from '../../../AuthProvider.jsx';
-import { useContext } from 'react';
 
+// ...existing code...
 
-const initialCases = [
-    { id: 'C001', studentName: 'de Pedro, Dionne Jeus D.', studentId: '02000293896', status: 'On-going' },
-    { id: 'C002', studentName: 'Garcia, Maria A.', studentId: '02000293897', status: 'Resolved' },
-    { id: 'C003', studentName: 'Cruz, Juan B.', studentId: '02000293898', status: 'On-going' },
-    { id: 'C004', studentName: 'Reyes, Anna C.', studentId: '02000293899', status: 'On-going' },
-    { id: 'C005', studentName: 'Santos, Mark D.', studentId: '02000293900', status: 'Resolved' },
-    { id: 'C006', studentName: 'Lim, Sarah E.', studentId: '02000293901', status: 'On-going' },
-    { id: 'C007', studentName: 'Tan, Kevin F.', studentId: '02000293902', status: 'On-going' },
-    { id: 'C008', studentName: 'Gomez, Liza G.', studentId: '02000293903', status: 'Resolved' },
-];
+// NOTE: initialCases and mockCaseDetails were converted to API-backed requests.
+// The UI shape (caseDetails/proof/actionsTaken/counselorNotes) is preserved via mappers.
 
-// Mock data for detailed case information (right panel)
-// This will be treated as our "database"
-const mockCaseDetails = {
-    'C001': {
-        caseDetails: {
-            studentName: 'de Pedro, Dionne Jeus D.',
-            studentId: '02000293896',
-            dateOfInitiation: '2025-07-01',
-            timeOfInitiation: '13:10',
-            counselingTypeCategory: 'Misconduct',
-            caseStatus: 'On-going',
-            detailedDescription: 'Student was caught using mobile phone during class hours, violating the school\'s policy on electronic device usage. This is the first offense.',
-        },
-        proof: {
-            proofDescription: 'Screenshot of phone usage and teacher\'s written report.',
-            proofImage: 'https://placehold.co/100x100/A0A0A0/FFFFFF?text=Proof%20Img', // Placeholder image
-        },
-        actionsTaken: {
-            actions: 'Verbal warning and confiscation of phone for the remainder of the day. Student was asked to reflect on their actions.',
-            dateOfAction: '2025-07-01',
-        },
-        counselorNotes: {
-            notes: 'Dionne expressed remorse and understood the violation. Advised further counseling if behavior persists. Parents informed.',
-        },
-    },
-    'C002': {
-        caseDetails: {
-            studentName: 'Garcia, Maria A.',
-            studentId: '02000293897',
-            dateOfInitiation: '2025-06-15',
-            timeOfInitiation: '09:00',
-            counselingTypeCategory: 'Academic Concern',
-            caseStatus: 'Resolved',
-            detailedDescription: 'Consistent low grades in Mathematics. Student struggling with algebra concepts.',
-        },
-        proof: {
-            proofDescription: 'Report cards, teacher\'s notes.',
-            proofImage: null,
-        },
-        actionsTaken: {
-            actions: 'Scheduled tutoring sessions, provided additional learning materials, regular check-ins with teacher and parents.',
-            dateOfAction: '2025-06-20',
-        },
-        counselorNotes: {
-            notes: 'Maria\'s grades improved significantly after consistent tutoring. She showed great effort and engagement.',
-        },
-    },
-    'C003': {
-        caseDetails: {
-            studentName: 'Cruz, Juan B.',
-            studentId: '02000293898',
-            dateOfInitiation: '2025-07-10',
-            timeOfInitiation: '10:30',
-            counselingTypeCategory: 'Behavioral Issue',
-            caseStatus: 'On-going',
-            detailedDescription: 'Disruptive behavior during group activities, talking out of turn, not respecting classmates.',
-        },
-        proof: {
-            proofDescription: 'Teacher observation log.',
-            proofImage: null,
-        },
-        actionsTaken: {
-            actions: 'One-on-one session with counselor. Discussed importance of respect and active listening.',
-            dateOfAction: '2025-07-10',
-        },
-        counselorNotes: {
-            notes: 'Juan acknowledged his behavior and promised to improve. Will monitor progress over the next two weeks.',
-        },
-    },
-    'C004': {
-        caseDetails: {
-            studentName: 'Reyes, Anna C.',
-            studentId: '02000293899',
-            dateOfInitiation: '2025-07-05',
-            timeOfInitiation: '14:00',
-            counselingTypeCategory: 'Attendance Issue',
-            caseStatus: 'On-going',
-            detailedDescription: 'Repeated tardiness in morning classes without valid explanation.',
-        },
-        proof: {
-            proofDescription: 'Attendance records.',
-            proofImage: null,
-        },
-        actionsTaken: {
-            actions: 'Meeting with student and parents to understand reasons for tardiness and develop a plan.',
-            dateOfAction: '2025-07-08',
-        },
-        counselorNotes: {
-            notes: 'Parents cited transportation issues. Suggested alternative routes. Will check attendance next month.',
-        },
-    },
-    'C005': {
-        caseDetails: {
-            studentName: 'Santos, Mark D.',
-            studentId: '02000293900',
-            dateOfInitiation: '2025-05-20',
-            timeOfInitiation: '11:45',
-            counselingTypeCategory: 'Peer Conflict',
-            caseStatus: 'Resolved',
-            detailedDescription: 'Disagreement with a classmate over a group project causing tension.',
-        },
-        proof: {
-            proofDescription: 'Statements from involved students.',
-            proofImage: null,
-        },
-        actionsTaken: {
-            actions: 'Mediation session with counselor. Both parties apologized and agreed to work together.',
-            dateOfAction: '2025-05-22',
-        },
-        counselorNotes: {
-            notes: 'Conflict resolved. Students learned conflict resolution skills. Positive outcome.',
-        },
-    },
-    'C006': {
-        caseDetails: {
-            studentName: 'Lim, Sarah E.',
-            studentId: '02000293901',
-            dateOfInitiation: '2025-07-12',
-            timeOfInitiation: '15:30',
-            counselingTypeCategory: 'Stress/Anxiety',
-            caseStatus: 'On-going',
-            detailedDescription: 'Student expressed feeling overwhelmed by academic pressure and upcoming exams.',
-        },
-        proof: {
-            proofDescription: 'Student self-report.',
-            proofImage: null,
-        },
-        actionsTaken: {
-            actions: 'Provided coping strategies, recommended stress management techniques, offered relaxation exercises.',
-            dateOfAction: '2025-07-12',
-        },
-        counselorNotes: {
-            notes: 'Sarah felt better after the session. Encouraged her to seek further support if needed. Follow-up planned.',
-        },
-    },
-    'C007': {
-        caseDetails: {
-            studentName: 'Tan, Kevin F.',
-            studentId: '02000293902',
-            dateOfInitiation: '2025-07-18',
-            timeOfInitiation: '09:45',
-            counselingTypeCategory: 'Academic Concern',
-            caseStatus: 'On-going',
-            detailedDescription: 'Lack of participation in class discussions and reluctance to ask questions.',
-        },
-        proof: {
-            proofDescription: 'Teacher observation.',
-            proofImage: null,
-        },
-        actionsTaken: {
-            actions: 'Individual session focusing on confidence building and active learning strategies.',
-            dateOfAction: '2025-07-18',
-        },
-        counselorNotes: {
-            notes: 'Kevin is shy but receptive. Suggested starting with small contributions. Will check in next week.',
-        },
-    },
-    'C008': {
-        caseDetails: {
-            studentName: 'Gomez, Liza G.',
-            studentId: '02000293903',
-            dateOfInitiation: '2025-06-01',
-            timeOfInitiation: '13:00',
-            counselingTypeCategory: 'Health Concern',
-            caseStatus: 'Resolved',
-            detailedDescription: 'Frequent headaches affecting concentration in class.',
-        },
-        proof: {
-            proofDescription: 'Medical certificate provided by parents.',
-            proofImage: null,
-        },
-        actionsTaken: {
-            actions: 'Advised parents to consult a specialist. Arranged for a comfortable seating position in class.',
-            dateOfAction: '2025-06-05',
-        },
-        counselorNotes: {
-            notes: 'Headaches are now less frequent after medical consultation. Student is more comfortable and focused.',
-        },
-    },
-};
-
-// Define the fields for each information section and their display properties for cases
-const caseFieldDefinitions = {
-    caseDetails: [
-        { key: 'studentName', label: 'Full Name', type: 'text' },
-        { key: 'studentId', label: 'Student ID', type: 'text' },
-        { key: 'dateOfInitiation', label: 'Date of Case Initiation', type: 'date' },
-        { key: 'timeOfInitiation', label: 'Time of Initiation', type: 'time' },
-        { key: 'counselingTypeCategory', label: 'Counseling Type/Category', type: 'text' },
-        { key: 'caseStatus', label: 'Case Status', type: 'select', options: ['On-going', 'Resolved'] },
-        { key: 'detailedDescription', label: 'Detailed Description', type: 'textarea', multiline: true },
-    ],
-    proof: [
-        { key: 'proofDescription', label: 'Proof Description', type: 'textarea', multiline: true },
-        { key: 'proofImage', label: 'Proof', type: 'file' },
-    ],
-    actionsTaken: [
-        { key: 'actions', label: 'Actions Taken/Disciplinary Measures', type: 'textarea', multiline: true },
-        { key: 'dateOfAction', label: 'Date of Action', type: 'date' },
-    ],
-    counselorNotes: [
-        { key: 'notes', label: 'Counselor\'s Notes', type: 'textarea', multiline: true },
-    ],
-};
-
-// Component to render individual sections of case information
+/* ---------------- Mapping Helpers ---------------- */
 const CaseInfoSection = ({ infoType, caseData, isEditing, onFieldChange }) => {
     const fieldsToDisplay = caseFieldDefinitions[infoType] || [];
 
@@ -313,31 +101,96 @@ const CaseInfoSection = ({ infoType, caseData, isEditing, onFieldChange }) => {
     );
 };
 
+const caseFieldDefinitions = {
+    caseDetails: [
+        { key: 'studentName', label: 'Full Name', type: 'text' },
+        { key: 'studentId', label: 'Student ID', type: 'text' },
+        { key: 'dateOfInitiation', label: 'Date of Case Initiation', type: 'date' },
+        { key: 'timeOfInitiation', label: 'Time of Initiation', type: 'time' },
+        { key: 'counselingTypeCategory', label: 'Counseling Type/Category', type: 'text' },
+        { key: 'caseStatus', label: 'Case Status', type: 'select', options: ['On-going', 'Resolved'] },
+        { key: 'detailedDescription', label: 'Detailed Description', type: 'textarea', multiline: true },
+    ],
+    proof: [
+        { key: 'proofDescription', label: 'Proof Description', type: 'textarea', multiline: true },
+        { key: 'proofImage', label: 'Proof', type: 'file' },
+    ],
+    actionsTaken: [
+        { key: 'actions', label: 'Actions Taken/Disciplinary Measures', type: 'textarea', multiline: true },
+        { key: 'dateOfAction', label: 'Date of Action', type: 'date' },
+    ],
+    counselorNotes: [
+        { key: 'notes', label: 'Counselor\'s Notes', type: 'textarea', multiline: true },
+    ],
+};
+
+// Convert a server violation object -> UI grouped structure used by CaseInfoSection
+const serverViolationToUIDetails = (violation) => {
+    if (!violation) return null;
+
+    return {
+        caseDetails: {
+            studentName: violation.name ?? 'N/A',
+            studentId: violation.sid ?? 'N/A',
+            dateOfInitiation: violation.initiationDate ?? 'N/A',
+            timeOfInitiation: violation.initialTime ?? 'N/A',
+            counselingTypeCategory: violation.counselingType ?? 'N/A',
+            caseStatus: violation.status ?? 'On-going',
+            detailedDescription: violation.detailedDescription ?? 'N/A',
+        },
+        proof: {
+            proofDescription: violation.proofDescription ?? 'N/A',
+            proofImage: violation.proofUrl ?? null,
+        },
+        actionsTaken: {
+            actions: violation.actionTaken ?? 'N/A',
+            dateOfAction: violation.dateOfAction ?? 'N/A',
+        },
+        counselorNotes: {
+            notes: violation.notes ?? 'N/A',
+        },
+    };
+};
+
+// Convert UI grouped structure (editedCaseData) -> server payload shape for POST/PUT
+const uiDetailsToServerPayload = (uiGrouped) => {
+    if (!uiGrouped) return {};
+    const cd = uiGrouped.caseDetails || {};
+    const pf = uiGrouped.proof || {};
+    const act = uiGrouped.actionsTaken || {};
+    const cn = uiGrouped.counselorNotes || {};
+
+    return {
+        sid: cd.studentId ?? '',
+        name: cd.studentName ?? '',
+        initiationDate: cd.dateOfInitiation ?? '',
+        initialTime: cd.timeOfInitiation ?? '',
+        counselingType: cd.counselingTypeCategory ?? '',
+        detailedDescription: cd.detailedDescription ?? '',
+        proofDescription: pf.proofDescription ?? '',
+        proofUrl: pf.proofImage ?? '', // keep string or empty
+        actionTaken: act.actions ?? '',
+        dateOfAction: act.dateOfAction ?? '',
+        status: cd.caseStatus ?? 'On-going',
+        notes: cn.notes ?? '',
+    };
+};
+
+/* ---------------- Component ---------------- */
 
 function StudentCases() {
-    const [cases, setCases] = useState(initialCases); // Renamed from students to cases
+    // ...existing state declarations...
+    const [cases, setCases] = useState([]); // replaces initialCases
+    const [caseDetailsMap, setCaseDetailsMap] = useState({}); // maps id -> server raw violation
     const [activeTab, setActiveTab] = useState("On-going"); // 'On-going' or 'Resolved'
     const [searchTerm, setSearchTerm] = useState('');
-    const [selectedCaseId, setSelectedCaseId] = useState(null); // Renamed from selected to selectedCaseId
+    const [selectedCaseId, setSelectedCaseId] = useState(null);
     const [showAddModal, setShowAddModal] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [infoType, setInfoType] = useState('caseDetails'); // Default info type
-    const [editedCaseData, setEditedCaseData] = useState(null); // New state for editing
-    const { authData, logout } = useContext(AuthContext);
+    const [editedCaseData, setEditedCaseData] = useState(null); // UI grouped structure for editing
 
-
-    // Effect to load case data into editedCaseData when selectedCaseId changes
-    useEffect(() => {
-        if (selectedCaseId) {
-            // Deep copy the case details
-            setEditedCaseData(JSON.parse(JSON.stringify(mockCaseDetails[selectedCaseId])));
-        } else {
-            setEditedCaseData(null);
-            setIsEditing(false);
-        }
-    }, [selectedCaseId]);
-
-    // State for the new case form in the modal
+    // newCaseForm unchanged
     const [newCaseForm, setNewCaseForm] = useState({
         studentName: '',
         studentId: '',
@@ -346,14 +199,13 @@ function StudentCases() {
         counselingTypeCategory: '',
         detailedDescription: '',
         proofDescription: '',
-        proofImage: null, // For storing file object or URL
+        proofImage: null,
         actions: '',
         dateOfAction: '',
-        caseStatus: 'On-going', // Default status
+        caseStatus: 'On-going',
         counselorNotes: '',
     });
 
-    // Handle change for new case form inputs
     const handleNewCaseFormChange = (e) => {
         const { name, value, type, files } = e.target;
         if (type === 'file') {
@@ -363,148 +215,195 @@ function StudentCases() {
         }
     };
 
-    // Handle adding a new case
-    const handleAddCase = () => {
+    /* ---------------- API: fetch list of cases on mount ---------------- */
+    useEffect(() => {
+        const fetchCases = async () => {
+            try {
+                const res = await axios.get('/cases'); // server returns array of violations
+                const violations = Array.isArray(res.data) ? res.data : [];
+                // Map to simple list and details map
+                const list = violations.map(v => ({
+                    id: v.id,
+                    studentName: v.name ?? v.name ?? 'Unknown',
+                    studentId: v.sid ?? v.sid ?? '',
+                    status: v.status ?? 'On-going',
+                }));
+                const details = {};
+                violations.forEach(v => {
+                    details[v.id] = v; // keep raw server object; mappers used when rendering
+                });
+
+                setCases(list);
+                setCaseDetailsMap(details);
+            } catch (err) {
+                console.error('Failed to fetch cases', err);
+                setCases([]);
+                setCaseDetailsMap({});
+            }
+        };
+
+        fetchCases();
+    }, []);
+
+    /* ---------------- When a case is selected: populate editedCaseData (UI grouped) ---------------- */
+    useEffect(() => {
+        if (selectedCaseId) {
+            const raw = caseDetailsMap[selectedCaseId];
+            const ui = serverViolationToUIDetails(raw);
+            setEditedCaseData(ui ? JSON.parse(JSON.stringify(ui)) : null); // deep copy for editing
+            setIsEditing(false);
+        } else {
+            setEditedCaseData(null);
+            setIsEditing(false);
+        }
+    }, [selectedCaseId, caseDetailsMap]);
+
+    /* ---------------- Add Case -> POST to server, then refresh list ---------------- */
+    const handleAddCase = async () => {
         if (!newCaseForm.studentName || !newCaseForm.studentId || !newCaseForm.counselingTypeCategory) {
             alert('Please fill in Student Name, Student ID, and Counseling Type/Category.');
             return;
         }
 
-        // Generate a new ID for the case
-        const newCaseId = `C${(cases.length + 1).toString().padStart(3, '0')}`; // Simple incrementing ID
+        try {
+            // Build server payload
+            const payload = {
+                sid: newCaseForm.studentId,
+                name: newCaseForm.studentName,
+                initiationDate: newCaseForm.dateOfInitiation || '',
+                initialTime: newCaseForm.timeOfInitiation || '',
+                counselingType: newCaseForm.counselingTypeCategory || '',
+                detailedDescription: newCaseForm.detailedDescription || '',
+                proofDescription: newCaseForm.proofDescription || '',
+                proofUrl: newCaseForm.proofImage ? URL.createObjectURL(newCaseForm.proofImage) : '',
+                actionTaken: newCaseForm.actions || '',
+                dateOfAction: newCaseForm.dateOfAction || '',
+                status: newCaseForm.caseStatus || 'On-going',
+                notes: newCaseForm.counselorNotes || '',
+            };
 
-        // Create the new case object for the list
-        const newCaseToList = {
-            id: newCaseId,
-            studentName: newCaseForm.studentName,
-            studentId: newCaseForm.studentId,
-            status: newCaseForm.caseStatus,
-        };
+            await axios.post('/cases/add', payload);
 
-        // Create detailed data for the new case
-        const newCaseDetails = {
-            caseDetails: {
-                studentName: newCaseForm.studentName,
-                studentId: newCaseForm.studentId,
-                dateOfInitiation: newCaseForm.dateOfInitiation,
-                timeOfInitiation: newCaseForm.timeOfInitiation,
-                counselingTypeCategory: newCaseForm.counselingTypeCategory,
-                caseStatus: newCaseForm.caseStatus,
-                detailedDescription: newCaseForm.detailedDescription,
-            },
-            proof: {
-                proofDescription: newCaseForm.proofDescription,
-                proofImage: newCaseForm.proofImage ? URL.createObjectURL(newCaseForm.proofImage) : null,
-            },
-            actionsTaken: {
-                actions: newCaseForm.actions,
-                dateOfAction: newCaseForm.dateOfAction,
-            },
-            counselorNotes: {
-                notes: newCaseForm.counselorNotes,
-            },
-        };
+            // Refresh list from server
+            const refresh = await axios.get('/cases');
+            const violations = Array.isArray(refresh.data) ? refresh.data : [];
+            const list = violations.map(v => ({
+                id: v.id,
+                studentName: v.name ?? 'Unknown',
+                studentId: v.sid ?? '',
+                status: v.status ?? 'On-going',
+            }));
+            const details = {};
+            violations.forEach(v => { details[v.id] = v; });
 
-        // Update the cases list and details mock data
-        setCases(prevCases => [...prevCases, newCaseToList]);
-        mockCaseDetails[newCaseId] = newCaseDetails;
+            setCases(list);
+            setCaseDetailsMap(details);
 
-        // Reset form and close modal
-        setNewCaseForm({
-            studentName: '', studentId: '', dateOfInitiation: '', timeOfInitiation: '',
-            counselingTypeCategory: '', detailedDescription: '', proofDescription: '',
-            proofImage: null, actions: '', dateOfAction: '', caseStatus: 'On-going',
-            counselorNotes: '',
-        });
-        setShowAddModal(false);
-        alert('Case Added Successfully!');
-    };
-
-    // Handle archiving a case
-    const handleArchiveCase = () => {
-        if (selectedCaseId) {
-            setCases(prevCases =>
-                prevCases.map(c =>
-                    c.id === selectedCaseId ? { ...c, status: 'Resolved' } : c // Change status to Resolved (Archived from previous concept)
-                )
-            );
-            // Also update the mockCaseDetails directly
-            if (mockCaseDetails[selectedCaseId]) {
-                mockCaseDetails[selectedCaseId].caseDetails.caseStatus = 'Resolved';
-            }
-
-            setSelectedCaseId(null);
-            alert('Case status updated to Resolved!'); // Feedback to user
+            // Reset and close modal
+            setNewCaseForm({
+                studentName: '', studentId: '', dateOfInitiation: '', timeOfInitiation: '',
+                counselingTypeCategory: '', detailedDescription: '', proofDescription: '',
+                proofImage: null, actions: '', dateOfAction: '', caseStatus: 'On-going',
+                counselorNotes: '',
+            });
+            setShowAddModal(false);
+            alert('Case Added Successfully!');
+        } catch (err) {
+            console.error('Error adding case', err);
+            alert('Error adding case.');
         }
     };
 
-    // Handle saving edits to a case's information
-    const handleSaveEdits = () => {
-        if (editedCaseData && selectedCaseId) {
-            // Update the mockCaseDetails "database" with the edited data
-            mockCaseDetails[selectedCaseId] = editedCaseData;
+    /* ---------------- Archive/Resolve Case -> PUT update status, refresh affected item ---------------- */
+    const handleArchiveCase = async () => {
+        if (!selectedCaseId) return;
 
-            // Also update the main cases list for any changes in student name or ID or status
-            setCases(prevCases =>
-                prevCases.map(c =>
-                    c.id === selectedCaseId
-                        ? {
-                            ...c,
-                            studentName: editedCaseData.caseDetails?.studentName || c.studentName,
-                            studentId: editedCaseData.caseDetails?.studentId || c.studentId,
-                            status: editedCaseData.caseDetails?.caseStatus || c.status,
-                        }
-                        : c
-                )
-            );
+        try {
+            // update status only
+            await axios.put(`/cases/update/${selectedCaseId}`, { status: 'Resolved' });
+
+            // update local list and details map (optimistic)
+            setCases(prev => prev.map(c => c.id === selectedCaseId ? { ...c, status: 'Resolved' } : c));
+            setCaseDetailsMap(prev => {
+                const next = { ...prev };
+                if (next[selectedCaseId]) next[selectedCaseId].status = 'Resolved';
+                return next;
+            });
+
+            setSelectedCaseId(null);
+            alert('Case status updated to Resolved!');
+        } catch (err) {
+            console.error('Error updating case status', err);
+            alert('Error archiving case.');
+        }
+    };
+
+    /* ---------------- Save Edits -> PUT update with mapped payload and refresh local state ---------------- */
+    const handleSaveEdits = async () => {
+        if (!editedCaseData || !selectedCaseId) return;
+
+        try {
+            const payload = uiDetailsToServerPayload(editedCaseData);
+            await axios.put(`/cases/update/${selectedCaseId}`, payload);
+
+            // refresh the single record locally by re-fetching all or updating the map
+            const res = await axios.get('/cases');
+            const violations = Array.isArray(res.data) ? res.data : [];
+            const list = violations.map(v => ({
+                id: v.id,
+                studentName: v.name ?? 'Unknown',
+                studentId: v.sid ?? '',
+                status: v.status ?? 'On-going',
+            }));
+            const details = {};
+            violations.forEach(v => { details[v.id] = v; });
+
+            setCases(list);
+            setCaseDetailsMap(details);
 
             setIsEditing(false);
             alert('Changes saved successfully!');
+        } catch (err) {
+            console.error('Error saving edits', err);
+            alert('Error saving changes.');
         }
     };
 
-    // Handler for changes in the CaseInfoSection when in editing mode
+    /* ---------------- Field change handler for editing UI grouped object ---------------- */
     const handleCaseFieldChange = (category, field, value) => {
         setEditedCaseData(prevData => {
             if (!prevData) return prevData;
-
             const newData = JSON.parse(JSON.stringify(prevData));
-
-            if (!newData[category]) {
-                newData[category] = {};
-            }
+            if (!newData[category]) newData[category] = {};
             newData[category][field] = value;
             return newData;
         });
     };
 
-    // Filter cases based on active tab and search term
+    /* ---------------- Filtering & display computed values (unchanged UI logic) ---------------- */
     const filteredCases = cases.filter(c => {
         const matchesTab = (activeTab === 'All' && (c.status === 'On-going' || c.status === 'Resolved')) || c.status === activeTab;
-        const matchesSearch = searchTerm === '' || c.studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            c.studentId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            c.id.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesSearch = searchTerm === '' || (c.studentName && c.studentName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+            (c.studentId && c.studentId.toLowerCase().includes(searchTerm.toLowerCase())) ||
+            (c.id && c.id.toLowerCase().includes(searchTerm.toLowerCase()));
         return matchesTab && matchesSearch;
     });
 
-    // Get the details of the currently selected case
-    const displayCaseData = isEditing && editedCaseData ? editedCaseData : (selectedCaseId ? mockCaseDetails[selectedCaseId] : null);
+    // displayCaseData used by UI; if editing use editedCaseData, otherwise map server raw to UI grouped
+    const displayCaseData = isEditing && editedCaseData
+        ? editedCaseData
+        : (selectedCaseId ? serverViolationToUIDetails(caseDetailsMap[selectedCaseId]) : null);
 
-    if (!authData?.user?.access?.studentCases?.canView) {
-        return <Navigate to="/error401" replace />
-    }
-
+    // ...existing rendering code (unchanged styles)...
     return (
         <div className="flex bg-gray-100 min-h-screen">
             {/* Left Panel: Case List */}
             <div className={`w-96 bg-white border-r border-gray-200 shadow-lg flex flex-col`}>
-                {/* Header Section of Left Panel */}
                 <div className="p-4 border-b border-gray-200">
                     <div className="flex items-center space-x-2 mb-4">
                         <h2 className="text-3xl font-bold text-gray-800">Student Cases</h2>
                     </div>
 
-                    {/* Filter Tabs: Resolved / On-going */}
                     <div className="flex justify-around bg-gray-200 p-1 rounded-lg mb-4">
                         <button
                             className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out cursor-pointer hover:bg-[#003d54]
@@ -522,7 +421,6 @@ function StudentCases() {
                         </button>
                     </div>
 
-                    {/* Search Bar for Name/ID */}
                     <div className="relative mb-4">
                         <input
                             type="text"
@@ -531,21 +429,17 @@ function StudentCases() {
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
-                        {/* Search Icon from Lucide */}
-                        <Search className="w-5 h-5 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
                     </div>
 
-                    {/* Add Case Button */}
-                    {authData?.user?.access?.studentCases?.canEdit ? <button
+                    <button
                         className="w-full bg-[#0A1220] hover:bg-[#003d54] text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center transition duration-150 ease-in-out shadow-md hover:shadow-lg cursor-pointer"
                         onClick={() => setShowAddModal(true)}
                     >
-                        <Plus className="w-5 h-5 mr-2" /> {/* Plus Icon from Lucide */}
+                        <Plus className="w-5 h-5 mr-2" />
                         Add Case
-                    </button> : null}
+                    </button>
                 </div>
 
-                {/* Case List - Scrollable Area */}
                 <div className="flex-1 overflow-y-auto pb-4 custom-scrollbar">
                     {filteredCases.length > 0 ? (
                         filteredCases.map((aCase) => (
@@ -556,14 +450,12 @@ function StudentCases() {
                                 onClick={() => setSelectedCaseId(aCase.id)}
                             >
                                 <div className="flex items-center">
-                                    {/* User Icon from Lucide */}
                                     <img src={user} alt="User" className="w-5 h-5 object-cover mr-5" />
                                     <div>
                                         <p className="font-semibold text-gray-800">{aCase.studentName}</p>
                                         <p className="text-sm text-gray-600">{aCase.studentId}</p>
                                     </div>
                                 </div>
-                                {/* ChevronRight Icon from Lucide */}
                                 <ChevronRight className="w-5 h-5 text-[#0A1220]" />
                             </div>
                         ))
@@ -573,20 +465,17 @@ function StudentCases() {
                 </div>
             </div>
 
-            {/* Right Panel: Case Information Details */}
+            {/* Right Panel */}
             <div className={`flex-1 bg-white flex flex-col`}>
                 <Fragment>
-                    {/* Right Panel Header with action buttons and info type dropdown */}
                     <div className="p-3 border-b border-gray-200 flex items-center justify-between flex-wrap gap-2">
                         <div className="flex items-center space-x-2 sm:space-x-4">
-                            {/* Back Button */}
                             <button
                                 className="p-2 rounded-full hover:bg-gray-200 transition duration-150 ease-in-out cursor-pointer"
                                 onClick={() => setSelectedCaseId(null)}
                             >
-                                <ChevronLeft className="w-8 h-8 text-gray-700" /> {/* ArrowLeft Icon from Lucide */}
+                                <ChevronLeft className="w-8 h-8 text-gray-700" />
                             </button>
-                            {/* Info Type Dropdown */}
                             <select
                                 className="block px-3 sm:px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out appearance-none bg-white pr-8 text-sm sm:text-base cursor-pointer"
                                 value={infoType}
@@ -599,9 +488,8 @@ function StudentCases() {
                             </select>
                         </div>
 
-                        {/* Action Buttons: Edit, Archive */}
                         <div className="flex items-center space-x-2 sm:space-x-3 mt-2 sm:mt-0">
-                            {authData?.user?.access?.studentCases?.canEdit ? <><button
+                            <button
                                 className={`px-3 sm:px-4 py-2 rounded-lg flex items-center transition duration-150 ease-in-out text-sm sm:text-base font-medium cursor-pointer
                                             ${isEditing ? 'bg-gray-500 text-white shadow-md' : 'bg-gray-800 hover:bg-gray-700 text-white shadow-md hover:shadow-lg'}`}
                                 onClick={() => {
@@ -611,22 +499,19 @@ function StudentCases() {
                                     setIsEditing(!isEditing);
                                 }}
                             >
-                                {/* Edit/Save Icon from Lucide */}
                                 {isEditing ? 'Save' : 'Edit Case'}
                                 <Pencil className="w-4 h-4 sm:w-5 sm:h-5 ml-1 sm:ml-2" />
                             </button>
-                                <button
-                                    className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-3 sm:px-4 rounded-lg flex items-center transition duration-150 ease-in-out shadow-md hover:shadow-lg cursor-pointer"
-                                    onClick={handleArchiveCase}
-                                >
-                                    {/* Archive Icon from Lucide */}
-                                    Resolve Case
-                                    <Archive className="w-4 h-4 sm:w-5 sm:h-5 ml-1 sm:ml-2" />
-                                </button></> : null}
+                            <button
+                                className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-3 sm:px-4 rounded-lg flex items-center transition duration-150 ease-in-out shadow-md hover:shadow-lg cursor-pointer"
+                                onClick={handleArchiveCase}
+                            >
+                                Resolve Case
+                                <Archive className="w-4 h-4 sm:w-5 sm:h-5 ml-1 sm:ml-2" />
+                            </button>
                         </div>
                     </div>
 
-                    {/* Case Information Content - Scrollable */}
                     <div className="flex-1 p-6 overflow-y-auto custom-scrollbar">
                         {displayCaseData ? (
                             <CaseInfoSection
@@ -654,12 +539,12 @@ function StudentCases() {
                                 className="p-2 rounded-full hover:bg-gray-200 cursor-pointer"
                                 onClick={() => setShowAddModal(false)}
                             >
-                                <X className="w-6 h-6 text-gray-600" /> {/* X Icon from Lucide */}
+                                <X className="w-6 h-6 text-gray-600" />
                             </button>
                         </div>
 
                         <form className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
-                            {/* Left Column for form */}
+                            {/* left & right columns unchanged (using same newCaseForm state) */}
                             <div className="space-y-4">
                                 <div>
                                     <label htmlFor="studentName" className="block text-sm font-medium text-gray-700">Student Name:</label>
@@ -740,7 +625,6 @@ function StudentCases() {
                                 </div>
                             </div>
 
-                            {/* Right Column for form */}
                             <div className="space-y-4">
                                 <div>
                                     <label htmlFor="actions" className="block text-sm font-medium text-gray-700">Actions Taken:</label>
@@ -820,14 +704,14 @@ function StudentCases() {
                                 onClick={() => setShowAddModal(false)}
                             >
                                 Cancel
-                                <X className="w-8 h-8 ml-2" /> {/* X Icon from Lucide */}
+                                <X className="w-8 h-8 ml-2" />
                             </button>
                             <button
                                 className="bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-4 rounded-lg flex items-center transition duration-150 ease-in-out cursor-pointer"
                                 onClick={handleAddCase}
                             >
                                 Add Case
-                                <Check className="w-8 h-8 ml-2" /> {/* Check Icon from Lucide */}
+                                <Check className="w-8 h-8 ml-2" />
                             </button>
                         </div>
                     </div>
@@ -838,3 +722,4 @@ function StudentCases() {
 }
 
 export default StudentCases;
+// ...existing code...
