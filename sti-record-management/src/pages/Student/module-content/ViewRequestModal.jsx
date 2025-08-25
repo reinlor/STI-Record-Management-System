@@ -99,14 +99,59 @@ export default function ViewRequestModal({ data, onClose }) {
               <p className="text-sm text-gray-700 font-semibold">{data.remarks || "No remarks."}</p>
             </div>
 
-            {/* Attachments Card - Maximize Space and allow scrolling */}
+            {/* Attachments Card */}
             <div className="bg-gray-50 p-6 rounded-2xl border border-gray-200 shadow-lg flex flex-col">
               <div className="flex items-center text-gray-800 mb-4">
                 <Paperclip size={24} className="mr-3 text-gray-700" />
                 <h3 className="font-bold text-xl">Attachments</h3>
               </div>
               <div className="space-y-2 text-sm text-gray-700 max-h-[150px] overflow-y-auto pr-2 -mr-2">
-                {Array.isArray(data.proofUrl) && data.proofUrl.length > 0 ? (
+                {data.typeOfSlip === "Absent Slip" ? (
+                  <>
+                    {data.excuseLetterUrl && (
+                      <div className="flex items-start">
+                        <Paperclip size={16} className="flex-shrink-0 mr-2 text-gray-400 mt-1" />
+                        <a
+                          href={data.excuseLetterUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 underline break-all font-semibold"
+                        >
+                          Excuse Letter
+                        </a>
+                      </div>
+                    )}
+                    {data.guardianValidIDUrl && (
+                      <div className="flex items-start">
+                        <Paperclip size={16} className="flex-shrink-0 mr-2 text-gray-400 mt-1" />
+                        <a
+                          href={data.guardianValidIDUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 underline break-all font-semibold"
+                        >
+                          Guardian ID
+                        </a>
+                      </div>
+                    )}
+                    {data.medicalCertificateUrl && (
+                      <div className="flex items-start">
+                        <Paperclip size={16} className="flex-shrink-0 mr-2 text-gray-400 mt-1" />
+                        <a
+                          href={data.medicalCertificateUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 underline break-all font-semibold"
+                        >
+                          Medical Certificate
+                        </a>
+                      </div>
+                    )}
+                    {!data.excuseLetterUrl && !data.guardianValidIDUrl && !data.medicalCertificateUrl && (
+                      <p className="font-semibold">None</p>
+                    )}
+                  </>
+                ) : Array.isArray(data.proofUrl) && data.proofUrl.length > 0 ? (
                   <ul className="list-none space-y-2">
                     {data.proofUrl.map((file, idx) => (
                       <li key={idx} className="flex items-start">

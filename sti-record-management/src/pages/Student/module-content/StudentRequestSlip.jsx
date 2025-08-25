@@ -367,7 +367,7 @@ export default function StudentRequestSlip() {
             {activeSlip === "Absent" && (
               <div className="mb-4 text-gray-700">
                 <p className="text-sm font-medium mb-2">
-                  Please attach the following documents:
+                  Please attach the following documents (make sure to upload them in order as listed below):
                 </p>
                 <ul className="list-disc list-inside text-gray-600 text-sm space-y-1">
                   <li>Excuse letter (if 1-2 days absent only)</li>
