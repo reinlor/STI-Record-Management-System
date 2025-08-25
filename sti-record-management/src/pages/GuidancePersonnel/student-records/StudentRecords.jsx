@@ -1,4 +1,5 @@
-import React, { useState, Fragment, useEffect } from 'react';
+import React, { useState, Fragment, useEffect, useContext } from 'react';
+import { AuthContext } from '../../../AuthProvider.jsx';
 import axios from 'axios';
 
 import studentIcon from '../../../assets/student.png';
@@ -128,9 +129,12 @@ const fieldDefinitions = {
 };
 
 
+
 // Generic Component for rendering information sections
 const InfoSection = ({ infoType, student, isEditing, onFieldChange }) => {
     const fieldsToDisplay = fieldDefinitions[infoType] || [];
+    
+
     const infoTypeTitles = {
         basic: "Basic Information",
         personal: "Personal Information",
@@ -464,6 +468,9 @@ const updateRawField = (raw, category, field, value) => {
 
 
 function StudentRecords() {
+    const { authData, logout } = useContext(AuthContext);
+    console.log(authData)
+
     const [students, setStudents] = useState([]);
     const [activeTab, setActiveTab] = useState('Enrolled');
     const [searchTerm, setSearchTerm] = useState('');
@@ -663,6 +670,10 @@ function StudentRecords() {
         "none", "BSIT", "BSCS", "BSBA", "BSECE", "BMMA",
     ];
 
+    if (!authData?.user?.access?.studentRecords?.canView) {
+        return <Navigate to="/error401" replace />
+    }
+
     return (
         <div className="flex bg-gray-100 min-h-screen">
 
@@ -737,7 +748,7 @@ function StudentRecords() {
                         </div>
                     </div>
 
-                    <button
+                    {authData?.user?.access?.studentRecords?.canEdit ? <button 
                         className="w-full bg-[#0a1220] hover:bg-[#003d54] text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center transition duration-150 ease-in-out shadow-md hover:shadow-lg"
                         onClick={() => setShowAddStudentModal(true)}
                     >
@@ -745,7 +756,7 @@ function StudentRecords() {
                             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                         </svg>
                         Add Student
-                    </button>
+                    </button> : null}
                 </div>
 
                 <div className="flex-1 overflow-y-auto pb-4">
@@ -806,7 +817,7 @@ function StudentRecords() {
                         </div>
 
                         <div className="flex items-center space-x-2 sm:space-x-3 mt-2 sm:mt-0">
-                            <button
+                            {authData?.user?.access?.studentRecords?.canEdit ? <button
                                 className={`px-3 sm:px-4 py-2 rounded-lg flex items-center transition duration-150 ease-in-out text-sm sm:text-base font-medium cursor-pointer
                                             ${isEditing ? 'bg-gray-500 text-white shadow-md' : 'bg-gray-800 hover:bg-gray-700 text-white shadow-md hover:shadow-lg'}`}
                                 onClick={() => {
@@ -818,7 +829,7 @@ function StudentRecords() {
                             >
                                 {isEditing ? 'Save' : 'Edit Student'}
                                 <img src={edit} alt="editIcon" className="w-4 h-4 sm:w-5 sm:h-5 ml-3" />
-                            </button>
+                            </button> : null}
 
                             <button
                                 className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-3 sm:px-4 rounded-lg flex items-center transition duration-150 ease-in-out shadow-md hover:shadow-lg cursor-pointer"
@@ -880,7 +891,165 @@ function StudentRecords() {
                                         className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                                     />
                                 </div>
-                                {/* ... other inputs omitted for brevity (unchanged) */}
+                                <div>
+                                    <label htmlFor="middleName" className="block text-sm font-medium text-gray-700">Middle Name:</label>
+                                    <input
+                                        type="text"
+                                        id="middleName"
+                                        name="middleName"
+                                        value={newStudentForm.middleName}
+                                        onChange={handleNewStudentFormChange}
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                    />
+                                </div>
+                                <div>
+                                    <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">Last Name:</label>
+                                    <input
+                                        type="text"
+                                        id="lastName"
+                                        name="lastName"
+                                        value={newStudentForm.lastName}
+                                        onChange={handleNewStudentFormChange}
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                    />
+                                </div>
+                                <div>
+                                    <label htmlFor="studentNumber" className="block text-sm font-medium text-gray-700">Student Number:</label>
+                                    <input
+                                        type="text"
+                                        id="studentNumber"
+                                        name="studentNumber"
+                                        value={newStudentForm.studentNumber}
+                                        onChange={handleNewStudentFormChange}
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                    />
+                                </div>
+                                <div>
+                                    <label htmlFor="emailAddress" className="block text-sm font-medium text-gray-700">Email Address:</label>
+                                    <input
+                                        type="email"
+                                        id="emailAddress"
+                                        name="emailAddress"
+                                        value={newStudentForm.emailAddress}
+                                        onChange={handleNewStudentFormChange}
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                    />
+                                </div>
+                                <div>
+                                    <label htmlFor="gradeYearLevel" className="block text-sm font-medium text-gray-700">Grade/Year Level:</label>
+                                    <input
+                                        type="text"
+                                        id="gradeYearLevel"
+                                        name="gradeYearLevel"
+                                        value={newStudentForm.gradeYearLevel}
+                                        onChange={handleNewStudentFormChange}
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                    />
+                                </div>
+                                <div>
+                                    <label htmlFor="programStrand" className="block text-sm font-medium text-gray-700">Program/ Strand:</label>
+                                    <input
+                                        type="text"
+                                        id="programStrand"
+                                        name="programStrand"
+                                        value={newStudentForm.programStrand}
+                                        onChange={handleNewStudentFormChange}
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                    />
+                                </div>
+                                <div>
+                                    <label htmlFor="section" className="block text-sm font-medium text-gray-700">Section:</label>
+                                    <input
+                                        type="text"
+                                        id="section"
+                                        name="section"
+                                        value={newStudentForm.section}
+                                        onChange={handleNewStudentFormChange}
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                    />
+                                </div>
+                                <div>
+                                    <label htmlFor="birthDate" className="block text-sm font-medium text-gray-700">Birth Date:</label>
+                                    <input
+                                        type="date"
+                                        id="birthDate"
+                                        name="birthDate"
+                                        value={newStudentForm.birthDate}
+                                        onChange={handleNewStudentFormChange}
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                    />
+                                </div>
+                                <div>
+                                    <label htmlFor="age" className="block text-sm font-medium text-gray-700">Age:</label>
+                                    <input
+                                        type="number"
+                                        id="age"
+                                        name="age"
+                                        value={newStudentForm.age}
+                                        onChange={handleNewStudentFormChange}
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Gender:</label>
+                                    <div className="flex space-x-4">
+                                        <label className="inline-flex items-center">
+                                            <input
+                                                type="radio"
+                                                name="gender"
+                                                value="Male"
+                                                checked={newStudentForm.gender === 'Male'}
+                                                onChange={handleNewStudentFormChange}
+                                                className="form-radio text-blue-600 h-4 w-4"
+                                            />
+                                            <span className="ml-2 text-gray-700">Male</span>
+                                        </label>
+                                        <label className="inline-flex items-center">
+                                            <input
+                                                type="radio"
+                                                name="gender"
+                                                value="Female"
+                                                checked={newStudentForm.gender === 'Female'}
+                                                onChange={handleNewStudentFormChange}
+                                                className="form-radio text-blue-600 h-4 w-4"
+                                            />
+                                            <span className="ml-2 text-gray-700">Female</span>
+                                        </label>
+                                        <label className="inline-flex items-center">
+                                            <input
+                                                type="radio"
+                                                name="gender"
+                                                value="Others"
+                                                checked={newStudentForm.gender === 'Others'}
+                                                onChange={handleNewStudentFormChange}
+                                                className="form-radio text-blue-600 h-4 w-4"
+                                            />
+                                            <span className="ml-2 text-gray-700">Others:</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label htmlFor="mobileNo" className="block text-sm font-medium text-gray-700">Mobile No.:</label>
+                                    <input
+                                        type="text"
+                                        id="mobileNo"
+                                        name="mobileNo"
+                                        value={newStudentForm.mobileNo}
+                                        onChange={handleNewStudentFormChange}
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                    />
+                                </div>
+                                <div>
+                                    <label htmlFor="address" className="block text-sm font-medium text-gray-700">Address:</label>
+                                    <textarea
+                                        id="address"
+                                        name="address"
+                                        value={newStudentForm.address}
+                                        onChange={handleNewStudentFormChange}
+                                        rows="3"
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 resize-y"
+                                    ></textarea>
+                                </div>
                             </div>
 
                             <div className="space-y-4">
@@ -892,6 +1061,28 @@ function StudentRecords() {
                                         id="emergencyContact"
                                         name="emergencyContact"
                                         value={newStudentForm.emergencyContact}
+                                        onChange={handleNewStudentFormChange}
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                    />
+                                </div>
+                                <div>
+                                    <label htmlFor="contactNo" className="block text-sm font-medium text-gray-700">Contact No.:</label>
+                                    <input
+                                        type="text"
+                                        id="contactNo"
+                                        name="contactNo"
+                                        value={newStudentForm.contactNo}
+                                        onChange={handleNewStudentFormChange}
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                    />
+                                </div>
+                                <div>
+                                    <label htmlFor="healthCondition" className="block text-sm font-medium text-gray-700">Health Condition:</label>
+                                    <input
+                                        type="text"
+                                        id="healthCondition"
+                                        name="healthCondition"
+                                        value={newStudentForm.healthCondition}
                                         onChange={handleNewStudentFormChange}
                                         className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                                     />

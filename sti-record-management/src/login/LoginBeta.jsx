@@ -58,7 +58,7 @@ function LoginBeta() {
             login(userData, userRole, userDisplayName);
 
             // Redirect by role
-            if (userRole === "Admin" || userRole === "Disciplinary") {
+            if (userRole === "Admin" || userRole === "Disciplinary" || userRole === "Super Admin") {
                 navigate("/guidance");
             } else if (userRole === "Teacher") {
                 navigate("/educator");

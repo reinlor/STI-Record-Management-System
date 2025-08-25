@@ -2,6 +2,8 @@ import React, { useState, Fragment, useEffect } from "react";
 import { User, Folder, Search, Plus, ArrowLeft, ChevronRight, Pencil, Archive, X, Check, ChevronLeft } from 'lucide-react';
 import user from '../../../assets/user.png'
 import upload from '../../../assets/upload.png'
+import { AuthContext } from '../../../AuthProvider.jsx';
+import { useContext } from 'react';
 
 
 const initialCases = [
@@ -321,6 +323,8 @@ function StudentCases() {
     const [isEditing, setIsEditing] = useState(false);
     const [infoType, setInfoType] = useState('caseDetails'); // Default info type
     const [editedCaseData, setEditedCaseData] = useState(null); // New state for editing
+    const { authData, logout } = useContext(AuthContext);
+
 
     // Effect to load case data into editedCaseData when selectedCaseId changes
     useEffect(() => {
@@ -478,13 +482,17 @@ function StudentCases() {
     const filteredCases = cases.filter(c => {
         const matchesTab = (activeTab === 'All' && (c.status === 'On-going' || c.status === 'Resolved')) || c.status === activeTab;
         const matchesSearch = searchTerm === '' || c.studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                              c.studentId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                              c.id.toLowerCase().includes(searchTerm.toLowerCase());
+            c.studentId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            c.id.toLowerCase().includes(searchTerm.toLowerCase());
         return matchesTab && matchesSearch;
     });
 
     // Get the details of the currently selected case
     const displayCaseData = isEditing && editedCaseData ? editedCaseData : (selectedCaseId ? mockCaseDetails[selectedCaseId] : null);
+
+    if (!authData?.user?.access?.studentCases?.canView) {
+        return <Navigate to="/error401" replace />
+    }
 
     return (
         <div className="flex bg-gray-100 min-h-screen">
@@ -528,13 +536,13 @@ function StudentCases() {
                     </div>
 
                     {/* Add Case Button */}
-                    <button
+                    {authData?.user?.access?.studentCases?.canEdit ? <button
                         className="w-full bg-[#0A1220] hover:bg-[#003d54] text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center transition duration-150 ease-in-out shadow-md hover:shadow-lg cursor-pointer"
                         onClick={() => setShowAddModal(true)}
                     >
                         <Plus className="w-5 h-5 mr-2" /> {/* Plus Icon from Lucide */}
                         Add Case
-                    </button>
+                    </button> : null}
                 </div>
 
                 {/* Case List - Scrollable Area */}
@@ -593,7 +601,7 @@ function StudentCases() {
 
                         {/* Action Buttons: Edit, Archive */}
                         <div className="flex items-center space-x-2 sm:space-x-3 mt-2 sm:mt-0">
-                            <button
+                            {authData?.user?.access?.studentCases?.canEdit ? <><button
                                 className={`px-3 sm:px-4 py-2 rounded-lg flex items-center transition duration-150 ease-in-out text-sm sm:text-base font-medium cursor-pointer
                                             ${isEditing ? 'bg-gray-500 text-white shadow-md' : 'bg-gray-800 hover:bg-gray-700 text-white shadow-md hover:shadow-lg'}`}
                                 onClick={() => {
@@ -607,14 +615,14 @@ function StudentCases() {
                                 {isEditing ? 'Save' : 'Edit Case'}
                                 <Pencil className="w-4 h-4 sm:w-5 sm:h-5 ml-1 sm:ml-2" />
                             </button>
-                            <button
-                                className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-3 sm:px-4 rounded-lg flex items-center transition duration-150 ease-in-out shadow-md hover:shadow-lg cursor-pointer"
-                                onClick={handleArchiveCase}
-                            >
-                                {/* Archive Icon from Lucide */}
-                                Resolve Case
-                                <Archive className="w-4 h-4 sm:w-5 sm:h-5 ml-1 sm:ml-2" />
-                            </button>
+                                <button
+                                    className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-3 sm:px-4 rounded-lg flex items-center transition duration-150 ease-in-out shadow-md hover:shadow-lg cursor-pointer"
+                                    onClick={handleArchiveCase}
+                                >
+                                    {/* Archive Icon from Lucide */}
+                                    Resolve Case
+                                    <Archive className="w-4 h-4 sm:w-5 sm:h-5 ml-1 sm:ml-2" />
+                                </button></> : null}
                         </div>
                     </div>
 

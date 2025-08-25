@@ -13,15 +13,15 @@ const ProtectedRoute = ({ children, requiredRole }) => {
     return <Navigate to="/" replace />;
   }
   
-  // if (Array.isArray(requiredRole)) {
-  //   if (!requiredRole.includes(authData.role)) {
-  //     return <div>Access Denied. You do not have the required role.</div>;
-  //   }
-  // } else if (requiredRole) { 
-  //   if (authData.role !== requiredRole) {
-  //     return <div>Access Denied. You do not have the required role.</div>;
-  //   }
-  // }
+  if (Array.isArray(requiredRole)) {
+    if (!requiredRole.includes(authData.role)) {
+      return <Navigate to="/error401" replace />;
+    }
+  } else if (requiredRole) { 
+    if (authData.role !== requiredRole) {
+      return <Navigate to="/error401" replace />;
+    }
+  }
   
 
   return children;

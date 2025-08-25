@@ -45,6 +45,7 @@ import StudentSignup from './pages/Student/StudentSignup.jsx';
 import TeacherHomepage from './pages/Teacher/TeacherHomepage.jsx';
 
 import PageNotFound from './pages/Others/PageNotFound.jsx';
+import UnauthorizeAccess from './pages/Others/UnauthorizeAccess.jsx';
 
 // What the helly yow bat di to naka define       -renlor (genuine question)
 import './app.css'  // <- originally nakatangal   -renlor
@@ -89,7 +90,7 @@ function App() {
           </Route>
 
           {/* Guidance Personnel */}
-          <Route path='/guidance' element={<ProtectedRoute requiredRole={["Admin", "Disciplinary"]}><GuidanceLayout/></ProtectedRoute>}>
+          <Route path='/guidance' element={<ProtectedRoute requiredRole={["Admin", "Disciplinary", "Super Admin"]}><GuidanceLayout/></ProtectedRoute>}>
             <Route index element={<GuidanceDashboard/>}/>
             <Route path="student-records" element={<GuidanceStudentRecords/>}/>
             <Route path="student-cases" element={<GuidanceStudentCases/>}/>
@@ -110,6 +111,7 @@ function App() {
 
           {/* 404 Not Found */}
           <Route path="*" element={<PageNotFound />} />
+          <Route path="/error401" element={<UnauthorizeAccess />} />
         </Routes>
       </AuthProvider>
     </Router>

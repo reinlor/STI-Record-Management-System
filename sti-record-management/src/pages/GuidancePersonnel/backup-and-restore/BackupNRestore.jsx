@@ -1,7 +1,14 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import server from '../../../assets/data-server.png';
+import { AuthContext } from '../../../AuthProvider.jsx';
 
 function BackNRestore() {
+    const { authData, logout } = useContext(AuthContext);
+
+    if (!authData?.user?.access?.backupRestore?.canView) {
+        return <Navigate to="/error401" replace />
+    }
+
     return (
         // Main container for the page content.
         // It's flex-centered to ensure the content is well-positioned on the screen.
@@ -62,7 +69,7 @@ function BackNRestore() {
                                     <input type="checkbox" className="form-checkbox h-5 w-5 text-blue-600 rounded focus:ring-blue-500 transition duration-150 ease-in-out" />
                                     <span className="ml-2">Student Case (Basic)</span>
                                 </label>
-                                
+
                                 <label className="inline-flex items-center mb-1 cursor-pointer">
                                     <input type="checkbox" className="form-checkbox h-5 w-5 text-blue-600 rounded focus:ring-blue-500 transition duration-150 ease-in-out" />
                                     <span className="ml-2">Referral Forms and History</span>

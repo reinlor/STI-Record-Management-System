@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
+import { AuthContext } from '../../../AuthProvider.jsx';
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import historyW from "../../../assets/history.png";
 import closeB from "../../../assets/closeblack.png";
 
 function ReferralFormProcessing() {
+  const { authData, logout } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const [display, setDisplay] = useState(false);
@@ -36,7 +38,6 @@ function ReferralFormProcessing() {
     };
     fetchReferrals();
   }, []);
-
 
   const openForm = async (ref) => {
     console.log(ref)
@@ -87,6 +88,10 @@ function ReferralFormProcessing() {
       ref.studentName?.toLowerCase().includes(search.toLowerCase())
   );
 
+  if (!authData?.user?.access?.referralForm?.canView) {
+        return <Navigate to="/error401" replace />
+    }
+
   return (
     <div className="bg-gray-100 h-screen overflow-hidden custom-scrollbar">
       <div className="p-3 h-full overflow-y-auto">
@@ -101,14 +106,13 @@ function ReferralFormProcessing() {
 
             <div className="flex gap-2">
               {/* History Button */}
-              <button
+              {authData?.user?.access?.referralForm?.canEdit ? <button
                 className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-full hover:bg-gray-700 transition"
-                onClick={() => navigate("/disciplinary/referral-form-history")}
-              >
+                onClick={() => navigate("/guidance/referral-form-history")}>
                 History
                 {/* History Icon */}
                 <img src={historyW} alt="history" className="w-5 h-5 object-cover rounded" />
-              </button>
+              </button> : null}
 
               {/* Search Bar */}
               <div className="relative w-64">
@@ -181,7 +185,7 @@ function ReferralFormProcessing() {
                           >
                             {ref.status}
                           </td>
-                          <td className="px-4 py-3">
+                          {authData?.user?.access?.referralForm?.canEdit ? <td className="px-4 py-3">
                             <button
                               className="bg-gray-900 text-white px-6 py-1 rounded-full hover:bg-gray-700 transition duration-200 shadow-md"
                               onClick={() => {
@@ -190,7 +194,7 @@ function ReferralFormProcessing() {
                             >
                               Open
                             </button>
-                          </td>
+                          </td> : null}
                         </tr>
                       ))
                   ) : (
