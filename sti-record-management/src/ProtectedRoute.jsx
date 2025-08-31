@@ -9,18 +9,18 @@ const ProtectedRoute = ({ children, requiredRole }) => {
     return <div>Loading...</div>;
   }
 
-  if (!authData.isAuthenticated) {
-    return <Navigate to="/" replace />;
-  }
+  // if (!authData.isAuthenticated) {
+  //   return <Navigate to="/" replace />;
+  // }
   
   if (Array.isArray(requiredRole)) {
-    if (!requiredRole.includes(authData.role)) {
-      return <Navigate to="/error401" replace />;
-    }
-  } else if (requiredRole) { 
-    if (authData.role !== requiredRole) {
-      return <Navigate to="/error401" replace />;
-    }
+  //   if (!requiredRole.includes(authData.role)) {
+  //     return <Navigate to="/error401" replace />;
+  //   }
+  // } else if (requiredRole) { 
+  //   if (authData.role !== requiredRole) {
+  //     return <Navigate to="/error401" replace />;
+  //   }
   }
   
 

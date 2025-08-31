@@ -16,6 +16,7 @@ const backupRoute = require("./firestore/backup/routes/backupRoute");
 const emailRoute = require("./modules/email/emailRoute");
 const bulkUploadRoute = require("./firestore/main/bulk/bulkUploadRoute");
 const batchUpdateRoute = require("./firestore/main/batch/batchUpdateRoute");
+const chartDataRoute = require("./firestore/main/routes/chartDataRoute")
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -40,6 +41,7 @@ app.use("/backup", backupRoute);
 app.use("/email", emailRoute);
 app.use("/bulk-upload", bulkUploadRoute);   
 app.use("/batch-update", batchUpdateRoute);
+app.use("/chartData", chartDataRoute)
  
 // Start the server
 app.listen(PORT, () => {

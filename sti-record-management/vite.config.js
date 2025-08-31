@@ -15,6 +15,7 @@ export default defineConfig({
       "/user": "http://localhost:5000",
       "/exam": "http://localhost:5000",
       "/email": "http://localhost:5000",
+      "/chartData": "http://localhost:5000",
     },
   },
 })

@@ -1,34 +1,36 @@
 const { getViolationsCollection } = require("../models/studentCasesModel");
+const { getChartDataCollection } = require("../models/chartDataModel");
 const Joi = require('joi');
+const { FieldValue, Firestore } = require('firebase-admin/firestore');
 
 // Violation Schema
-const violationSchema =  Joi.object({
-  sid:                   Joi.string().required().empty(''),
-  name:                  Joi.string().required().empty(''),
-  initiationDate:        Joi.string().required().empty(''),
-  initialTime:           Joi.string().required().empty(''),
-  counselingType:        Joi.string().required().empty(''),
-  detailedDescription:   Joi.string().required().empty(''),
-  proofDescription:      Joi.string().required().empty(''),
-  actionTaken:           Joi.string().required().empty(''),
-  dateOfAction:          Joi.string().required().empty(''),
-  status:                Joi.string().required().empty(''),
-  notes:                 Joi.string().required().empty(''),
-  proofUrl:              Joi.string().optional().empty(''),
+const violationSchema = Joi.object({
+  sid: Joi.string().required().empty(''),
+  name: Joi.string().required().empty(''),
+  initiationDate: Joi.string().required().empty(''),
+  initialTime: Joi.string().required().empty(''),
+  counselingType: Joi.string().required().empty(''),
+  detailedDescription: Joi.string().required().empty(''),
+  proofDescription: Joi.string().required().empty(''),
+  actionTaken: Joi.string().required().empty(''),
+  dateOfAction: Joi.string().required().empty(''),
+  status: Joi.string().required().empty(''),
+  notes: Joi.string().required().empty(''),
+  proofUrl: Joi.string().optional().empty(''),
 })
-const updateSchema =  Joi.object({
-  sid:                   Joi.string().optional(),
-  name:                  Joi.string().optional(),
-  initiationDate:        Joi.string().optional(),
-  initialTime:           Joi.string().optional(),
-  counselingType:        Joi.string().optional(),
-  detailedDescription:   Joi.string().optional(),
-  proofDescription:      Joi.string().optional(),
-  actionTaken:           Joi.string().optional(),
-  dateOfAction:          Joi.string().optional(),
-  status:                Joi.string().optional(),
-  notes:                 Joi.string().optional(),
-  proofUrl:              Joi.string().optional(),
+const updateSchema = Joi.object({
+  sid: Joi.string().optional(),
+  name: Joi.string().optional(),
+  initiationDate: Joi.string().optional(),
+  initialTime: Joi.string().optional(),
+  counselingType: Joi.string().optional(),
+  detailedDescription: Joi.string().optional(),
+  proofDescription: Joi.string().optional(),
+  actionTaken: Joi.string().optional(),
+  dateOfAction: Joi.string().optional(),
+  status: Joi.string().optional(),
+  notes: Joi.string().optional(),
+  proofUrl: Joi.string().optional(),
 })
 
 // Controller function to retrieve all violation
@@ -78,22 +80,52 @@ const getViolations = async (req, res) => {
 // Controller Function to add violation
 const addViolation = async (req, res) => {
   try {
-    violationSchema.validate(req.body);
-
     const { error, value: newViolation } = violationSchema.validate(req.body);
+
     if (error) {
-        return res.status(400).json({ error: error.details[0].message });
+      return res.status(400).json({ error: error.details[0].message });
     }
+
     const sid = newViolation.sid;
-    await getViolationsCollection().doc().set(newViolation);
+    const reason = newViolation.counselingType;
+
+    // Use FieldValue.serverTimestamp() for the main document
+    const serverTimestamp = FieldValue.serverTimestamp();
+
+    // The chart data needs a concrete timestamp value
+    // Use a client-side Date object converted to a string for the array
+    const chartData = {
+      sid: sid,
+      type: reason,
+      date: new Date().toISOString() // <--- The correct way to get a timestamp for an array
+    };
     
-    res.status(201).json({ 
+    const studentCaseRef = getChartDataCollection().doc('studentCase');
+    const docSnapshot = await studentCaseRef.get();
+
+    const violationData = {
+      ...newViolation,
+      date: serverTimestamp
+    };
+
+    if (!docSnapshot.exists) {
+      await studentCaseRef.set({
+        data: [chartData]
+      });
+    } else {
+      await studentCaseRef.update({
+        data: FieldValue.arrayUnion(chartData)
+      });
+    }
+
+    await getViolationsCollection().doc().set(violationData);
+
+    res.status(201).json({
       message: `Added a new violation for Student: ${sid}`
     });
   } catch (error) {
-    res
-      .status(404)
-      .send({ error: `Failed to add a violation for User: ${sid}` });
+    console.error("Error adding violation:", error);
+    res.status(500).send({ error: `Failed to add a violation for User: ${req.body?.sid || 'N/A'}` });
   }
 };
 
@@ -121,7 +153,7 @@ const updateViolation = async (req, res) => {
 
     await violationRef.set(validatedUpdates, { merge: true });
 
-    res.status(201).json({ 
+    res.status(201).json({
       message: `Violation updated successfully!`
     });
   } catch (error) {

@@ -10,6 +10,8 @@ const {
   getIDPassCollection,
   getUniformPassCollection,
 } = require("../models/slipModel");
+const { getChartDataCollection } = require("../models/chartDataModel");
+
 
 // SLIPS / Passes Schema
 const lateSlipSchema = Joi.object({
@@ -128,6 +130,24 @@ const addLateSlip = async (req, res) => {
       return res.status(400).json({ error: error.details[0].message });
     }
     await getLateSlipsCollection().doc().set(newLateSlip);
+    
+    // Pang Charts
+    const chartDataDocRef = getChartDataCollection().doc("slip-n-pass");
+    const docSnapshot = await chartDataDocRef.get();
+    
+    const updatedData = docSnapshot.exists ? docSnapshot.data() : { id: "slip-n-pass", data: [] };
+    const existingDataArray = updatedData.data || [];
+    
+    existingDataArray.push({
+      sid: newLateSlip.sid,
+      type: "Late Slip",
+      date: new Date().toISOString()
+    });
+    
+    updatedData.data = existingDataArray;
+    await chartDataDocRef.set(updatedData, { merge: true });
+    // Pang Charts
+    
     res.status(200).send({
       message: `Late slip added to Student: ${newLateSlip.name}`,
       slip: newLateSlip,
@@ -180,6 +200,24 @@ const addUniformPass = async (req, res) => {
       return res.status(400).json({ error: error.details[0].message });
     }
     await getUniformPassCollection().doc().set(newUniformPass);
+
+    // Pang Charts
+    const chartDataDocRef = getChartDataCollection().doc("slip-n-pass");
+    const docSnapshot = await chartDataDocRef.get();
+    
+    const updatedData = docSnapshot.exists ? docSnapshot.data() : { id: "slip-n-pass", data: [] };
+    const existingDataArray = updatedData.data || [];
+    
+    existingDataArray.push({
+      sid: newUniformPass.sid,
+      type: "Uniform Pass",
+      date: new Date().toISOString()
+    });
+    
+    updatedData.data = existingDataArray;
+    await chartDataDocRef.set(updatedData, { merge: true });
+    // Pang Charts
+    
     res.status(200).send({
       message: `Uniform pass added to Student: ${newUniformPass.name}`,
       slip: newUniformPass,
@@ -260,6 +298,24 @@ const addAbsentSlip = async (req, res) => {
       return res.status(400).json({ error: error.details[0].message });
     }
     await getAbsentSlipsCollection().doc().set(newAbsentSlip);
+
+    // Pang Charts
+    const chartDataDocRef = getChartDataCollection().doc("slip-n-pass");
+    const docSnapshot = await chartDataDocRef.get();
+    
+    const updatedData = docSnapshot.exists ? docSnapshot.data() : { id: "slip-n-pass", data: [] };
+    const existingDataArray = updatedData.data || [];
+    
+    existingDataArray.push({
+      sid: newAbsentSlip.sid,
+      type: "Absent Slip",
+      date: new Date().toISOString()
+    });
+    
+    updatedData.data = existingDataArray;
+    await chartDataDocRef.set(updatedData, { merge: true });
+    // Pang Charts
+    
     res
       .status(200)
       .send({ message: `Absent slip added to Student: ${newAbsentSlip.name}` });
@@ -310,6 +366,24 @@ const addIDPass = async (req, res) => {
       return res.status(400).json({ error: error.details[0].message });
     }
     await getIDPassCollection().doc().set(newIDPass);
+
+    // Pang Charts
+    const chartDataDocRef = getChartDataCollection().doc("slip-n-pass");
+    const docSnapshot = await chartDataDocRef.get();
+    
+    const updatedData = docSnapshot.exists ? docSnapshot.data() : { id: "slip-n-pass", data: [] };
+    const existingDataArray = updatedData.data || [];
+    
+    existingDataArray.push({
+      sid: newIDPass.sid,
+      type: "ID Pass",
+      date: new Date().toISOString()
+    });
+    
+    updatedData.data = existingDataArray;
+    await chartDataDocRef.set(updatedData, { merge: true });
+    // Pang Charts
+    
     res
       .status(200)
       .send({ message: `ID Pass added to Student: ${newIDPass.name}` });
