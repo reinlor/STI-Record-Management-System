@@ -1,6 +1,4 @@
 import { useState, useEffect } from 'react';
-import { Chart as ChartJS } from "chart.js/auto";
-import { Bar, Doughnut, Line } from "react-chartjs-2";
 import axios from 'axios';
 
 // Mga separate na JSX Components
