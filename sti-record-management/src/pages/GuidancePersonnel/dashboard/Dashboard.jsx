@@ -12,26 +12,10 @@ tailwindScript.src = 'https://cdn.tailwindcss.com';
 document.head.appendChild(tailwindScript);
 
 const App = () => {
-    const [pieChartData, setPieChartData] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
-    const [pieTimePeriod, setPieTimePeriod] = useState('monthly');
     const [allData, setAllData] = useState([]);
     const [slipData, setSlipData] = useState([]);
     const [leaderboardData, setLeaderboardData] = useState([]);
-
-    const getColor = (label) => {
-        const colors = {
-            'Violation': 'rgb(75, 192, 192)',
-            'Absent Slip': 'rgb(75, 100, 192)',
-            'Late Slip': 'rgb(255, 99, 132)',
-            'Uniform Pass': 'rgb(54, 162, 235)',
-            'ID Pass': 'rgb(255, 206, 86)',
-            'Disciplinary Report': 'rgb(153, 102, 255)',
-            'misc': 'rgb(255, 159, 64)',
-            'betlog': 'rgb(201, 203, 207)',
-        };
-        return colors[label] || `hsl(${Math.random() * 360}, 70%, 50%)`;
-    };
 
     useEffect(() => {
         const fetchData = async () => {
