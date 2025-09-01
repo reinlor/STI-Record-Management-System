@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useContext } from "react";
 import axios from "axios";
 import {
   Info,
@@ -16,9 +16,10 @@ import {
   Star,
   BookOpen,
 } from "lucide-react";
+import { AuthContext } from "../../../AuthProvider.jsx";
 
 export default function ProfileView() {
-  const studentId = "02000288488";
+  const [studentId, setStudentId] = useState(null);
   const [student, setStudent] = useState(null); // Holds the student data object
   const [loading, setLoading] = useState(true); // Loading state for data fetch
   const [error, setError] = useState(null); // Error state for data fetch
@@ -26,6 +27,7 @@ export default function ProfileView() {
   const [isEditing, setIsEditing] = useState(false); // Edit mode toggle
   const [formData, setFormData] = useState([]); // Editable form data for the current category
   const [originalFormData, setOriginalFormData] = useState([]); // Backup of original data for canceling edits
+  const { authData, logout } = useContext(AuthContext);
 
   // List of fields that should not be editable by the user.
   const lockedFields = [
@@ -43,25 +45,27 @@ export default function ProfileView() {
   ];
 
   // Fetch student data from the API using axios
-  useEffect(() => {
-    const fetchStudentData = async () => {
-      try {
-        setLoading(true);
-        const response = await axios.get(`/student/get/${studentId}`);
-        setStudent(response.data);
-        setError(null);
-      } catch (err) {
-        console.error("Failed to fetch student data:", err);
-        setError(
-          "Failed to load student data. Please check the network connection."
-        );
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchStudentData = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get(`/student/get/${authData.user.uid}`);
+      setStudent(response.data);
+      setError(null);
+    } catch (err) {
+      console.error("Failed to fetch student data:", err);
+      setError(
+        "Failed to load student data. Please check the network connection."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
+    if (!authData) return;
+    setStudentId(authData.user?.uid);
     fetchStudentData();
-  }, [studentId]);
+  }, [authData]);
 
   // Memoize the categories object to avoid unnecessary recalculations.
   // Each category contains its icon, data fields, and optional subsections.
