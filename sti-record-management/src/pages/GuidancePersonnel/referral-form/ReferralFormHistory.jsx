@@ -57,7 +57,7 @@ function ReferralFormHistory() {
         if (!selectedReferral) return null;
 
         return (
-            <div className="fixed inset-0 flex items-center justify-center z-50">
+            <div className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-sm ">
                 <div className="bg-white w-11/12 md:w-3/4 lg:w-2/3 xl:w-1/2 rounded-lg shadow-lg p-6 relative overflow-y-auto max-h-[90vh] outline-solid outline-2 outline-gray-300">
 
                     <div className='flex items-center '>
@@ -70,7 +70,7 @@ function ReferralFormHistory() {
                             <img src={closeB} alt="closeb" className="w-7 h-7 object-cover rounded " />
                         </button>
 
-                        <h2 className="text-2xl font-bold mb-4">Request Slip Form</h2>
+                        <h2 className="text-2xl font-bold mb-4">Referral Form</h2>
 
                     </div>
 

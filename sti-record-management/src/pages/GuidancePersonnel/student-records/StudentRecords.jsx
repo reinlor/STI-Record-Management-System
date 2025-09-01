@@ -1,6 +1,8 @@
 import React, { useState, Fragment, useEffect, useContext } from 'react';
 import { AuthContext } from '../../../AuthProvider.jsx';
 import axios from 'axios';
+import { Navigate } from "react-router-dom";
+
 
 import studentIcon from '../../../assets/student.png';
 import dropdown from '../../../assets/dropdown.png';
@@ -15,7 +17,7 @@ import check from '../../../assets/check.png';
 import close from '../../../assets/close.png';
 import closeB from '../../../assets/closeblack.png';
 
-import { User, Folder, Search, Plus, ArrowLeft, ChevronRight, Pencil, Archive, X, Check, ChevronLeft } from 'lucide-react';
+import { User, Folder, Search, Plus, ArrowLeft, ChevronRight, Pencil, Archive, X, Check, ChevronLeft, ChevronDown } from 'lucide-react';
 
 // Define the fields for each information section and their display properties
 const fieldDefinitions = {
@@ -485,6 +487,10 @@ function StudentRecords() {
     const [selectedYearLevel, setSelectedYearLevel] = useState('none');
     const [selectedProgram, setSelectedProgram] = useState('none');
 
+    const [showBulkModal, setShowBulkModal] = useState(false);
+    const [showPhotoToTextModal, setShowPhotoToTextModal] = useState(false);
+
+
     /* NEW: Add Student form state */
     const [newStudentForm, setNewStudentForm] = useState({
         firstName: "", middleName: "", lastName: "", studentNumber: "",
@@ -502,6 +508,15 @@ function StudentRecords() {
             setNewStudentForm((prev) => ({ ...prev, [name]: value }));
         }
     };
+
+    const [addMode, setAddMode] = useState('individual');
+    const [showDropdown, setShowDropdown] = useState(false); // NEW: for custom dropdown
+
+    const addOptions = [
+        { value: 'individual', label: 'Individual' },
+        { value: 'photo', label: 'Photo-to-Text' },
+        { value: 'bulk', label: 'Bulk' },
+    ];
 
     /* ---------------- API Calls ---------------- */
 
@@ -561,6 +576,13 @@ function StudentRecords() {
             console.error(err);
             alert('Error adding student.');
         }
+    
+    };
+
+    const handleAddStudentButtonClick = () => {
+        if (addMode === 'individual') setShowAddStudentModal(true);
+        else if (addMode === 'bulk') setShowBulkModal(true);
+        else if (addMode === 'photo') setShowPhotoToTextModal(true);
     };
 
     const handleArchiveStudent = async () => {
@@ -676,10 +698,9 @@ function StudentRecords() {
 
     return (
         <div className="flex bg-gray-100 min-h-screen">
-
             <div className={`w-96 bg-white border-r border-gray-200 shadow-lg flex flex-col`}>
-
                 <div className="p-4 border-b border-gray-200">
+
                     <div className="flex items-center space-x-2 mb-4">
                         <p className="text-3xl font-bold text-gray-800">Student List</p>
                     </div>
@@ -709,7 +730,7 @@ function StudentRecords() {
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 absolute right-3 top-7.5 -translate-y-1/2 text-gray-400">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
                         </svg>
                     </div>
@@ -748,15 +769,42 @@ function StudentRecords() {
                         </div>
                     </div>
 
-                    {authData?.user?.access?.studentRecords?.canEdit ? <button 
-                        className="w-full bg-[#0a1220] hover:bg-[#003d54] text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center transition duration-150 ease-in-out shadow-md hover:shadow-lg"
-                        onClick={() => setShowAddStudentModal(true)}
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 mr-2">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                        </svg>
-                        Add Student
-                    </button> : null}
+                    {authData?.user?.access?.studentRecords?.canEdit ? (
+                    <div className="flex space-x-2">
+                        {/* The main button that displays the selected mode */}
+                        <button
+                            className="flex-1 bg-[#0a1220] hover:bg-[#003d54] text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center transition duration-150 ease-in-out shadow-md hover:shadow-lg"
+                            onClick={handleAddStudentButtonClick}
+                        >
+                            {addMode === 'individual' && 'Add Student'}
+                            {addMode === 'bulk' && 'Bulk Add'}
+                            {addMode === 'photo' && 'Photo-to-Text'}
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 ml-2">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                            </svg>
+                        </button>
+
+                        {/* The dropdown, now visually a "button" */}
+                        <div className="relative">
+                            <select
+                                className="block px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#0a1220] focus:border-transparent transition duration-150 ease-in-out appearance-none bg-white pr-8 text-sm cursor-pointer"
+                                value={addMode}
+                                onChange={e => setAddMode(e.target.value)}
+                            >
+                                {/* The "visible" options */}
+                                <option value="individual">Individual</option>
+                                <option value="photo">Photo-to-Text</option>
+                                <option value="bulk">Bulk</option>
+                                {/* A hidden, empty option to make the dropdown "button" appear empty */}
+                                <option value="" disabled hidden></option>
+                            </select>
+                            {/* The dropdown icon */}
+                            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                                <img src={dropdown} alt="dropdownIcon" className="w-2.5 h-2.5 object-cover mr-2" />
+                            </div>
+                        </div>
+                    </div>
+                ) : null}
                 </div>
 
                 <div className="flex-1 overflow-y-auto pb-4">
@@ -788,7 +836,7 @@ function StudentRecords() {
                 </div>
             </div>
 
-
+            {/* Information List */}
             <div className={`flex-1 bg-white flex flex-col`}>
                 <Fragment>
                     <div className="p-4 border-b border-gray-200 flex items-center justify-between flex-wrap gap-2">
@@ -1130,6 +1178,63 @@ function StudentRecords() {
                                 <Check className="w-8 h-8 ml-2" />
                             </button>
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Bulk Add Modal */}
+            {showBulkModal && (
+                <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-lg">
+                        <div className="flex justify-between items-center border-b pb-3 mb-4">
+                            <h3 className="text-2xl font-bold text-gray-800">Bulk Add Students</h3>
+                            <button
+                                className="p-2 rounded-lg hover:bg-gray-200 cursor-pointer"
+                                onClick={() => setShowBulkModal(false)}
+                            >
+                                <img src={closeB} alt="closeIcon" className="w-5 h-5 object-cover" />
+                            </button>
+                        </div>
+                        {/* Drop Excel file UI */}
+                        <div className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-8 mb-4">
+                            <p className="text-gray-700 mb-2">Drop your Excel file here or click to select</p>
+                            <input type="file" accept=".xlsx,.xls" className="hidden" id="bulkExcelInput" />
+                            <label htmlFor="bulkExcelInput" className="cursor-pointer bg-blue-100 hover:bg-blue-200 text-blue-800 px-4 py-2 rounded-lg">
+                                Select File
+                            </label>
+                        </div>
+                        {/* Status bar placeholder */}
+                        <div className="w-full bg-gray-200 rounded-full h-4 mb-4">
+                            <div className="bg-blue-600 h-4 rounded-full" style={{ width: '0%' }}></div>
+                        </div>
+                        <p className="text-gray-500 text-center">Waiting for file...</p>
+                        {/* You can add logic for processing and summary here */}
+                    </div>
+                </div>
+            )}
+
+            {/* Photo-to-Text Modal */}
+            {showPhotoToTextModal && (
+                <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md">
+                        <div className="flex justify-between items-center border-b pb-3 mb-4">
+                            <h3 className="text-2xl font-bold text-gray-800">Photo-to-Text (OCR)</h3>
+                            <button
+                                className="p-2 rounded-lg hover:bg-gray-200 cursor-pointer"
+                                onClick={() => setShowPhotoToTextModal(false)}
+                            >
+                                <img src={closeB} alt="closeIcon" className="w-5 h-5 object-cover" />
+                            </button>
+                        </div>
+                        <div className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-8 mb-4">
+                            <p className="text-gray-700 mb-2">Upload a JPEG or PNG image</p>
+                            <input type="file" accept="image/jpeg,image/png" className="hidden" id="photoToTextInput" />
+                            <label htmlFor="photoToTextInput" className="cursor-pointer bg-blue-100 hover:bg-blue-200 text-blue-800 px-4 py-2 rounded-lg">
+                                Select Image
+                            </label>
+                        </div>
+                        <p className="text-gray-500 text-center">After upload, you will be redirected to the add student form with prefilled fields.</p>
+                        {/* Add logic for OCR and redirect here */}
                     </div>
                 </div>
             )}

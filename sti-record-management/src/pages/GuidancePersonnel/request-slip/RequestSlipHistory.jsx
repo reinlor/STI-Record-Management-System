@@ -41,7 +41,7 @@ function requestSlipHistory() {
     const displayRequestSlipForm = () => {
       return (
         selectedSlip && (
-          <div className="fixed inset-0 flex items-center justify-center z-50 ">
+          <div className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-sm ">
             <div className="bg-white w-full max-w-2xl rounded-lg shadow-lg p-6 relative overflow-y-auto max-h-[90vh] outline-solid outline-2 outline-gray-300">
 
             <div className='flex items-center '>
