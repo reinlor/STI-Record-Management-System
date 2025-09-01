@@ -47,6 +47,30 @@ import TeacherHomepage from './pages/Teacher/TeacherHomepage.jsx';
 import PageNotFound from './pages/Others/PageNotFound.jsx';
 import UnauthorizeAccess from './pages/Others/UnauthorizeAccess.jsx';
 
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  ArcElement,
+  Title,
+  Tooltip,
+  Legend,
+} from "chart.js";
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  ArcElement,
+  Title,
+  Tooltip,
+  Legend
+);
+
+
 // What the helly yow bat di to naka define       -renlor (genuine question)
 import './app.css'  // <- originally nakatangal   -renlor
 import AuthProvider from './AuthProvider.jsx';
