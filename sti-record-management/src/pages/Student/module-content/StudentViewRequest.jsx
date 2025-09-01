@@ -1,8 +1,9 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useContext } from "react";
 import axios from "axios";
 import ViewRequestModal from "./ViewRequestModal";
 import { getStatusClasses } from "../components/statusClasses";
 import { CircleCheck, Search, ChevronUp, ChevronDown } from "lucide-react";
+import { AuthContext } from "../../../AuthProvider.jsx";
 
 export default function StudentViewRequest({ isLoading = false }) {
   const [search, setSearch] = useState("");
@@ -10,11 +11,14 @@ export default function StudentViewRequest({ isLoading = false }) {
   const [requestData, setRequestData] = useState([]);
   const [sortColumn, setSortColumn] = useState(null);
   const [sortDirection, setSortDirection] = useState("asc");
+  const { authData, logout } = useContext(AuthContext);
 
   useEffect(() => {
+
     const fetchData = async () => {
+      if (!authData || !authData.user?.uid) return;
       try {
-        const res = await axios.get("/slip/allSlips/02000288488");
+        const res = await axios.get(`/slip/allSlips/${authData.user.uid}`);
         setRequestData(res.data);
       } catch (error) {
         console.error("Error fetching data:", error);

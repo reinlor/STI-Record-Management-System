@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { createRoot } from "react-dom/client";
 import axios from "axios";
 import {
@@ -11,16 +11,19 @@ import {
   CalendarDays,
   CircleCheck,
 } from "lucide-react";
+import { AuthContext } from "../../../AuthProvider.jsx";
 
 export default function StudentRequestSlip() {
   // State to manage the active slip type (tab)
   const [activeSlip, setActiveSlip] = useState("Absent");
   const [student, setStudentData] = useState(null);
+  const { authData, logout } = useContext(AuthContext);
 
   useEffect(() => {
+    if (!authData || !authData.user?.uid) return;
     const fetchStudentData = async () => {
       try {
-        const res = await axios.get(`/student/get/02000288488`);
+        const res = await axios.get(`/student/get/${authData.user.uid}`);
         setStudentData(res.data);
         setFormData((prev) => ({
           ...prev,
@@ -35,7 +38,7 @@ export default function StudentRequestSlip() {
       }
     };
     fetchStudentData();
-  }, []);
+  }, [authData]);
 
   // State to hold form data. Attachments is now an array of objects to allow for individual removal.
   const [formData, setFormData] = useState({
@@ -86,62 +89,62 @@ export default function StudentRequestSlip() {
 
   // Handle form submission
   const handleSubmit = async (e) => {
-      e.preventDefault();
-  
-      const form = new FormData();
-      form.append("name", formData.name);
-      form.append("sid", formData.sid);
-      form.append("section", formData.section);
-      form.append("program", formData.program);
-      form.append("email", formData.email);
-      form.append("reason", formData.reason);
-  
-      if (activeSlip === "Absent") {
-          form.append("typeOfSlip", "Absent Slip");
-          form.append("dateAbsentEnd", formData.dateAbsentEnd);
-          form.append("dateAbsent", formData.dateAbsent);
-      } else if (activeSlip === "Late") {
-          form.append("typeOfSlip", "Late Slip");
-      } else if (activeSlip === "ID Pass") {
-          form.append("typeOfSlip", "ID Slip");
-      } else if (activeSlip === "Uniform Pass") {
-          form.append("typeOfSlip", "Uniform Pass");
-      }
-  
-      // Attach files (up to 3)
-      formData.attachments.forEach((item) => {
-          form.append("attachments", item.file);
+    e.preventDefault();
+
+    const form = new FormData();
+    form.append("name", formData.name);
+    form.append("sid", formData.sid);
+    form.append("section", formData.section);
+    form.append("program", formData.program);
+    form.append("email", formData.email);
+    form.append("reason", formData.reason);
+
+    if (activeSlip === "Absent") {
+      form.append("typeOfSlip", "Absent Slip");
+      form.append("dateAbsentEnd", formData.dateAbsentEnd);
+      form.append("dateAbsent", formData.dateAbsent);
+    } else if (activeSlip === "Late") {
+      form.append("typeOfSlip", "Late Slip");
+    } else if (activeSlip === "ID Pass") {
+      form.append("typeOfSlip", "ID Slip");
+    } else if (activeSlip === "Uniform Pass") {
+      form.append("typeOfSlip", "Uniform Pass");
+    }
+
+    // Attach files (up to 3)
+    formData.attachments.forEach((item) => {
+      form.append("attachments", item.file);
+    });
+
+    // Choose endpoint based on slip type
+    let endpoint = "";
+    if (activeSlip === "Absent") endpoint = "/slip/absentSlip/add";
+    else if (activeSlip === "Late") endpoint = "/slip/lateSlip/add";
+    else if (activeSlip === "ID Pass") endpoint = "/slip/IDPass/add";
+    else if (activeSlip === "Uniform Pass") endpoint = "/slip/uniformSlip/add";
+
+    try {
+      await axios.post(endpoint, form, {
+        headers: { "Content-Type": "multipart/form-data" },
       });
-  
-      // Choose endpoint based on slip type
-      let endpoint = "";
-      if (activeSlip === "Absent") endpoint = "/slip/absentSlip/add";
-      else if (activeSlip === "Late") endpoint = "/slip/lateSlip/add";
-      else if (activeSlip === "ID Pass") endpoint = "/slip/IDPass/add";
-      else if (activeSlip === "Uniform Pass") endpoint = "/slip/uniformSlip/add";
-  
-      try {
-          await axios.post(endpoint, form, {
-              headers: { "Content-Type": "multipart/form-data" },
-          });
-          alert("Slip submitted successfully!");
-          setFormData((prev) => ({
-              ...prev,
-              reason: "",
-              dateAbsent: "",
-              dateAbsentEnd: "",
-              attachments: [],
-          }));
-      } catch (error) {
-          console.error(error);
-          alert(
-              error.response?.data?.error ||
-              error.message ||
-              "Failed to submit slip. Please try again."
-          );
-      }
+      alert("Slip submitted successfully!");
+      setFormData((prev) => ({
+        ...prev,
+        reason: "",
+        dateAbsent: "",
+        dateAbsentEnd: "",
+        attachments: [],
+      }));
+    } catch (error) {
+      console.error(error);
+      alert(
+        error.response?.data?.error ||
+          error.message ||
+          "Failed to submit slip. Please try again."
+      );
+    }
   };
-  
+
   // Tab data for rendering
   const slipTypes = [
     { id: "Absent", label: "Absent Slip", icon: FileText },
@@ -367,7 +370,8 @@ export default function StudentRequestSlip() {
             {activeSlip === "Absent" && (
               <div className="mb-4 text-gray-700">
                 <p className="text-sm font-medium mb-2">
-                  Please attach the following documents (make sure to upload them in order as listed below):
+                  Please attach the following documents (make sure to upload
+                  them in order as listed below):
                 </p>
                 <ul className="list-disc list-inside text-gray-600 text-sm space-y-1">
                   <li>Excuse letter (if 1-2 days absent only)</li>
