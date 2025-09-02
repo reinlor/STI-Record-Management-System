@@ -5,6 +5,7 @@ import { ToastContainer, toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { AuthContext } from "../AuthProvider.jsx";
+import { Eye, EyeOff } from 'lucide-react';
 
 function LoginBeta() {
     const [schoolId, setSchoolId] = useState("");
@@ -13,7 +14,8 @@ function LoginBeta() {
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
-    // Use the context to get the login function
+    const [showPassword, setShowPassword] = useState(false);
+
     const { login } = useContext(AuthContext);
 
     const handleLogin = async (e) => {
@@ -22,22 +24,20 @@ function LoginBeta() {
         setLoading(true);
 
         try {
-            // Firebase login
             const userCredential = await signInWithEmailAndPassword(auth, schoolId, password);
             const user = userCredential.user;
             const idToken = await user.getIdToken();
 
-            // Axios request to backend
             const response = await axios.post(
                 "/user/authenticate", {
-                idToken
-            }, {
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${idToken}`,
-                },
-                withCredentials: true,
-            }
+                    idToken
+                }, {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${idToken}`,
+                    },
+                    withCredentials: true,
+                }
             );
 
             const {
@@ -54,10 +54,8 @@ function LoginBeta() {
             setLoading(false);
             toast.success("Welcome!");
 
-            // Update the global state with the user data, role, and displayName
             login(userData, userRole, userDisplayName);
 
-            // Redirect by role
             if (userRole === "Admin" || userRole === "Disciplinary" || userRole === "Super Admin") {
                 navigate("/guidance");
             } else if (userRole === "Teacher") {
@@ -71,13 +69,15 @@ function LoginBeta() {
             setLoading(false);
             console.error("Login Error:", error);
             if (error.response) {
-                // Error from backend
                 setErrorMsg(error.response.data.error || "Authentication failed.");
             } else {
-                // Network or other error
                 setErrorMsg("The email or password might be incorrect");
             }
         }
+    };
+
+    const togglePasswordVisibility = () => {
+        setShowPassword(!showPassword);
     };
 
     return (
@@ -107,14 +107,24 @@ function LoginBeta() {
                         </div>
                         <div className="w-full mb-7">
                             <label className="block text-sm font-medium mb-2 text-gray-600">Password</label>
-                            <input
-                                type="password"
-                                placeholder="••••••••"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                className="w-full px-5 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0172B9] focus:border-[#0172B9] transition-all duration-300 ease-in-out text-gray-700"
-                                required
-                            />
+                            <div className="relative">
+                                <input
+                                    type={showPassword ? "text" : "password"}
+                                    placeholder="••••••••"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    className="w-full px-5 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0172B9] focus:border-[#0172B9] transition-all duration-300 ease-in-out text-gray-700 pr-12"
+                                    required
+                                />
+                                <button
+                                    type="button"
+                                    onClick={togglePasswordVisibility}
+                                    // Adjusted classes for better vertical alignment
+                                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700 focus:outline-none"
+                                >
+                                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                </button>
+                            </div>
                         </div>
                         <button
                             className="w-full py-3 bg-[#0172B9] text-white font-semibold rounded-xl hover:bg-[#00426b] focus:outline-none focus:ring-2 focus:ring-[#FFFC6C] transition-all duration-300 ease-in-out transform hover:scale-105"
