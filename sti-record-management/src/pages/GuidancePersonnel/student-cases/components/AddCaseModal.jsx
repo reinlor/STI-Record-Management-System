@@ -1,0 +1,100 @@
+import React from 'react';
+import { X, Check } from 'lucide-react';
+import upload from '../../../../assets/upload.png';
+
+const AddCaseModal = ({ visible, onClose, newCaseForm, onChange, onSave }) => {
+    if (!visible) return null;
+
+    return (
+        <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto custom-scrollbar">
+                <div className="flex justify-between items-center border-b pb-3 mb-4">
+                    <h3 className="text-2xl font-bold text-gray-800">Add New Case</h3>
+                    <button className="p-2 rounded-full hover:bg-gray-200 cursor-pointer" onClick={onClose}>
+                        <X className="w-6 h-6 text-gray-600" />
+                    </button>
+                </div>
+
+                <form className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+                    <div className="space-y-4">
+                        <div>
+                            <label htmlFor="studentName" className="block text-sm font-medium text-gray-700">Student Name:</label>
+                            <input type="text" id="studentName" name="studentName" value={newCaseForm.studentName} onChange={onChange} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
+                        </div>
+                        <div>
+                            <label htmlFor="studentId" className="block text-sm font-medium text-gray-700">Student ID:</label>
+                            <input type="text" id="studentId" name="studentId" value={newCaseForm.studentId} onChange={onChange} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
+                        </div>
+                        <div>
+                            <label htmlFor="dateOfInitiation" className="block text-sm font-medium text-gray-700">Date of Initiation:</label>
+                            <input type="date" id="dateOfInitiation" name="dateOfInitiation" value={newCaseForm.dateOfInitiation} onChange={onChange} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
+                        </div>
+                        <div>
+                            <label htmlFor="timeOfInitiation" className="block text-sm font-medium text-gray-700">Time of Initiation:</label>
+                            <input type="time" id="timeOfInitiation" name="timeOfInitiation" value={newCaseForm.timeOfInitiation} onChange={onChange} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+                        </div>
+                        <div>
+                            <label htmlFor="counselingTypeCategory" className="block text-sm font-medium text-gray-700">Counseling Type/Category:</label>
+                            <input type="text" id="counselingTypeCategory" name="counselingTypeCategory" value={newCaseForm.counselingTypeCategory} onChange={onChange} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+                        </div>
+                        <div>
+                            <label htmlFor="detailedDescription" className="block text-sm font-medium text-gray-700">Detailed Description:</label>
+                            <textarea id="detailedDescription" name="detailedDescription" value={newCaseForm.detailedDescription} onChange={onChange} rows="3" className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 resize-y"></textarea>
+                        </div>
+                        <div>
+                            <label htmlFor="proofDescription" className="block text-sm font-medium text-gray-700">Proof Description:</label>
+                            <textarea id="proofDescription" name="proofDescription" value={newCaseForm.proofDescription} onChange={onChange} rows="2" className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-y"></textarea>
+                        </div>
+                    </div>
+
+                    <div className="space-y-4">
+                        <div>
+                            <label htmlFor="actions" className="block text-sm font-medium text-gray-700">Actions Taken:</label>
+                            <textarea id="actions" name="actions" value={newCaseForm.actions} onChange={onChange} rows="3" className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 resize-y"></textarea>
+                        </div>
+                        <div>
+                            <label htmlFor="dateOfAction" className="block text-sm font-medium text-gray-700">Date of Action:</label>
+                            <input type="date" id="dateOfAction" name="dateOfAction" value={newCaseForm.dateOfAction} onChange={onChange} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+                        </div>
+                        <div>
+                            <label htmlFor="caseStatus" className="block text-sm font-medium text-gray-700">Case Status:</label>
+                            <select id="caseStatus" name="caseStatus" value={newCaseForm.caseStatus} onChange={onChange} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer">
+                                <option value="On-going">On-going</option>
+                                <option value="Resolved">Resolved</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label htmlFor="counselorNotes" className="block text-sm font-medium text-gray-700">Counselor's Notes:</label>
+                            <textarea id="counselorNotes" name="counselorNotes" value={newCaseForm.counselorNotes} onChange={onChange} rows="3" className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-y"></textarea>
+                        </div>
+                        <div>
+                            <label htmlFor="proofImage" className="block text-sm font-medium text-gray-700">Proof Image:</label>
+                            <div className="mt-1 flex justify-center items-center w-full h-40 border-2 border-gray-300 border-dashed rounded-md cursor-pointer relative group">
+                                {newCaseForm.proofImage ? (
+                                    <img src={URL.createObjectURL(newCaseForm.proofImage)} alt="Proof Preview" className="max-h-full max-w-full object-contain rounded-md" />
+                                ) : (
+                                    <img src={upload} alt="uploadIcon" className="w-10 h-10 object-cover" />
+                                )}
+                                <input id="proofImage" name="proofImage" type="file" accept="image/*" onChange={onChange} className="absolute inset-0 opacity-0 cursor-pointer" />
+                                <span className="absolute bottom-2 text-xs text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity">Upload Image</span>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+
+                <div className="mt-6 flex justify-end space-x-4">
+                    <button className="bg-red-500 hover:bg-red-400 text-white font-bold py-2 px-5 rounded-lg flex items-center transition duration-150 ease-in-out cursor-pointer" onClick={onClose}>
+                        Cancel
+                        <X className="w-8 h-8 ml-2" />
+                    </button>
+                    <button className="bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-4 rounded-lg flex items-center transition duration-150 ease-in-out cursor-pointer" onClick={onSave}>
+                        Add Case
+                        <Check className="w-8 h-8 ml-2" />
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default AddCaseModal;

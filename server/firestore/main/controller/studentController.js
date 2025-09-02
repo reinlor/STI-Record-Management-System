@@ -1,34 +1,36 @@
 const { getStudentCollection } = require("../models/studentModel.js");
+const { getUserCollection } = require("../models/userModel.js");
+const admin = require("firebase-admin");
 const Joi = require("joi");
 
 // Student Schema
-// Student Schema
 const studentSchema = Joi.object({
   sid: Joi.string().required(),
+  isArchived: Joi.boolean().required().default(false),
 
   studentProfile: Joi.object({
     name: Joi.string().required(),
-    nickname: Joi.string().required(),
+    nickname: Joi.string().optional(),
     section: Joi.string().required(),
     academicLevel: Joi.string().required(),
     age: Joi.number().required(),
-    nationality: Joi.string().required(),
+    nationality: Joi.string().optional(),
     gender: Joi.string().required(),
-    status: Joi.string().required(),
-    birthPlace: Joi.string().required(),
+    status: Joi.string().optional(),
+    birthPlace: Joi.string().optional(),
     birthday: Joi.string().required(),
-    religion: Joi.string().required(),
+    religion: Joi.string().optional(),
     program: Joi.string().required()
   }).required(),
 
   contactInfo: Joi.object({
     email: Joi.string().email().required(),
-    contactNo: Joi.string().pattern(new RegExp('^[a-zA-Z0-9]{3,30}$')).empty(''),
-    homeNo: Joi.string().required(),
-    workNo: Joi.string().required(),
+    contactNo: Joi.string().pattern(new RegExp('^[a-zA-Z0-9]{3,30}$')).empty('').required(),
+    homeNo: Joi.string().empty('').optional(),
+    workNo: Joi.string().empty('').optional(),
     address: Joi.object({
-      permanentAddress: Joi.string().required(),
-      currentAddress: Joi.string().required(),
+      permanentAddress: Joi.string().empty('').optional(),
+      currentAddress: Joi.string().empty('').required(),
       provincialAddress: Joi.string().empty('').optional()
     }).required()
   }).required(),
@@ -70,7 +72,7 @@ const studentSchema = Joi.object({
     statusOfParent: Joi.string().empty('').optional(),
     siblings: Joi.array().items(Joi.any()).optional(),
     birthOrder: Joi.string().empty('').optional(),
-    
+
     emergency: Joi.object({
       name: Joi.string().empty('').optional(),
       contactNo: Joi.string().empty('').optional()
@@ -78,7 +80,7 @@ const studentSchema = Joi.object({
   }).empty({}).optional(),
 
   educationalBackground: Joi.object({
-    dateEnrolled: Joi.date().empty('').optional(),
+    // dateEnrolled: Joi.date().empty('').optional(),
     seniorHighSchool: Joi.object({
       schoolName: Joi.string().empty('').optional(),
       dateEnrolled: Joi.string().empty('').optional()
@@ -136,6 +138,7 @@ const studentSchema = Joi.object({
 
 const updateSchema = Joi.object({
   sid: Joi.string().empty('').optional(),
+  isArchived: Joi.boolean().optional(),
 
   studentProfile: Joi.object({
     name: Joi.string().empty('').optional(),
@@ -148,7 +151,8 @@ const updateSchema = Joi.object({
     status: Joi.string().empty('').optional(),
     birthPlace: Joi.string().empty('').optional(),
     birthday: Joi.string().empty('').optional(),
-    religion: Joi.string().empty('').optional()
+    religion: Joi.string().empty('').optional(),
+    program: Joi.string().empty('').optional()
   }).empty({}).optional(),
 
   contactInfo: Joi.object({
@@ -204,7 +208,7 @@ const updateSchema = Joi.object({
   }).empty({}).optional(),
 
   educationalBackground: Joi.object({
-    dateEnrolled: Joi.date().empty('').optional(),
+    // dateEnrolled: Joi.date().empty('').optional(),
     seniorHighSchool: Joi.object({
       schoolName: Joi.string().empty('').optional(),
       dateEnrolled: Joi.string().empty('').optional()
@@ -260,24 +264,84 @@ const updateSchema = Joi.object({
   }).empty({}).optional()
 });
 
+// Controller Function to retrieve active student data
+const getActiveStudent = async (req, res) => {
+  try {
+    const snapshot = await getStudentCollection()
+      .where("isArchived", "==", false)
+      .get();
+
+    const student = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+
+    res.status(200).send(student);
+  } catch (error) {
+    res.status(404).send({ error: `Failed to retrieve active student records.` });
+  }
+};
+
+const getArchivedStudent = async (req, res) => {
+  try {
+    const snapshot = await getStudentCollection()
+      .where("isArchived", "==", true)
+      .get();
+
+    const student = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+
+    res.status(200).send(student);
+  } catch (error) {
+    res.status(404).send({ error: `Failed to retrieve archived student records.` });
+  }
+};
+
 // Controller Function for adding student data
 const addStudent = async (req, res) => {
   try {
-    studentSchema.validate(req.body);
-
+    // Validate student body
     const { error, value: newStudent } = studentSchema.validate(req.body);
     if (error) {
       return res.status(400).json({ error: error.details[0].message });
     }
+
     const sid = newStudent.sid;
+
+    // 1️⃣ Save student record in Firestore
     await getStudentCollection().doc(sid).set(newStudent);
 
+    // 2️⃣ Create Firebase Auth user (password = "student1234")
+    const userRecord = await admin.auth().createUser({
+      uid: sid, // use sid as UID
+      email: newStudent.contactInfo.email,
+      password: "student1234",
+      displayName: newStudent.studentProfile.name,
+    });
+
+    // 3️⃣ Save user record in Firestore users collection
+    await getUserCollection().doc(userRecord.uid).set({
+      uid: userRecord.uid,
+      displayName: newStudent.studentProfile.name,
+      email: newStudent.contactInfo.email,
+      role: "student",
+    });
+
     res.status(201).json({
-      message: "Student registered successfully",
-      id: sid,
+      message: "Student and User created successfully",
+      sid: sid,
+      uid: userRecord.uid,
     });
   } catch (error) {
     console.error("Registration error:", error);
+
+    // rollback student if user creation fails
+    if (req.body?.sid) {
+      await getStudentCollection().doc(req.body.sid).delete().catch(() => {});
+    }
+
     res.status(500).json({ error: error.message });
   }
 };
@@ -346,6 +410,47 @@ const updateStudent = async (req, res) => {
   }
 };
 
-// Controller Function for archiving student data (Wala pa)
+// Controller Function for archiving student data
+const archiveStudent = async (req, res) => {
+  try {
+    const { sid } = req.params;
+    const studentRef = getStudentCollection().doc(sid);
 
-module.exports = { addStudent, getStudents, updateStudent, getStudent };
+    const doc = await studentRef.get();
+    if (!doc.exists) {
+      return res.status(404).json({ error: "Student not found" });
+    }
+    await studentRef.update({ isArchived: true });
+
+    res.status(200).json({
+      message: "Student archived successfully",
+      id: sid,
+    });
+  } catch (error) {
+    console.error("Archive error:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const restoreStudent = async (req, res) => {
+  try {
+    const { sid } = req.params;
+    const studentRef = getStudentCollection().doc(sid);
+
+    const doc = await studentRef.get();
+    if (!doc.exists) {
+      return res.status(404).json({ error: "Student not found" });
+    }
+    await studentRef.update({ isArchived: false });
+
+    res.status(200).json({
+      message: "Student archived successfully",
+      id: sid,
+    });
+  } catch (error) {
+    console.error("Archive error:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+module.exports = { addStudent, getStudents, updateStudent, getStudent, getActiveStudent, getArchivedStudent, archiveStudent, restoreStudent };
