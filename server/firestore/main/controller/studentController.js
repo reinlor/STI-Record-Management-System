@@ -17,7 +17,8 @@ const studentSchema = Joi.object({
     status: Joi.string().required(),
     birthPlace: Joi.string().required(),
     birthday: Joi.string().required(),
-    religion: Joi.string().required()
+    religion: Joi.string().required(),
+    program: Joi.string().required()
   }).required(),
 
   contactInfo: Joi.object({
