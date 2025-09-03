@@ -1,6 +1,7 @@
 import React from 'react';
 import { X, Check } from 'lucide-react';
 import upload from '../../../../assets/upload.png';
+import { useState } from 'react';
 
 const AddCaseModal = ({ visible, onClose, newCaseForm, onChange, onSave }) => {
     if (!visible) return null;
