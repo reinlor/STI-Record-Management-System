@@ -1,23 +1,25 @@
 const { getViolationsCollection } = require("../models/studentCasesModel");
 const { getChartDataCollection } = require("../models/chartDataModel");
-const Joi = require('joi');
-const { FieldValue, Firestore } = require('firebase-admin/firestore');
+const Joi = require("joi");
+const { FieldValue, Firestore } = require("firebase-admin/firestore");
+const cloudinary = require("../../../config/cloudinary.js");
+const fs = require("fs");
 
 // Violation Schema
 const violationSchema = Joi.object({
-  sid: Joi.string().required().empty(''),
-  name: Joi.string().required().empty(''),
-  initiationDate: Joi.string().required().empty(''),
-  initialTime: Joi.string().required().empty(''),
-  counselingType: Joi.string().required().empty(''),
-  detailedDescription: Joi.string().required().empty(''),
-  proofDescription: Joi.string().required().empty(''),
-  actionTaken: Joi.string().required().empty(''),
-  dateOfAction: Joi.string().required().empty(''),
-  status: Joi.string().required().empty(''),
-  notes: Joi.string().required().empty(''),
-  proofUrl: Joi.string().optional().empty(''),
-})
+  sid: Joi.string().required().empty(""),
+  name: Joi.string().required().empty(""),
+  initiationDate: Joi.string().required().empty(""),
+  initialTime: Joi.string().required().empty(""),
+  counselingType: Joi.string().required().empty(""),
+  detailedDescription: Joi.string().required().empty(""),
+  proofDescription: Joi.string().required().empty(""),
+  actionTaken: Joi.string().required().empty(""),
+  dateOfAction: Joi.string().required().empty(""),
+  status: Joi.string().required().empty(""),
+  notes: Joi.string().required().empty(""),
+  proofUrl: Joi.string().optional().empty(""),
+});
 const updateSchema = Joi.object({
   sid: Joi.string().optional(),
   name: Joi.string().optional(),
@@ -31,7 +33,7 @@ const updateSchema = Joi.object({
   status: Joi.string().optional(),
   notes: Joi.string().optional(),
   proofUrl: Joi.string().optional(),
-})
+});
 
 // Controller function to retrieve all violation
 const getAllViolations = async (req, res) => {
@@ -80,9 +82,32 @@ const getViolations = async (req, res) => {
 // Controller Function to add violation
 const addViolation = async (req, res) => {
   try {
-    const { error, value: newViolation } = violationSchema.validate(req.body);
+    let uploadedPublicId = "";
+    let proofUrl = "";
+    if (req.file) {
+      console.log("Uploading file to Cloudinary...");
+      const result = await cloudinary.uploader.upload(req.file.path, {
+        folder: "student-case-proof",
+      });
+      proofUrl = result.secure_url;
+      uploadedPublicId = result.public_id;
+      console.log("Cloudinary upload result:", result);
+      fs.unlinkSync(req.file.path);
+    }
+
+    const violation = {
+      ...req.body,
+      proofUrl: proofUrl,
+    }
+
+    console.log("Validating body:", req.body);
+    const { error, value: newViolation } = violationSchema.validate(violation);
 
     if (error) {
+      if (uploadedPublicId) {
+        await cloudinary.uploader.destroy(uploadedPublicId);
+      }
+      console.log("Validation error:", error.details[0].message);
       return res.status(400).json({ error: error.details[0].message });
     }
 
@@ -97,35 +122,38 @@ const addViolation = async (req, res) => {
     const chartData = {
       sid: sid,
       type: reason,
-      date: new Date().toISOString() // <--- The correct way to get a timestamp for an array
+      date: new Date().toISOString(), // <--- The correct way to get a timestamp for an array
     };
-    
-    const studentCaseRef = getChartDataCollection().doc('studentCase');
+
+    const studentCaseRef = getChartDataCollection().doc("studentCase");
     const docSnapshot = await studentCaseRef.get();
 
     const violationData = {
       ...newViolation,
-      date: serverTimestamp
+      date: serverTimestamp,
     };
 
     if (!docSnapshot.exists) {
       await studentCaseRef.set({
-        data: [chartData]
+        data: [chartData],
       });
     } else {
       await studentCaseRef.update({
-        data: FieldValue.arrayUnion(chartData)
+        data: FieldValue.arrayUnion(chartData),
       });
     }
 
     await getViolationsCollection().doc().set(violationData);
 
     res.status(201).json({
-      message: `Added a new violation for Student: ${sid}`
+      message: `Added a new violation for Student: ${sid}`,
+      proofUrl: proofUrl || "",
     });
   } catch (error) {
     console.error("Error adding violation:", error);
-    res.status(500).send({ error: `Failed to add a violation for User: ${req.body?.sid || 'N/A'}` });
+    res.status(500).send({
+      error: `Failed to add a violation for User: ${req.body?.sid || "N/A"}`,
+    });
   }
 };
 
@@ -154,7 +182,7 @@ const updateViolation = async (req, res) => {
     await violationRef.set(validatedUpdates, { merge: true });
 
     res.status(201).json({
-      message: `Violation updated successfully!`
+      message: `Violation updated successfully!`,
     });
   } catch (error) {
     return res.status(400).send({ error: `Violation update failed.` });
