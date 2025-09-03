@@ -118,10 +118,10 @@ const AddStudentModal = ({ visible, onClose, newStudentForm, handleNewStudentFor
                                     <input type="radio" name="gender" value="Female" checked={newStudentForm.gender === 'Female'} onChange={handleNewStudentFormChange} className="form-radio text-blue-600 h-4 w-4" />
                                     <span className="ml-2 text-gray-700">Female</span>
                                 </label>
-                                <label className="inline-flex items-center">
+                                {/* <label className="inline-flex items-center">
                                     <input type="radio" name="gender" value="Others" checked={newStudentForm.gender === 'Others'} onChange={handleNewStudentFormChange} className="form-radio text-blue-600 h-4 w-4" />
                                     <span className="ml-2 text-gray-700">Others:</span>
-                                </label>
+                                </label> */}
                             </div>
                         </div>
                         <div>
