@@ -1,9 +1,13 @@
-import React, { useState, Fragment, useEffect, useContext } from 'react';
+import React, { useState, Fragment, useEffect, useContext, useRef } from 'react';
 import { AuthContext } from '../../../AuthProvider.jsx';
 import axios from 'axios';
 import { Navigate, useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+
+// Para sa interesection observers
+import { ChevronRight, ChevronLeft } from 'lucide-react';
+import { useInView } from 'react-intersection-observer';
 
 import studentIcon from '../../../assets/student.png';
 import dropdown from '../../../assets/dropdown.png';
@@ -25,6 +29,11 @@ import { normalizeForUI, updateRawField } from './components/StudentUtils.jsx';
 
 function StudentRecords() {
     const { authData, logout } = useContext(AuthContext);
+    // Para sa Intersection observers
+    const studentsListRef = useRef(null);
+    const itemRefs = useRef(new Map());
+    const observerRef = useRef(null);
+    const [visibleIds, setVisibleIds] = useState(new Set());
 
     const [students, setStudents] = useState([]);
     const [activeTab, setActiveTab] = useState('Enrolled');
@@ -43,6 +52,14 @@ function StudentRecords() {
 
     const [showBulkModal, setShowBulkModal] = useState(false);
     const [showPhotoToTextModal, setShowPhotoToTextModal] = useState(false);
+
+    const setRef = (element, id) => {
+        if (element) {
+            itemRefs.current.set(id, element);
+        } else {
+            itemRefs.current.delete(id);
+        }
+    };
 
     const initialNewStudentFormState = {
         fullName: "", studentNumber: "",
@@ -74,6 +91,7 @@ function StudentRecords() {
     }
 
     const [addMode, setAddMode] = useState('individual');
+
 
     // Fetch student data based on the active tab
     useEffect(() => {
@@ -263,6 +281,50 @@ function StudentRecords() {
         return <Navigate to="/error401" replace />
     }
 
+    useEffect(() => {
+        // Disconnect the old observer if it exists
+        if (observerRef.current) {
+            observerRef.current.disconnect();
+        }
+
+        // Create a new observer instance
+        const observer = new IntersectionObserver(
+            (entries) => {
+                setVisibleIds(prev => {
+                    const next = new Set(prev);
+                    entries.forEach(entry => {
+                        const id = entry.target.getAttribute('data-student-id');
+                        if (entry.isIntersecting) {
+                            next.add(id);
+                        } else {
+                            next.delete(id);
+                        }
+                    });
+                    return next;
+                });
+            },
+            {
+                root: studentsListRef.current, // Use the container as the root
+                rootMargin: '200px', // Start loading 200px before the item enters the view
+                threshold: 0.1,
+            }
+        );
+
+        observerRef.current = observer;
+
+        // Observe all the elements currently in the refs map
+        itemRefs.current.forEach(el => {
+            if (el) observer.observe(el);
+        });
+
+        // Cleanup function
+        return () => {
+            if (observerRef.current) {
+                observerRef.current.disconnect();
+            }
+        };
+    }, [filteredStudents]);
+
     return (
         <div className="flex bg-gray-100 min-h-screen">
             <ToastContainer
@@ -345,21 +407,34 @@ function StudentRecords() {
                     ) : null}
                 </div>
 
-                <div className="flex-1 overflow-y-auto pb-4">
+                <div ref={studentsListRef} className="flex-1 overflow-y-auto pb-4">
                     {filteredStudents.length > 0 ? (
                         filteredStudents.map((student) => {
                             const sid = student.sid ?? student.id ?? 'N/A';
                             const name = student.studentProfile?.name ?? student.name ?? sid;
+                            const isVisible = visibleIds.has(sid);
+
                             return (
-                                <div key={sid} className={`flex items-center justify-between p-4 border-b border-gray-200 cursor-pointer transition duration-150 ease-in-out ${selectedStudentId === sid ? 'bg-blue-100 border-l-4 border-blue-500' : 'hover:bg-gray-50'}`} onClick={() => setSelectedStudentId(sid)}>
-                                    <div className="flex items-center">
-                                        <img src={user} alt="User" className="w-5 h-5 object-cover mr-5" />
-                                        <div>
-                                            <p className="font-semibold text-gray-800">{name}</p>
-                                            <p className="text-sm text-gray-600">{sid}</p>
+                                <div
+                                    key={sid}
+                                    data-student-id={sid}
+                                    ref={(el) => setRef(el, sid)}
+                                    className={`flex items-center justify-between p-4 border-b border-gray-200 cursor-pointer transition duration-150 ease-in-out ${selectedStudentId === sid ? 'bg-blue-100 border-l-4 border-blue-500' : 'hover:bg-gray-50'}`}
+                                    onClick={() => setSelectedStudentId(sid)}
+                                >
+                                    {isVisible ? (
+                                        <div className="flex items-center">
+                                            <img src={user} alt="User" className="w-5 h-5 object-cover mr-5" />
+                                            <div>
+                                                <p className="font-semibold text-gray-800">{name}</p>
+                                                <p className="text-sm text-gray-600">{sid}</p>
+                                            </div>
+                                        </div>) : (
+                                        <div style={{ height: '50px', width: '100%' }}>
+
                                         </div>
-                                    </div>
-                                    <img src={next} alt="nextIcon" className="w-3 h-3 object-cover mr-2" />
+                                    )}
+                                    <ChevronRight className="w-5 h-5 text-[#0a1220]" />
                                 </div>
                             );
                         })

@@ -1,4 +1,4 @@
-import React, { useState, Fragment, useEffect } from "react";
+import React, { useState, Fragment, useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import axios from "axios";
 import {
@@ -21,6 +21,11 @@ import {
 } from "./components/CaseUtils.jsx";
 
 function StudentCases() {
+  const myRef = useRef();
+  const casesListRef = useRef(null);
+  const itemRefs = useRef(new Map());
+  const [visibleIds, setVisibleIds] = useState(new Set());
+
   const [cases, setCases] = useState([]);
   const [caseDetailsMap, setCaseDetailsMap] = useState({});
   const [activeTab, setActiveTab] = useState("On-going");
@@ -57,6 +62,37 @@ function StudentCases() {
   };
 
   useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        setVisibleIds((prev) => {
+          const next = new Set(prev);
+          entries.forEach((entry) => {
+            const id = entry.target.getAttribute("data-case-id");
+            if (!id) return;
+            if (entry.isIntersecting) {
+              next.add(id);
+            } else {
+              next.delete(id);
+            }
+          });
+          return next
+        })
+      },
+      {
+        root: casesListRef.current,
+        rootMargin: "200px",
+        threshold: 0.1
+      }
+    );
+
+    itemRefs.current.forEach((el) => {
+      if(el) observer.observe(el);
+    })
+
+    return () => observer.disconnect()
+  }, [cases, searchTerm, activeTab])
+
+  useEffect(() => {
     const fetchCases = async () => {
       try {
         const res = await axios.get("/cases");
@@ -82,6 +118,7 @@ function StudentCases() {
     };
 
     fetchCases();
+    console.log('My ref', myRef.current);
   }, []);
 
   useEffect(() => {
@@ -267,8 +304,8 @@ function StudentCases() {
     isEditing && editedCaseData
       ? editedCaseData
       : selectedCaseId
-      ? serverViolationToUIDetails(caseDetailsMap[selectedCaseId])
-      : null;
+        ? serverViolationToUIDetails(caseDetailsMap[selectedCaseId])
+        : null;
 
   return (
     <div className="flex bg-gray-100 min-h-screen">
@@ -282,21 +319,19 @@ function StudentCases() {
 
           <div className="flex justify-around bg-gray-200 p-1 rounded-lg mb-4">
             <button
-              className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out cursor-pointer hover:bg-[#003d54] ${
-                activeTab === "Resolved"
-                  ? "bg-[#0A1220] text-white shadow-sm hover:bg-[#003d54]"
-                  : "text-gray-700 hover:bg-gray-300"
-              }`}
+              className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out cursor-pointer hover:bg-[#003d54] ${activeTab === "Resolved"
+                ? "bg-[#0A1220] text-white shadow-sm hover:bg-[#003d54]"
+                : "text-gray-700 hover:bg-gray-300"
+                }`}
               onClick={() => setActiveTab("Resolved")}
             >
               Resolved
             </button>
             <button
-              className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out cursor-pointer ${
-                activeTab === "On-going"
-                  ? "bg-[#0A1220] text-white shadow-sm hover:bg-[#003d54]"
-                  : "text-gray-700 hover:bg-gray-300"
-              }`}
+              className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out cursor-pointer ${activeTab === "On-going"
+                ? "bg-[#0A1220] text-white shadow-sm hover:bg-[#003d54]"
+                : "text-gray-700 hover:bg-gray-300"
+                }`}
               onClick={() => setActiveTab("On-going")}
             >
               On-going
@@ -326,15 +361,22 @@ function StudentCases() {
           {filteredCases.length > 0 ? (
             filteredCases.map((aCase) => (
               <div
+                ref={(el) => {
+                  if (el) {
+                    itemRefs.current.set(aCase.id, el);
+                  } else {
+                    itemRefs.current.delete(aCase.id);
+                  }
+                }}
+                data-case-id={aCase.id}
                 key={aCase.id}
-                className={`flex items-center justify-between p-4 border-b border-gray-200 cursor-pointer transition duration-150 ease-in-out ${
-                  selectedCaseId === aCase.id
-                    ? "bg-blue-100 border-l-4 border-blue-500"
-                    : "hover:bg-gray-50"
-                }`}
+                className={`flex items-center justify-between p-4 border-b border-gray-200 cursor-pointer transition duration-150 ease-in-out ${selectedCaseId === aCase.id
+                  ? "bg-blue-100 border-l-4 border-blue-500"
+                  : "hover:bg-gray-50"
+                  }`}
                 onClick={() => setSelectedCaseId(aCase.id)}
               >
-                <div className="flex items-center">
+                {visibleIds.has(aCase.id) ? (<div className="flex items-center">
                   <img
                     src={user}
                     alt="User"
@@ -346,7 +388,7 @@ function StudentCases() {
                     </p>
                     <p className="text-sm text-gray-600">{aCase.studentId}</p>
                   </div>
-                </div>
+                </div>): null}
                 <ChevronRight className="w-5 h-5 text-[#0A1220]" />
               </div>
             ))
@@ -381,11 +423,10 @@ function StudentCases() {
             {selectedCaseId !== null ? (
               <div className="flex items-center space-x-2 sm:space-x-3 mt-2 sm:mt-0">
                 <button
-                  className={`px-3 sm:px-4 py-2 rounded-lg flex items-center transition duration-150 ease-in-out text-sm sm:text-base font-medium cursor-pointer ${
-                    isEditing
-                      ? "bg-gray-500 text-white shadow-md"
-                      : "bg-gray-800 hover:bg-gray-700 text-white shadow-md hover:shadow-lg"
-                  }`}
+                  className={`px-3 sm:px-4 py-2 rounded-lg flex items-center transition duration-150 ease-in-out text-sm sm:text-base font-medium cursor-pointer ${isEditing
+                    ? "bg-gray-500 text-white shadow-md"
+                    : "bg-gray-800 hover:bg-gray-700 text-white shadow-md hover:shadow-lg"
+                    }`}
                   onClick={() => {
                     if (isEditing) {
                       handleSaveEdits();
