@@ -37,7 +37,7 @@ export default function DisplayInfo({ data, onClose }) {
               "modal"
             )}`}
           >
-            <Info size={24} className="text-yellow-500" />
+            <Info size={24} />
             <span>Status: {data.status || "N/A"}</span>
           </div>
         </div>
@@ -49,8 +49,8 @@ export default function DisplayInfo({ data, onClose }) {
             {/* Referral Information Card */}
             <div className="bg-gray-50 p-6 rounded-2xl border border-gray-200 shadow-lg">
               <div className="flex items-center text-yellow-700 mb-4">
-                <Info size={24} className="mr-3 text-yellow-500" />
-                <h3 className="font-bold text-xl">Referral Info</h3>
+                <Info size={24} className="mr-3 text-gray-700" />
+                <h3 className="font-bold text-gray-700 text-xl">Referral Info</h3>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 text-sm text-gray-700">
                 {renderField("School Year", data.schoolYear)}
@@ -65,8 +65,8 @@ export default function DisplayInfo({ data, onClose }) {
             {/* Student Information Card */}
             <div className="bg-gray-50 p-6 rounded-2xl border border-gray-200 shadow-lg">
               <div className="flex items-center text-yellow-700 mb-4">
-                <User size={24} className="mr-3 text-yellow-500" />
-                <h3 className="font-bold text-xl">Student Information</h3>
+                <User size={24} className="mr-3 text-gray-700" />
+                <h3 className="font-bold text-gray-700 text-xl">Student Information</h3>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 text-sm text-gray-700">
                 {renderField("Student Name", data.studentName)}
@@ -88,8 +88,8 @@ export default function DisplayInfo({ data, onClose }) {
             {/* Counselor's Action Card */}
             <div className="bg-gray-50 p-6 rounded-2xl border border-gray-200 shadow-lg">
               <div className="flex items-center text-yellow-700 mb-4">
-                <MessageSquare size={24} className="mr-3 text-yellow-500" />
-                <h3 className="font-bold text-xl">Counselor's Action</h3>
+                <MessageSquare size={24} className="mr-3 text-gray-700" />
+                <h3 className="font-bold text-gray-700 text-xl">Counselor's Action</h3>
               </div>
               <div className="space-y-3 text-sm text-gray-700">
                 {renderField("Received By", data.receivedBy)}

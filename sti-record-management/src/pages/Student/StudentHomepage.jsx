@@ -4,7 +4,8 @@ import ProfileView from "./module-content/ProfileView.jsx";
 import StudentRequestSlip from "./module-content/StudentRequestSlip.jsx";
 import StudentViewRequest from "./module-content/StudentViewRequest.jsx";
 import WellnessCheck from "./module-content/WellnessCheck.jsx";
-
+import ConsentModal from "./ConsentModal.jsx";
+import { ToastContainer } from "react-toastify";
 export default function StudentHomepage() {
   const [selected, setSelected] = useState("profile");
 
@@ -29,6 +30,8 @@ export default function StudentHomepage() {
 
   return (
     <div className="min-h-screen text-black bg-white bg-[url('/grid.svg')] bg-repeat">
+      <ToastContainer />
+      <ConsentModal />
       <StudentTopBar selected={selected} setSelected={setSelected} />
       <div className="px-0 w-full">
         {renderModule()}
