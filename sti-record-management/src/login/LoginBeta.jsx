@@ -78,7 +78,7 @@ function LoginBeta() {
         }
     };
 
-    // NOTE: New function to handle forgot password
+    // NOTE: New function to handle forgot password ---
     const handleForgotPassword = async (e) => {
         e.preventDefault();
         setLoading(true);
