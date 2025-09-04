@@ -2,6 +2,7 @@ import React, { useState, useContext } from "react";
 import { AuthContext } from '../../../AuthProvider.jsx';
 import WellnessGeneration from "./wellness-generation/WellnessGeneration";
 import WellnessScoring from './wellness-scoring/WellnessScoring.jsx';
+import WellnessSummary from "./wellnessSummary/WellnessSummaryReport.jsx";
 import { Navigate } from "react-router-dom";
 
 function WelnessAssessment() {
@@ -17,11 +18,9 @@ function WelnessAssessment() {
         return (
           <WellnessScoring />
         );
-      case "submissions":
+      case "summary":
         return (
-          <div className="p-4 bg-yellow-100 rounded-md">
-            Wellness Table
-          </div>
+          <WellnessSummary />
         );
       default:
         return (
@@ -32,9 +31,9 @@ function WelnessAssessment() {
     }
   };
 
-  if(!authData?.user?.access?.wellness?.canView){
-    return <Navigate to="/error401" replace/> 
-  }
+  // if (!authData?.user?.access?.wellness?.canView) {
+  //   return <Navigate to="/error401" replace />
+  // }
 
   return (
     <div className="p-6 max-w-6xl mx-auto w-full">
@@ -44,8 +43,8 @@ function WelnessAssessment() {
         <button
           onClick={() => setActiveView("form")}
           className={`px-4 py-2 rounded-md ${activeView === "form"
-              ? "bg-blue-500 text-white"
-              : "bg-gray-200"
+            ? "bg-blue-500 text-white"
+            : "bg-gray-200"
             }`}
         >
           Form
@@ -53,20 +52,20 @@ function WelnessAssessment() {
         <button
           onClick={() => setActiveView("grade")}
           className={`px-4 py-2 rounded-md ${activeView === "grade"
-              ? "bg-green-500 text-white"
-              : "bg-gray-200"
+            ? "bg-green-500 text-white"
+            : "bg-gray-200"
             }`}
         >
           Conditions
         </button>
         <button
-          onClick={() => setActiveView("submissions")}
-          className={`px-4 py-2 rounded-md ${activeView === "submissions"
-              ? "bg-yellow-500 text-white"
-              : "bg-gray-200"
+          onClick={() => setActiveView("summary")}
+          className={`px-4 py-2 rounded-md ${activeView === "summary"
+            ? "bg-yellow-500 text-white"
+            : "bg-gray-200"
             }`}
         >
-          Submissions
+          Summary
         </button>
       </div>
 

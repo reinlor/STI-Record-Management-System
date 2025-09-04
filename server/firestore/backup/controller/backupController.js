@@ -1,18 +1,46 @@
+const { getAssessmentExamCollection } = require("../../main/models/assessmentExamModel");
+const { getAssessmentReportCollection } = require("../../main/models/assessmentReportModel");
+const { getChartDataCollection } = require("../../main/models/chartDataModel");
+const { getReferralFormCollection } = require("../../main/models/referralModel")
+const {
+  getAbsentSlipsCollection,
+  getIDPassCollection,
+  getLateSlipsCollection,
+  getUniformPassCollection
+} = require("../../main/models/slipModel")
+const { getViolationsCollection } = require("../../main/models/studentCasesModel")
 const { getStudentCollection } = require("../../main/models/studentModel");
 const { getUserCollection } = require("../../main/models/userModel");
-// Add other collections as needed
 
-// Export (Backup) Data
 const exportData = async (req, res) => {
+  const obj = req.body
+
   try {
-    const studentsSnap = await getStudentCollection().get();
-    const usersSnap = await getUserCollection().get();
-    // Add other collections...
+    const studentsSnap = obj?.studentRecord ? await getStudentCollection().get() : null;
+    const usersSnap = obj?.users ? await getUserCollection().get() : null;
+
+    const wellnessSnap = obj?.wellness ? await getAssessmentExamCollection().get() : null;
+    const wellnessReportSnap = obj?.wellness ? await getAssessmentReportCollection().get() : null;
+    const chartDataSnap = obj?.chartData ? await getChartDataCollection().get() : null;
+    const referralSnap = obj?.referralForm ? await getReferralFormCollection().get() : null;
+    const absentSlipSnap = obj?.requestSlip ? await getAbsentSlipsCollection().get() : null;
+    const idPassSnap = obj?.requestSlip ? await getIDPassCollection().get() : null;
+    const lateSlipSnap = obj?.requestSlip ? await getLateSlipsCollection().get() : null;
+    const uniformPassSnap = obj?.requestSlip ? await getUniformPassCollection().get() : null;
+    const studentCaseSnap = obj?.studentCase ? await getViolationsCollection().get() : null;
 
     const data = {
-      students: studentsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })),
-      users: usersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })),
-      // Add other collections...
+      students: studentsSnap ? studentsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })) : null,
+      users: usersSnap ? usersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })) : null,
+      absentSlips: absentSlipSnap ? absentSlipSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })) : null,
+      assessmentExams: wellnessSnap ? wellnessSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })) : null,
+      assessmentReports: wellnessReportSnap ? wellnessReportSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })) : null,
+      chartData: chartDataSnap ? chartDataSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })) : null,
+      idPassSlip: idPassSnap ? idPassSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })) : null,
+      lateSlip: lateSlipSnap ? lateSlipSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })) : null,
+      referralForm: referralSnap ? referralSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })) : null,
+      studentCases: studentCaseSnap ? studentCaseSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })) : null,
+      uniformPass: uniformPassSnap ? uniformPassSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })) : null,
     };
 
     res.setHeader('Content-Disposition', 'attachment; filename=backup.json');
@@ -23,21 +51,36 @@ const exportData = async (req, res) => {
   }
 };
 
-// Import (Restore) Data
 const importData = async (req, res) => {
   try {
     const backup = req.file;
     if (!backup) return res.status(400).send({ error: "No file uploaded" });
 
     const data = JSON.parse(backup.buffer.toString());
+    const promises = [];
 
-    for (const student of data.students || []) {
-      await getStudentCollection().doc(student.id).set(student);
+    const collectionsToImport = {
+      students: getStudentCollection(),
+      users: getUserCollection(),
+      absentSlips: getAbsentSlipsCollection(),
+      assessmentExams: getAssessmentExamCollection(),
+      assessmentReports: getAssessmentReportCollection(),
+      chartData: getChartDataCollection(),
+      idPassSlip: getIDPassCollection(),
+      lateSlip: getLateSlipsCollection(),
+      referralForm: getReferralFormCollection(),
+      studentCases: getViolationsCollection(),
+      uniformPass: getUniformPassCollection(),
+    };
+    for (const [key, collection] of Object.entries(collectionsToImport)) {
+      if (data[key] && Array.isArray(data[key])) {
+        for (const docData of data[key]) {
+          promises.push(collection.doc(docData.id).set(docData));
+        }
+      }
     }
-    for (const user of data.users || []) {
-      await getUserCollection().doc(user.id).set(user);
-    }
-    // Add other collections...
+
+    await Promise.all(promises);
 
     res.status(200).send({ message: "Restore successful" });
   } catch (error) {

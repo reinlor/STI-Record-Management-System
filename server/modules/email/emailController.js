@@ -42,7 +42,7 @@ const sendEmail = async (req, res) => {
 // Controller function for sending password reset email
 const sendResetPassword = async (req, res) => {
     const { email, link } = req.body;
-    if (!to || !subject || !text) {
+    if (!email || !link) {
         return res.status(400).json({ error: "Missing required fields" })
     }
 

@@ -3,9 +3,9 @@ const multer = require('multer');
 const { exportData, importData } = require('../controller/backupController');
 
 const router = express.Router();
-const upload = multer(); // memory storage
+const upload = multer();
 
-router.get('/export', exportData);
+router.post('/export', exportData);
 router.post('/import', upload.single('backup'), importData);
 
 module.exports = router;

@@ -14,10 +14,7 @@ function WelnessAssessment() {
           <WellnessScoring/>
         );
       case "submissions":
-        return (
-          <div className="p-4 bg-yellow-100 rounded-md">
-            Wellness Table
-          </div>
+        return (<div></div>
         );
       default:
         return (
