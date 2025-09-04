@@ -13,6 +13,10 @@ const allowedHeaderMap = {
   'birthdate': 'birthdate',
   'birthday': 'birthdate',
   'date of birth': 'birthdate',
+  'level': 'level',
+  'status': 'status',
+  'contact type': 'contactType',
+  'contact no': 'contactNo',
 };
 
 const requiredHeaders = ['student id', 'last name', 'first name'];
@@ -81,7 +85,7 @@ const formatBirthdate = (raw) => {
   }
 
   if (typeof raw === 'number') {
-    const excelEpoch = new Date(1900, 0, raw - 1); 
+    const excelEpoch = new Date(1900, 0, raw - 1);
     const year = excelEpoch.getFullYear();
     const month = String(excelEpoch.getMonth() + 1).padStart(2, '0');
     const day = String(excelEpoch.getDate()).padStart(2, '0');
@@ -213,20 +217,107 @@ const bulkUpload = async (req, res) => {
 
       const birthdate = formatBirthdate(student.birthdate);
       const email = `${lastName.replaceAll(' ', '').toLowerCase()}.${studentId.slice(5)}@dasmarinas.sti.edu.ph`
+      // For grade level value
+      const gradeLevel = (grade) => {
+        const collegeYears = ['1y1', '1y2', '2y2', '3y1', '3y2', '4y1', '4y2']
+        const level = grade.toLowerCase();
+
+        if (!collegeYears.includes(level)) {
+          return grade
+        }
+        else {
+          return level.replaceAll('y', '.')
+        }
+      }
+
+      // For status
+      const archive = () => {
+        const status = student.status.toLowerCase()
+        if (status != 'active') {
+          return true
+        }
+        else {
+          return false
+        }
+      }
+
+      // For academic Level
+      const setAcademicLevel = () => {
+        const program = student.program.toLowerCase()
+        const availablePrograms = ['bsit', 'bscs', 'bsba', 'bsais', 'bsa', 'bshm', 'bacomm', 'bmma', 'bstm']
+
+        if (availablePrograms.includes(program)) {
+          return "Tertiary"
+        } else {
+          return "Senior High School"
+        }
+      }
+
+
+      function capitalizeWords(sentence) {
+        const lowerSentence = sentence.toLowerCase();
+        const words = lowerSentence.split(' ');
+
+        const capitalizedWords = words.map(word => {
+          if (word.length === 0) {
+            return '';
+          }
+          return word.charAt(0).toUpperCase() + word.slice(1);
+        });
+
+        return capitalizedWords.join(' ');
+      }
+
+      // -- For contact info
+      // Variables for contact infos
+      let mobile = ''
+      let fatherContact = ''
+      let motherContact = ''
+      const splitContact = () => {
+        const contactTypes = student.contactType.split(/,\s*/);
+        const contactNumbers = student.contactNo.split(/,\s*/);
+
+        const contactMap = {};
+        for (let i = 0; i < contactTypes.length; i++) {
+          const type = contactTypes[i].toLowerCase();
+          const number = contactNumbers[i];
+          contactMap[type] = number;
+        }
+
+        mobile = contactMap.mobile || ''; 
+        fatherContact = contactMap.father || '';
+        motherContact = contactMap.mother || '';
+      };
+
+      splitContact();
+      // -- For contact Info
 
       const doc = {
         sid: studentId,
-        isArchived: false,
+        isArchived: archive(),
         studentProfile: {
           name: formattedName,
           program: student.program || '',
           gender: student.gender || '',
           birthday: birthdate || '',
+          section: gradeLevel(student.level) || '',
+          academicLevel: setAcademicLevel(),
         },
         contactInfo: {
           email: email,
-          currentAddress: student.address || '',
+          address: {
+            currentAddress: capitalizeWords(student.address) || '',
+          },
+          contactNo: mobile
         },
+        familyBackground: {
+          fatherInfo: {
+            contactNo: fatherContact
+          },
+          motherInfo: {
+            contactNo: motherContact
+          }
+        }
       };
 
       await docRef.set(doc);
