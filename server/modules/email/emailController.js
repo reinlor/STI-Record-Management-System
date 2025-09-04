@@ -39,4 +39,32 @@ const sendEmail = async (req, res) => {
     }
 };
 
-module.exports = { sendEmail }
+// Controller function for sending password reset email
+const sendResetPassword = async (req, res) => {
+    const { email, link } = req.body;
+    if (!to || !subject || !text) {
+        return res.status(400).json({ error: "Missing required fields" })
+    }
+
+    const mailOptions = {
+        from: EMAIL_USER,
+        to: email,
+        subject: "Password Reset",
+        text: `Password Reset Link: ${link}`,
+    };
+
+    try {
+        await transporter.sendMail(mailOptions);
+        res.status(200).json({
+            message: "Password reset email sent successfully"
+        });
+    }
+    catch (error) {
+        res.status(500).json({
+            error: "Failed to send password reset email",
+            details: error.message
+        });
+    }
+};
+
+module.exports = { sendEmail, sendResetPassword }

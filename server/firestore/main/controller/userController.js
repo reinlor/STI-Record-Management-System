@@ -196,6 +196,21 @@ const requireAuth = async (req, res, next) => {
   }
 };
 
+const resetPassword = async (req, res) => {
+  const { email } = req.body;
+  if (!email) {
+    return res.status(400).json({ error: "Email is required" });
+  }
+
+  try {
+    const link = await admin.auth().generatePasswordResetLink(email);
+    res.status(200).json(link);
+  } catch (error) {
+    console.error("Error sending password reset link:", error);
+    res.status(500).json({ error: "Failed to send password reset link" });
+  }
+};
+
 module.exports = { 
   getUsers, 
   addUser, 
@@ -203,5 +218,6 @@ module.exports = {
   updateUser, 
   authenticateUser,
   requireAuth,
-  getUserByID
+  getUserByID,
+  resetPassword
 };
