@@ -177,17 +177,17 @@ function ReferralFormHistory() {
                     </div>
                 </div>
 
-                <div className="bg-white rounded-lg shadow-md">
+                <div className="bg-white rounded-lg shadow-md overflow-y-auto custom-scrollbar h-full">
                     <table className="w-full text-left">
                         <thead>
                             <tr className="bg-gray-200 text-gray-700">
-                                <th className="px-4 py-3 font-semibold"> Name </th>
-                                <th className="px-4 py-3 font-semibold"> Employee No. </th>
-                                <th className="px-4 py-3 font-semibold"> Violation </th>
-                                <th className="px-4 py-3 font-semibold"> Referred Student </th>
-                                <th className="px-4 py-3 font-semibold"> Date </th>
-                                <th className="px-4 py-3 font-semibold"> Status </th>
-                                <th className="px-4 py-3"></th>
+                                <th className="sticky top-0 z-10 bg-gray-300 px-4 py-3 font-semibold"> Name </th>
+                                <th className="sticky top-0 z-10 bg-gray-300 px-4 py-3 font-semibold"> Employee No. </th>
+                                <th className="sticky top-0 z-10 bg-gray-300 px-4 py-3 font-semibold"> Violation </th>
+                                <th className="sticky top-0 z-10 bg-gray-300 px-4 py-3 font-semibold"> Referred Student </th>
+                                <th className="sticky top-0 z-10 bg-gray-300 px-4 py-3 font-semibold"> Date </th>
+                                <th className="sticky top-0 z-10 bg-gray-300 px-4 py-3 font-semibold"> Status </th>
+                                <th className="sticky top-0 z-10 bg-gray-300 px-4 py-3 font-semibold"></th>
                             </tr>
                         </thead>
                         <tbody>

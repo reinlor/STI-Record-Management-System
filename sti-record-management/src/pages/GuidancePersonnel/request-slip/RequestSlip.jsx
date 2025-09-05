@@ -200,7 +200,7 @@ function RequestSlip() {
 
   // data na iloload sa table
   const requestTable = filteredSlipData.map((slips) => (
-    <tr key={slips._id} className="hover:bg-gray-100">
+    <tr key={slips._id} className="hover:bg-gray-100 transition">
       <td className="px-4 py-3">{slips.name}</td>
       <td className="px-4 py-3">{slips.sid}</td>
       <td className="px-4 py-3">{slips.typeOfSlip}</td>
@@ -234,8 +234,8 @@ function RequestSlip() {
 
   // Palagyan ng CSS papalit din ng html kung kinakailangan
   return (
-    <div className="bg-gray-100 h-220 p-3">
-      <div className="bg-white shadow-md p-4 rounded-lg">
+    <div className="bg-gray-100 h-full p-3">
+      <div className="bg-white shadow-md p-4 rounded-lg overflow-y-auto">
 
         <div className="flex text-left mb-2">
           <p className="text-4xl font-bold">Request Slip Processing</p>
@@ -279,18 +279,18 @@ function RequestSlip() {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-md">
+        <div className="bg-white rounded-lg shadow-md overflow-y-auto custom-scrollbar h-175"> 
           <table className="w-full text-left">
             <thead>
-              <tr className="bg-gray-200 text-gray-700">
-                <th className="px-4 py-3 font-semibold">Name</th>
-                <th className="px-4 py-3 font-semibold">Student No.</th>
-                <th className="px-4 py-3 font-semibold">Type of Slip</th>
-                <th className="px-4 py-3 font-semibold">Date</th>
-                <th className="px-4 py-3 font-semibold">Status</th>
-                <th className="px-4 py-3 font-semibold">Reason</th>
-                <th className="px-4 py-3 font-semibold">Attachments</th>
-                <th className="px-4 py-3"></th>
+              <tr className="bg-white text-gray-700">
+                <th className="sticky top-0 z-10 bg-gray-300 px-4 py-3 font-semibold">Name</th>
+                <th className="sticky top-0 z-10 bg-gray-300 px-4 py-3 font-semibold">Student No.</th>
+                <th className="sticky top-0 z-10 bg-gray-300 px-4 py-3 font-semibold">Type of Slip</th>
+                <th className="sticky top-0 z-10 bg-gray-300 px-4 py-3 font-semibold">Date</th>
+                <th className="sticky top-0 z-10 bg-gray-300 px-4 py-3 font-semibold">Status</th>
+                <th className="sticky top-0 z-10 bg-gray-300 px-4 py-3 font-semibold">Reason</th>
+                <th className="sticky top-0 z-10 bg-gray-300 px-4 py-3 font-semibold">Attachments</th>
+                <th className="sticky top-0 z-10 bg-gray-300 px-4 py-3"></th>
               </tr>
             </thead>
             <tbody>{requestTable}</tbody>

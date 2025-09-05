@@ -297,8 +297,8 @@ export default function Users() {
             }
             .toggle-checkbox:checked::before { transform: translateX(18px); }
             `}</style>
-            <div className="flex flex-col h-full bg-gray-100 p-3 rounded-xl shadow-lg">
-                <div className="bg-white shadow-md p-4 rounded-lg">
+            <div className="flex flex-col h-220 bg-gray-100 p-3 rounded-xl shadow-lg overflow-hidden ">
+                <div className="bg-white shadow-md p-4 rounded-lg flex flex-col" style={{height: "90vh"}}>
                     <div className="flex items-center justify-between mb-6">
                         <div className="flex flex-col space-y-1">
                             <h2 className="text-4xl font-bold text-gray-800">User List</h2>
@@ -332,7 +332,8 @@ export default function Users() {
                             </div>
                         </div>
                     </div>
-
+                    
+                    <div className="flex-1 overflow-y-auto custom-scrollbar">
                     <UserTable
                         filteredUsers={filteredUsers}
                         displayRoles={displayRoles}
@@ -342,6 +343,7 @@ export default function Users() {
                         handleArchiveUser={handleArchiveUser}
                         handleRestoreUser={handleRestoreUser}
                     />
+                    </div>
 
                     <AddUserModal
                         isOpen={showAddUserModal}

@@ -12,6 +12,9 @@ import {
 } from "lucide-react";
 import user from "../../../assets/user.png";
 
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 import CaseInfoSection from "./components/CaseInfoSection.jsx";
 import AddCaseModal from "./components/AddCaseModal.jsx";
 import {
@@ -146,6 +149,7 @@ function StudentCases() {
       !newCaseForm.studentId ||
       !newCaseForm.counselingTypeCategory
     ) {
+      
       alert(
         "Please fill in Student Name, Student ID, and Counseling Type/Category."
       );
@@ -210,10 +214,10 @@ function StudentCases() {
         counselorNotes: "",
       });
       setShowAddModal(false);
-      alert("Case Added Successfully!");
+      toast.success("Case Added Successfully!");
     } catch (err) {
       console.error("Error adding case", err);
-      alert("Error adding case.");
+      toast.error("Error adding case.");
     }
   };
 
@@ -237,10 +241,10 @@ function StudentCases() {
       });
 
       setSelectedCaseId(null);
-      alert("Case status updated to Resolved!");
+      toast.success("Case status updated to Resolved!");
     } catch (err) {
       console.error("Error updating case status", err);
-      alert("Error archiving case.");
+      toast.error("Error archiving case.");
     }
   };
 
@@ -268,10 +272,10 @@ function StudentCases() {
       setCaseDetailsMap(details);
 
       setIsEditing(false);
-      alert("Changes saved successfully!");
+      toast.success("Changes saved successfully!");
     } catch (err) {
       console.error("Error saving edits", err);
-      alert("Error saving changes.");
+      toast.error("Error saving changes.");
     }
   };
 
@@ -308,7 +312,8 @@ function StudentCases() {
         : null;
 
   return (
-    <div className="flex bg-gray-100 min-h-screen">
+    <div className="flex bg-gray-100 h-full overflow-hidden">
+      <ToastContainer position="top-right" autoClose={4000} />
       <div
         className={`w-96 bg-white border-r border-gray-200 shadow-lg flex flex-col`}
       >
@@ -346,6 +351,9 @@ function StudentCases() {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 absolute right-3 top-7.5 -translate-y-1/2 text-gray-400">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                        </svg>
           </div>
 
           <button
