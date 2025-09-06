@@ -1,12 +1,14 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import StudentTopBar from "./components/StudentTopbar.jsx";
 import ProfileView from "./module-content/ProfileView.jsx";
 import StudentRequestSlip from "./module-content/StudentRequestSlip.jsx";
 import StudentViewRequest from "./module-content/StudentViewRequest.jsx";
 import WellnessCheck from "./module-content/WellnessCheck.jsx";
+import { AuthContext } from "../../AuthProvider";
 
 export default function StudentHomepage() {
   const [selected, setSelected] = useState("profile");
+  const { authData, logout } = useContext(AuthContext);
 
   const renderModule = () => {
     switch (selected) {
@@ -29,7 +31,7 @@ export default function StudentHomepage() {
 
   return (
     <div className="min-h-screen text-black bg-white bg-[url('/grid.svg')] bg-repeat">
-      <StudentTopBar selected={selected} setSelected={setSelected} />
+      <StudentTopBar selected={selected} setSelected={setSelected} onLogout={logout}/>
       <div className="px-0 w-full">
         {renderModule()}
       </div>
