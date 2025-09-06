@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext, useRef } from "react";
 import { createRoot } from "react-dom/client";
 import axios from "axios";
 import {
@@ -12,12 +12,37 @@ import {
   CircleCheck,
 } from "lucide-react";
 import { AuthContext } from "../../../AuthProvider.jsx";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function StudentRequestSlip() {
-  // State to manage the active slip type (tab)
   const [activeSlip, setActiveSlip] = useState("Absent");
   const [student, setStudentData] = useState(null);
   const { authData, logout } = useContext(AuthContext);
+
+  // Use refs to access the date input elements directly
+  const startDateRef = useRef(null);
+  const endDateRef = useRef(null);
+
+  // State to manage individual attachments for the Absent Slip
+  const [excuseLetter, setExcuseLetter] = useState(null);
+  const [parentID, setParentID] = useState(null);
+  const [medicalCertificate, setMedicalCertificate] = useState(null);
+
+  // State to manage single attachment for other slips
+  const [singleAttachment, setSingleAttachment] = useState(null);
+
+  // State to hold form data, now without the attachments array
+  const [formData, setFormData] = useState({
+    name: "",
+    sid: "",
+    section: "",
+    program: "",
+    email: "",
+    reason: "",
+    dateAbsent: "",
+    dateAbsentEnd: "",
+  });
 
   useEffect(() => {
     if (!authData || !authData.user?.uid) return;
@@ -40,51 +65,33 @@ export default function StudentRequestSlip() {
     fetchStudentData();
   }, [authData]);
 
-  // State to hold form data. Attachments is now an array of objects to allow for individual removal.
-  const [formData, setFormData] = useState({
-    name: "",
-    sid: "",
-    section: "",
-    program: "",
-    email: "",
-    reason: "",
-    dateAbsent: "",
-    dateAbsentEnd: "",
-    attachments: [],
-  });
-
-  // Handle input changes
+  // Handle input changes for form fields
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prevData) => ({ ...prevData, [name]: value }));
   };
 
-  // Handle new file selection and add them to the attachments array
-  const handleFileChange = (e) => {
-    const newFiles = Array.from(e.target.files)
-      .filter(
-        (file) => !formData.attachments.some((att) => att.name === file.name)
-      )
-      .slice(0, 3 - formData.attachments.length)
-      .map((file) => ({
-        id: crypto.randomUUID(),
-        file: file,
-        name: file.name,
-      }));
+  // Handle file selection for a specific type
+  const handleFileChange = (e, setFile) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Validate file type
+      const fileType = file.type;
+      const allowedTypes = ["image/jpeg", "image/png", "image/gif"];
 
-    setFormData((prevData) => ({
-      ...prevData,
-      attachments: [...prevData.attachments, ...newFiles],
-    }));
-    e.target.value = null;
+      if (!allowedTypes.includes(fileType)) {
+        toast.error("Invalid file type. Only image files (JPEG, PNG, GIF) are allowed.");
+        e.target.value = null;
+        return;
+      }
+      setFile({ id: crypto.randomUUID(), file: file, name: file.name });
+    }
+    e.target.value = null; // Reset input for re-uploading the same file
   };
 
-  // Handle file removal from the list
-  const handleRemoveFile = (fileId) => {
-    setFormData((prevData) => ({
-      ...prevData,
-      attachments: prevData.attachments.filter((item) => item.id !== fileId),
-    }));
+  // Handle file removal for a specific type
+  const handleRemoveFile = (setFile) => {
+    setFile(null);
   };
 
   // Handle form submission
@@ -103,18 +110,20 @@ export default function StudentRequestSlip() {
       form.append("typeOfSlip", "Absent Slip");
       form.append("dateAbsentEnd", formData.dateAbsentEnd);
       form.append("dateAbsent", formData.dateAbsent);
+
+      if (excuseLetter) form.append("attachments", excuseLetter.file);
+      if (medicalCertificate) form.append("attachments", medicalCertificate.file);
+      if (parentID) form.append("attachments", parentID.file);
     } else if (activeSlip === "Late") {
       form.append("typeOfSlip", "Late Slip");
+      if (singleAttachment) form.append("attachments", singleAttachment.file);
     } else if (activeSlip === "ID Pass") {
       form.append("typeOfSlip", "ID Slip");
+      if (singleAttachment) form.append("attachments", singleAttachment.file);
     } else if (activeSlip === "Uniform Pass") {
       form.append("typeOfSlip", "Uniform Pass");
+      if (singleAttachment) form.append("attachments", singleAttachment.file);
     }
-
-    // Attach files (up to 3)
-    formData.attachments.forEach((item) => {
-      form.append("attachments", item.file);
-    });
 
     // Choose endpoint based on slip type
     let endpoint = "";
@@ -127,22 +136,79 @@ export default function StudentRequestSlip() {
       await axios.post(endpoint, form, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      alert("Slip submitted successfully!");
+      toast.success("Slip submitted successfully!");
       setFormData((prev) => ({
         ...prev,
         reason: "",
         dateAbsent: "",
         dateAbsentEnd: "",
-        attachments: [],
       }));
+      // Reset the new file states
+      setExcuseLetter(null);
+      setParentID(null);
+      setMedicalCertificate(null);
+      setSingleAttachment(null);
     } catch (error) {
       console.error(error);
-      alert(
+      toast.error(
         error.response?.data?.error ||
           error.message ||
           "Failed to submit slip. Please try again."
       );
     }
+  };
+
+  // Helper function to create a valid HTML ID from a string
+  const getFileId = (label) => {
+    return label.toLowerCase().replace(/\s/g, "-").replace(/['/]/g, '');
+  };
+
+  // Helper function to render file upload sections
+  const renderFileUpload = (file, setFile, label, guidelines = null) => {
+    const fileId = getFileId(label);
+    return (
+      <div className="space-y-2">
+        <label className="block text-sm font-medium text-gray-700">{label}</label>
+        {guidelines && (
+          <p className="text-xs text-gray-500 mb-1">{guidelines}</p>
+        )}
+        {!file ? (
+          <label className="inline-block cursor-pointer">
+            <button
+              type="button"
+              onClick={() => document.getElementById(fileId).click()}
+              className="py-2.5 px-6 bg-yellow-400 text-black font-semibold rounded-lg shadow-md hover:bg-yellow-500 hover:-translate-y-0.5 transform transition-all duration-300"
+            >
+              <div className="flex items-center space-x-2">
+                <Upload className="w-5 h-5" />
+                <span>Choose File</span>
+              </div>
+            </button>
+            <input
+              id={fileId}
+              type="file"
+              onChange={(e) => handleFileChange(e, setFile)}
+              className="hidden"
+              accept="image/*"
+            />
+          </label>
+        ) : (
+          <div className="group relative flex items-center p-3 bg-white border border-gray-200 rounded-lg shadow-sm transition-all duration-200 ease-in-out hover:shadow-lg hover:border-yellow-400">
+            <span className="text-sm font-medium text-gray-800 truncate flex-grow">
+              {file.name}
+            </span>
+            <button
+              type="button"
+              onClick={() => handleRemoveFile(setFile)}
+              className="ml-4 p-1 rounded-full bg-red-600 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+              aria-label="Remove file"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+      </div>
+    );
   };
 
   // Tab data for rendering
@@ -167,6 +233,7 @@ export default function StudentRequestSlip() {
 
   return (
     <div className="min-h-screen flex flex-col items-center py-12 px-4 bg-gray-100 font-sans">
+      <ToastContainer position="top-right" autoClose={5000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover theme="light" />
       <style>
         {`
           @keyframes smooth-fade-in {
@@ -181,6 +248,24 @@ export default function StudentRequestSlip() {
           }
           .animate-smooth-fade-in {
             animation: smooth-fade-in 0.3s ease-out forwards;
+          }
+          .date-input-wrapper {
+            position: relative;
+            display: grid;
+            grid-template-areas: "input-area";
+            align-items: center;
+          }
+          .date-input-wrapper input {
+            grid-area: input-area;
+            z-index: 1;
+            -webkit-appearance: none; /* Hide default iOS calendar icon */
+          }
+          .date-input-wrapper .calendar-icon {
+            grid-area: input-area;
+            justify-self: end;
+            z-index: 2;
+            margin-right: 1rem; /* Adjust as needed */
+            pointer-events: auto;
           }
         `}
       </style>
@@ -286,32 +371,40 @@ export default function StudentRequestSlip() {
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Start Date of Absence
                     </label>
-                    <div className="relative">
+                    <div className="date-input-wrapper">
                       <input
+                        ref={startDateRef}
                         type="date"
                         name="dateAbsent"
                         value={formData.dateAbsent}
                         onChange={handleChange}
-                        className={inputClasses}
+                        className={`${inputClasses} pr-10`}
                         required
                       />
-                      <CalendarDays className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                      <CalendarDays
+                        className="calendar-icon text-gray-400 cursor-pointer"
+                        onClick={() => startDateRef.current.showPicker()}
+                      />
                     </div>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       End Date of Absence
                     </label>
-                    <div className="relative">
+                    <div className="date-input-wrapper">
                       <input
+                        ref={endDateRef}
                         type="date"
                         name="dateAbsentEnd"
                         value={formData.dateAbsentEnd}
                         onChange={handleChange}
-                        className={inputClasses}
+                        className={`${inputClasses} pr-10`}
                         required
                       />
-                      <CalendarDays className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                      <CalendarDays
+                        className="calendar-icon text-gray-400 cursor-pointer"
+                        onClick={() => endDateRef.current.showPicker()}
+                      />
                     </div>
                   </div>
                 </div>
@@ -366,96 +459,42 @@ export default function StudentRequestSlip() {
               <Upload className="w-6 h-6 text-gray-500" />
               Attachments
             </h2>
-            {/* Conditional attachment info based on slip type */}
-            {activeSlip === "Absent" && (
-              <div className="mb-4 text-gray-700">
-                <p className="text-sm font-medium mb-2">
-                  Please attach the following documents (make sure to upload
-                  them in order as listed below):
+            {/* Specific upload buttons for Absent Slip */}
+            {activeSlip === "Absent" ? (
+              <div className="space-y-6">
+                <p className="text-sm font-medium text-gray-700 mb-4">
+                  Please upload the required documents below.
                 </p>
-                <ul className="list-disc list-inside text-gray-600 text-sm space-y-1">
-                  <li>Excuse letter (if 1-2 days absent only)</li>
-                  <li>Medical certificate (if 3 or more days absent)</li>
-                  <li>
-                    Photocopy of parent's/guardian's valid ID with signature
-                  </li>
-                </ul>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {renderFileUpload(
+                    excuseLetter,
+                    setExcuseLetter,
+                    "Excuse Letter",
+                    "For 1-2 days absent only."
+                  )}
+                  {renderFileUpload(
+                    medicalCertificate,
+                    setMedicalCertificate,
+                    "Medical Certificate",
+                    "For 3 or more days absent."
+                  )}
+                  {renderFileUpload(
+                    parentID,
+                    setParentID,
+                    "Parent's/Guardian's ID",
+                    "With signature."
+                  )}
+                </div>
+              </div>
+            ) : (
+              // Single upload button for other slip types
+              <div className="space-y-6">
+                <p className="text-sm font-medium text-gray-700 mb-4">
+                  Please attach one (1) proof for your request.
+                </p>
+                {renderFileUpload(singleAttachment, setSingleAttachment, "Proof of Request")}
               </div>
             )}
-            {(activeSlip === "Late" ||
-              activeSlip === "Uniform Pass" ||
-              activeSlip === "ID Pass") && (
-              <p className="text-sm font-medium text-gray-700 mb-4">
-                Please attach one (1) proof for your request.
-              </p>
-            )}
-
-            {/* "Upload File" button */}
-            <label className="inline-block cursor-pointer">
-              <button
-                type="button"
-                onClick={() => document.getElementById("file-input").click()}
-                className="py-2.5 px-6 bg-yellow-400 text-black font-semibold rounded-lg shadow-md hover:bg-yellow-500 hover:shadow-lg hover:-translate-y-0.5 transform transition-all duration-300"
-              >
-                Upload File
-              </button>
-              <input
-                id="file-input"
-                type="file"
-                name="attachments"
-                onChange={handleFileChange}
-                multiple
-                className="hidden"
-                accept=".pdf,image/*"
-              />
-            </label>
-
-            {/* File preview cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-6">
-              {formData.attachments.map((item) => {
-                const isPdf = item.name.toLowerCase().endsWith(".pdf");
-                const isImage = item.name
-                  .toLowerCase()
-                  .match(/\.(jpeg|jpg|png|gif)$/);
-
-                return (
-                  <div
-                    key={item.id}
-                    className="group relative flex flex-col items-center p-4 bg-white border border-gray-200 rounded-lg shadow-sm transition-all duration-200 ease-in-out hover:shadow-lg hover:border-yellow-400"
-                  >
-                    {/* File Icon */}
-                    <div
-                      className={`flex-shrink-0 p-3 rounded-full mb-3 ${
-                        isPdf
-                          ? "bg-red-100 text-red-500"
-                          : "bg-green-100 text-green-500"
-                      }`}
-                    >
-                      {isPdf ? (
-                        <FileText className="w-8 h-8" />
-                      ) : (
-                        <CalendarDays className="w-8 h-8" />
-                      )}
-                    </div>
-
-                    {/* File name */}
-                    <span className="text-sm font-medium text-gray-800 text-center truncate w-full">
-                      {item.name}
-                    </span>
-
-                    {/* Remove button */}
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveFile(item.id)}
-                      className="absolute -top-3 -right-3 p-1 rounded-full bg-red-600 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
-                      aria-label="Remove file"
-                    >
-                      <Trash2 className="w-5 h-5" />
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
           </div>
 
           {/* Action Buttons */}
@@ -472,8 +511,12 @@ export default function StudentRequestSlip() {
                   reason: "",
                   dateAbsent: "",
                   dateAbsentEnd: "",
-                  attachments: [],
                 });
+                // Reset individual file states
+                setExcuseLetter(null);
+                setParentID(null);
+                setMedicalCertificate(null);
+                setSingleAttachment(null);
               }}
               className="py-2.5 px-6 bg-gray-200 border-none rounded-xl text-gray-800 font-semibold shadow-sm hover:bg-gray-300 transition-colors duration-200"
             >
