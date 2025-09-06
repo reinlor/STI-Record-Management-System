@@ -12,7 +12,6 @@ const referralRouter = require("./firestore/main/routes/referralRoute");
 const assessmentExam = require("./firestore/main/routes/assessmentExamRoute");
 const assessmentReport = require("./firestore/main/routes/assessmentReportRoute");
 const assessmentVersionHistory = require("./firestore/main/routes/assessmentVersionHistoryRoute")
-const archiveRoute = require("./firestore/archive/routes/archiveRoute");
 const backupRoute = require("./firestore/backup/routes/backupRoute");
 const emailRoute = require("./modules/email/emailRoute");
 const bulkUploadRoute = require("./firestore/main/bulk/bulkUploadRoute");
@@ -37,8 +36,7 @@ app.use("/slip", slipRoute);
 app.use("/teacher", teacherRoute);
 app.use("/referral", referralRouter);
 app.use("/exam", assessmentExam);
-app.use("/report", assessmentReport);    
-app.use("/archive", archiveRoute);    
+app.use("/report", assessmentReport);     
 app.use("/backup", backupRoute); 
 app.use("/email", emailRoute);
 app.use("/bulk-upload", bulkUploadRoute);   
