@@ -94,7 +94,7 @@ function BackNRestore() {
             <RestoreModal onClick={() => setShowModal(false)} visible={showModal}/>
             <div className="w-full h-full bg-white rounded-lg p-4 shadow-sm flex flex-col max-w-4xl">
                 <p className="text-4xl font-bold text-gray-800 mb-2">Back-up and Restore</p>
-                <p className="text-gray-600 mb-8">Create a back-up for emergency and restore files.</p>
+                <p className="text-gray-600 mb-5">Create a back-up for emergency and restore files.</p>
                 <div className="flex flex-col items-center justify-center p-6 bg-gray-50 rounded-lg border border-gray-200">
                     <img src={server} alt="Server" className="w-75 h-75 object-cover" />
                     <h2 className="text-2xl font-bold text-black mb-6 mt-4">Save your files, download it here:</h2>
@@ -204,7 +204,7 @@ function BackNRestore() {
                     ) : (
                         <div className='flex flex-col md:col-span-1 lg:col-span-2'>
                             <button
-                                className="bg-[#0B1320] hover:bg-[#1A2635] text-white font-bold py-3 px-6 rounded-lg shadow-md hover:shadow-lg transition duration-300 ease-in-out flex items-center justify-center text-lg max-w-sm"
+                                className="bg-[#0B1320] hover:bg-[#1A2635] text-white font-bold py-3 px-6 rounded-lg shadow-md hover:shadow-lg transition duration-300 ease-in-out flex items-center justify-center text-lg max-w-sm mb-1"
                                 onClick={exportData}
                             >
                                 Backup (.json)

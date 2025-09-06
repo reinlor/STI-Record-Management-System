@@ -326,6 +326,7 @@ function StudentRecords() {
     }, [filteredStudents]);
 
     return (
+        <div className="bg-gray-100 h-full p-3 rounded-lg">
         <div className="flex bg-gray-100 h-full overflow-hidden">
             <ToastContainer
                 position="top-right"
@@ -339,7 +340,7 @@ function StudentRecords() {
                 pauseOnHover
             />
 
-            <div className={`w-96 h-220 bg-white border-r border-gray-200 shadow-lg flex flex-col`}>
+            <div className={`w-96 h-220 bg-white border-r border-gray-200 shadow-lg flex flex-col rounded-lg`}>
                 <div className="p-4 border-b border-gray-200">
                     <div className="flex items-center space-x-2 mb-4">
                         <p className="text-3xl font-bold text-gray-800">Student List</p>
@@ -505,6 +506,7 @@ function StudentRecords() {
                     activeTab === 'Archived' ? 'restore' : 'archive'
                 } />
         </div>
+    </div>
     );
 }
 
