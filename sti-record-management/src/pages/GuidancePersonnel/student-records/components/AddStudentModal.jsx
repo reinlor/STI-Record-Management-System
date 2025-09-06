@@ -9,10 +9,19 @@ import 'react-toastify/dist/ReactToastify.css'; // Import toast CSS
 const AddStudentModal = ({ visible, onClose, newStudentForm, handleNewStudentFormChange, clearForm }) => {
     if (!visible) return null;
 
+    const yearLevelOptions = [
+        'Tertiary', 'Senior High School'];
+    
+    const programOptions = [
+        'BSIT', 'BSHM', 'BSCS', 'BSBA', 'BSAIS', 
+        'BSA', 'BACOMM', 'BMMA', 'BSTM'
+    ]
+
     const handleAddStudent = async () => {
         const newStudent = {
             sid: newStudentForm.studentNumber,
             isArchived: false,
+            isFirstLogin: true,
 
             studentProfile: {
                 name: newStudentForm.fullName,
@@ -86,19 +95,62 @@ const AddStudentModal = ({ visible, onClose, newStudentForm, handleNewStudentFor
                         </div>
                         <div>
                             <label htmlFor="gradeYearLevel" className="block text-sm font-medium text-gray-700">Grade/Year Level:</label>
-                            <input type="text" id="gradeYearLevel" name="gradeYearLevel" value={newStudentForm.gradeYearLevel} onChange={handleNewStudentFormChange} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
+                            <select
+                                id="gradeYearLevel"
+                                name="gradeYearLevel"
+                                value={newStudentForm.gradeYearLevel}
+                                onChange={handleNewStudentFormChange}
+                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                            >
+                                <option value="">Select Grade/Year Level</option>
+                                {yearLevelOptions.map(option => (
+                                    <option key={option} value={option}>{option}</option>
+                                ))}
+                            </select>
                         </div>
                         <div>
                             <label htmlFor="programStrand" className="block text-sm font-medium text-gray-700">Program/ Strand:</label>
-                            <input type="text" id="programStrand" name="programStrand" value={newStudentForm.programStrand} onChange={handleNewStudentFormChange} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
+                            <select
+                                id="programStrand"
+                                name="programStrand"
+                                value={newStudentForm.programStrand}
+                                onChange={handleNewStudentFormChange}
+                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                            >
+                                <option value="">Select Program/Strand</option>
+                                {programOptions.map(option => (
+                                    <option key={option} value={option}>{option}</option>
+                                ))}
+                            </select>
                         </div>
+
                         <div>
                             <label htmlFor="section" className="block text-sm font-medium text-gray-700">Section:</label>
                             <input type="text" id="section" name="section" value={newStudentForm.section} onChange={handleNewStudentFormChange} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
                         </div>
+
                         <div>
-                            <label htmlFor="birthDate" className="block text-sm font-medium text-gray-700">Birth Date:</label>
-                            <input type="date" id="birthDate" name="birthDate" value={newStudentForm.birthDate} onChange={handleNewStudentFormChange} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
+                            <div className="relative">
+                                <input
+                                    type="date"
+                                    id="birthDate"
+                                    name="birthDate"
+                                    value={newStudentForm.birthDate}
+                                    onChange={handleNewStudentFormChange}
+                                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 pr-10 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                />
+                                <span
+                                    className="absolute right-3 top-2.5 text-gray-400 cursor-pointer"
+                                    onClick={() => document.getElementById('birthDate').showPicker && document.getElementById('birthDate').showPicker()}
+                                    tabIndex={-1}
+                                >
+                                    {/* Calendar SVG */}
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <rect x="3" y="4" width="18" height="18" rx="2" fill="none" stroke="currentColor" strokeWidth="2"/>
+                                        <path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" strokeWidth="2"/>
+                                    </svg>
+                                </span>
+                            </div>
                         </div>
                         <div>
                             <label htmlFor="age" className="block text-sm font-medium text-gray-700">Age:</label>

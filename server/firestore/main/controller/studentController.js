@@ -302,7 +302,6 @@ const getArchivedStudent = async (req, res) => {
 // Controller Function for adding student data
 const addStudent = async (req, res) => {
   try {
-    // Validate student body
     const { error, value: newStudent } = studentSchema.validate(req.body);
     if (error) {
       return res.status(400).json({ error: error.details[0].message });
@@ -310,10 +309,8 @@ const addStudent = async (req, res) => {
 
     const sid = newStudent.sid;
 
-    // 1️⃣ Save student record in Firestore
     await getStudentCollection().doc(sid).set(newStudent);
 
-    // 2️⃣ Create Firebase Auth user (password = "student1234")
     const userRecord = await admin.auth().createUser({
       uid: sid, // use sid as UID
       email: newStudent.contactInfo.email,
@@ -321,12 +318,12 @@ const addStudent = async (req, res) => {
       displayName: newStudent.studentProfile.name,
     });
 
-    // 3️⃣ Save user record in Firestore users collection
     await getUserCollection().doc(userRecord.uid).set({
       uid: userRecord.uid,
       displayName: newStudent.studentProfile.name,
       email: newStudent.contactInfo.email,
-      role: "student",
+      role: "Student",
+      isFirstLogin: true
     });
 
     res.status(201).json({
@@ -337,7 +334,6 @@ const addStudent = async (req, res) => {
   } catch (error) {
     console.error("Registration error:", error);
 
-    // rollback student if user creation fails
     if (req.body?.sid) {
       await getStudentCollection().doc(req.body.sid).delete().catch(() => {});
     }

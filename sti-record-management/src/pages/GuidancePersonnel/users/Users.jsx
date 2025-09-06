@@ -154,7 +154,7 @@ export default function Users() {
             const uid = newUser.employeeNumber || `uid-${Date.now()}`;
             const displayName = newUser.name;
             const email = newUser.email || `${uid}@example.com`;
-            const password = `TempPass#${Date.now()}`;
+            const password = `123456`;
             const role = newUser.roles && newUser.roles.length ? newUser.roles[0] : 'Student';
 
             const payload = {

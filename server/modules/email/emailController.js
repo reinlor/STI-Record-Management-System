@@ -1,3 +1,5 @@
+const { getUserCollection } = require('../../firestore/main/models/userModel');
+
 const nodemailer = require('nodemailer');
 
 const EMAIL_USER = process.env.EMAIL_USER
@@ -45,6 +47,16 @@ const sendResetPassword = async (req, res) => {
     if (!email || !link) {
         return res.status(400).json({ error: "Missing required fields" })
     }
+
+    const userCollection = getUserCollection();
+    const userSnapshot = await userCollection.where('email', '==', email).get();
+
+    if (userSnapshot.empty) {
+        return res.status(404).json({
+            error: "User not found with this email address.",
+        });
+    }
+
 
     const mailOptions = {
         from: EMAIL_USER,

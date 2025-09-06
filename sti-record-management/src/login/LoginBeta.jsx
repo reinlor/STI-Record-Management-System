@@ -85,7 +85,15 @@ function LoginBeta() {
         setErrorMsg("");
         
         try {
-            await new Promise(resolve => setTimeout(resolve, 1500)); //Papalitan nalang ng actual request pag meron na.
+            const resetResponse = await axios.post(`/user/reset-password`, {
+                email: schoolId});
+
+            const newEmailMessage = {
+                email: schoolId,
+                link: resetResponse.data
+            }
+
+            await axios.post(`/email/sendResetPassword`, newEmailMessage);
             
             setLoading(false);
             toast.success("Reset link sent to your email!");

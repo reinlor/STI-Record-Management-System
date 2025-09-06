@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import StudentTopBar from "./components/StudentTopbar.jsx";
 import ProfileView from "./module-content/ProfileView.jsx";
 import StudentRequestSlip from "./module-content/StudentRequestSlip.jsx";
@@ -6,7 +6,11 @@ import StudentViewRequest from "./module-content/StudentViewRequest.jsx";
 import WellnessCheck from "./module-content/WellnessCheck.jsx";
 import ConsentModal from "./ConsentModal.jsx";
 import { ToastContainer } from "react-toastify";
+import { AuthContext } from "../../AuthProvider.jsx";
+
+
 export default function StudentHomepage() {
+  const { authData, logout } = useContext(AuthContext);
   const [selected, setSelected] = useState("profile");
 
   const renderModule = () => {
@@ -31,7 +35,9 @@ export default function StudentHomepage() {
   return (
     <div className="min-h-screen text-black bg-white bg-[url('/grid.svg')] bg-repeat">
       <ToastContainer />
-      <ConsentModal />
+      <ConsentModal 
+        isFirstLogin={authData.user.isFirstLogin}
+        id={authData.user.uid}/>
       <StudentTopBar selected={selected} setSelected={setSelected} />
       <div className="px-0 w-full">
         {renderModule()}

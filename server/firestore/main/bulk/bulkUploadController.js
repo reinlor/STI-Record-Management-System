@@ -1,5 +1,7 @@
 const ExcelJS = require('exceljs');
 const { getStudentCollection } = require('../models/studentModel');
+const { getUserCollection } = require('../models/userModel')
+const admin = require("firebase-admin");
 
 const allowedHeaderMap = {
   'student id': 'sid',
@@ -284,7 +286,7 @@ const bulkUpload = async (req, res) => {
           contactMap[type] = number;
         }
 
-        mobile = contactMap.mobile || ''; 
+        mobile = contactMap.mobile || '';
         fatherContact = contactMap.father || '';
         motherContact = contactMap.mother || '';
       };
@@ -322,7 +324,24 @@ const bulkUpload = async (req, res) => {
 
       await docRef.set(doc);
       processed++;
+
+      const userRecord = await admin.auth().createUser({
+        uid: studentId,
+        email: email,
+        password: "student1234",
+        displayName: formattedName,
+      });
+
+      await getUserCollection().doc(studentId).set({
+        uid: userRecord.uid,
+        displayName: formattedName,
+        email: email,
+        role: "Student",
+        isFirstLogin: true
+      });
     }
+
+
 
     res.json({ message: "Bulk upload processed", totalRows: validRows.length, processed, skipped });
   } catch (err) {

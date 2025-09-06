@@ -1,6 +1,7 @@
 import React, { useContext, useState } from 'react';
 import server from '../../../assets/data-server.png';
 import { Navigate } from 'react-router-dom';
+import RestoreModal from './Restore';
 import axios from 'axios';
 
 // Mock AuthContext for demonstration.
@@ -10,6 +11,7 @@ const AuthContext = React.createContext({
 });
 
 function BackNRestore() {
+    const [showModal, setShowModal] = useState();
     const { authData } = useContext(AuthContext);
     const [isExporting, setIsExporting] = useState(false);
     const [progress, setProgress] = useState(0);
@@ -89,6 +91,7 @@ function BackNRestore() {
 
     return (
         <div className="bg-gray-100 flex items-start justify-center p-6 h-full font-sans">
+            <RestoreModal onClick={() => setShowModal(false)} visible={showModal}/>
             <div className="w-full h-full bg-white rounded-lg p-4 shadow-sm flex flex-col max-w-4xl">
                 <p className="text-4xl font-bold text-gray-800 mb-2">Back-up and Restore</p>
                 <p className="text-gray-600 mb-8">Create a back-up for emergency and restore files.</p>
@@ -199,26 +202,48 @@ function BackNRestore() {
                             </div>
                         </div>
                     ) : (
-                        <button
-                            className="bg-[#0B1320] hover:bg-[#1A2635] text-white font-bold py-3 px-6 rounded-lg shadow-md hover:shadow-lg transition duration-300 ease-in-out flex items-center justify-center text-lg max-w-sm"
-                            onClick={exportData}
-                        >
-                            Download (.json)
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                strokeWidth={2}
-                                stroke="currentColor"
-                                className="w-6 h-6 ml-3"
+                        <div className='flex flex-col md:col-span-1 lg:col-span-2'>
+                            <button
+                                className="bg-[#0B1320] hover:bg-[#1A2635] text-white font-bold py-3 px-6 rounded-lg shadow-md hover:shadow-lg transition duration-300 ease-in-out flex items-center justify-center text-lg max-w-sm"
+                                onClick={exportData}
                             >
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"
-                                />
-                            </svg>
-                        </button>
+                                Backup (.json)
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    strokeWidth={2}
+                                    stroke="currentColor"
+                                    className="w-6 h-6 ml-3"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"
+                                    />
+                                </svg>
+                            </button>
+                            <button
+                                className="bg-[#0B1320] hover:bg-[#1A2635] text-white font-bold py-3 px-6 rounded-lg shadow-md hover:shadow-lg transition duration-300 ease-in-out flex items-center justify-center text-lg max-w-sm"
+                                onClick={() => setShowModal(true)}
+                            >
+                                Restore (.json)
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    strokeWidth={2}
+                                    stroke="currentColor"
+                                    className="w-6 h-6 ml-3"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"
+                                    />
+                                </svg>
+                            </button>
+                        </div>
                     )}
                     {errorMessage && (
                         <p className="mt-4 text-red-600 text-sm font-medium">{errorMessage}</p>

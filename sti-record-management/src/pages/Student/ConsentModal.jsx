@@ -1,23 +1,45 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
+import axios from 'axios';
 
-export default function ConsentModal() {
+export default function ConsentModal({
+  isFirstLogin, id
+}) {
   const [hasConsented, setHasConsented] = useState(false);
-  const [isFirstLogin, setIsFirstLogin] = useState(true);
 
-  if (!isFirstLogin) {
-    return null; // Don't render anything if the modal is not visible
-  }
-
-  const handleContinue = () => {
-    if (hasConsented) {
-        toast.success("Consent granted");
-        setIsFirstLogin(false); // Hide the modal
+  useEffect(() => {
+    if (!isFirstLogin) {
+      setShowForm(false);
     }
-  }
+  }, [])
+
+  const [showForm, setShowForm] = useState(true)
+
+  const handleContinue = async () => {
+    // The button is already disabled if hasConsented is false, but this check
+    // adds an extra layer of safety to prevent the API call.
+    if (!hasConsented) {
+      toast.error("Please read the consent form and check the box to continue.");
+      return;
+    }
+
+    try {
+      const response = await axios.put(`/user/update/${id}`, {
+        isFirstLogin: false
+      });
+      toast.success("Consent granted");
+      setShowForm(false)
+      return response.data;
+    } catch (error) {
+      // It's good practice to log or show a user-friendly error message.
+      console.error("Failed to update user consent:", error);
+      toast.error("An error occurred. Please try again.");
+    }
+  };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-75 font-sans">
+  <>
+    {showForm ? (<div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-75 font-sans">
       <div className="bg-white rounded-3xl shadow-3xl overflow-hidden max-w-5xl w-full mx-4 my-8 md:my-12">
         <div className="p-8 md:p-12 overflow-y-auto max-h-[80vh]">
           <div className="text-center mb-6">
@@ -41,7 +63,7 @@ export default function ConsentModal() {
               <li>A court order, issued by a judge, may require the Guidance and Counseling Services staff to release information contained in your record.</li>
             </ul>
           </div>
-          
+
           <div className="my-8 border-t border-gray-300"></div>
 
           <div className="flex items-start">
@@ -60,18 +82,18 @@ export default function ConsentModal() {
 
         <div className="bg-gray-50 px-8 py-6 flex justify-end">
           <button
-            onClick={handleContinue} // This will hide the modal when clicked
+            onClick={handleContinue}
             disabled={!hasConsented}
-            className={`w-full md:w-auto py-3 px-8 text-white font-semibold rounded-xl transition-all duration-300 ease-in-out ${
-              hasConsented
-                ? 'py-2.5 px-6 bg-yellow-400 text-black font-semibold rounded-xl shadow-lg hover:bg-yellow-500 hover:-translate-y-0.5 transform transition-all duration-200'
-                : 'py-2.5 px-6 bg-gray-400 cursor-not-allowed'
-            }`}
+            className={`w-full md:w-auto py-3 px-8 text-white font-semibold rounded-xl transition-all duration-300 ease-in-out ${hasConsented
+              ? 'py-2.5 px-6 bg-yellow-400 text-black font-semibold rounded-xl shadow-lg hover:bg-yellow-500 hover:-translate-y-0.5 transform transition-all duration-200'
+              : 'py-2.5 px-6 bg-gray-400 cursor-not-allowed'
+              }`}
           >
             Continue
           </button>
         </div>
       </div>
-    </div>
+    </div>) : null}
+  </>
   );
-};
+}
