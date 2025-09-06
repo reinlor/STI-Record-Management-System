@@ -10,8 +10,8 @@ import { AuthContext } from "../../AuthProvider.jsx";
 
 
 export default function StudentHomepage() {
-  const { authData, logout } = useContext(AuthContext);
   const [selected, setSelected] = useState("profile");
+  const { authData, logout } = useContext(AuthContext);
 
   const renderModule = () => {
     switch (selected) {
@@ -38,7 +38,7 @@ export default function StudentHomepage() {
       <ConsentModal 
         isFirstLogin={authData.user.isFirstLogin}
         id={authData.user.uid}/>
-      <StudentTopBar selected={selected} setSelected={setSelected} />
+      <StudentTopBar selected={selected} setSelected={setSelected} onLogout={logout}/>
       <div className="px-0 w-full">
         {renderModule()}
       </div>
