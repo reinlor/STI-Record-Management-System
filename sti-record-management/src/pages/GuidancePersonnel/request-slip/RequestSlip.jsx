@@ -1,4 +1,4 @@
-import react, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { useNavigate } from "react-router";
 import RequestSlipHistory from "./RequestSlipHistory.jsx";
 import axios from "axios";
@@ -8,27 +8,70 @@ import closeW from "../../../assets/close.png";
 import checkW from "../../../assets/check.png";
 import { AuthContext } from '../../../AuthProvider.jsx';
 
-// palagyan ng CSS
+function parseToMillis(dateInput) {
+  if (!dateInput) return null;
+
+  if (typeof dateInput === 'object' && typeof dateInput.toDate === 'function') {
+    try {
+      return dateInput.toDate().getTime();
+    } catch {
+      return null;
+    }
+  }
+
+  if (typeof dateInput === 'object' && (dateInput.seconds !== undefined || dateInput._seconds !== undefined)) {
+    const seconds = dateInput.seconds ?? dateInput._seconds;
+    const nanos = dateInput.nanoseconds ?? dateInput._nanoseconds ?? 0;
+    return (Number(seconds) * 1000) + Math.floor(Number(nanos) / 1e6);
+  }
+
+  if (typeof dateInput === 'number') {
+    return dateInput > 1e12 ? dateInput : dateInput * 1000;
+  }
+
+  if (typeof dateInput === 'string') {
+    const parsed = Date.parse(dateInput);
+    if (!isNaN(parsed)) return parsed;
+
+    const simplified = dateInput.replace(/\s+at\s+/i, ' ').replace(/UTC.*$/i, '').trim();
+    const parsed2 = Date.parse(simplified);
+    if (!isNaN(parsed2)) return parsed2;
+  }
+
+  return null;
+}
+
+function formatDate(dateInput) {
+  const ms = typeof dateInput === 'number' ? dateInput : parseToMillis(dateInput);
+  if (!ms) return '';
+  const d = new Date(ms);
+  return `${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getDate().toString().padStart(2, '0')}/${d.getFullYear()}`;
+}
+
 function RequestSlip() {
   const [display, setDisplay] = useState(false);
   const [allSlipData, setAllSlipData] = useState([]);
   const [search, setSearch] = useState("");
   const { authData, logout } = useContext(AuthContext);
 
-
   const navigate = useNavigate();
 
-  // holds the slip details when “Open” is clicked
   const [selectedSlip, setSelectedSlip] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const res = await axios.get("/slip/allSlips");
+        const allSlips = (res.data || []).map((slip) => {
+          const ms = parseToMillis(slip.timeCreated);
+          return {
+            ...slip,
+            timeCreatedMs: ms,
+            timeCreatedFormatted: ms ? formatDate(ms) : '',
+          };
+        });
 
-        const allSlips = res.data.map((slip) => ({
-          ...slip,
-        }));
+        allSlips.sort((a, b) => (b.timeCreatedMs || 0) - (a.timeCreatedMs || 0));
 
         setAllSlipData(allSlips);
       } catch (error) {
@@ -39,7 +82,6 @@ function RequestSlip() {
     fetchData();
   }, []);
 
-  // open modal and fetch single slip details
   const openSlip = (id) => {
     const foundSlip = allSlipData.find((slip) => slip._id === id);
     if (foundSlip) {
@@ -50,12 +92,10 @@ function RequestSlip() {
     }
   };
 
-  // close modal & clear selected data
   const closeModal = () => {
     setDisplay(false);
     setSelectedSlip(null);
   };
-
 
   const displaySlipForm = () => {
     if (!display || !selectedSlip) return null;
@@ -92,6 +132,7 @@ function RequestSlip() {
                 {[
                   { label: "Name: ", value: selectedSlip.name },
                   { label: "Program: ", value: selectedSlip.program },
+                  { label: "Date: ", value: selectedSlip.timeCreatedFormatted || formatDate(selectedSlip.timeCreated) },
                   { label: "Year & Section: ", value: selectedSlip.yearSection || "4A" },
                   { label: "Email: ", value: selectedSlip.email },
                   {
@@ -191,12 +232,14 @@ function RequestSlip() {
     );
   };
 
-  // Filtered data for search
-  const filteredSlipData = allSlipData.filter(
-    (slip) =>
-      slip.name?.toLowerCase().includes(search.toLowerCase()) ||
-      slip.sid?.toLowerCase().includes(search.toLowerCase())
-  );
+  // Filtered + sorted data for search (latest -> oldest)
+  const filteredSlipData = allSlipData
+    .filter((slip) => {
+      const nameMatch = String(slip.name || '').toLowerCase().includes(search.toLowerCase());
+      const sidMatch = String(slip.sid || '').toLowerCase().includes(search.toLowerCase());
+      return nameMatch || sidMatch;
+    })
+    .sort((a, b) => (b.timeCreatedMs || 0) - (a.timeCreatedMs || 0));
 
   // data na iloload sa table
   const requestTable = filteredSlipData.map((slips) => (
@@ -204,7 +247,7 @@ function RequestSlip() {
       <td className="px-4 py-3">{slips.name}</td>
       <td className="px-4 py-3">{slips.sid}</td>
       <td className="px-4 py-3">{slips.typeOfSlip}</td>
-      <td className="px-4 py-3">{slips.Date}</td>
+      <td className="px-4 py-3">{slips.timeCreatedFormatted || formatDate(slips.timeCreated)}</td>
       {/* STATUS with conditional styling */}
       <td
         className={`px-4 py-3 font-semibold ${slips.status === "Approved"
@@ -229,7 +272,10 @@ function RequestSlip() {
   ));
 
   if (!authData?.user?.access?.requestSlip?.canView) {
-    return <Navigate to="/error401" replace />
+    const error401 = () => {
+      navigate('/error401')
+    }
+    return error401()
   }
 
   // Palagyan ng CSS papalit din ng html kung kinakailangan
@@ -279,7 +325,7 @@ function RequestSlip() {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-md overflow-y-auto custom-scrollbar h-175"> 
+        <div className="bg-white rounded-lg shadow-md overflow-y-auto custom-scrollbar h-175">
           <table className="w-full text-left">
             <thead>
               <tr className="bg-white text-gray-700">

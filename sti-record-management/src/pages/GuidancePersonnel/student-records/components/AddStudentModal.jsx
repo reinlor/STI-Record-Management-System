@@ -22,7 +22,6 @@ const AddStudentModal = ({ visible, onClose, newStudentForm, handleNewStudentFor
         const newStudent = {
             sid: newStudentForm.studentNumber,
             isArchived: false,
-            isFirstLogin: true,
 
             studentProfile: {
                 name: newStudentForm.fullName,
