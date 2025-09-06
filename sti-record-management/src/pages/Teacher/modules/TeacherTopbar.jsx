@@ -1,12 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Settings, LogOut } from 'lucide-react';
+import { Settings, LogOut, KeyRound } from 'lucide-react';
 
 const modules = [
     { id: "submit", text: "Submit Referral Form" },
     { id: "view", text: "View Request History" },
 ];
 
-export default function TeacherTopbar({ selected, setSelected, onLogout }) {
+export default function TeacherTopbar({ selected, setSelected, onLogout, onOpenChangePassword }) {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const containerRef = useRef(null);
 
@@ -45,7 +45,7 @@ export default function TeacherTopbar({ selected, setSelected, onLogout }) {
             </div>
             <div ref={containerRef} className="relative">
                 <button
-                    className="p-2 text-white hover:text-blue-200 transition-colors focus:outline-none focus:ring-2 focus:ring-white rounded-full"
+                    className="p-2 text-gray-400 hover:text-gray-200 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-600 rounded-full"
                     onClick={() => setIsDropdownOpen(open => !open)}
                     aria-expanded={isDropdownOpen}
                     aria-label="User settings menu"
@@ -53,7 +53,17 @@ export default function TeacherTopbar({ selected, setSelected, onLogout }) {
                     <Settings className="w-6 h-6" />
                 </button>
                 {isDropdownOpen && (
-                    <div className="absolute top-full right-0 mt-3 w-40 bg-white rounded-lg shadow-xl py-2 z-20">
+                    <div className="absolute top-full right-0 mt-3 w-48 bg-white rounded-lg shadow-xl py-2 z-20">
+                        <button
+                            onClick={() => {
+                                onOpenChangePassword();
+                                setIsDropdownOpen(false);
+                            }}
+                            className="flex items-center gap-3 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-200 transition-colors duration-150"
+                        >
+                            <KeyRound className="w-4 h-4 text-blue-500" />
+                            <span>Change Password</span>
+                        </button>
                         <button
                             onClick={onLogout}
                             className="flex items-center gap-3 w-full px-4 py-2 text-sm text-gray-700 hover:bg-red-500 hover:text-white transition-colors duration-150"

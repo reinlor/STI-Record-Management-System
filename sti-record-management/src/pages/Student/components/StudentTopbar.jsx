@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Settings, LogOut } from 'lucide-react';
+import { Settings, LogOut, KeyRound } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const modules = [
@@ -9,7 +9,7 @@ const modules = [
   { id: "wellness", text: "Wellness Check" },
 ];
 
-const StudentTopBar = ({ selected, setSelected, onLogout }) => {
+const StudentTopBar = ({ selected, setSelected, onLogout, onOpenChangePassword }) => {
   const navigate = useNavigate();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const containerRef = useRef(null);
@@ -61,7 +61,17 @@ const StudentTopBar = ({ selected, setSelected, onLogout }) => {
           <Settings className="w-6 h-6" />
         </button>
         {isDropdownOpen && (
-          <div className="absolute top-full right-0 mt-3 w-40 bg-white rounded-lg shadow-xl py-2 z-20">
+          <div className="absolute top-full right-0 mt-3 w-48 bg-white rounded-lg shadow-xl py-2 z-20">
+            <button
+              onClick={() => {
+                onOpenChangePassword();
+                setIsDropdownOpen(false);
+              }}
+              className="flex items-center gap-3 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-200 transition-colors duration-150"
+            >
+              <KeyRound className="w-4 h-4 text-blue-500" />
+              <span>Change Password</span>
+            </button>
             <button
               onClick={onLogout}
               className="flex items-center gap-3 w-full px-4 py-2 text-sm text-gray-700 hover:bg-red-500 hover:text-white transition-colors duration-150"
