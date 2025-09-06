@@ -5,6 +5,7 @@ import closeB from '../../../../assets/closeblack.png';
 import axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify'; // Import ToastContainer and toast
 import 'react-toastify/dist/ReactToastify.css'; // Import toast CSS
+import DatePicker from 'react-datepicker';
 
 const AddStudentModal = ({ visible, onClose, newStudentForm, handleNewStudentFormChange, clearForm }) => {
     if (!visible) return null;
@@ -58,6 +59,14 @@ const AddStudentModal = ({ visible, onClose, newStudentForm, handleNewStudentFor
         }
     }
 
+const yearLevelOptions = [
+    "Grade 11", "Grade 12", "1st Year College",
+    "2nd Year College", "3rd Year College", "4th Year College"
+];
+const programOptions = [
+    "BSIT", "BSCS", "BSBA", "BSECE", "BMMA"
+];
+
     return (
         <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-4">
             <ToastContainer
@@ -93,6 +102,7 @@ const AddStudentModal = ({ visible, onClose, newStudentForm, handleNewStudentFor
                             <label htmlFor="emailAddress" className="block text-sm font-medium text-gray-700">Email Address:</label>
                             <input type="email" id="emailAddress" name="emailAddress" value={newStudentForm.emailAddress} onChange={handleNewStudentFormChange} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
                         </div>
+
                         <div>
                             <label htmlFor="gradeYearLevel" className="block text-sm font-medium text-gray-700">Grade/Year Level:</label>
                             <select
@@ -152,9 +162,11 @@ const AddStudentModal = ({ visible, onClose, newStudentForm, handleNewStudentFor
                                 </span>
                             </div>
                         </div>
+                        
                         <div>
                             <label htmlFor="age" className="block text-sm font-medium text-gray-700">Age:</label>
-                            <input type="number" id="age" name="age" value={newStudentForm.age} onChange={handleNewStudentFormChange} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
+                            <input type="number" id="age" name="age" value={newStudentForm.age} onChange={handleNewStudentFormChange} 
+                            className="mt-1 block w-50 border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
                         </div>
                     </div>
 
@@ -196,6 +208,7 @@ const AddStudentModal = ({ visible, onClose, newStudentForm, handleNewStudentFor
                             <label htmlFor="healthCondition" className="block text-sm font-medium text-gray-700">Health Condition:</label>
                             <input type="text" id="healthCondition" name="healthCondition" value={newStudentForm.healthCondition} onChange={handleNewStudentFormChange} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
                         </div>
+
                         {/* <div>
                             <label htmlFor="profileImage" className="block text-sm font-medium text-gray-700">Profile:</label>
                             <div className="mt-1 flex justify-center items-center w-full h-40 border-2 border-gray-300 border-dashed rounded-md cursor-pointer relative group">
@@ -208,6 +221,7 @@ const AddStudentModal = ({ visible, onClose, newStudentForm, handleNewStudentFor
                                 <span className="absolute bottom-2 text-xs text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity">Upload Image</span>
                             </div>
                         </div> */}
+
                     </div>
                 </form>
 

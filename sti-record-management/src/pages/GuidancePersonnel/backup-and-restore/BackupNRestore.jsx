@@ -105,7 +105,7 @@ function BackNRestore() {
                                 <label className="inline-flex items-center ml-2 cursor-pointer">
                                     <input
                                         type="checkbox"
-                                        className="form-checkbox h-4 w-4 text-blue-600 rounded focus:ring-blue-500 transition duration-150 ease-in-out"
+                                        className="form-checkbox h-4 w-4 text-blue-600 rounded focus:ring-blue-500 transition duration-150 ease-in-out cursor-pointer"
                                         onChange={handleGuidanceAllCheck}
                                         checked={allGuidanceChecked}
                                         // Set a ref to handle the indeterminate state
@@ -123,7 +123,7 @@ function BackNRestore() {
                                 />
                                 <span className="ml-2">Student Records</span>
                             </label>
-                            <label className="inline-flex items-center mb-1 cursor-pointer">
+                            <label className="inline-flex items-center mb-1 cursor-pointer cursor-pointer">
                                 <input
                                     type="checkbox"
                                     className="form-checkbox h-5 w-5 text-blue-600 rounded focus:ring-blue-500 transition duration-150 ease-in-out"
@@ -154,13 +154,13 @@ function BackNRestore() {
                                 <span className="ml-2">Student Wellness</span>
                             </label>
                         </div>
-                        <div className="flex flex-col md:col-span-1 lg:col-span-2">
+                        <div className="flex flex-col md:col-span-1 lg:col-span-2 ">
                             <span className="font-semibold text-lg text-black mb-2">
                                 Disciplinary Officer:
                                 <label className="inline-flex items-center ml-2 cursor-pointer">
                                     <input
                                         type="checkbox"
-                                        className="form-checkbox h-4 w-4 text-blue-600 rounded focus:ring-blue-500 transition duration-150 ease-in-out"
+                                        className="form-checkbox h-4 w-4 text-blue-600 rounded focus:ring-blue-500 transition duration-150 ease-in-out cursor-pointer"
                                         onChange={handleDisciplinaryAllCheck}
                                         checked={allDisciplinaryChecked}
                                         ref={el => el && (el.indeterminate = isDisciplinaryIndeterminate)}

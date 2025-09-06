@@ -122,7 +122,7 @@ function ViolationFrequency({ allData }) {
                 <h2 className="text-lg font-semibold">Violation Frequency</h2>
                 <div className="relative">
                     <select
-                        className="block appearance-none w-full bg-white border border-gray-300 hover:border-gray-500 px-4 py-2 pr-8 rounded-lg shadow leading-tight focus:outline-none focus:shadow-outline text-sm"
+                        className="block appearance-none w-full bg-white border border-gray-300 hover:border-gray-500 px-4 py-2 pr-8 rounded-lg shadow leading-tight focus:outline-none focus:shadow-outline text-sm cursor-pointer"
                         value={lineTimePeriod}
                         onChange={handleLineTimePeriodChange}
                     >

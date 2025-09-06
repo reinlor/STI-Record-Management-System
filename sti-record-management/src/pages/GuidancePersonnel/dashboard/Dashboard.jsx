@@ -85,7 +85,7 @@ const App = () => {
     }
 
     return (
-        <div className="bg-gray-100 p-4 min-h-screen">
+        <div className="bg-gray-100 p-4 h-full">
             <div className="grid grid-cols-1 md:grid-cols-3 md:grid-rows-2 gap-4">
                 {/* Violation Frequency (Line Chart) */}
                 <ViolationFrequency allData={allData}/>

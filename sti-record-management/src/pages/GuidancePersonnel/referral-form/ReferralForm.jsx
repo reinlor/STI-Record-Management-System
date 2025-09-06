@@ -4,6 +4,8 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import historyW from "../../../assets/history.png";
 import closeB from "../../../assets/closeblack.png";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function ReferralFormProcessing() {
   const { authData, logout } = useContext(AuthContext);
@@ -75,8 +77,10 @@ function ReferralFormProcessing() {
       setReferralData(response.data);
 
       closeForm();
+      toast.success(`Referral status updated to "${newStatus}"!`);
     } catch (error) {
       console.error("Error updating referral:", error);
+      toast.error("Error updating referral.");
     }
   };
 
@@ -93,7 +97,8 @@ function ReferralFormProcessing() {
     }
 
   return (
-    <div className="bg-gray-100 h-screen overflow-hidden custom-scrollbar">
+    <div className="bg-gray-100 h-full">
+      <ToastContainer position="top-right" autoClose={4000} />
       <div className="p-3 h-full overflow-y-auto">
         <div className="bg-white shadow-md p-4 rounded-l">
           {/* Header */}
@@ -139,10 +144,10 @@ function ReferralFormProcessing() {
           </div>
 
           {/* Table Section */}
-          <div className="bg-white rounded-lg shadow-md overflow-x-auto">
+          <div className="bg-white rounded-lg shadow-md overflow-y-auto custom-scrollbar h-full">
             {isLoading ? (
               // Table Loading Skeleton
-              <div className="flex justify-center items-center h-48 p-4">
+              <div className="flex justify-center items-center h-50 p-4">
                 <div className="animate-pulse flex flex-col space-y-4 w-full">
                   <div className="h-8 bg-gray-200 rounded-md"></div>
                   <div className="h-8 bg-gray-200 rounded-md w-11/12"></div>
@@ -156,13 +161,13 @@ function ReferralFormProcessing() {
               <table className="w-full text-left">
                 <thead>
                   <tr className="bg-gray-200 text-gray-700">
-                    <th className="px-4 py-3 font-semibold">Name</th>
-                    <th className="px-4 py-3 font-semibold">Employee No.</th>
-                    <th className="px-4 py-3 font-semibold">Reason</th>
-                    <th className="px-4 py-3 font-semibold">Student</th>
-                    <th className="px-4 py-3 font-semibold">Date</th>
-                    <th className="px-4 py-3 font-semibold">Status</th>
-                    <th className="px-4 py-3"></th>
+                    <th className="sticky top-0 z-10 bg-gray-300 px-4 py-3 font-semibold">Name</th>
+                    <th className="sticky top-0 z-10 bg-gray-300 px-4 py-3 font-semibold">Employee No.</th>
+                    <th className="sticky top-0 z-10 bg-gray-300 px-4 py-3 font-semibold">Reason</th>
+                    <th className="sticky top-0 z-10 bg-gray-300 px-4 py-3 font-semibold">Student</th>
+                    <th className="sticky top-0 z-10 bg-gray-300 px-4 py-3 font-semibold">Date</th>
+                    <th className="sticky top-0 z-10 bg-gray-300 px-4 py-3 font-semibold">Status</th>
+                    <th className="sticky top-0 z-10 bg-gray-300 px-4 py-3 font-semibold"></th>
                   </tr>
                 </thead>
                 <tbody>

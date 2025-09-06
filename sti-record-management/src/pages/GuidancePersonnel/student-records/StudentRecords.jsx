@@ -174,7 +174,7 @@ function StudentRecords() {
                 setSelectedStudentId(null);
 
                 setShowArchiveConfirmModal(false);
-                toast.success(res.data?.message || "Student Archived Successfully!"); // Replaced alert
+                toast.success(res.data?.message || "Student Archived Successfully! " ); // Replaced alert
             } catch (err) {
                 console.error(err);
                 toast.error("Error archiving student.");
@@ -326,7 +326,7 @@ function StudentRecords() {
     }, [filteredStudents]);
 
     return (
-        <div className="flex bg-gray-100 min-h-screen">
+        <div className="flex bg-gray-100 h-full overflow-hidden">
             <ToastContainer
                 position="top-right"
                 autoClose={5000}
@@ -339,11 +339,12 @@ function StudentRecords() {
                 pauseOnHover
             />
 
-            <div className={`w-96 bg-white border-r border-gray-200 shadow-lg flex flex-col`}>
+            <div className={`w-96 h-220 bg-white border-r border-gray-200 shadow-lg flex flex-col`}>
                 <div className="p-4 border-b border-gray-200">
                     <div className="flex items-center space-x-2 mb-4">
                         <p className="text-3xl font-bold text-gray-800">Student List</p>
                     </div>
+
 
                     <div className="flex justify-around bg-gray-200 p-1 rounded-lg mb-4">
                         <button className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out cursor-pointer hover:bg-[#003d54] ${activeTab === 'Archived' ? 'bg-[#0a1220] text-white shadow-sm' : 'text-gray-700 hover:bg-gray-300'}`}
@@ -407,7 +408,7 @@ function StudentRecords() {
                     ) : null}
                 </div>
 
-                <div ref={studentsListRef} className="flex-1 overflow-y-auto pb-4">
+                <div ref={studentsListRef} className="flex-1 overflow-y-auto pb-4 custom-scrollbar">
                     {filteredStudents.length > 0 ? (
                         filteredStudents.map((student) => {
                             const sid = student.sid ?? student.id ?? 'N/A';

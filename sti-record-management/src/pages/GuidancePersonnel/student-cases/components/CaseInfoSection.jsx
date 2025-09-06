@@ -80,7 +80,16 @@ const CaseInfoSection = ({ infoType, caseData, isEditing, onFieldChange }) => {
                                 )
                             ) : (
                                 <span className="text-lg font-semibold text-gray-900 break-words">
-                                    {value}
+                                    {fieldDef.type === 'file' && value && value !== 'N/A' ? (
+                                        <img
+                                            src={value}
+                                            alt="Proof"
+                                            className="max-h-48 max-w-full rounded-md border border-gray-300"
+                                            style={{ marginTop: '8px' }}
+                                        />
+                                    ) : (
+                                        value
+                                    )}
                                 </span>
                             )}
                         </div>

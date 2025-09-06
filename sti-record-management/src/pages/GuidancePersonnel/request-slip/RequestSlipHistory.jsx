@@ -191,18 +191,18 @@ function requestSlipHistory() {
                       </div>
                     </div>
         
-                    <div className="bg-white rounded-lg shadow-md">
+                    <div className="bg-white rounded-lg shadow-md overflow-y-auto custom-scrollbar h-180"> 
                       <table className="w-full text-left">
                         <thead>
-                          <tr className="bg-gray-200 text-gray-700">
-                            <th className="px-4 py-3 font-semibold">Name</th>
-                            <th className="px-4 py-3 font-semibold">Student No.</th>
-                            <th className="px-4 py-3 font-semibold">Type of Slip</th>
-                            <th className="px-4 py-3 font-semibold">Date</th>
-                            <th className="px-4 py-3 font-semibold">Status</th>
-                            <th className="px-4 py-3 font-semibold">Reason</th>
-                            <th className="px-4 py-3 font-semibold">Attachments</th>
-                            <th className="px-4 py-3"></th>
+                          <tr className="bg-white text-gray-700">
+                            <th className="sticky top-0 z-10 bg-gray-300 px-4 py-3 font-semibold">Name</th>
+                            <th className="sticky top-0 z-10 bg-gray-300 px-4 py-3 font-semibold">Student No.</th>
+                            <th className="sticky top-0 z-10 bg-gray-300 px-4 py-3 font-semibold">Type of Slip</th>
+                            <th className="sticky top-0 z-10 bg-gray-300 px-4 py-3 font-semibold">Date</th>
+                            <th className="sticky top-0 z-10 bg-gray-300 px-4 py-3 font-semibold">Status</th>
+                            <th className="sticky top-0 z-10 bg-gray-300 px-4 py-3 font-semibold">Reason</th>
+                            <th className="sticky top-0 z-10 bg-gray-300 px-4 py-3 font-semibold">Attachments</th>
+                            <th className="sticky top-0 z-10 bg-gray-300 px-4 py-3"></th>
                           </tr>
                         </thead>
                         <tbody>{displaySlipHistoryTable}</tbody>

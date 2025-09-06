@@ -3,14 +3,14 @@ import { EllipsisVertical, Archive } from 'lucide-react';
 
 export default function UserTable({ filteredUsers, displayRoles, displayAccess, handleEditInfo, showArchived, handleArchiveUser, handleRestoreUser }) {
     return (
-        <div className="overflow-x-auto bg-white rounded-lg shadow-md">
+        <div className="bg-white rounded-lg shadow-md h-[75vh] overflow-y-auto custom-scrollbar">
             <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                     <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Roles</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Access</th>
-                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"></th>
+                        <th className="sticky top-0 z-10 bg-gray-300 px-6 py-3 text-left font-semibold tracking-wider">Name</th>
+                        <th className="sticky top-0 z-10 bg-gray-300 px-6 py-3 text-left font-semibold tracking-wider">Roles</th>
+                        <th className="sticky top-0 z-10 bg-gray-300 px-6 py-3 text-left font-semibold tracking-wider">Access</th>
+                        <th className="sticky top-0 z-10 bg-gray-300 px-6 py-3 text-right font-semibold tracking-wider"></th>
                     </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
