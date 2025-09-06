@@ -59,14 +59,6 @@ const AddStudentModal = ({ visible, onClose, newStudentForm, handleNewStudentFor
         }
     }
 
-const yearLevelOptions = [
-    "Grade 11", "Grade 12", "1st Year College",
-    "2nd Year College", "3rd Year College", "4th Year College"
-];
-const programOptions = [
-    "BSIT", "BSCS", "BSBA", "BSECE", "BMMA"
-];
-
     return (
         <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-4">
             <ToastContainer
