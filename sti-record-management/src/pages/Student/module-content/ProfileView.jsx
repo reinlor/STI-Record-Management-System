@@ -33,9 +33,6 @@ export default function ProfileView() {
   const lockedFields = [
     "Student ID",
     "Full Name",
-    "Permanent Address",
-    "Emergency Contact",
-    "Emergency Contact Number",
     "Birth Date",
     "Gender",
     "Program and Year/Section",
