@@ -20,12 +20,7 @@ const lateSlipSchema = Joi.object({
   program: Joi.string().optional(),
   section: Joi.string().required(),
   typeOfSlip: Joi.string().valid("Late Slip").required(),
-  email: Joi.string().email({
-    minDomainSegments: 2,
-    tlds: {
-      allow: ["com", "net"],
-    },
-  }),
+  email: Joi.string().email().required(),
   reason: Joi.string().required(),
   attachmentCount: Joi.number().required(),
   proofUrl: Joi.string().required(),
@@ -39,12 +34,7 @@ const uniformPassSchema = Joi.object({
   program: Joi.string().optional(),
   section: Joi.string().required(),
   typeOfSlip: Joi.string().valid("Uniform Pass").required(),
-  email: Joi.string().email({
-    minDomainSegments: 2,
-    tlds: {
-      allow: ["com", "net"],
-    },
-  }),
+  email: Joi.string().email().required(),
   reason: Joi.string().required(),
   attachmentCount: Joi.number().required(),
   proofUrl: Joi.string().required(),
@@ -58,12 +48,7 @@ const absentSlipSchema = Joi.object({
   program: Joi.string().optional(),
   section: Joi.string().required(),
   typeOfSlip: Joi.string().valid("Absent Slip").required(),
-  email: Joi.string().email({
-    minDomainSegments: 2,
-    tlds: {
-      allow: ["com", "net"],
-    },
-  }),
+  email: Joi.string().email().required(),
   reason: Joi.string().required(),
   excuseLetterUrl: Joi.string().required(),
   medicalCertificateUrl: Joi.string().required(),
@@ -82,12 +67,7 @@ const idPassSchema = Joi.object({
   section: Joi.string().required(),
   typeOfSlip: Joi.string().valid("ID Slip").required(),
   proofUrl: Joi.string().required(),
-  email: Joi.string().email({
-    minDomainSegments: 2,
-    tlds: {
-      allow: ["com", "net"],
-    },
-  }),
+  email: Joi.string().email().required(),
   reason: Joi.string().required(),
   attachmentCount: Joi.number().required().default(0),
   status: Joi.string().required(),

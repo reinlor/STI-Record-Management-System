@@ -1,17 +1,26 @@
 import React, { useState, useContext } from "react";
 import StudentTopBar from "./components/StudentTopbar.jsx";
+import ChangePasswordModal from "../../component/ChangePasswordModal.jsx"; // Make sure the path is correct
 import ProfileView from "./module-content/ProfileView.jsx";
 import StudentRequestSlip from "./module-content/StudentRequestSlip.jsx";
 import StudentViewRequest from "./module-content/StudentViewRequest.jsx";
 import WellnessCheck from "./module-content/WellnessCheck.jsx";
 import ConsentModal from "./ConsentModal.jsx";
-import { ToastContainer } from "react-toastify";
+import { ToastContainer, toast } from "react-toastify";
 import { AuthContext } from "../../AuthProvider.jsx";
-
 
 export default function StudentHomepage() {
   const [selected, setSelected] = useState("profile");
+  const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] = useState(false);
   const { authData, logout } = useContext(AuthContext);
+
+  const handlePasswordChange = (currentPassword, newPassword) => {
+    console.log("Current Password entered:", currentPassword);
+    console.log("Password changed successfully to:", newPassword);
+    toast.success("Password changed successfully!");
+      //NOTE: Palitan kung pano ihandle yung password change sa backend
+      // //This is just a placeholder function
+  };
 
   const renderModule = () => {
     switch (selected) {
@@ -35,13 +44,23 @@ export default function StudentHomepage() {
   return (
     <div className="min-h-screen text-black bg-white bg-[url('/grid.svg')] bg-repeat">
       <ToastContainer />
-      <ConsentModal 
+      <ConsentModal
         isFirstLogin={authData.user.isFirstLogin}
         id={authData.user.uid}/>
-      <StudentTopBar selected={selected} setSelected={setSelected} onLogout={logout}/>
+      <StudentTopBar
+        selected={selected}
+        setSelected={setSelected}
+        onLogout={logout}
+        onOpenChangePassword={() => setIsChangePasswordModalOpen(true)}
+      />
       <div className="px-0 w-full">
         {renderModule()}
       </div>
+      <ChangePasswordModal
+        isOpen={isChangePasswordModalOpen}
+        onClose={() => setIsChangePasswordModalOpen(false)}
+        onConfirmChange={handlePasswordChange}
+      />
       <style>
         {`
           .animate-fade-in {

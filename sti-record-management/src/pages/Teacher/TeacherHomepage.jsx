@@ -1,9 +1,12 @@
 import React, { useState, useEffect, useContext } from "react";
 import TeacherTopbar from "./modules/TeacherTopbar";
+import ChangePasswordModal from "../../component/ChangePasswordModal.jsx";
 import SubmitReferralForm from "./content/SubmitReferral";
 import ViewRequest from "./content/ViewRequest";
 import axios from "axios";
 import { AuthContext } from "../../AuthProvider";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function TeacherHomepage() {
     const { authData, logout } = useContext(AuthContext);
@@ -11,6 +14,7 @@ export default function TeacherHomepage() {
     const [teacherData, setTeacherData] = useState(null);
     const [referralData, setReferralData] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] = useState(false);
 
     const fetchReferral = async (teacherID) => {
         try {
@@ -42,6 +46,14 @@ export default function TeacherHomepage() {
         fetchReferral(teacherID);
     }, [authData]);
 
+    const handlePasswordChange = (currentPassword, newPassword) => {
+        console.log("Current Password entered:", currentPassword);
+        console.log("Password changed successfully to:", newPassword);
+        toast.success("Password change successfully!");
+          //NOTE: Palitan kung pano ihandle yung password change sa backend
+          //This is just a placeholder function
+    };
+
     const renderModule = () => {
         switch (selected) {
             case "submit":
@@ -69,10 +81,21 @@ export default function TeacherHomepage() {
 
     return (
         <div className="min-h-screen text-black bg-white bg-[url('/grid.svg')] bg-repeat">
-            <TeacherTopbar selected={selected} setSelected={setSelected} onLogout={logout} />
+            <ToastContainer />
+            <TeacherTopbar
+                selected={selected}
+                setSelected={setSelected}
+                onLogout={logout}
+                onOpenChangePassword={() => setIsChangePasswordModalOpen(true)}
+            />
             <div className="px-0 w-full">
                 {renderModule()}
             </div>
+            <ChangePasswordModal
+                isOpen={isChangePasswordModalOpen}
+                onClose={() => setIsChangePasswordModalOpen(false)}
+                onConfirmChange={handlePasswordChange}
+            />
             <style>
                 {`
                     .animate-fade-in {
