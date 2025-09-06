@@ -27,6 +27,7 @@ export default function Sidebar() {
             access.referralForm?.canView ? { label: "Referral Forms", path: "/guidance/referral-form" } : null,
             access.backupRestore?.canView ? { label: "Back Up and Restore", path: "/guidance/back-n-restore" } : null,
             access.wellness?.canView ? { label: "Wellness Assessment", path: "/guidance/wellness" } : null,
+            {label: "Content Managemet", path: "/guidance/content-management" },
         ].filter(Boolean);
     }
 

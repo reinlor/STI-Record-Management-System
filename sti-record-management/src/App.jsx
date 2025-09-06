@@ -37,7 +37,8 @@ import GuidanceRequestSlip from './pages/GuidancePersonnel/request-slip/RequestS
 import GuidanceRequestSlipHistory from './pages/GuidancePersonnel/request-slip/RequestSlipHistory.jsx'
 import GuidanceUsers from './pages/GuidancePersonnel/users/Users.jsx'
 import GuidanceBackNRestore from './pages/GuidancePersonnel/backup-and-restore/BackupNRestore.jsx'
-import GuidanceWellnessGeneration from './pages/GuidancePersonnel/wellness-assessment/WellnessAssessment.jsx'
+import GuidanceWellnessGeneration from './pages/GuidancePersonnel/wellness-assessment/WellnessAssessment.jsx' 
+import GuidanceContentManagement from './pages/GuidancePersonnel/content-management/ContentManagement.jsx' 
 
 import StudentHomepage from './pages/Student/StudentHomepage.jsx';
 import StudentSignup from './pages/Student/StudentSignup.jsx';
@@ -127,6 +128,7 @@ function App() {
             <Route path="referral-form-history" element={<GuidanceReferralFormHistory/>}/>
             <Route path="back-n-restore" element={<GuidanceBackNRestore/>}/>
             <Route path="wellness" element={<GuidanceWellnessGeneration/>}/>
+            <Route path="content-management" element={<GuidanceContentManagement/>}/>
           </Route>
 
           {/* Protected Student Routes */}
