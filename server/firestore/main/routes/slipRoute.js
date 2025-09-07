@@ -16,7 +16,8 @@ const {
   getAllSlipsById,
   addUniformPass,
   getAllUniformPass,
-  getUniformPass
+  getUniformPass,
+  updateSlipStatus
 } = require("../controller/slipController");
 
 const router = express.Router();
@@ -46,5 +47,6 @@ router.get("/uniformSlip/:sid", getUniformPass);
 //All Slips
 router.get('/allSlips', getAllSlips);
 router.get('/allSlips/:sid', getAllSlipsById);
+router.put('/update/:slipType/:slipId', updateSlipStatus)   // For updating slips
 
 module.exports = router;

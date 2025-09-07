@@ -60,6 +60,7 @@ function RequestSlip() {
   const [search, setSearch] = useState("");
   const [selectedSlip, setSelectedSlip] = useState(null); // This was missing
   const { authData } = useContext(AuthContext);
+  const navigate = useNavigate();
 
   if (!authData?.user?.access?.requestSlip) {
     const error401 = () => {
@@ -68,7 +69,35 @@ function RequestSlip() {
     return error401()
   }
 
-  const navigate = useNavigate();
+
+  const [body, setBody] = useState("Please proceed to the Guidance and Counseling Office");
+
+
+  const handleStatusChange = async (slipType, slipId, status, slip) => {
+    try {
+      await axios.put(`/slip/update/${slipType}/${slipId}`, { status });
+
+      const emailData = {
+        to: slip.email,
+        subject: `Your ${slipType} Request has been ${status}`,
+        text: `Hello ${slip.name},\n\nYour ${slipType} submitted on ${slip.timeCreatedFormatted} has been ${status}.\n\n ${body} \n\n- Admin`
+      };
+
+      await axios.post("/email/send", emailData);
+
+      setAllSlipData((prev) =>
+        prev.map((s) =>
+          s.id === slipId ? { ...s, status } : s
+        )
+      );
+
+      alert(`Slip updated to ${status} and email sent!`);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to update slip or send email");
+    }
+  };
+
 
   useEffect(() => {
     const fetchData = async () => {
@@ -242,22 +271,23 @@ function RequestSlip() {
                   type="text"
                   value={selectedSlip.email}
                   className="border rounded px-3 py-2 w-full text-xs sm:text-sm"
-                  readOnly // Added readOnly since this is for display
+                  readOnly
                 />
               </div>
-              <div>
+              {/* <div>
                 <label className="block text-sm font-semibold mb-1">Subject</label>
                 <input
                   type="text"
                   defaultValue="Requested Slip Form Status"
                   className="border rounded px-3 py-2 w-full text-xs sm:text-sm"
                 />
-              </div>
+              </div> */}
               <div>
                 <label className="block text-sm font-semibold mb-1">Body</label>
                 <textarea
-                  defaultValue="Please proceed to the Guidance and Counseling Office"
                   className="border rounded px-3 py-2 w-full h-20 sm:h-24 resize-none text-xs sm:text-sm"
+                  value={body}
+                  onChange={(e) => setBody(e.target.value)}
                 />
               </div>
             </div>
@@ -265,11 +295,18 @@ function RequestSlip() {
 
           {/* Action Buttons: always at the bottom, full width on mobile */}
           <div className="flex flex-col sm:flex-row gap-2 pt-6">
-            <button className="flex-1 flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded">
+            <button
+              onClick={() => handleStatusChange(selectedSlip.typeOfSlip, selectedSlip._id, "Denied", selectedSlip)}
+              className="flex-1 flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded"
+            >
               Deny
               <img src={closeW} alt="closeW" className="w-4 h-4 object-cover rounded " />
             </button>
-            <button className="flex-1 flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded">
+
+            <button
+              onClick={() => handleStatusChange(selectedSlip.typeOfSlip, selectedSlip._id, "Approved", selectedSlip)}
+              className="flex-1 flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded"
+            >
               Approve
               <img src={checkW} alt="checkW" className="w-4 h-4 object-cover rounded " />
             </button>
@@ -281,6 +318,7 @@ function RequestSlip() {
 
   // Filtered + sorted data for search (latest -> oldest)
   const filteredSlipData = allSlipData
+    .filter((slip) => slip.status === "Pending")   // ✅ show only pending slips
     .filter((slip) => {
       const nameMatch = String(slip.name || '').toLowerCase().includes(search.toLowerCase());
       const sidMatch = String(slip.sid || '').toLowerCase().includes(search.toLowerCase());
@@ -318,23 +356,23 @@ function RequestSlip() {
     </tr>
   ));
 
-  
+
 
   return (
     <div className="bg-gray-100 h-full p-3">
       <div className="bg-white shadow-md p-4 rounded-lg overflow-y-auto">
 
-            <ToastContainer
-                position="top-right"
-                autoClose={5000}
-                hideProgressBar={false}
-                newestOnTop={false}
-                closeOnClick
-                rtl={false}
-                pauseOnFocusLoss
-                draggable
-                pauseOnHover
-            />
+        <ToastContainer
+          position="top-right"
+          autoClose={5000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+        />
 
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-4 gap-3">
@@ -399,38 +437,39 @@ function RequestSlip() {
             </thead>
             <tbody>
               {filteredSlipData.map((slips) => (
-              <tr key={slips._id} className="hover:bg-gray-100 transition">
-                <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 lg:whitespace-nowrap">{slips.name}</td>
-                <td className="px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">{slips.sid}</td>
-                <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 lg:whitespace-nowrap">{slips.typeOfSlip}</td>
-                <td className="px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">{slips.Date}</td>
-                <td
-                  className={`px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto font-semibold ${
-                    slips.status === "Approved"
+                <tr key={slips._id} className="hover:bg-gray-100 transition">
+                  <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 lg:whitespace-nowrap">{slips.name}</td>
+                  <td className="px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">{slips.sid}</td>
+                  <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 lg:whitespace-nowrap">{slips.typeOfSlip}</td>
+                  <td className="px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">
+                    {slips.timeCreatedFormatted || formatDate(slips.timeCreated)}
+                  </td>
+                  <td
+                    className={`px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto font-semibold ${slips.status === "Approved"
                       ? "text-green-600"
                       : slips.status === "Rejected"
-                      ? "text-red-600"
-                      : "text-gray-600"
-                  }`}
-                >
-                  {slips.status}
-                </td>
-                <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 whitespace-normal break-words max-w-[150px]">{slips.reason}</td>
-
-                {/* Shrunk columns */}
-                
-                
-                <td className="px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">{slips.attachmentCount}</td>
-
-                {authData?.user?.access?.requestSlip && (
-                  <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3">
-                    <button
-                      className="bg-gray-900 text-white px-3 sm:px-4 py-1 rounded-full hover:bg-gray-700 transition w-full sm:w-auto"
-                      onClick={() => openSlip(slips._id)}
-                    >
-                      Open
-                    </button>
+                        ? "text-red-600"
+                        : "text-gray-600"
+                      }`}
+                  >
+                    {slips.status}
                   </td>
+                  <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 whitespace-normal break-words max-w-[150px]">{slips.reason}</td>
+
+                  {/* Shrunk columns */}
+
+
+                  <td className="px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">{slips.attachmentCount}</td>
+
+                  {authData?.user?.access?.requestSlip && (
+                    <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3">
+                      <button
+                        className="bg-gray-900 text-white px-3 sm:px-4 py-1 rounded-full hover:bg-gray-700 transition w-full sm:w-auto"
+                        onClick={() => openSlip(slips._id)}
+                      >
+                        Open
+                      </button>
+                    </td>
                   )}
                 </tr>
               ))}
@@ -439,10 +478,10 @@ function RequestSlip() {
         </div>
       </div>
 
-    {displaySlipForm()}
-  </div>
+      {displaySlipForm()}
+    </div>
 
-      );
+  );
 }
 
 export default RequestSlip;

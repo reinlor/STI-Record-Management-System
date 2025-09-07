@@ -662,6 +662,54 @@ const getAllSlipsById = async (req, res) => {
   }
 };
 
+// Controller Function for updating slips/passes
+const updateSlipStatus = async (req, res) => {
+  const { slipType, slipId } = req.params;
+  const { status } = req.body;
+
+  const statusSchema = Joi.object({
+    status: Joi.string().valid("Approved", "Denied").required(),
+  });
+
+  const { error } = statusSchema.validate({ status });
+  if (error) {
+    return res.status(400).json({ error: error.details[0].message });
+  }
+
+  let collectionRef;
+  switch (slipType) {
+    case "Late Slip":
+      collectionRef = getLateSlipsCollection();
+      break;
+    case "Absent Slip":
+      collectionRef = getAbsentSlipsCollection();
+      break;
+    case "ID Slip":
+      collectionRef = getIDPassCollection();
+      break;
+    case "Uniform Pass":
+      collectionRef = getUniformPassCollection();
+      break;
+    default:
+      return res.status(400).json({ error: "Invalid slip type provided." });
+  }
+
+  try {
+    const docRef = collectionRef.doc(slipId);
+    const doc = await docRef.get();
+
+    if (!doc.exists) {
+      return res.status(404).json({ error: "Slip not found." });
+    }
+
+    await docRef.update({ status });
+
+    res.status(200).send({ message: `Slip ${slipId} status updated to ${status}.` });
+  } catch (error) {
+    res.status(500).send({ error: error.message });
+  }
+};
+
 module.exports = {
   addLateSlip,
   getAllLateSlip,
@@ -677,4 +725,5 @@ module.exports = {
   getUniformPass,
   getAllSlips,
   getAllSlipsById,
+  updateSlipStatus
 };

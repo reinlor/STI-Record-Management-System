@@ -1,33 +1,84 @@
-import react, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom';
+import axios from "axios";
 import back from '../../../assets/back.png'
 import closeB from '../../../assets/closeblack.png';
 
-function requestSlipHistory() {
+// --- Reuse date helpers from RequestSlip ---
+function parseToMillis(dateInput) {
+  if (!dateInput) return null;
+
+  if (typeof dateInput === 'object' && typeof dateInput.toDate === 'function') {
+    try {
+      return dateInput.toDate().getTime();
+    } catch {
+      return null;
+    }
+  }
+
+  if (typeof dateInput === 'object' && (dateInput.seconds !== undefined || dateInput._seconds !== undefined)) {
+    const seconds = dateInput.seconds ?? dateInput._seconds;
+    const nanos = dateInput.nanoseconds ?? dateInput._nanoseconds ?? 0;
+    return (Number(seconds) * 1000) + Math.floor(Number(nanos) / 1e6);
+  }
+
+  if (typeof dateInput === 'number') {
+    return dateInput > 1e12 ? dateInput : dateInput * 1000;
+  }
+
+  if (typeof dateInput === 'string') {
+    const parsed = Date.parse(dateInput);
+    if (!isNaN(parsed)) return parsed;
+
+    const simplified = dateInput.replace(/\s+at\s+/i, ' ').replace(/UTC.*$/i, '').trim();
+    const parsed2 = Date.parse(simplified);
+    if (!isNaN(parsed2)) return parsed2;
+  }
+
+  return null;
+}
+
+function formatDate(dateInput) {
+  const ms = typeof dateInput === 'number' ? dateInput : parseToMillis(dateInput);
+  if (!ms) return '';
+  const d = new Date(ms);
+  return `${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getDate().toString().padStart(2, '0')}/${d.getFullYear()}`;
+}
+
+function RequestSlipHistory() {
   const navigate = useNavigate()
   const [selectedSlip, setSelectedSlip] = useState(null);
   const [search, setSearch] = useState("");
+  const [slipData, setSlipData] = useState([]);
 
-  const sampleData = [
-    {
-      name: 'Lor, Rehneil',
-      studentNo: '02000000000',
-      typeOfSlip: 'Absent Slip',
-      date: '07/31/2025',
-      status: 'Denied',
-      reason: 'LBM',
-      daysAbsent: '2'
-    },
-    {
-      name: 'Tugna, Sean',
-      studentNo: '02000000000',
-      typeOfSlip: 'Late Slip',
-      date: '07/31/2025',
-      status: 'Approved',
-      reason: 'Traffic',
-      daysAbsent: '0'
-    }
-  ]
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await axios.get("/slip/allSlips");
+        const allSlips = (res.data || []).map((slip) => {
+          const ms = parseToMillis(slip.timeCreated);
+          return {
+            ...slip,
+            timeCreatedMs: ms,
+            timeCreatedFormatted: ms ? formatDate(ms) : '',
+          };
+        });
+
+        // Only Approved or Rejected
+        const filtered = allSlips.filter(
+          (s) => s.status === "Approved" || s.status === "Rejected"
+        );
+
+        // Sort latest → oldest
+        filtered.sort((a, b) => (b.timeCreatedMs || 0) - (a.timeCreatedMs || 0));
+
+        setSlipData(filtered);
+      } catch (error) {
+        console.error("Error fetching slip history:", error.message);
+      }
+    };
+    fetchData();
+  }, []);
 
   const colorStatusIndicator = (status) => {
     if (status === 'Approved') {
@@ -38,89 +89,97 @@ function requestSlipHistory() {
   }
 
   const displayRequestSlipForm = () => {
+    if (!selectedSlip) return null;
+
+    const { proofUrl, excuseLetterUrl, guardianValidUrl, medicalCertificateUrl } = selectedSlip;
+
     return (
-      selectedSlip && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-sm">
-          <div className="bg-white w-full max-w-[95vw] sm:max-w-xl lg:max-w-2xl rounded-lg shadow-lg p-4 sm:p-6 relative overflow-y-auto max-h-[90vh] outline-solid outline-2 outline-gray-300">
-            
-            <div className='flex items-center '>
-              <button
-                onClick={() => setSelectedSlip(null)}
-                className="absolute mb-3 right-5 text-2xl text-gray-700 hover:text-black"
-              >
-                <img src={closeB} alt="closeb" className="w-7 h-7 object-cover rounded " />
-              </button>
-              <h2 className="text-2xl font-bold mb-4">Request Slip Form</h2>
+      <div className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-sm">
+        <div className="bg-white w-full max-w-[95vw] sm:max-w-xl lg:max-w-2xl rounded-lg shadow-lg p-4 sm:p-6 relative overflow-y-auto max-h-[90vh] outline-solid outline-2 outline-gray-300">
+          <div className='flex items-center '>
+            <button
+              onClick={() => setSelectedSlip(null)}
+              className="absolute mb-3 right-5 text-2xl text-gray-700 hover:text-black"
+            >
+              <img src={closeB} alt="closeb" className="w-7 h-7 object-cover rounded " />
+            </button>
+            <h2 className="text-2xl font-bold mb-4">Request Slip Form</h2>
+          </div>
+          <hr className="mb-4" />
 
-            </div>
-            
+          <div className="space-y-2">
+            <p><span className="font-semibold">Name:</span> {selectedSlip.name}</p>
+            <p><span className="font-semibold">Program:</span> {selectedSlip.program}</p>
+            <p><span className="font-semibold">Year and Section:</span> {selectedSlip.yearSection}</p>
+            <p><span className="font-semibold">Email:</span> {selectedSlip.email}</p>
+            <p>
+              <span className="font-semibold">Status:</span>{" "}
+              <span className={selectedSlip.status === 'Approved' ? 'text-green-600 font-bold' : 'text-red-600 font-bold'}>
+                {selectedSlip.status}
+              </span>
+            </p>
+            <p><span className="font-semibold">Reason:</span> {selectedSlip.reason}</p>
+            <p><span className="font-semibold">Days Absent:</span> {selectedSlip.daysAbsent}</p>
+            <p><span className="font-semibold">Date:</span> {selectedSlip.timeCreatedFormatted}</p>
+          </div>
 
-            <hr className="mb-4" />
-
-            <div className="space-y-2">
-              <p><span className="font-semibold">Name:</span> {selectedSlip.name}</p>
-              <p><span className="font-semibold">Program:</span> BSIT</p>
-              <p><span className="font-semibold">Year and Section:</span> 4A</p>
-              <p><span className="font-semibold">Email:</span> depedrodionne@gmail.com</p>
-              <p>
-                <span className="font-semibold">Status:</span>{" "}
-                <span className={selectedSlip.status === 'Approved' ? 'text-green-600 font-bold' : 'text-red-600 font-bold'}>
-                  {selectedSlip.status}
-                </span>
-              </p>
-              <p><span className="font-semibold">Reason:</span> {selectedSlip.reason}</p>
-              <p><span className="font-semibold">Days Absent:</span> {selectedSlip.daysAbsent}</p>
-            </div>
-
-            <div className="mt-6">
-              <h3 className="font-semibold mb-2">Excuse Letter/ Medical Certificate</h3>
-              <div className="flex gap-2">
-                <div className="w-24 h-24 bg-gray-100 border border-gray-300 flex items-center justify-center">
-                  <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
-                      d="M3 7l9 6 9-6-9-6-9 6zm0 7l9 6 9-6" />
-                  </svg>
-                </div>
-                <div className="w-24 h-24 bg-gray-100 border border-gray-300 flex items-center justify-center">
-                  <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
-                      d="M3 7l9 6 9-6-9-6-9 6zm0 7l9 6 9-6" />
-                  </svg>
-                </div>
+          {/* Attachments same as in RequestSlip */}
+          <div className="grid grid-cols-2 gap-6 mt-6">
+            {proofUrl && (
+              <div className="flex flex-col items-center">
+                <a href={proofUrl} target="_blank" rel="noopener noreferrer">
+                  <img src={proofUrl} alt="Proof" className="w-24 h-24 object-cover rounded" />
+                </a>
+                <span className="text-xs text-gray-600 mt-2 text-center">Proof of Transaction</span>
               </div>
-
-              <h3 className="font-semibold mt-4 mb-2">Photo of Parent’s/Guardian’s ID</h3>
-              <div className="flex gap-2">
-                <div className="w-24 h-24 bg-gray-100 border border-gray-300 flex items-center justify-center">
-                  <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
-                      d="M3 7l9 6 9-6-9-6-9 6zm0 7l9 6 9-6" />
-                  </svg>
-                </div>
-                <div className="w-24 h-24 bg-gray-100 border border-gray-300 flex items-center justify-center">
-                  <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
-                      d="M3 7l9 6 9-6-9-6-9 6zm0 7l9 6 9-6" />
-                  </svg>
-                </div>
+            )}
+            {excuseLetterUrl && (
+              <div className="flex flex-col items-center">
+                <a href={excuseLetterUrl} target="_blank" rel="noopener noreferrer">
+                  <img src={excuseLetterUrl} alt="Excuse Letter" className="w-24 h-24 object-cover rounded" />
+                </a>
+                <span className="text-xs text-gray-600 mt-2 text-center">Excuse Letter</span>
               </div>
-            </div>
+            )}
+            {medicalCertificateUrl && (
+              <div className="flex flex-col items-center">
+                <a href={medicalCertificateUrl} target="_blank" rel="noopener noreferrer">
+                  <img src={medicalCertificateUrl} alt="Medical" className="w-24 h-24 object-cover rounded" />
+                </a>
+                <span className="text-xs text-gray-600 mt-2 text-center">Medical Certificate</span>
+              </div>
+            )}
+            {guardianValidUrl && (
+              <div className="flex flex-col items-center">
+                <a href={guardianValidUrl} target="_blank" rel="noopener noreferrer">
+                  <img src={guardianValidUrl} alt="Guardian ID" className="w-24 h-24 object-cover rounded" />
+                </a>
+                <span className="text-xs text-gray-600 mt-2 text-center">Guardian’s ID</span>
+              </div>
+            )}
           </div>
         </div>
-      )
-    )
+      </div>
+    );
   }
 
-  const displaySlipHistoryTable = sampleData.map(
-    (slips, idx) =>
+  const displaySlipHistoryTable = slipData
+    .filter((slip) => {
+      const searchLower = search.toLowerCase();
+      return (
+        slip.name?.toLowerCase().includes(searchLower) ||
+        slip.sid?.toLowerCase().includes(searchLower)
+      );
+    })
+    .map((slips, idx) => (
       <tr key={idx} className="hover:bg-gray-100 transition">
         <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3">{slips.name}</td>
-        <td className="px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">{slips.studentNo}</td>
+        <td className="px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">{slips.sid}</td>
         <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3">{slips.typeOfSlip}</td>
-        <td className="px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">{slips.date}</td>
+        <td className="px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">{slips.timeCreatedFormatted}</td>
         {colorStatusIndicator(slips.status)}
         <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3">{slips.reason}</td>
-        <td className="px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">{slips.daysAbsent}</td>
+        <td className="px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">{slips.attachmentCount}</td>
         <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3">
           <button
             onClick={() => setSelectedSlip(slips)}
@@ -130,16 +189,14 @@ function requestSlipHistory() {
           </button>
         </td>
       </tr>
-  )
+    ));
 
   return (
     <div className="bg-gray-100 h-220 p-3">
       <div className="bg-white shadow-md p-4 rounded-lg">
-
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-4 gap-3">
           <div className="flex items-center gap-2">
-
             <button
               onClick={() => navigate('/guidance/request-slip')}
               style={{ cursor: 'pointer' }}
@@ -147,13 +204,9 @@ function requestSlipHistory() {
             >
               <img src={back} alt="back" className="w-7 h-7 object-cover rounded" />
             </button>
-
             <p className="text-2xl sm:text-3xl lg:text-4xl font-bold">Request Slip History</p>
-            
           </div>
-          
           <div className="flex flex-col sm:flex-row gap-2 w-full lg:w-auto">
-            {/* Search Bar */}
             <div className="relative w-full sm:w-64">
               <input
                 type="text"
@@ -202,4 +255,4 @@ function requestSlipHistory() {
   );
 }
 
-export default requestSlipHistory;
+export default RequestSlipHistory;
