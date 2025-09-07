@@ -410,7 +410,8 @@ function StudentCases() {
                     }}
                     data-case-id={aCase.id}
                     key={aCase.id}
-                    className={`flex items-center justify-between p-4 border-b border-gray-200 cursor-pointer transition duration-150 ease-in-out ${selectedCaseId === aCase.id
+                    className={`flex items-center justify-between p-4 border-b border-gray-200 cursor-pointer transition duration-150 ease-in-out 
+                      ${selectedCaseId === aCase.id
                       ? "bg-blue-100 border-l-4 border-blue-500"
                       : "hover:bg-gray-50"
                       }`}

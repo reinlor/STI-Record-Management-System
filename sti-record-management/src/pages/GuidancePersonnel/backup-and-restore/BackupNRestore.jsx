@@ -4,6 +4,9 @@ import { Navigate } from 'react-router-dom';
 import RestoreModal from './Restore';
 import axios from 'axios';
 
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 // Mock AuthContext for demonstration.
 const AuthContext = React.createContext({
     authData: { user: { access: { backupRestore: { canView: true } } } },
@@ -80,9 +83,10 @@ function BackNRestore() {
             document.body.appendChild(link);
             link.click();
             link.remove();
+            toast.success("Backup successful downloaded.");
         } catch (err) {
             console.error("Backup failed:", err);
-            setErrorMessage("Backup failed! Please try again.");
+            toast.error("Backup failed. Please try again.");
         } finally {
             setIsExporting(false);
             setProgress(0);
@@ -92,6 +96,17 @@ function BackNRestore() {
     return (
         <div className="bg-gray-100 flex items-start justify-center p-2 sm:p-6 h-full font-sans">
             <RestoreModal onClick={() => setShowModal(false)} visible={showModal}/>
+                <ToastContainer
+                position="top-right"
+                autoClose={5000}
+                hideProgressBar={false}
+                newestOnTop={false}
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+            />
             <div className="w-full h-full bg-white rounded-lg p-2 sm:p-4 shadow-sm flex flex-col max-w-full sm:max-w-2xl md:max-w-4xl">
                 <p className="text-xl sm:text-3xl md:text-4xl font-bold text-gray-800 mb-2">Back-up and Restore</p>
                 <p className="text-xs sm:text-base text-gray-600 mb-5">Create a back-up for emergency and restore files.</p>

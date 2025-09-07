@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, X, Link, Check, Bell, GraduationCap, Building, Link2, Settings } from 'lucide-react';
 
 const Toast = ({ message, type, isVisible, onClose }) => {
@@ -107,6 +107,15 @@ export default function ContentManagement() {
             ))}
         </div>
     );
+
+    // Save to localStorage whenever lists change
+    useEffect(() => {
+        localStorage.setItem('tertiaryPrograms', JSON.stringify(tertiaryPrograms));
+    }, [tertiaryPrograms]);
+
+    useEffect(() => {
+        localStorage.setItem('shsStrands', JSON.stringify(shsStrands));
+    }, [shsStrands]);
 
     return (
         <div className="flex flex-col md:flex-row h-full bg-gray-100 p-2 md:p-4 gap-2 md:gap-4">

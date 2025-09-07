@@ -7,7 +7,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import '../../../index.css';
 
 // Para sa interesection observers
-import { ChevronRight, ChevronLeft } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Search } from 'lucide-react';
 import { useInView } from 'react-intersection-observer';
 
 import studentIcon from '../../../assets/student.png';
@@ -286,9 +286,45 @@ function StudentRecords() {
         "2nd Year College", "3rd Year College", "4th Year College",
     ];
 
-    const programOptions = [
-        "none", "BSIT", "BSCS", "BSBA", "BSECE", "BMMA",
-    ];
+    const [tertiaryPrograms, setTertiaryPrograms] = useState(() => {
+        const stored = localStorage.getItem('tertiaryPrograms');
+        if (stored) return JSON.parse(stored).map(p => p.acronym);
+        return ["BMMA", "BSIT", "BSBA", "BSA", "BSCS", "BSECE"];
+    });
+    const [shsStrands, setShsStrands] = useState(() => {
+        const stored = localStorage.getItem('shsStrands');
+        if (stored) return JSON.parse(stored).map(s => s.acronym);
+        return ["STEM", "TVL", "GAS", "HUMSS", "ABM", "ICT"];
+    });
+
+    // Listen for changes in localStorage (in case another tab updates)
+    useEffect(() => {
+        const syncLists = () => {
+            const t = localStorage.getItem('tertiaryPrograms');
+            const s = localStorage.getItem('shsStrands');
+            if (t) setTertiaryPrograms(JSON.parse(t).map(p => p.acronym));
+            if (s) setShsStrands(JSON.parse(s).map(s => s.acronym));
+        };
+        window.addEventListener('storage', syncLists);
+        return () => window.removeEventListener('storage', syncLists);
+    }, []);
+
+    // Dynamic program options based on year level
+    const getProgramOptions = () => {
+        if (selectedYearLevel === "Grade 11" || selectedYearLevel === "Grade 12") {
+            return ["none", ...shsStrands];
+        }
+        if (
+            selectedYearLevel === "1st Year College" ||
+            selectedYearLevel === "2nd Year College" ||
+            selectedYearLevel === "3rd Year College" ||
+            selectedYearLevel === "4th Year College"
+        ) {
+            return ["none", ...tertiaryPrograms];
+        }
+        // Default options
+        return ["none", ...tertiaryPrograms];
+    };
 
     if (!authData?.user?.access?.studentRecords?.canView) {
         return <Navigate to="/error401" replace />
@@ -361,35 +397,32 @@ function StudentRecords() {
                     {/* Only show content if not collapsed */}
                     {!(selectedStudentId && window.innerWidth < 1024) && (
                         <>
-                            <div className="p-4 border-b border-gray-200">
-                                <div className="flex items-center space-x-2 mb-4">
+                            <div className="p-2 border-b border-gray-200">
+                                <div className="flex items-center space-x-3">
                                     <p className="text-3xl font-bold text-gray-800">Student List</p>
                                 </div>
-                                <div className="flex justify-around bg-gray-200 p-1 rounded-lg mb-4">
 
+                                {/* Archive/Enrolled */}
+                                <div className="flex justify-around bg-gray-200 p-1 rounded-lg mb-2">
                                     <button className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out cursor-pointer hover:bg-[#003d54] 
                                 ${activeTab === 'Archived' ? 'bg-[#0a1220] text-white shadow-sm' : 'text-gray-700 hover:bg-gray-300'}`}
                                         onClick={() => setActiveTab('Archived')}>
                                         Archive
                                     </button>
-                                    <button className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out cursor-pointer hover:bg-[#003d54] ${activeTab === 'Enrolled' ? 'bg-[#0a1220] text-white shadow-sm' : 'text-gray-700 hover:bg-gray-300'}`} onClick={() => setActiveTab('Enrolled')}>Enrolled</button>
+                                    <button className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out cursor-pointer hover:bg-[#003d54] 
+                                    ${activeTab === 'Enrolled' ? 'bg-[#0a1220] text-white shadow-sm' : 'text-gray-700 hover:bg-gray-300'}`} 
+                                    onClick={() => setActiveTab('Enrolled')}>Enrolled</button>
                                 </div>
-
-                                <button className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out cursor-pointer hover:bg-[#003d54] 
-                                ${activeTab === 'Enrolled' ? 'bg-[#0a1220] text-white shadow-sm' : 'text-gray-700 hover:bg-gray-300'}`}
-                                    onClick={() => setActiveTab('Enrolled')}>
-                                    Enrolled
-                                </button>
+                            </div>
+                            {/* Search Bar */}
+                            <div className="relative p-2">
+                                <input type="text" placeholder="Name/ ID" 
+                                className="w-full pl-2 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out hover:bg-gray-100" 
+                                value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+                                <Search className="w-5 h-5 absolute right-5 top-4.5 text-gray-400" />
                             </div>
 
-                            <div className="relative mb-4">
-                                <input type="text" placeholder="Name/ ID" className="w-full pl-2 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out hover:bg-gray-100" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 absolute right-3 top-7.5 -translate-y-1/2 text-gray-400">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-                                </svg>
-                            </div>
-
-                            <div className="flex space-x-2 mb-4">
+                            <div className="flex space-x-2 p-2">
                                 <div className="relative flex-1">
                                     <select className="text-sm block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#0a1220] focus:border-transparent transition duration-150 ease-in-out appearance-none bg-white pr-8 cursor-pointer" value={selectedYearLevel} onChange={(e) => setSelectedYearLevel(e.target.value)}>
                                         <option value="none">Year Level</option>
@@ -401,9 +434,15 @@ function StudentRecords() {
                                 </div>
 
                                 <div className="relative flex-1">
-                                    <select className="text-sm block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#0a1220] focus:border-transparent transition duration-150 ease-in-out appearance-none bg-white pr-8 cursor-pointer" value={selectedProgram} onChange={(e) => setSelectedProgram(e.target.value)}>
+                                    <select
+                                        className="text-sm block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#0a1220] focus:border-transparent transition duration-150 ease-in-out appearance-none bg-white pr-8 cursor-pointer"
+                                        value={selectedProgram}
+                                        onChange={(e) => setSelectedProgram(e.target.value)}
+                                    >
                                         <option value="none">Program/Course</option>
-                                        {programOptions.filter(opt => opt !== "none").map(option => (<option key={option} value={option}>{option}</option>))}
+                                        {getProgramOptions().filter(opt => opt !== "none").map(option => (
+                                            <option key={option} value={option}>{option}</option>
+                                        ))}
                                     </select>
                                     <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
                                         <img src={dropdown} alt="dropdownIcon" className="w-2.5 h-2.5 object-cover mr-2" />
@@ -412,7 +451,7 @@ function StudentRecords() {
                             </div>
 
                             {authData?.user?.access?.studentRecords?.canEdit ? (
-                                <div className="flex space-x-2">
+                                <div className="flex space-x-2 p-2">
                                     <button className="flex-1 bg-[#0a1220] hover:bg-[#003d54] text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center transition duration-150 ease-in-out shadow-md hover:shadow-lg" onClick={handleAddStudentButtonClick}>
                                         {addMode === 'individual' && 'Add Student'}
                                         {addMode === 'bulk' && 'Bulk Add'}

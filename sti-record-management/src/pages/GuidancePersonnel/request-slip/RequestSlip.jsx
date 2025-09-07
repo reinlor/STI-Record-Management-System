@@ -8,6 +8,10 @@ import closeW from "../../../assets/close.png";
 import checkW from "../../../assets/check.png";
 import { AuthContext } from '../../../AuthProvider.jsx';
 
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
+
 function parseToMillis(dateInput) {
   // Your existing date parsing logic
   if (!dateInput) return null;
@@ -317,6 +321,18 @@ function RequestSlip() {
   return (
     <div className="bg-gray-100 h-full p-3">
       <div className="bg-white shadow-md p-4 rounded-lg overflow-y-auto">
+
+            <ToastContainer
+                position="top-right"
+                autoClose={5000}
+                hideProgressBar={false}
+                newestOnTop={false}
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+            />
 
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-4 gap-3">

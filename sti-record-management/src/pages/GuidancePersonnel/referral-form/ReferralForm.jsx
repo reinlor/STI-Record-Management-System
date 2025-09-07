@@ -196,7 +196,7 @@ function ReferralFormProcessing() {
       {/* Modal - Responsive */}
       {display && (
         <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 transition-opacity duration-300 ease-out opacity-100">
-          <div className="bg-white w-full max-w-[95vw] sm:max-w-xl lg:max-w-2xl rounded-lg shadow-lg overflow-y-auto max-h-[90vh] p-4 sm:p-6 relative transform transition-all duration-300 ease-out scale-100 custom-scrollbar">
+          <div className="bg-white w-full max-w-[98vw] sm:max-w-3xl lg:max-w-4xl rounded-lg shadow-lg overflow-y-auto max-h-[92vh] p-6 sm:p-8 relative transform transition-all duration-300 ease-out scale-100 custom-scrollbar">
             {/* Modal Header */}
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-2xl font-bold text-gray-800">Referral Form</h2>
@@ -219,9 +219,9 @@ function ReferralFormProcessing() {
             <hr className="mb-4 border-gray-300" />
 
             {selectedReferral ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-12">
                 {/* Left Column */}
-                <div className="space-y-3">
+                <div className="space-y-4">
                   <p>
                     <strong className="text-gray-700">School Year:</strong>{" "}
                     <span className="text-gray-600">{selectedReferral.schoolYear || "-"}</span>
@@ -288,7 +288,7 @@ function ReferralFormProcessing() {
                   </div>
                 </div>
                 {/* Right Column */}
-                <div className="space-y-3">
+                <div className="space-y-4">
                   <p className="font-semibold text-gray-700 mb-1">Counselor’s Initial Action:</p>
                   <textarea
                     readOnly
@@ -298,7 +298,7 @@ function ReferralFormProcessing() {
                   />
 
                   {/* Email / Update Section */}
-                  <div className="mt-6 space-y-3">
+                  <div className="mt-6 space-y-4">
                     <p className="font-semibold text-gray-700">Counselor's Note:</p>
                     <textarea
                       className="w-full border border-gray-300 rounded-md p-3 resize-none focus:outline-none focus:ring-2 focus:ring-blue-300"
@@ -308,7 +308,7 @@ function ReferralFormProcessing() {
                       onChange={(e) => { setCounselorNote(e.target.value) }}
                     />
 
-                    <div className="flex flex-col sm:flex-row gap-2">
+                    <div className="flex flex-col gap-3">
                       <div className="flex items-center gap-2 flex-1">
                         <p className="font-bold text-gray-800 flex-shrink-0">Send Email To:</p>
                         <input
@@ -335,9 +335,9 @@ function ReferralFormProcessing() {
                       <p className="font-bold text-gray-800 mb-1">Body:</p>
                       <textarea
                         placeholder="Please proceed to the Guidance and Counseling Office"
-                        className="w-full border border-gray-300 rounded-md p-2 resize-none focus:outline-none focus:ring-2 focus:ring-blue-300"
+                        className="w-full border border-gray-300 rounded-md p-2 resize-y focus:outline-none focus:ring-2 focus:ring-blue-300"
                         rows={5}
-                        defaultValue={emailBody}
+                        value={emailBody}
                         onChange={(e) => { setEmailBody(e.target.value) }}
                       />
                     </div>

@@ -8,6 +8,9 @@ import EditUserModal from './components/EditUserModal';
 import UserTable from './components/UserTable';
 import { accessPermissions, initialNewUserAccess, serverAccessPresets, serverToUIAccess, uiToServerAccess } from './components/AccessUtils'
 
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 // ...existing code...
 export default function Users() {
     const [mockUsers, setMockUsers] = useState([]);
@@ -184,8 +187,9 @@ export default function Users() {
                 access: initialNewUserAccess,
             });
             await fetchUsers();
+            toast.success('User added successfully!');
         } catch (err) {
-            console.error('Create user failed', err);
+            toast.error('Failed to add user. Please try again.');
         }
     };
 
@@ -208,7 +212,9 @@ export default function Users() {
             console.log(payload)
             setShowUserEditModal(false);
             await fetchUsers();
+            toast.success('User edited successfully!');
         } catch (err) {
+            toast.error('Failed to save changes. Please try again.');
             console.error('Save changes failed', err);
         }
     };
@@ -221,8 +227,10 @@ export default function Users() {
                 await axios.put(`/user/update/${uid}`, { isArchived: true });
                 await fetchUsers();
             }
+            toast.success('User archived successfully!');
         } catch (err) {
             console.error('Archive failed', err);
+            toast.error('Failed to archive user. Please try again.');
             await fetchUsers();
         }
     };
@@ -235,8 +243,10 @@ export default function Users() {
                 await axios.put(`/user/update/${uid}`, { isArchived: false });
                 await fetchUsers();
             }
+            toast.success('User restored successfully!');
         } catch (err) {
             console.error('Restore failed', err);
+            toast.error('Failed to restore user. Please try again.');
             await fetchUsers();
         }
     };
@@ -298,6 +308,19 @@ export default function Users() {
             .toggle-checkbox:checked::before { transform: translateX(18px); }
             `}
             </style>
+
+            <ToastContainer
+                position="top-right"
+                autoClose={5000}
+                hideProgressBar={false}
+                newestOnTop={false}
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+            />
+            
             <div className="flex flex-col h-full bg-gray-100 p-2 rounded-xl shadow-lg overflow-hidden">
                 <div className="bg-white shadow-md p-1 lg:p-4 rounded-lg flex flex-col" style={{height: "90vh"}}>
                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-2">
