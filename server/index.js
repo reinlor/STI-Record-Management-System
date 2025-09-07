@@ -18,6 +18,7 @@ const bulkUploadRoute = require("./firestore/main/bulk/bulkUploadRoute");
 const batchUpdateRoute = require("./firestore/main/batch/batchUpdateRoute");
 const chartDataRoute = require("./firestore/main/routes/chartDataRoute");
 const demoOCRRoute = require("./modules/photo-to-text/routes/demoHTRRoute")
+const contentManagementRoute = require("./firestore/main/routes/contentManagementRoute");
 
 
 const app = express();
@@ -45,6 +46,7 @@ app.use("/batch-update", batchUpdateRoute);
 app.use("/chartData", chartDataRoute);
 app.use("/wellnessVersion", assessmentVersionHistory)
 app.use('/photo-to-text', demoOCRRoute);
+app.use("/content", contentManagementRoute)
  
 // Start the server
 app.listen(PORT, () => {
