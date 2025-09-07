@@ -97,6 +97,10 @@ const AddCaseModal = ({ visible, onClose, newCaseForm, onChange, onSave }) => {
                             <input type="text" id="studentId" name="studentId" value={newCaseForm.studentId} onChange={onChange} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
                         </div>
                         <div>
+                            <label htmlFor="programSection" className="block text-sm font-medium text-gray-700">Program and Section:</label>
+                            <input type="text" id="programSection" name="programSection" value={newCaseForm.programSection} onChange={onChange} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
+                        </div>
+                        <div>
                             <label htmlFor="dateOfInitiation" className="block text-sm font-medium text-gray-700">Date of Initiation:</label>
                             <input type="date" id="dateOfInitiation" name="dateOfInitiation" value={newCaseForm.dateOfInitiation} onChange={onChange} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
                         </div>
@@ -115,10 +119,6 @@ const AddCaseModal = ({ visible, onClose, newCaseForm, onChange, onSave }) => {
                         <div>
                             <label htmlFor="detailedDescription" className="block text-sm font-medium text-gray-700">Detailed Description:</label>
                             <textarea id="detailedDescription" name="detailedDescription" value={newCaseForm.detailedDescription} onChange={onChange} rows="3" className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 resize-y"></textarea>
-                        </div>
-                        <div>
-                            <label htmlFor="proofDescription" className="block text-sm font-medium text-gray-700">Proof Description:</label>
-                            <textarea id="proofDescription" name="proofDescription" value={newCaseForm.proofDescription} onChange={onChange} rows="2" className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-y"></textarea>
                         </div>
                     </div>
 
@@ -141,6 +141,10 @@ const AddCaseModal = ({ visible, onClose, newCaseForm, onChange, onSave }) => {
                         <div>
                             <label htmlFor="counselorNotes" className="block text-sm font-medium text-gray-700">Counselor's Notes:</label>
                             <textarea id="counselorNotes" name="counselorNotes" value={newCaseForm.counselorNotes} onChange={onChange} rows="3" className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-y"></textarea>
+                        </div>
+                        <div>
+                            <label htmlFor="proofDescription" className="block text-sm font-medium text-gray-700">Proof Description:</label>
+                            <textarea id="proofDescription" name="proofDescription" value={newCaseForm.proofDescription} onChange={onChange} rows="2" className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-y"></textarea>
                         </div>
                         <div>
                             <label htmlFor="proofImage" className="block text-sm font-medium text-gray-700">Proof Image:</label>

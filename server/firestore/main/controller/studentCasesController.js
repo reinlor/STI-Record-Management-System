@@ -9,6 +9,7 @@ const fs = require("fs");
 const violationSchema = Joi.object({
   sid: Joi.string().required().empty(""),
   name: Joi.string().required().empty(""),
+  programSection: Joi.string().required().empty(""),
   initiationDate: Joi.string().required().empty(""),
   initialTime: Joi.string().required().empty(""),
   counselingType: Joi.string().required().empty(""),
@@ -25,6 +26,7 @@ const violationSchema = Joi.object({
 const updateSchema = Joi.object({
   sid: Joi.string().optional(),
   name: Joi.string().optional(),
+  programSection: Joi.string().optional(),
   initiationDate: Joi.string().optional(),
   initialTime: Joi.string().optional(),
   counselingType: Joi.string().optional(),
@@ -119,6 +121,7 @@ const addViolation = async (req, res) => {
     const sid = newViolation.sid;
     const reason = newViolation.counselingType;
     const name = newViolation.name;
+    const programSection = newViolation.programSection;
 
     const serverTimestamp = FieldValue.serverTimestamp();
 
@@ -126,6 +129,7 @@ const addViolation = async (req, res) => {
       sid: sid,
       type: reason,
       name: name,
+      section: programSection,
       date: new Date().toISOString(),
     };
 

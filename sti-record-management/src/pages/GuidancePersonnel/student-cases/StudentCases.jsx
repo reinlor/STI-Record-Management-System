@@ -43,6 +43,7 @@ function StudentCases() {
   const [newCaseForm, setNewCaseForm] = useState({
     studentName: "",
     studentId: "",
+    programSection: "",
     dateOfInitiation: "",
     timeOfInitiation: "",
     counselingTypeCategory: "",
@@ -201,6 +202,7 @@ function StudentCases() {
       const formData = new FormData();
       formData.append("sid", newCaseForm.studentId || "");
       formData.append("name", newCaseForm.studentName || "");
+      formData.append("programSection", newCaseForm.programSection || "");
       formData.append("initiationDate", newCaseForm.dateOfInitiation || "");
       formData.append("initialTime", newCaseForm.timeOfInitiation || "");
       formData.append(
