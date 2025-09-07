@@ -24,6 +24,7 @@ const wellnessSchema = Joi.object({
   link: Joi.string().required().empty(""),
 });
 
+// Controller function for adding announcement
 const addAnnouncement = async (req, res) => {
   try {
     const { error, value: newAnnouncementData } = announcementSchema.validate(
@@ -60,6 +61,35 @@ const addAnnouncement = async (req, res) => {
   }
 };
 
+// Controller function for getting announcements
+const getAnnouncement = async (req, res) => {
+    try {
+        const announcementDocRef = getContentManagementCollection().doc("announcement");
+        const docSnapshot = await announcementDocRef.get();
+
+        if (!docSnapshot.exists){
+            return res.status(404).json({ error: "No announcements found." });
+        }
+
+        const messages = docSnapshot.data().messages || [];
+
+        const cutOffDate = new Date();
+        cutOffDate.setDate(cutOffDate.getDate() - 30); 
+
+        const recentAnnouncements = messages.filter(announcement => {
+            if (!announcement.timeCreated) return false;
+            const announcementDate = announcement.timeCreated.toDate();
+            return announcementDate >= cutOffDate;
+        });
+
+        res.status(200).json( {announcements: recentAnnouncements });
+    } catch (error) {
+        console.error("Error fetching announcements:", error);
+        res.status(500).json({ error: "Failed to fetch announcements." });
+    }
+}
+
+// Controller function for adding program
 const addProgram = async (req, res) => {
   try {
     const { error, value: newProgramData } = programStrandSchema.validate(
@@ -95,6 +125,7 @@ const addProgram = async (req, res) => {
   }
 };
 
+// Controller function for getting programs
 const getProgram = async (req, res) => {
     try {
         const programDocRef = getContentManagementCollection().doc("programStrand");
@@ -112,6 +143,7 @@ const getProgram = async (req, res) => {
     }
 }
 
+// Controller function for adding strand
 const addStrand = async (req, res) => {
   try {
     const { error, value: newStrandData } = programStrandSchema.validate(
@@ -147,6 +179,7 @@ const addStrand = async (req, res) => {
   }
 };
 
+// Controller function for getting strands
 const getStrand = async (req, res) => {
     try {
         const strandDocRef = getContentManagementCollection().doc("programStrand");
@@ -164,6 +197,7 @@ const getStrand = async (req, res) => {
     }
 }
 
+// Controller function for changing wellness link
 const changeWellnessLink = async (req, res) => {
   try {
     const { error, value: newWellnessLink } = wellnessSchema.validate(req.body);
@@ -183,6 +217,7 @@ const changeWellnessLink = async (req, res) => {
   }
 };
 
+// Controller function for getting wellness link
 const getWellnessLink = async (req, res) => {
     try {
         const wellnessDocRef = getContentManagementCollection().doc("wellness");
@@ -200,4 +235,4 @@ const getWellnessLink = async (req, res) => {
     }
 }
 
-module.exports = { addAnnouncement, addProgram, addStrand, changeWellnessLink, getProgram, getStrand, getWellnessLink };
+module.exports = { addAnnouncement, addProgram, addStrand, changeWellnessLink, getProgram, getStrand, getWellnessLink, getAnnouncement };

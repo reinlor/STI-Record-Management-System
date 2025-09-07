@@ -7,7 +7,8 @@ const {
     changeWellnessLink,
     getProgram,
     getStrand,
-    getWellnessLink
+    getWellnessLink,
+    getAnnouncement
 } = require("../controller/contentManagementController.js");
 
 const router = express.Router();
@@ -20,5 +21,6 @@ router.put("/wellness/change", changeWellnessLink);
 router.get("/program/get", getProgram);
 router.get("/strand/get", getStrand);
 router.get("/wellness/get", getWellnessLink);
+router.get("/announcement/get", getAnnouncement);
 
 module.exports = router;
