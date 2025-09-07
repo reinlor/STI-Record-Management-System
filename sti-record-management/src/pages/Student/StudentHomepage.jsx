@@ -45,17 +45,20 @@ export default function StudentHomepage() {
   };
 
   return (
-    <div className="min-h-screen text-black bg-white bg-[url('/grid.svg')] bg-repeat">
+    <div className="relative min-h-screen text-black bg-white bg-[url('/grid.svg')] bg-repeat">
       <ToastContainer />
       <ConsentModal
         isFirstLogin={authData.user.isFirstLogin}
-        id={authData.user.uid}/>
-      <StudentTopBar
-        selected={selected}
-        setSelected={setSelected}
-        onLogout={logout}
-        onOpenChangePassword={() => setIsChangePasswordModalOpen(true)}
+        id={authData.user.uid}
       />
+      <div className="sticky top-0 z-50">
+        <StudentTopBar
+          selected={selected}
+          setSelected={setSelected}
+          onLogout={logout}
+          onOpenChangePassword={() => setIsChangePasswordModalOpen(true)}
+        />
+      </div>
       <div className="px-0 w-full">
         {renderModule()}
       </div>

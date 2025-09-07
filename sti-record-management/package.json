@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@pdf-viewer/react": "^1.8.4",
     "@tailwindcss/vite": "^4.1.11",
     "axios": "^1.10.0",
     "chart.js": "^4.5.0",
