@@ -65,10 +65,10 @@ export default function StudentDashboard() {
         </div>
 
         {/* Dashboard Content Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
           {/* Announcements Section */}
-          <div className="bg-gray-100 p-6 rounded-2xl shadow-inner">
+          <div className="md:col-span-2 bg-gray-100 p-6 rounded-2xl shadow-inner">
             <div className="flex items-center mb-4">
               <div className="bg-yellow-400 p-2 rounded-full flex items-center justify-center mr-2">
                 <Megaphone className="w-6 h-6 text-gray-900" />
@@ -93,7 +93,7 @@ export default function StudentDashboard() {
           </div>
 
           {/* Wellness Check Survey Button */}
-          <div className="flex flex-col items-center justify-center p-6 bg-gray-100 rounded-2xl shadow-inner text-center">
+          <div className="md:col-span-1 flex flex-col items-center justify-center p-6 bg-gray-100 rounded-2xl shadow-inner text-center">
             <div className="mb-4">
               <h3 className="text-xl font-semibold text-gray-900">Wellness Check</h3>
               <p className="text-sm text-gray-500 mt-1">Take a moment to check in with yourself. Your well-being is our priority.</p>
