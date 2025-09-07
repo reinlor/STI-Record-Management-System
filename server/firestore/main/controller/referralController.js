@@ -71,11 +71,13 @@ const addReferral = async (req, res) => {
     const sid = newReferral.sid;
     const reason = newReferral.counselingTypeCategory;
     const name = newReferral.studentName;
+    const program = newReferral.program;
 
     const chartData = {
       sid: sid,
       type: reason,
       name: name,
+      section: program,
       date: new Date().toISOString(),
     };
 
