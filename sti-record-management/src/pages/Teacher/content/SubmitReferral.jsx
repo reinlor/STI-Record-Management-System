@@ -93,10 +93,13 @@ function SubmitReferralForm({ teacher = {}, onCancel, onSuccess }) {
     const handleSubmit = async (event) => {
         event.preventDefault();
 
+        console.log(referral);
+
         const referralData = {
             employeeID: referral.id,
             schoolYear: referral.schoolYear,
             studentName: referral.studentName,
+            sid: referral.sid,
             program: referral.programSection,
             gradeLevel: referral.gradeLevel,
             gender: referral.gender,
@@ -104,8 +107,8 @@ function SubmitReferralForm({ teacher = {}, onCancel, onSuccess }) {
             age: referral.age,
             referredBy: referral.referredBy,
             areasOfConcern: referral.concerns,
-            counselingTypeCategory: referral.counselingTypeCategory, // New field
-            violation: referral.violation, // New field
+            counselingTypeCategory: referral.counselingTypeCategory,
+            violation: referral.violation,
             actionRequired: 'awaiting for response',
             levelOfPriority: referral.priorityLevel,
             actionTaken: referral.actionsBefore,
@@ -276,6 +279,18 @@ function SubmitReferralForm({ teacher = {}, onCancel, onSuccess }) {
                                 onChange={(e) => handleReferralForm(e, "schoolYear")}
                             />
                         </div>
+
+                        {/* Student ID */}
+                        <div>
+                            <label className="block text-gray-700 font-medium mb-1">Student ID:</label>
+                            <input
+                                type="text"
+                                className="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-800 focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition-all duration-200"
+                                value={referral.sid || ""}
+                                onChange={(e) => handleReferralForm(e, "sid")}
+                            />
+                        </div>
+
 
                         {/* Level */}
                         <div>

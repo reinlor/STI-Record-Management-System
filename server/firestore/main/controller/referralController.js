@@ -1,12 +1,14 @@
 const Joi = require("joi");
 const { getReferralFormCollection } = require("../models/referralModel");
+const { getChartDataCollection } = require("../models/chartDataModel");
+const { FieldValue } = require("firebase-admin/firestore");
 
 // Referral Schema
 const referralSchema = Joi.object({
   employeeID: Joi.string().required(),
   schoolYear: Joi.string().required(),
   gradeLevel: Joi.string().required(),
-  // sid: Joi.string().required(),
+  sid: Joi.string().required(),
   email: Joi.string().required(),
   studentName: Joi.string().required(),
   program: Joi.string().required(),
@@ -14,7 +16,9 @@ const referralSchema = Joi.object({
   status: Joi.string().required(),
   age: Joi.number().required().options({ convert: true }),
   referredBy: Joi.string().required(),
-  areasOfConcern: Joi.array().required(),
+  areasOfConcern: Joi.array().optional(),  // subject to remove this bullshet
+  counselingTypeCategory: Joi.string().required(),
+  violation: Joi.string().required(),
   actionRequired: Joi.string().required().allow(''),
   levelOfPriority: Joi.string().required(),
   actionTaken: Joi.string().required(),
@@ -30,7 +34,7 @@ const updateSchema = Joi.object({
   employeeID: Joi.string().optional(),
   schoolYear: Joi.string().optional(),
   gradeLevel: Joi.string().optional(),
-  // sid: Joi.string().optional(),
+  sid: Joi.string().optional(),
   email: Joi.string().optional(),
   studentName: Joi.string().optional(),
   program: Joi.string().optional(),
@@ -40,6 +44,8 @@ const updateSchema = Joi.object({
   age: Joi.number().optional().options({ convert: true }),
   referredBy: Joi.string().optional(),
   areasOfConcern: Joi.array().optional(),
+  counselingTypeCategory: Joi.string().optional(),
+  violation: Joi.string().optional(),
   actionRequired: Joi.string().optional().allow(''),
   levelOfPriority: Joi.string().optional(),
   actionTaken: Joi.string().optional(),
@@ -61,6 +67,31 @@ const addReferral = async (req, res) => {
       return res.status(400).json({ error: error.details[0].message });
     }
     await getReferralFormCollection().doc().set(newReferral);
+
+    const sid = newReferral.sid;
+    const reason = newReferral.counselingTypeCategory;
+    const name = newReferral.studentName;
+
+    const chartData = {
+      sid: sid,
+      type: reason,
+      name: name,
+      date: new Date().toISOString(),
+    };
+
+    const studentCaseRef = getChartDataCollection().doc("studentCase");
+    const docSnapshot = await studentCaseRef.get();
+
+    if (!docSnapshot.exists) {
+      await studentCaseRef.set({
+        data: [chartData],
+      });
+    } else {
+      await studentCaseRef.update({
+        data: FieldValue.arrayUnion(chartData),
+      });
+    }
+
 
     res.status(201).json({
       message: `Referral form added successfully.`,

@@ -1,7 +1,7 @@
 const { getViolationsCollection } = require("../models/studentCasesModel");
 const { getChartDataCollection } = require("../models/chartDataModel");
 const Joi = require("joi");
-const { FieldValue, Firestore } = require("firebase-admin/firestore");
+const { FieldValue } = require("firebase-admin/firestore");
 const cloudinary = require("../../../config/cloudinary.js");
 const fs = require("fs");
 
