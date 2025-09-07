@@ -95,6 +95,23 @@ const addProgram = async (req, res) => {
   }
 };
 
+const getProgram = async (req, res) => {
+    try {
+        const programDocRef = getContentManagementCollection().doc("programStrand");
+        const docSnapshot = await programDocRef.get();
+    
+        if (!docSnapshot.exists) {
+        return res.status(404).json({ error: "No programs found." });
+        }
+    
+        const programData = docSnapshot.data().program || [];
+        res.status(200).json({ programs: programData });
+    } catch (error) {
+        console.error("Error fetching programs:", error);
+        res.status(500).json({ error: "Failed to fetch programs." });
+    }
+}
+
 const addStrand = async (req, res) => {
   try {
     const { error, value: newStrandData } = programStrandSchema.validate(
@@ -130,6 +147,23 @@ const addStrand = async (req, res) => {
   }
 };
 
+const getStrand = async (req, res) => {
+    try {
+        const strandDocRef = getContentManagementCollection().doc("programStrand");
+        const docSnapshot = await strandDocRef.get();
+    
+        if (!docSnapshot.exists) {
+        return res.status(404).json({ error: "No strands found." });
+        }
+    
+        const strandData = docSnapshot.data().strand || [];
+        res.status(200).json({ strands: strandData });
+    } catch (error) {
+        console.error("Error fetching strands:", error);
+        res.status(500).json({ error: "Failed to fetch strands." });
+    }
+}
+
 const changeWellnessLink = async (req, res) => {
   try {
     const { error, value: newWellnessLink } = wellnessSchema.validate(req.body);
@@ -149,4 +183,21 @@ const changeWellnessLink = async (req, res) => {
   }
 };
 
-module.exports = { addAnnouncement, addProgram, addStrand, changeWellnessLink };
+const getWellnessLink = async (req, res) => {
+    try {
+        const wellnessDocRef = getContentManagementCollection().doc("wellness");
+        const docSnapshot = await wellnessDocRef.get();
+
+        if (!docSnapshot.exists){
+            return res.status(404).json({ error: "No wellness link found." });
+        }
+
+        const wellnessLink = docSnapshot.data().link || "N/A";
+        res.status(200).json({ link: wellnessLink });
+    } catch (error) {
+        console.error("Error fetching wellness link:", error);
+        res.status(500).json({ error: "Failed to fetch wellness link." });
+    }
+}
+
+module.exports = { addAnnouncement, addProgram, addStrand, changeWellnessLink, getProgram, getStrand, getWellnessLink };
