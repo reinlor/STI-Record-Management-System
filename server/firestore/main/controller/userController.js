@@ -219,5 +219,5 @@ module.exports = {
   authenticateUser,
   requireAuth,
   getUserByID,
-  resetPassword
+  resetPassword,
 };

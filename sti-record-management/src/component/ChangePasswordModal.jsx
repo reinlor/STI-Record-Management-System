@@ -1,21 +1,26 @@
-import React, { useState } from 'react';
-import { X, Eye, EyeOff } from 'lucide-react'; // Import X, Eye, and EyeOff icons
+import React, { useState } from "react";
+import { X, Eye, EyeOff } from "lucide-react"; // Import X, Eye, and EyeOff icons
+import { auth } from "../firebaseClient.js";
+import {
+  EmailAuthProvider,
+  reauthenticateWithCredential,
+  updatePassword,
+} from "firebase/auth";
 
-const ChangePasswordModal = ({ isOpen, onClose, onConfirmChange, currentPasswordStored }) => {
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [reEnterNewPassword, setReEnterNewPassword] = useState('');
-  const [error, setError] = useState('');
+const ChangePasswordModal = ({ isOpen, onClose }) => {
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [reEnterNewPassword, setReEnterNewPassword] = useState("");
+  const [error, setError] = useState("");
 
   // State for showing/hiding passwords
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showReEnterNewPassword, setShowReEnterNewPassword] = useState(false);
 
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
+    setError("");
 
     if (newPassword !== reEnterNewPassword) {
       setError("The new passwords do not match.");
@@ -27,18 +32,32 @@ const ChangePasswordModal = ({ isOpen, onClose, onConfirmChange, currentPassword
       return;
     }
 
-    if (window.confirm("Are you sure you want to change your password?")) {
-      onConfirmChange(newPassword);
+    const user = auth.currentUser;
+    const credential = EmailAuthProvider.credential(
+      user.email,
+      currentPassword
+    );
+
+    try {
+      await reauthenticateWithCredential(user, credential);
+      await updatePassword(user, newPassword);
+      
       onClose();
-      // Clear the form fields after successful submission and close
-      setCurrentPassword('');
-      setNewPassword('');
-      setReEnterNewPassword('');
-      setError('');
-      // Reset show/hide password states
+      
+      // Clearing the form fields
+      setCurrentPassword("");
+      setNewPassword("");
+      setReEnterNewPassword("");
+      setError("");
+
+      //Reset show/hide password states
       setShowCurrentPassword(false);
       setShowNewPassword(false);
       setShowReEnterNewPassword(false);
+
+    } catch (error) {
+      console.error("Error changing password:", error);
+      setError("Failed to change password. Please try again.");
     }
   };
 
@@ -56,10 +75,15 @@ const ChangePasswordModal = ({ isOpen, onClose, onConfirmChange, currentPassword
         >
           <X className="w-5 h-5" /> {/* Lucide X icon */}
         </button>
-        <h2 className="text-2xl font-semibold text-gray-800 mb-6">Change Password</h2>
+        <h2 className="text-2xl font-semibold text-gray-800 mb-6">
+          Change Password
+        </h2>
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-medium mb-2" htmlFor="current-pass">
+            <label
+              className="block text-gray-700 text-sm font-medium mb-2"
+              htmlFor="current-pass"
+            >
               Current Password
             </label>
             <div className="relative">
@@ -73,17 +97,26 @@ const ChangePasswordModal = ({ isOpen, onClose, onConfirmChange, currentPassword
               />
               <button
                 type="button"
-                onClick={() => setShowCurrentPassword(prev => !prev)}
+                onClick={() => setShowCurrentPassword((prev) => !prev)}
                 className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
-                aria-label={showCurrentPassword ? "Hide password" : "Show password"}
+                aria-label={
+                  showCurrentPassword ? "Hide password" : "Show password"
+                }
               >
-                {showCurrentPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                {showCurrentPassword ? (
+                  <EyeOff className="w-5 h-5" />
+                ) : (
+                  <Eye className="w-5 h-5" />
+                )}
               </button>
             </div>
           </div>
 
           <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-medium mb-2" htmlFor="new-pass">
+            <label
+              className="block text-gray-700 text-sm font-medium mb-2"
+              htmlFor="new-pass"
+            >
               New Password
             </label>
             <div className="relative">
@@ -97,17 +130,24 @@ const ChangePasswordModal = ({ isOpen, onClose, onConfirmChange, currentPassword
               />
               <button
                 type="button"
-                onClick={() => setShowNewPassword(prev => !prev)}
+                onClick={() => setShowNewPassword((prev) => !prev)}
                 className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
                 aria-label={showNewPassword ? "Hide password" : "Show password"}
               >
-                {showNewPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                {showNewPassword ? (
+                  <EyeOff className="w-5 h-5" />
+                ) : (
+                  <Eye className="w-5 h-5" />
+                )}
               </button>
             </div>
           </div>
 
           <div className="mb-6">
-            <label className="block text-gray-700 text-sm font-medium mb-2" htmlFor="re-enter-new-pass">
+            <label
+              className="block text-gray-700 text-sm font-medium mb-2"
+              htmlFor="re-enter-new-pass"
+            >
               Re-enter New Password
             </label>
             <div className="relative">
@@ -121,11 +161,17 @@ const ChangePasswordModal = ({ isOpen, onClose, onConfirmChange, currentPassword
               />
               <button
                 type="button"
-                onClick={() => setShowReEnterNewPassword(prev => !prev)}
+                onClick={() => setShowReEnterNewPassword((prev) => !prev)}
                 className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
-                aria-label={showReEnterNewPassword ? "Hide password" : "Show password"}
+                aria-label={
+                  showReEnterNewPassword ? "Hide password" : "Show password"
+                }
               >
-                {showReEnterNewPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                {showReEnterNewPassword ? (
+                  <EyeOff className="w-5 h-5" />
+                ) : (
+                  <Eye className="w-5 h-5" />
+                )}
               </button>
             </div>
           </div>

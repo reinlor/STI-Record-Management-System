@@ -14,13 +14,15 @@ export default function StudentHomepage() {
   const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] = useState(false);
   const { authData, logout } = useContext(AuthContext);
 
-  const handlePasswordChange = (currentPassword, newPassword) => {
-    console.log("Current Password entered:", currentPassword);
-    console.log("Password changed successfully to:", newPassword);
-    toast.success("Password changed successfully!");
-      //NOTE: Palitan kung pano ihandle yung password change sa backend
-      // //This is just a placeholder function
-  };
+
+  // const handlePasswordChange = (currentPassword, newPassword) => {
+  //   console.log("Current Password entered:", currentPassword);
+  //   console.log("Password changed successfully to:", newPassword);
+
+  //   toast.success("Password changed successfully!");
+  //     //NOTE: Palitan kung pano ihandle yung password change sa backend
+  //     // //This is just a placeholder function
+  // };
 
   const renderModule = () => {
     switch (selected) {
@@ -59,7 +61,6 @@ export default function StudentHomepage() {
       <ChangePasswordModal
         isOpen={isChangePasswordModalOpen}
         onClose={() => setIsChangePasswordModalOpen(false)}
-        onConfirmChange={handlePasswordChange}
       />
       <style>
         {`

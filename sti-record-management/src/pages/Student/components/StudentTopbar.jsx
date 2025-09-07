@@ -27,10 +27,6 @@ const StudentTopBar = ({ selected, setSelected, onLogout, onOpenChangePassword }
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleLogout = () => {
-    navigate('/');
-  };
-
   return (
     <div className="bg-gray-900 text-white flex items-center justify-between px-4 py-4">
       <div className="flex items-center">
