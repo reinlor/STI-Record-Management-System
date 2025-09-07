@@ -1,6 +1,7 @@
 import React, { useState, useContext } from "react";
 import StudentTopBar from "./components/StudentTopbar.jsx";
-import ChangePasswordModal from "../../component/ChangePasswordModal.jsx"; // Make sure the path is correct
+import ChangePasswordModal from "../../component/ChangePasswordModal.jsx";
+import StudentDashboard from "./module-content/StudentDashboard.jsx";
 import ProfileView from "./module-content/ProfileView.jsx";
 import StudentRequestSlip from "./module-content/StudentRequestSlip.jsx";
 import StudentViewRequest from "./module-content/StudentViewRequest.jsx";
@@ -10,22 +11,22 @@ import { ToastContainer, toast } from "react-toastify";
 import { AuthContext } from "../../AuthProvider.jsx";
 
 export default function StudentHomepage() {
-  const [selected, setSelected] = useState("profile");
+  const [selected, setSelected] = useState("dashboard");
   const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] = useState(false);
   const { authData, logout } = useContext(AuthContext);
 
-
-  // const handlePasswordChange = (currentPassword, newPassword) => {
-  //   console.log("Current Password entered:", currentPassword);
-  //   console.log("Password changed successfully to:", newPassword);
-
-  //   toast.success("Password changed successfully!");
-  //     //NOTE: Palitan kung pano ihandle yung password change sa backend
-  //     // //This is just a placeholder function
-  // };
+  const handlePasswordChange = (currentPassword, newPassword) => {
+    console.log("Current Password entered:", currentPassword);
+    console.log("Password changed successfully to:", newPassword);
+    toast.success("Password changed successfully!");
+      //NOTE: Palitan kung pano ihandle yung password change sa backend
+      // //This is just a placeholder function
+  };
 
   const renderModule = () => {
     switch (selected) {
+      case "dashboard":
+        return <StudentDashboard />;
       case "profile":
         return <ProfileView />;
       case "wellness":
@@ -61,6 +62,7 @@ export default function StudentHomepage() {
       <ChangePasswordModal
         isOpen={isChangePasswordModalOpen}
         onClose={() => setIsChangePasswordModalOpen(false)}
+        onConfirmChange={handlePasswordChange}
       />
       <style>
         {`

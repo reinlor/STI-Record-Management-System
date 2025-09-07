@@ -3,6 +3,7 @@ import { Settings, LogOut, KeyRound } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const modules = [
+  { id: "dashboard", text: "Dashboard" },
   { id: "profile", text: "Profile" },
   { id: "request", text: "Request Slips" },
   { id: "history", text: "View Request History" },
@@ -26,6 +27,10 @@ const StudentTopBar = ({ selected, setSelected, onLogout, onOpenChangePassword }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  const handleLogout = () => {
+    navigate('/');
+  };
 
   return (
     <div className="bg-gray-900 text-white flex items-center justify-between px-4 py-4">
