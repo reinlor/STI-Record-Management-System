@@ -3,6 +3,7 @@ import { Settings, LogOut, KeyRound } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const modules = [
+  { id: "dasbhboard", text: "Dashboard" },
   { id: "profile", text: "Profile" },
   { id: "request", text: "Request Slips" },
   { id: "history", text: "View Request History" },
