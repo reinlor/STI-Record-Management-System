@@ -113,7 +113,7 @@ function StudentCases() {
     );
 
     itemRefs.current.forEach((el) => {
-      if(el) observer.observe(el);
+      if (el) observer.observe(el);
     })
 
     return () => observer.disconnect()
@@ -167,6 +167,25 @@ function StudentCases() {
       setSearchTerm(idSearch);
     }
   }, []);
+
+  useEffect(() => {
+    setSelectedCaseId(null);
+  }, [location.pathname]);
+
+  const filteredCases = cases.filter((c) => {
+    const matchesTab =
+      (activeTab === "All" &&
+        (c.status === "On-going" || c.status === "Resolved")) ||
+      c.status === activeTab;
+    const matchesSearch =
+      searchTerm === "" ||
+      (c.studentName &&
+        c.studentName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (c.studentId &&
+        c.studentId.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (c.id && c.id.toLowerCase().includes(searchTerm.toLowerCase()));
+    return matchesTab && matchesSearch;
+  });
 
   const handleAddCase = async () => {
     if (
@@ -326,57 +345,101 @@ function StudentCases() {
       <div className="flex bg-gray-100 h-full overflow-hidden">
         <ToastContainer position="top-right" autoClose={4000} />
         <div
-          className={`w-96 bg-white border-r border-gray-200 shadow-lg flex flex-col rounded-lg`}
+          className={`h-full bg-white border-r border-gray-200 shadow-lg flex flex-col rounded-lg transition-all duration-200
+    ${selectedCaseId ? 'w-0 lg:w-96' : 'w-full lg:w-96'}`}
         >
-          <div className="p-4 border-b border-gray-200">
-            <div className="flex items-center space-x-2 mb-4">
-              <h2 className="text-3xl font-bold text-gray-800">Student Cases</h2>
-            </div>
+          {!(selectedCaseId && window.innerWidth < 1024) && (<>
+            <div className="p-4 border-b border-gray-200">
+              <div className="flex items-center space-x-2 mb-4">
+                <h2 className="text-3xl font-bold text-gray-800">Student Cases</h2>
+              </div>
 
-            <div className="flex justify-around bg-gray-200 p-1 rounded-lg mb-4">
-              <button
-                className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out cursor-pointer hover:bg-[#003d54] ${activeTab === "Resolved"
+              <div className="flex justify-around bg-gray-200 p-1 rounded-lg mb-4">
+                <button
+                  className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out cursor-pointer hover:bg-[#003d54] ${activeTab === "Resolved"
                     ? "bg-[#0A1220] text-white shadow-sm hover:bg-[#003d54]"
                     : "text-gray-700 hover:bg-gray-300"
-                  }`}
-                onClick={() => setActiveTab("Resolved")}
-              >
-                Resolved
-              </button>
-              <button
-                className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out cursor-pointer ${activeTab === "On-going"
+                    }`}
+                  onClick={() => setActiveTab("Resolved")}
+                >
+                  Resolved
+                </button>
+                <button
+                  className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out cursor-pointer ${activeTab === "On-going"
                     ? "bg-[#0A1220] text-white shadow-sm hover:bg-[#003d54]"
                     : "text-gray-700 hover:bg-gray-300"
-                  }`}
-                onClick={() => setActiveTab("On-going")}
+                    }`}
+                  onClick={() => setActiveTab("On-going")}
+                >
+                  On-going
+                </button>
+              </div>
+
+              <div className="relative mb-4">
+                <input
+                  type="text"
+                  placeholder="Name/ ID"
+                  className="w-full pl-2 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 absolute right-3 top-7.5 -translate-y-1/2 text-gray-400">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                </svg>
+              </div>
+
+              <button
+                className="w-full bg-[#0A1220] hover:bg-[#003d54] text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center transition duration-150 ease-in-out shadow-md hover:shadow-lg cursor-pointer"
+                onClick={() => setShowAddModal(true)}
               >
-                On-going
+                <Plus className="w-5 h-5 mr-2" />
+                Add Case
               </button>
             </div>
 
-            <div className="relative mb-4">
-              <input
-                type="text"
-                placeholder="Name/ ID"
-                className="w-full pl-2 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 absolute right-3 top-7.5 -translate-y-1/2 text-gray-400">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-              </svg>
+            <div className="flex-1 overflow-y-auto pb-4 custom-scrollbar">
+              {filteredCases.length > 0 ? (
+                filteredCases.map((aCase) => (
+                  <div
+                    ref={(el) => {
+                      if (el) {
+                        itemRefs.current.set(aCase.id, el);
+                      } else {
+                        itemRefs.current.delete(aCase.id);
+                      }
+                    }}
+                    data-case-id={aCase.id}
+                    key={aCase.id}
+                    className={`flex items-center justify-between p-4 border-b border-gray-200 cursor-pointer transition duration-150 ease-in-out ${selectedCaseId === aCase.id
+                      ? "bg-blue-100 border-l-4 border-blue-500"
+                      : "hover:bg-gray-50"
+                      }`}
+                    onClick={() => setSelectedCaseId(aCase.id)}
+                  >
+                    {visibleIds.has(aCase.id) ? (<div className="flex items-center">
+                      <img
+                        src={user}
+                        alt="User"
+                        className="w-5 h-5 object-cover mr-5"
+                      />
+                      <div>
+                        <p className="font-semibold text-gray-800">
+                          {aCase.studentName}
+                        </p>
+                        <p className="text-sm text-gray-600">{aCase.studentId}</p>
+                      </div>
+                    </div>) : null}
+                    <ChevronRight className="w-5 h-5 text-[#0A1220]" />
+                  </div>
+                ))
+              ) : (
+                <p className="p-4 text-gray-500 text-center">No cases found.</p>
+              )}
             </div>
+          </>)}
 
-            <button
-              className="w-full bg-[#0A1220] hover:bg-[#003d54] text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center transition duration-150 ease-in-out shadow-md hover:shadow-lg cursor-pointer"
-              onClick={() => setShowAddModal(true)}
-            >
-              <Plus className="w-5 h-5 mr-2" />
-              Add Case
-            </button>
-          </div>
 
-          <div ref={casesListRef} className="flex-1 overflow-y-auto pb-4 custom-scrollbar">
+          {/* <div ref={casesListRef} className="flex-1 overflow-y-auto pb-4 custom-scrollbar">
             {sortedCases.length > 0 ? (
               sortedCases.map((aCase) => (
                 <div
@@ -390,8 +453,8 @@ function StudentCases() {
                   data-case-id={aCase.id}
                   key={aCase.id}
                   className={`flex items-center justify-between p-4 border-b border-gray-200 cursor-pointer transition duration-150 ease-in-out ${selectedCaseId === aCase.id
-                      ? "bg-blue-100 border-l-4 border-blue-500"
-                      : "hover:bg-gray-50"
+                    ? "bg-blue-100 border-l-4 border-blue-500"
+                    : "hover:bg-gray-50"
                     }`}
                   onClick={() => setSelectedCaseId(aCase.id)}
                 >
@@ -416,10 +479,15 @@ function StudentCases() {
             ) : (
               <p className="p-4 text-gray-500 text-center">No cases found.</p>
             )}
-          </div>
+          </div> */}
         </div>
 
-        <div className={`flex-1 bg-white flex flex-col`}>
+        <div
+          className={`
+          h-full bg-white border-r border-gray-200 shadow-sm flex flex-col rounded-lg transition-all duration-300 flex-1
+            ${selectedCaseId ? 'flex' : 'hidden lg:flex'} /* keep visible on desktop */
+        `}
+        >
           <Fragment>
             <div className="p-3 border-b border-gray-200 flex items-center justify-between flex-wrap gap-2">
               <div className="flex items-center space-x-2 sm:space-x-4">
@@ -445,8 +513,8 @@ function StudentCases() {
                 <div className="flex items-center space-x-2 sm:space-x-3 mt-2 sm:mt-0">
                   <button
                     className={`px-3 sm:px-4 py-2 rounded-lg flex items-center transition duration-150 ease-in-out text-sm sm:text-base font-medium cursor-pointer ${isEditing
-                        ? "bg-gray-500 text-white shadow-md"
-                        : "bg-gray-800 hover:bg-gray-700 text-white shadow-md hover:shadow-lg"
+                      ? "bg-gray-500 text-white shadow-md"
+                      : "bg-gray-800 hover:bg-gray-700 text-white shadow-md hover:shadow-lg"
                       }`}
                     onClick={() => {
                       if (isEditing) {

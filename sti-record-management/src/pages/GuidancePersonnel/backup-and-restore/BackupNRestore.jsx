@@ -90,17 +90,18 @@ function BackNRestore() {
     };
 
     return (
-        <div className="bg-gray-100 flex items-start justify-center p-6 h-full font-sans">
+        <div className="bg-gray-100 flex items-start justify-center p-2 sm:p-6 h-full font-sans">
             <RestoreModal onClick={() => setShowModal(false)} visible={showModal}/>
-            <div className="w-full h-full bg-white rounded-lg p-4 shadow-sm flex flex-col max-w-4xl">
-                <p className="text-4xl font-bold text-gray-800 mb-2">Back-up and Restore</p>
-                <p className="text-gray-600 mb-5">Create a back-up for emergency and restore files.</p>
-                <div className="flex flex-col items-center justify-center p-6 bg-gray-50 rounded-lg border border-gray-200">
-                    <img src={server} alt="Server" className="w-75 h-75 object-cover" />
-                    <h2 className="text-2xl font-bold text-black mb-6 mt-4">Save your files, download it here:</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-y-4 gap-x-8 mb-8 text-gray-700 w-full">
+            <div className="w-full h-full bg-white rounded-lg p-2 sm:p-4 shadow-sm flex flex-col max-w-full sm:max-w-2xl md:max-w-4xl">
+                <p className="text-xl sm:text-3xl md:text-4xl font-bold text-gray-800 mb-2">Back-up and Restore</p>
+                <p className="text-xs sm:text-base text-gray-600 mb-5">Create a back-up for emergency and restore files.</p>
+                <div className="flex flex-col items-center justify-center p-2 sm:p-6 bg-gray-50 rounded-lg border border-gray-200">
+                    <img src={server} alt="Server" className="w-32 h-32 sm:w-48 sm:h-48 object-cover" />
+                    <h2 className="text-lg sm:text-2xl font-bold text-black mb-4 mt-2 sm:mt-4 text-center">Save your files, download it here:</h2>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-8 mb-6 text-gray-700 w-full">
+                        {/* Guidance Head */}
                         <div className="flex flex-col">
-                            <span className="font-semibold text-lg text-black mb-2">
+                            <span className="font-semibold text-base sm:text-lg text-black mb-2">
                                 Guidance Head:
                                 <label className="inline-flex items-center ml-2 cursor-pointer">
                                     <input
@@ -108,7 +109,6 @@ function BackNRestore() {
                                         className="form-checkbox h-4 w-4 text-blue-600 rounded focus:ring-blue-500 transition duration-150 ease-in-out cursor-pointer"
                                         onChange={handleGuidanceAllCheck}
                                         checked={allGuidanceChecked}
-                                        // Set a ref to handle the indeterminate state
                                         ref={el => el && (el.indeterminate = isGuidanceIndeterminate)}
                                     />
                                 </label>
@@ -121,9 +121,9 @@ function BackNRestore() {
                                     onChange={handleCheckboxChange}
                                     checked={!!selectedItem.studentRecord}
                                 />
-                                <span className="ml-2">Student Records</span>
+                                <span className="ml-2 text-xs sm:text-sm">Student Records</span>
                             </label>
-                            <label className="inline-flex items-center mb-1 cursor-pointer cursor-pointer">
+                            <label className="inline-flex items-center mb-1 cursor-pointer">
                                 <input
                                     type="checkbox"
                                     className="form-checkbox h-5 w-5 text-blue-600 rounded focus:ring-blue-500 transition duration-150 ease-in-out"
@@ -131,7 +131,7 @@ function BackNRestore() {
                                     onChange={handleCheckboxChange}
                                     checked={!!selectedItem.studentCase}
                                 />
-                                <span className="ml-2">Student Case</span>
+                                <span className="ml-2 text-xs sm:text-sm">Student Case</span>
                             </label>
                             <label className="inline-flex items-center mb-1 cursor-pointer">
                                 <input
@@ -141,7 +141,7 @@ function BackNRestore() {
                                     onChange={handleCheckboxChange}
                                     checked={!!selectedItem.users}
                                 />
-                                <span className="ml-2">Users</span>
+                                <span className="ml-2 text-xs sm:text-sm">Users</span>
                             </label>
                             <label className="inline-flex items-center mb-1 cursor-pointer">
                                 <input
@@ -151,11 +151,12 @@ function BackNRestore() {
                                     onChange={handleCheckboxChange}
                                     checked={!!selectedItem.wellness}
                                 />
-                                <span className="ml-2">Student Wellness</span>
+                                <span className="ml-2 text-xs sm:text-sm">Student Wellness</span>
                             </label>
                         </div>
-                        <div className="flex flex-col md:col-span-1 lg:col-span-2 ">
-                            <span className="font-semibold text-lg text-black mb-2">
+                        {/* Disciplinary Officer */}
+                        <div className="flex flex-col">
+                            <span className="font-semibold text-base sm:text-lg text-black mb-2">
                                 Disciplinary Officer:
                                 <label className="inline-flex items-center ml-2 cursor-pointer">
                                     <input
@@ -167,7 +168,7 @@ function BackNRestore() {
                                     />
                                 </label>
                             </span>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-1 gap-x-4">
+                            <div className="grid grid-cols-1 gap-1">
                                 <label className="inline-flex items-center mb-1 cursor-pointer">
                                     <input
                                         type="checkbox"
@@ -176,7 +177,7 @@ function BackNRestore() {
                                         onChange={handleCheckboxChange}
                                         checked={!!selectedItem.requestSlip}
                                     />
-                                    <span className="ml-2">Request Slip and History</span>
+                                    <span className="ml-2 text-xs sm:text-sm">Request Slip and History</span>
                                 </label>
                                 <label className="inline-flex items-center mb-1 cursor-pointer">
                                     <input
@@ -186,14 +187,14 @@ function BackNRestore() {
                                         onChange={handleCheckboxChange}
                                         checked={!!selectedItem.referralForm}
                                     />
-                                    <span className="ml-2">Referral Forms and History</span>
+                                    <span className="ml-2 text-xs sm:text-sm">Referral Forms and History</span>
                                 </label>
                             </div>
                         </div>
                     </div>
                     {isExporting ? (
                         <div className="w-full max-w-md flex flex-col items-center">
-                            <p className="text-sm text-gray-600 mb-2">Exporting... {progress}%</p>
+                            <p className="text-xs sm:text-sm text-gray-600 mb-2">Exporting... {progress}%</p>
                             <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
                                 <div
                                     className="bg-blue-600 h-2.5 rounded-full transition-all duration-300 ease-in-out"
@@ -202,9 +203,9 @@ function BackNRestore() {
                             </div>
                         </div>
                     ) : (
-                        <div className='flex flex-col md:col-span-1 lg:col-span-2'>
+                        <div className='flex flex-col sm:flex-row gap-2 w-full items-stretch'>
                             <button
-                                className="bg-[#0B1320] hover:bg-[#1A2635] text-white font-bold py-3 px-6 rounded-lg shadow-md hover:shadow-lg transition duration-300 ease-in-out flex items-center justify-center text-lg max-w-sm mb-1"
+                                className="bg-[#0B1320] hover:bg-[#1A2635] text-white font-bold py-2 sm:py-3 px-4 sm:px-6 rounded-lg shadow-md hover:shadow-lg transition duration-300 ease-in-out flex items-center justify-center text-sm sm:text-lg w-full"
                                 onClick={exportData}
                             >
                                 Backup (.json)
@@ -214,7 +215,7 @@ function BackNRestore() {
                                     viewBox="0 0 24 24"
                                     strokeWidth={2}
                                     stroke="currentColor"
-                                    className="w-6 h-6 ml-3"
+                                    className="w-5 h-5 sm:w-6 sm:h-6 ml-2"
                                 >
                                     <path
                                         strokeLinecap="round"
@@ -224,7 +225,7 @@ function BackNRestore() {
                                 </svg>
                             </button>
                             <button
-                                className="bg-[#0B1320] hover:bg-[#1A2635] text-white font-bold py-3 px-6 rounded-lg shadow-md hover:shadow-lg transition duration-300 ease-in-out flex items-center justify-center text-lg max-w-sm"
+                                className="bg-[#0B1320] hover:bg-[#1A2635] text-white font-bold py-2 sm:py-3 px-4 sm:px-6 rounded-lg shadow-md hover:shadow-lg transition duration-300 ease-in-out flex items-center justify-center text-sm sm:text-lg w-full"
                                 onClick={() => setShowModal(true)}
                             >
                                 Restore (.json)
@@ -234,7 +235,7 @@ function BackNRestore() {
                                     viewBox="0 0 24 24"
                                     strokeWidth={2}
                                     stroke="currentColor"
-                                    className="w-6 h-6 ml-3"
+                                    className="w-5 h-5 sm:w-6 sm:h-6 ml-2"
                                 >
                                     <path
                                         strokeLinecap="round"
@@ -246,7 +247,7 @@ function BackNRestore() {
                         </div>
                     )}
                     {errorMessage && (
-                        <p className="mt-4 text-red-600 text-sm font-medium">{errorMessage}</p>
+                        <p className="mt-4 text-red-600 text-xs sm:text-sm font-medium">{errorMessage}</p>
                     )}
                 </div>
             </div>

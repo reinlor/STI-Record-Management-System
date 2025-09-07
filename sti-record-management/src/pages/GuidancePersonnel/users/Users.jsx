@@ -296,53 +296,58 @@ export default function Users() {
                 box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
             }
             .toggle-checkbox:checked::before { transform: translateX(18px); }
-            `}</style>
-            <div className="flex flex-col h-220 bg-gray-100 p-3 rounded-xl shadow-lg overflow-hidden ">
-                <div className="bg-white shadow-md p-4 rounded-lg flex flex-col" style={{height: "90vh"}}>
-                    <div className="flex items-center justify-between mb-6">
+            `}
+            </style>
+            <div className="flex flex-col h-full bg-gray-100 p-2 rounded-xl shadow-lg overflow-hidden">
+                <div className="bg-white shadow-md p-1 lg:p-4 rounded-lg flex flex-col" style={{height: "90vh"}}>
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-2">
                         <div className="flex flex-col space-y-1">
-                            <h2 className="text-4xl font-bold text-gray-800">User List</h2>
-                            <p className="text-gray-500">Create new users, customize user permission, and remove users</p>
+                            <h2 className="text-2xl sm:text-4xl font-bold text-gray-800">User List</h2>
+                            <p className="text-xs sm:text-base text-gray-500">Create new users, customize user permission, and remove users</p>
                         </div>
-                        <div className="flex space-x-4">
-                            <button
-                                className="flex items-center space-x-2 bg-[#0A1220] text-white font-semibold py-2 px-6 rounded-lg shadow-md hover:bg-gray-900 transition duration-150 ease-in-out"
-                                onClick={() => setShowAddUserModal(true)}
-                            >
-                                <span>Add User</span>
-                                <Plus className="w-5 h-5" />
-                            </button>
-                            <button
-                                className={`flex items-center space-x-2 font-semibold py-2 px-6 rounded-lg shadow-md transition duration-150 ease-in-out
-                                ${showArchived ? 'bg-green-600 text-white hover:bg-green-500' : 'bg-red-600 text-white hover:bg-red-500'}`}
-                                onClick={() => setShowArchived(!showArchived)}
-                            >
-                                <span>{showArchived ? 'Show Active' : 'Show Archived'}</span>
-                                <Archive className="w-5 h-5" />
-                            </button>
-                            <div className="relative">
+                        <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 w-full sm:w-auto">
+                            
+                                <button
+                                    className="flex-1 flex items-center justify-center space-x-2 bg-[#0A1220] text-white font-semibold py-2 px-2 rounded-lg shadow-md hover:bg-gray-900 transition duration-150 ease-in-out text-xs sm:text-base"
+                                    onClick={() => setShowAddUserModal(true)}
+                                >
+                                    <span>Add User</span>
+                                    <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
+                                </button>
+                                <button
+                                    className={`flex-1 flex items-center justify-center space-x-2 font-semibold py-2 px-2 rounded-lg shadow-md transition duration-150 ease-in-out text-xs sm:text-base
+                                    ${showArchived ? 'bg-green-600 text-white hover:bg-green-500' : 'bg-red-600 text-white hover:bg-red-500'}`}
+                                    onClick={() => setShowArchived(!showArchived)}
+                                >
+                                    <span>{showArchived ? 'Show Active' : 'Show Archived'}</span>
+                                    <Archive className="w-4 h-4 sm:w-5 sm:h-5" />
+                                </button>
+                            <div className="relative flex-1">
                                 <input
                                     type="text"
                                     placeholder="Name / ID"
-                                    className="pl-4 pr-10 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out"
+                                    className="pl-4 pr-10 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out text-xs sm:text-base w-full"
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                 />
-                                <Search className="w-5 h-5 absolute right-3 top-3 text-gray-400" />
+                                <Search className="w-4 h-4 sm:w-5 sm:h-5 absolute right-3 top-3 text-gray-400" />
                             </div>
                         </div>
                     </div>
                     
-                    <div className="flex-1 overflow-y-auto custom-scrollbar">
-                    <UserTable
-                        filteredUsers={filteredUsers}
-                        displayRoles={displayRoles}
-                        displayAccess={displayAccess}
-                        handleEditInfo={handleEditInfo}
-                        showArchived={showArchived}
-                        handleArchiveUser={handleArchiveUser}
-                        handleRestoreUser={handleRestoreUser}
-                    />
+                    <div className="flex-1 overflow-x-auto overflow-y-auto custom-scrollbar">
+                        <div className="min-w-[400px] sm:min-w-0">
+                            <UserTable
+                                filteredUsers={filteredUsers}
+                                displayRoles={displayRoles}
+                                displayAccess={displayAccess}
+                                handleEditInfo={handleEditInfo}
+                                showArchived={showArchived}
+                                handleArchiveUser={handleArchiveUser}
+                                handleRestoreUser={handleRestoreUser}
+                                tableClassName="text-xs sm:text-base"
+                            />
+                        </div>
                     </div>
 
                     <AddUserModal
@@ -368,4 +373,3 @@ export default function Users() {
         </>
     );
 };
-// ...existing code...
