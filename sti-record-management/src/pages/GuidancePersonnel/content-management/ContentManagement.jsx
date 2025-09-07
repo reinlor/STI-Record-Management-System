@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, X, Link, Check, Bell, GraduationCap, Building, Link2, Settings } from 'lucide-react';
+import axios from 'axios';
+import { Plus, X, Check, Bell, GraduationCap, Building, Link2, Settings } from 'lucide-react';
 
 const Toast = ({ message, type, isVisible, onClose }) => {
     if (!isVisible) return null;
@@ -19,29 +20,14 @@ const Toast = ({ message, type, isVisible, onClose }) => {
 };
 
 export default function ContentManagement() {
-    const [announcements, setAnnouncements] = useState([
-        { title: "Campus-wide Safety Drill", body: "Please be advised that there will be a mandatory safety and fire drill on Friday, October 26, 2025, at 10:00 AM. All students and staff are required to participate. Follow the designated evacuation routes." },
-        { title: "Guidance Office is Open!", body: "Welcome back, students! The Guidance Office is now open for consultations. You can book an appointment with a counselor to discuss academic concerns, personal growth, or career planning. We're here to support you!" },
-    ]);
-
+    const [announcements, setAnnouncements] = useState([]);
     const [newAnnouncement, setNewAnnouncement] = useState({ title: '', body: '' });
 
-    const [tertiaryPrograms, setTertiaryPrograms] = useState([
-        { name: "Bachelor of Science in Information Technology", acronym: "BSIT" },
-        { name: "Bachelor of Science in Hospitality Management", acronym: "BSHM" },
-        { name: "Bachelor of Science in Tourism Management", acronym: "BSTM" },
-        { name: "Bachelor of Science in Computer Science", acronym: "BSCS" },
-    ]);
+    const [tertiaryPrograms, setTertiaryPrograms] = useState([]);
+    const [shsStrands, setShsStrands] = useState([]);
 
-    const [shsStrands, setShsStrands] = useState([
-        { name: "Science, Technology, Engineering, and Mathematics", acronym: "STEM" },
-        { name: "Humanities and Social Sciences", acronym: "HUMSS" },
-        { name: "Information and Communications Technology", acronym: "ICT" },
-        { name: "Technical-Vocational-Livelihood", acronym: "TVL" },
-    ]);
-
-    const [wellnessLink, setWellnessLink] = useState("https://wellnessprogram.com");
-    const [tempWellnessLink, setTempWellnessLink] = useState(wellnessLink);
+    const [wellnessLink, setWellnessLink] = useState('');
+    const [tempWellnessLink, setTempWellnessLink] = useState('');
 
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [modalType, setModalType] = useState(null); // 'SHS' or 'Tertiary'
@@ -49,27 +35,70 @@ export default function ContentManagement() {
 
     const [toast, setToast] = useState({ isVisible: false, message: '', type: 'success' });
 
+    const API = "/content"; // adjust base URL if needed
+
     const showToast = (message, type) => {
         setToast({ isVisible: true, message, type });
-        setTimeout(() => {
-            setToast({ ...toast, isVisible: false });
-        }, 3000);
+        setTimeout(() => setToast(prev => ({ ...prev, isVisible: false })), 3000);
     };
 
-    const handlePostAnnouncement = () => {
+    // === Fetch data on mount ===
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const annRes = await axios.get(`${API}/announcement/get`);
+                setAnnouncements(annRes.data.announcements || []);
+
+                const progRes = await axios.get(`${API}/program/get`);
+                setTertiaryPrograms(progRes.data.programs || []);
+
+                const strandRes = await axios.get(`${API}/strand/get`);
+                setShsStrands(strandRes.data.strands || []);
+
+                const wellRes = await axios.get(`${API}/wellness/get`);
+                setWellnessLink(wellRes.data.link || '');
+                setTempWellnessLink(wellRes.data.link || '');
+            } catch (error) {
+                console.error("Error fetching content management data:", error);
+            }
+        };
+        fetchData();
+    }, []);
+
+    // === Handlers ===
+    const handlePostAnnouncement = async () => {
         if (newAnnouncement.title && newAnnouncement.body) {
-            setAnnouncements([newAnnouncement, ...announcements]);
-            setNewAnnouncement({ title: '', body: '' });
-            showToast("New announcement successfully posted!", "success");
+            try {
+                await axios.post(`${API}/announcement/add`, {
+                    title: newAnnouncement.title,
+                    description: newAnnouncement.body
+                });
+                setAnnouncements([{ 
+                    title: newAnnouncement.title, 
+                    description: newAnnouncement.body, 
+                    timeCreated: new Date() 
+                }, ...announcements]);
+                setNewAnnouncement({ title: '', body: '' });
+                showToast("New announcement successfully posted!", "success");
+            } catch (error) {
+                console.error("Error posting announcement:", error);
+                showToast("Failed to post announcement.", "error");
+            }
         } else {
             showToast("Please fill out both title and body fields.", "error");
         }
     };
 
-    const handleSetWellnessLink = () => {
+    const handleSetWellnessLink = async () => {
         if (tempWellnessLink) {
-            setWellnessLink(tempWellnessLink);
-            showToast("Wellness Program link successfully updated!", "success");
+            try {
+                await axios.put(`${API}/wellness/change`, { link: tempWellnessLink });
+                setWellnessLink(tempWellnessLink);
+                showToast("Wellness Program link successfully updated!", "success");
+            } catch (error) {
+                console.error("Error updating wellness link:", error);
+                showToast("Failed to update wellness link.", "error");
+            }
         } else {
             showToast("Please provide a valid link.", "error");
         }
@@ -80,18 +109,25 @@ export default function ContentManagement() {
         setIsAddModalOpen(true);
     };
 
-    const handleModalSubmit = (e) => {
+    const handleModalSubmit = async (e) => {
         e.preventDefault();
         if (newItem.name && newItem.acronym) {
-            if (modalType === 'Tertiary') {
-                setTertiaryPrograms([...tertiaryPrograms, newItem]);
-                showToast("New Program successfully added!", "success");
-            } else if (modalType === 'SHS') {
-                setShsStrands([...shsStrands, newItem]);
-                showToast("New Strand successfully added!", "success");
+            try {
+                if (modalType === 'Tertiary') {
+                    await axios.post(`${API}/program/add`, newItem);
+                    setTertiaryPrograms([...tertiaryPrograms, newItem]);
+                    showToast("New Program successfully added!", "success");
+                } else if (modalType === 'SHS') {
+                    await axios.post(`${API}/strand/add`, newItem);
+                    setShsStrands([...shsStrands, newItem]);
+                    showToast("New Strand successfully added!", "success");
+                }
+                setIsAddModalOpen(false);
+                setNewItem({ name: '', acronym: '' });
+            } catch (error) {
+                console.error("Error adding item:", error);
+                showToast("Failed to add item.", "error");
             }
-            setIsAddModalOpen(false);
-            setNewItem({ name: '', acronym: '' });
         } else {
             showToast("Please fill out both fields.", "error");
         }
@@ -107,15 +143,6 @@ export default function ContentManagement() {
             ))}
         </div>
     );
-
-    // Save to localStorage whenever lists change
-    useEffect(() => {
-        localStorage.setItem('tertiaryPrograms', JSON.stringify(tertiaryPrograms));
-    }, [tertiaryPrograms]);
-
-    useEffect(() => {
-        localStorage.setItem('shsStrands', JSON.stringify(shsStrands));
-    }, [shsStrands]);
 
     return (
         <div className="flex flex-col md:flex-row h-full bg-gray-100 p-2 md:p-4 gap-2 md:gap-4">
@@ -155,7 +182,9 @@ export default function ContentManagement() {
                                 announcements.map((ann, index) => (
                                     <div key={index} className="mb-2 md:mb-4 last:mb-0 p-2 sm:p-2 md:p-4 bg-white rounded-lg shadow-sm">
                                         <h4 className="font-bold text-gray-900 text-xs sm:text-sm md:text-base">{ann.title}</h4>
-                                        <p className="text-xs sm:text-sm md:text-base text-gray-600 mt-1 whitespace-pre-wrap">{ann.body}</p>
+                                        <p className="text-xs sm:text-sm md:text-base text-gray-600 mt-1 whitespace-pre-wrap">
+                                            {ann.description || ann.body}
+                                        </p>
                                     </div>
                                 ))
                             ) : (

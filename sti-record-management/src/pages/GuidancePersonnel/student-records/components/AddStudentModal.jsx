@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { X, Check } from 'lucide-react';
 import upload from '../../../../assets/upload.png';
 import closeB from '../../../../assets/closeblack.png';
@@ -8,21 +8,45 @@ import 'react-toastify/dist/ReactToastify.css'; // Import toast CSS
 import DatePicker from 'react-datepicker';
 
 const AddStudentModal = ({ visible, onClose, newStudentForm, handleNewStudentFormChange, clearForm }) => {
+
     if (!visible) return null;
 
-    const yearLevelOptions = [
-        'Tertiary', 'Senior High School'];
-    
-    const programOptions = [
-        'BSIT', 'BSHM', 'BSCS', 'BSBA', 'BSAIS', 
-        'BSA', 'BACOMM', 'BMMA', 'BSTM'
-    ]
+    const yearLevelOptions = ["Tertiary", "Senior High School"];
+    const [collegePrograms, setCollegePrograms] = useState([]);
+    const [shsStrands, setShsStrands] = useState([]);
+
+    useEffect(() => {
+        if (visible) {
+            const fetchData = async () => {
+                try {
+                    const [programRes, strandRes] = await Promise.all([
+                        axios.get("/content/program/get"),
+                        axios.get("/content/strand/get")
+                    ]);
+
+                    setCollegePrograms(programRes.data.programs.map(p => p.acronym));
+                    setShsStrands(strandRes.data.strands.map(s => s.acronym));
+                } catch (error) {
+                    console.error("Error fetching programs/strands:", error);
+                    toast.error("Failed to load program & strand options.");
+                }
+            };
+
+            fetchData();
+        }
+    }, [visible]);
+
+    const programOptions =
+        newStudentForm.gradeYearLevel === "Tertiary"
+            ? collegePrograms
+            : newStudentForm.gradeYearLevel === "Senior High School"
+                ? shsStrands
+                : [];
 
     const handleAddStudent = async () => {
         const newStudent = {
             sid: newStudentForm.studentNumber,
             isArchived: false,
-
             studentProfile: {
                 name: newStudentForm.fullName,
                 academicLevel: newStudentForm.gradeYearLevel,
@@ -32,31 +56,29 @@ const AddStudentModal = ({ visible, onClose, newStudentForm, handleNewStudentFor
                 age: newStudentForm.age,
                 gender: newStudentForm.gender,
             },
-
             contactInfo: {
                 email: newStudentForm.emailAddress,
                 contactNo: newStudentForm.mobileNo,
                 homeNo: newStudentForm.contactNo,
                 address: {
-                    currentAddress: newStudentForm.address
-                }
+                    currentAddress: newStudentForm.address,
+                },
             },
-
             health: {
-                illness: newStudentForm.healthCondition
-            }
-        }
+                illness: newStudentForm.healthCondition,
+            },
+        };
 
         try {
-            const response = await axios.post('/student/create', newStudent);
-            toast.success("Student Created Successfully!"); 
+            await axios.post("/student/create", newStudent);
+            toast.success("Student Created Successfully!");
             clearForm();
             onClose();
         } catch (error) {
             console.error("Error creating student:", error);
             toast.error("Student Creation Unsuccessful.");
         }
-    }
+    };
 
     return (
         <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-4">
@@ -95,32 +117,43 @@ const AddStudentModal = ({ visible, onClose, newStudentForm, handleNewStudentFor
                         </div>
 
                         <div>
-                            <label htmlFor="gradeYearLevel" className="block text-sm font-medium text-gray-700">Grade/Year Level:</label>
+                            <label className="block text-sm font-medium text-gray-700">Year Level:</label>
                             <select
-                                id="gradeYearLevel"
                                 name="gradeYearLevel"
                                 value={newStudentForm.gradeYearLevel}
                                 onChange={handleNewStudentFormChange}
-                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                className="border rounded-md px-3 py-2 w-full"
                             >
-                                <option value="">Select Grade/Year Level</option>
-                                {yearLevelOptions.map(option => (
-                                    <option key={option} value={option}>{option}</option>
+                                <option value="">Select Year Level</option>
+                                {yearLevelOptions.map((level) => (
+                                    <option key={level} value={level}>
+                                        {level}
+                                    </option>
                                 ))}
                             </select>
                         </div>
                         <div>
-                            <label htmlFor="programStrand" className="block text-sm font-medium text-gray-700">Program/ Strand:</label>
+                            <label className="block text-sm font-medium text-gray-700">
+                                {newStudentForm.gradeYearLevel === "Tertiary" ? "Program" : "Strand"}:
+                            </label>
                             <select
-                                id="programStrand"
                                 name="programStrand"
                                 value={newStudentForm.programStrand}
                                 onChange={handleNewStudentFormChange}
-                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                className="border rounded-md px-3 py-2 w-full"
+                                disabled={!newStudentForm.gradeYearLevel}
                             >
-                                <option value="">Select Program/Strand</option>
-                                {programOptions.map(option => (
-                                    <option key={option} value={option}>{option}</option>
+                                <option value="">
+                                    {newStudentForm.gradeYearLevel === "Tertiary"
+                                        ? "Select Program"
+                                        : newStudentForm.gradeYearLevel === "Senior High School"
+                                            ? "Select Strand"
+                                            : "Select Year Level first"}
+                                </option>
+                                {programOptions.map((option) => (
+                                    <option key={option} value={option}>
+                                        {option}
+                                    </option>
                                 ))}
                             </select>
                         </div>
@@ -148,17 +181,17 @@ const AddStudentModal = ({ visible, onClose, newStudentForm, handleNewStudentFor
                                 >
                                     {/* Calendar SVG */}
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <rect x="4" y="4" width="18" height="18" rx="2" fill="none" stroke="currentColor" strokeWidth="2"/>
-                                        <path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" strokeWidth="2"/>
+                                        <rect x="4" y="4" width="18" height="18" rx="2" fill="none" stroke="currentColor" strokeWidth="2" />
+                                        <path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" strokeWidth="2" />
                                     </svg>
                                 </span>
                             </div>
                         </div>
-                        
+
                         <div>
                             <label htmlFor="age" className="block text-sm font-medium text-gray-700">Age:</label>
-                            <input type="number" id="age" name="age" value={newStudentForm.age} onChange={handleNewStudentFormChange} 
-                            className="mt-1 block w-50 border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
+                            <input type="number" id="age" name="age" value={newStudentForm.age} onChange={handleNewStudentFormChange}
+                                className="mt-1 block w-50 border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
                         </div>
                     </div>
 
