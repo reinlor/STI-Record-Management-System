@@ -9,6 +9,7 @@ import checkW from "../../../assets/check.png";
 import { AuthContext } from '../../../AuthProvider.jsx';
 
 function parseToMillis(dateInput) {
+  // Your existing date parsing logic
   if (!dateInput) return null;
 
   if (typeof dateInput === 'object' && typeof dateInput.toDate === 'function') {
@@ -42,6 +43,7 @@ function parseToMillis(dateInput) {
 }
 
 function formatDate(dateInput) {
+  // Your existing date formatting logic
   const ms = typeof dateInput === 'number' ? dateInput : parseToMillis(dateInput);
   if (!ms) return '';
   const d = new Date(ms);
@@ -52,11 +54,10 @@ function RequestSlip() {
   const [display, setDisplay] = useState(false);
   const [allSlipData, setAllSlipData] = useState([]);
   const [search, setSearch] = useState("");
-  const { authData, logout } = useContext(AuthContext);
+  const [selectedSlip, setSelectedSlip] = useState(null); // This was missing
+  const { authData } = useContext(AuthContext);
 
   const navigate = useNavigate();
-
-  const [selectedSlip, setSelectedSlip] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -70,15 +71,12 @@ function RequestSlip() {
             timeCreatedFormatted: ms ? formatDate(ms) : '',
           };
         });
-
         allSlips.sort((a, b) => (b.timeCreatedMs || 0) - (a.timeCreatedMs || 0));
-
         setAllSlipData(allSlips);
       } catch (error) {
         console.error("Error fetching slip data:", error.message);
       }
     };
-
     fetchData();
   }, []);
 
@@ -99,6 +97,9 @@ function RequestSlip() {
 
   const displaySlipForm = () => {
     if (!display || !selectedSlip) return null;
+
+    // Destructure URLs here, where selectedSlip is guaranteed to exist
+    const { proofUrl, excuseLetterUrl, guardianValidUrl, medicalCertificateUrl } = selectedSlip;
 
     return (
       <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-[9999] " >
@@ -159,33 +160,71 @@ function RequestSlip() {
 
               {/* Attachments Section */}
               <div className="grid grid-cols-2 gap-6">
-                {[
-                  "Excuse Letter / Medical Certificate",
-                  "Guardian’s ID Front",
-                  "Guardian’s ID Back",
-                ].map((label, i) => (
-                  <div key={i} className="flex flex-col items-center">
-                    <div className="w-24 h-24 bg-gray-100 border border-gray-300 flex items-center justify-center hover:shadow-md transition">
-                      <svg
-                        className="w-8 h-8 text-gray-400"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                          d="M3 7l9 6 9-6-9-6-9 6zm0 7l9 6 9-6"
-                        />
-                      </svg>
-                    </div>
+                {/* Proof of Transaction */}
+                {proofUrl && (
+                  <div className="flex flex-col items-center">
+                    <a href={proofUrl} target="_blank" rel="noopener noreferrer">
+                      <img
+                        src={proofUrl}
+                        alt="Proof of Transaction"
+                        className="w-24 h-24 object-cover rounded"
+                      />
+                    </a>
                     <span className="text-xs text-gray-600 mt-2 text-center">
-                      {label}
+                      Proof of Transaction
                     </span>
                   </div>
-                ))}
+                )}
+
+                {/* Excuse Letter */}
+                {excuseLetterUrl && (
+                  <div className="flex flex-col items-center">
+                    <a href={excuseLetterUrl} target="_blank" rel="noopener noreferrer">
+                      <img
+                        src={excuseLetterUrl}
+                        alt="Excuse Letter"
+                        className="w-24 h-24 object-cover rounded"
+                      />
+                    </a>
+                    <span className="text-xs text-gray-600 mt-2 text-center">
+                      Excuse Letter
+                    </span>
+                  </div>
+                )}
+
+                {/* Medical Certificate */}
+                {medicalCertificateUrl && (
+                  <div className="flex flex-col items-center">
+                    <a href={medicalCertificateUrl} target="_blank" rel="noopener noreferrer">
+                      <img
+                        src={medicalCertificateUrl}
+                        alt="Medical Certificate"
+                        className="w-24 h-24 object-cover rounded"
+                      />
+                    </a>
+                    <span className="text-xs text-gray-600 mt-2 text-center">
+                      Medical Certificate
+                    </span>
+                  </div>
+                )}
+
+                {/* Guardian’s ID */}
+                {guardianValidUrl && (
+                  <div className="flex flex-col items-center">
+                    <a href={guardianValidUrl} target="_blank" rel="noopener noreferrer">
+                      <img
+                        src={guardianValidUrl}
+                        alt="Guardian’s ID"
+                        className="w-24 h-24 object-cover rounded"
+                      />
+                    </a>
+                    <span className="text-xs text-gray-600 mt-2 text-center">
+                      Guardian’s ID
+                    </span>
+                  </div>
+                )}
               </div>
+
             </div>
 
             {/* RIGHT PANEL: Email + Actions */}
@@ -196,6 +235,7 @@ function RequestSlip() {
                   type="text"
                   value={selectedSlip.email}
                   className="border rounded px-3 py-2 w-full"
+                  readOnly // Added readOnly since this is for display
                 />
               </div>
               <div>
@@ -278,7 +318,6 @@ function RequestSlip() {
     return error401()
   }
 
-  // Palagyan ng CSS papalit din ng html kung kinakailangan
   return (
     <div className="bg-gray-100 h-full p-3">
       <div className="bg-white shadow-md p-4 rounded-lg overflow-y-auto">
