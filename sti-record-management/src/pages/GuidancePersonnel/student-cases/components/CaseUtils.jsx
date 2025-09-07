@@ -7,6 +7,7 @@ export const caseFieldDefinitions = {
         { key: 'counselingTypeCategory', label: 'Counseling Type/Category', type: 'text' },
         { key: 'caseStatus', label: 'Case Status', type: 'select', options: ['On-going', 'Resolved'] },
         { key: 'detailedDescription', label: 'Detailed Description', type: 'textarea', multiline: true },
+        { key: 'violation', label: 'Violation', type: 'text'},
     ],
     proof: [
         { key: 'proofDescription', label: 'Proof Description', type: 'textarea', multiline: true },
@@ -34,6 +35,7 @@ export const serverViolationToUIDetails = (violation) => {
             counselingTypeCategory: violation.counselingType ?? 'N/A',
             caseStatus: violation.status ?? 'On-going',
             detailedDescription: violation.detailedDescription ?? 'N/A',
+            violation: violation.violation ?? 'N/A',
         },
         proof: {
             proofDescription: violation.proofDescription ?? 'N/A',

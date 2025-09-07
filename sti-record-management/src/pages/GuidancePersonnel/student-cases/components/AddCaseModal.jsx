@@ -1,10 +1,80 @@
 import React from 'react';
 import { X, Check } from 'lucide-react';
 import upload from '../../../../assets/upload.png';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const AddCaseModal = ({ visible, onClose, newCaseForm, onChange, onSave }) => {
     if (!visible) return null;
+    const [violations, setViolations] = useState([])
+
+    const categories = [
+        'Academic Misconduct', 'Disruptive Behavior', 'Property and Vandalism', 'Technology Misuse',
+        'Substance Abuse', 'Safety and Security', 'Non-compliance with School Rules', 'Others'
+    ]
+
+    const allViolations = {
+        'Academic Misconduct': ['Cheating', 'Plagiarism', 'Fabrication', 'Facilitating academic dishonesty'],
+        'Disruptive Behavior': ['Classroom Disruption', 'Harassment', 'Bullying', 'Threats'],
+        'Property and Vandalism': ['Theft', 'Vandalism', 'Unauthorized use of property', 'Damage to school property'],
+        'Technology Misuse': ['Unauthorized access to school systems', 'Cyberbullying', 'Inappropriate use of school technology', 'Sharing of private information without consent'],
+        'Substance Abuse': ['Alcohol possession or use', 'Drug possession, use, or distribution', 'Smoking or vaping on school grounds'],
+        'Safety and Security': ['Possession of weapons', 'Failure to follow safety procedures', 'Endangerment of others', 'Trespassing'],
+        'Non-compliance with School Rules': ['Tardiness', 'Truancy', 'Dress code violations', 'Disobedience to school staff'],
+        'Others': [],
+    };
+
+    useEffect(() => {
+        const selectedViolations = allViolations[newCaseForm.counselingTypeCategory] || [];
+        setViolations(selectedViolations);
+    }, [newCaseForm.counselingTypeCategory]);
+
+    const handleViolationInput = () => {
+        const hasSpecificViolations = violations.length > 0;
+
+        if (hasSpecificViolations) {
+            return (
+                <div>
+                    <label htmlFor="violation" className="block text-sm font-medium text-gray-700">Violation:</label>
+                    <select
+                        id="violation"
+                        name="violation"
+                        value={newCaseForm.violation}
+                        onChange={onChange}
+                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    >
+                        <option value="">Select a Violation</option>
+                        {violations.map((violation, index) => (
+                            <option key={index} value={violation}>{violation}</option>
+                        ))}
+                    </select>
+                </div>
+            );
+        }
+        return (
+            (newCaseForm.counselingTypeCategory != '' ? <div>
+                <label htmlFor="violation" className="block text-sm font-medium text-gray-700">Violation:</label>
+                <input type="text" id="violation" name="violation" value={newCaseForm.violation} onChange={onChange} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+            </div>: null)
+        )
+    }
+
+    const handleCategoryDropDown = () => (
+        <div>
+            <label htmlFor="counselingTypeCategory" className="block text-sm font-medium text-gray-700">Counseling Type/Category:</label>
+            <select
+                id="counselingTypeCategory"
+                name="counselingTypeCategory"
+                value={newCaseForm.counselingTypeCategory}
+                onChange={onChange}
+                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            >
+                <option value="">Select a Category</option>
+                {categories.map((category, index) => (
+                    <option key={index} value={category}>{category}</option>
+                ))}
+            </select>
+        </div>
+    );
 
     return (
         <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-4">
@@ -34,10 +104,14 @@ const AddCaseModal = ({ visible, onClose, newCaseForm, onChange, onSave }) => {
                             <label htmlFor="timeOfInitiation" className="block text-sm font-medium text-gray-700">Time of Initiation:</label>
                             <input type="time" id="timeOfInitiation" name="timeOfInitiation" value={newCaseForm.timeOfInitiation} onChange={onChange} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
                         </div>
-                        <div>
+                        {/* <div>
                             <label htmlFor="counselingTypeCategory" className="block text-sm font-medium text-gray-700">Counseling Type/Category:</label>
                             <input type="text" id="counselingTypeCategory" name="counselingTypeCategory" value={newCaseForm.counselingTypeCategory} onChange={onChange} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
-                        </div>
+                        </div> */}
+
+                        {handleCategoryDropDown()}
+                        {handleViolationInput()}
+
                         <div>
                             <label htmlFor="detailedDescription" className="block text-sm font-medium text-gray-700">Detailed Description:</label>
                             <textarea id="detailedDescription" name="detailedDescription" value={newCaseForm.detailedDescription} onChange={onChange} rows="3" className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 resize-y"></textarea>

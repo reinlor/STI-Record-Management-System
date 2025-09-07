@@ -1,4 +1,4 @@
-import React, { useState, Fragment, useEffect, useRef } from "react";
+import React, { useState, Fragment, useEffect, useRef, useMemo } from "react";
 import { useLocation } from "react-router-dom";
 import axios from "axios";
 import {
@@ -53,6 +53,7 @@ function StudentCases() {
     dateOfAction: "",
     caseStatus: "On-going",
     counselorNotes: "",
+    violation: ''
   });
 
   const handleNewCaseFormChange = (e) => {
@@ -63,6 +64,29 @@ function StudentCases() {
       setNewCaseForm((prev) => ({ ...prev, [name]: value }));
     }
   };
+
+  // The main change is here, using useMemo for filtered and sorted data
+  const sortedCases = useMemo(() => {
+    const filtered = cases.filter((c) => {
+      const matchesTab =
+        (activeTab === "All" && (c.status === "On-going" || c.status === "Resolved")) ||
+        c.status === activeTab;
+      const matchesSearch =
+        searchTerm === "" ||
+        (c.studentName && c.studentName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (c.studentId && c.studentId.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (c.id && c.id.toLowerCase().includes(searchTerm.toLowerCase()));
+      return matchesTab && matchesSearch;
+    });
+
+    // Sort the filtered cases from newest to oldest based on timeCreated
+    return filtered.sort((a, b) => {
+      // Safely access the toDate method for Firestore Timestamps
+      const dateA = a.timeCreated && a.timeCreated.toDate ? a.timeCreated.toDate() : new Date(0);
+      const dateB = b.timeCreated && b.timeCreated.toDate ? b.timeCreated.toDate() : new Date(0);
+      return dateB - dateA; // Newest first
+    });
+  }, [cases, searchTerm, activeTab]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -93,7 +117,7 @@ function StudentCases() {
     })
 
     return () => observer.disconnect()
-  }, [cases, searchTerm, activeTab])
+  }, [sortedCases]) // Change dependency to sortedCases
 
   useEffect(() => {
     const fetchCases = async () => {
@@ -105,6 +129,7 @@ function StudentCases() {
           studentName: v.name ?? "Unknown",
           studentId: v.sid ?? "",
           status: v.status ?? "On-going",
+          timeCreated: v.timeCreated, // Make sure to include this in your list
         }));
         const details = {};
         violations.forEach((v) => {
@@ -149,10 +174,7 @@ function StudentCases() {
       !newCaseForm.studentId ||
       !newCaseForm.counselingTypeCategory
     ) {
-      
-      alert(
-        "Please fill in Student Name, Student ID, and Counseling Type/Category."
-      );
+      toast.error("Please fill in Student Name, Student ID, and Counseling Type/Category.");
       return;
     }
 
@@ -166,6 +188,7 @@ function StudentCases() {
         "counselingType",
         newCaseForm.counselingTypeCategory || ""
       );
+      formData.append("violation", newCaseForm.violation);
       formData.append(
         "detailedDescription",
         newCaseForm.detailedDescription || ""
@@ -190,6 +213,7 @@ function StudentCases() {
         studentName: v.name ?? "Unknown",
         studentId: v.sid ?? "",
         status: v.status ?? "On-going",
+        timeCreated: v.timeCreated,
       }));
       const details = {};
       violations.forEach((v) => {
@@ -262,6 +286,7 @@ function StudentCases() {
         studentName: v.name ?? "Unknown",
         studentId: v.sid ?? "",
         status: v.status ?? "On-going",
+        timeCreated: v.timeCreated,
       }));
       const details = {};
       violations.forEach((v) => {
@@ -289,21 +314,6 @@ function StudentCases() {
     });
   };
 
-  const filteredCases = cases.filter((c) => {
-    const matchesTab =
-      (activeTab === "All" &&
-        (c.status === "On-going" || c.status === "Resolved")) ||
-      c.status === activeTab;
-    const matchesSearch =
-      searchTerm === "" ||
-      (c.studentName &&
-        c.studentName.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (c.studentId &&
-        c.studentId.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (c.id && c.id.toLowerCase().includes(searchTerm.toLowerCase()));
-    return matchesTab && matchesSearch;
-  });
-
   const displayCaseData =
     isEditing && editedCaseData
       ? editedCaseData
@@ -313,175 +323,177 @@ function StudentCases() {
 
   return (
     <div className="bg-gray-100 h-full p-3 rounded-lg">
-    <div className="flex bg-gray-100 h-full overflow-hidden">
-      <ToastContainer position="top-right" autoClose={4000} />
-      <div
-        className={`w-96 bg-white border-r border-gray-200 shadow-lg flex flex-col rounded-lg`}
-      >
-        <div className="p-4 border-b border-gray-200">
-          <div className="flex items-center space-x-2 mb-4">
-            <h2 className="text-3xl font-bold text-gray-800">Student Cases</h2>
-          </div>
-
-          <div className="flex justify-around bg-gray-200 p-1 rounded-lg mb-4">
-            <button
-              className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out cursor-pointer hover:bg-[#003d54] ${activeTab === "Resolved"
-                ? "bg-[#0A1220] text-white shadow-sm hover:bg-[#003d54]"
-                : "text-gray-700 hover:bg-gray-300"
-                }`}
-              onClick={() => setActiveTab("Resolved")}
-            >
-              Resolved
-            </button>
-            <button
-              className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out cursor-pointer ${activeTab === "On-going"
-                ? "bg-[#0A1220] text-white shadow-sm hover:bg-[#003d54]"
-                : "text-gray-700 hover:bg-gray-300"
-                }`}
-              onClick={() => setActiveTab("On-going")}
-            >
-              On-going
-            </button>
-          </div>
-
-          <div className="relative mb-4">
-            <input
-              type="text"
-              placeholder="Name/ ID"
-              className="w-full pl-2 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 absolute right-3 top-7.5 -translate-y-1/2 text-gray-400">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-                        </svg>
-          </div>
-
-          <button
-            className="w-full bg-[#0A1220] hover:bg-[#003d54] text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center transition duration-150 ease-in-out shadow-md hover:shadow-lg cursor-pointer"
-            onClick={() => setShowAddModal(true)}
-          >
-            <Plus className="w-5 h-5 mr-2" />
-            Add Case
-          </button>
-        </div>
-
-        <div className="flex-1 overflow-y-auto pb-4 custom-scrollbar">
-          {filteredCases.length > 0 ? (
-            filteredCases.map((aCase) => (
-              <div
-                ref={(el) => {
-                  if (el) {
-                    itemRefs.current.set(aCase.id, el);
-                  } else {
-                    itemRefs.current.delete(aCase.id);
-                  }
-                }}
-                data-case-id={aCase.id}
-                key={aCase.id}
-                className={`flex items-center justify-between p-4 border-b border-gray-200 cursor-pointer transition duration-150 ease-in-out ${selectedCaseId === aCase.id
-                  ? "bg-blue-100 border-l-4 border-blue-500"
-                  : "hover:bg-gray-50"
-                  }`}
-                onClick={() => setSelectedCaseId(aCase.id)}
-              >
-                {visibleIds.has(aCase.id) ? (<div className="flex items-center">
-                  <img
-                    src={user}
-                    alt="User"
-                    className="w-5 h-5 object-cover mr-5"
-                  />
-                  <div>
-                    <p className="font-semibold text-gray-800">
-                      {aCase.studentName}
-                    </p>
-                    <p className="text-sm text-gray-600">{aCase.studentId}</p>
-                  </div>
-                </div>): null}
-                <ChevronRight className="w-5 h-5 text-[#0A1220]" />
-              </div>
-            ))
-          ) : (
-            <p className="p-4 text-gray-500 text-center">No cases found.</p>
-          )}
-        </div>
-      </div>
-
-      <div className={`flex-1 bg-white flex flex-col`}>
-        <Fragment>
-          <div className="p-3 border-b border-gray-200 flex items-center justify-between flex-wrap gap-2">
-            <div className="flex items-center space-x-2 sm:space-x-4">
-              <button
-                className="p-2 rounded-full hover:bg-gray-200 transition duration-150 ease-in-out cursor-pointer"
-                onClick={() => setSelectedCaseId(null)}
-              >
-                <ChevronLeft className="w-8 h-8 text-gray-700" />
-              </button>
-              <select
-                className="block px-3 sm:px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out appearance-none bg-white pr-8 text-sm sm:text-base cursor-pointer"
-                value={infoType}
-                onChange={(e) => setInfoType(e.target.value)}
-              >
-                <option value="caseDetails">Case Details</option>
-                <option value="proof">Proof</option>
-                <option value="actionsTaken">Actions Taken</option>
-                <option value="counselorNotes">Counselor's Notes</option>
-              </select>
+      <div className="flex bg-gray-100 h-full overflow-hidden">
+        <ToastContainer position="top-right" autoClose={4000} />
+        <div
+          className={`w-96 bg-white border-r border-gray-200 shadow-lg flex flex-col rounded-lg`}
+        >
+          <div className="p-4 border-b border-gray-200">
+            <div className="flex items-center space-x-2 mb-4">
+              <h2 className="text-3xl font-bold text-gray-800">Student Cases</h2>
             </div>
 
-            {selectedCaseId !== null ? (
-              <div className="flex items-center space-x-2 sm:space-x-3 mt-2 sm:mt-0">
-                <button
-                  className={`px-3 sm:px-4 py-2 rounded-lg flex items-center transition duration-150 ease-in-out text-sm sm:text-base font-medium cursor-pointer ${isEditing
-                    ? "bg-gray-500 text-white shadow-md"
-                    : "bg-gray-800 hover:bg-gray-700 text-white shadow-md hover:shadow-lg"
-                    }`}
-                  onClick={() => {
-                    if (isEditing) {
-                      handleSaveEdits();
-                    }
-                    setIsEditing(!isEditing);
-                  }}
-                >
-                  {isEditing ? "Save" : "Edit Case"}
-                  <Pencil className="w-4 h-4 sm:w-5 sm:h-5 ml-1 sm:ml-2" />
-                </button>
-                <button
-                  className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-3 sm:px-4 rounded-lg flex items-center transition duration-150 ease-in-out shadow-md hover:shadow-lg cursor-pointer"
-                  onClick={handleArchiveCase}
-                >
-                  Resolve Case
-                  <Archive className="w-4 h-4 sm:w-5 sm:h-5 ml-1 sm:ml-2" />
-                </button>
-              </div>
-            ) : null}
+            <div className="flex justify-around bg-gray-200 p-1 rounded-lg mb-4">
+              <button
+                className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out cursor-pointer hover:bg-[#003d54] ${activeTab === "Resolved"
+                    ? "bg-[#0A1220] text-white shadow-sm hover:bg-[#003d54]"
+                    : "text-gray-700 hover:bg-gray-300"
+                  }`}
+                onClick={() => setActiveTab("Resolved")}
+              >
+                Resolved
+              </button>
+              <button
+                className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out cursor-pointer ${activeTab === "On-going"
+                    ? "bg-[#0A1220] text-white shadow-sm hover:bg-[#003d54]"
+                    : "text-gray-700 hover:bg-gray-300"
+                  }`}
+                onClick={() => setActiveTab("On-going")}
+              >
+                On-going
+              </button>
+            </div>
+
+            <div className="relative mb-4">
+              <input
+                type="text"
+                placeholder="Name/ ID"
+                className="w-full pl-2 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 absolute right-3 top-7.5 -translate-y-1/2 text-gray-400">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+              </svg>
+            </div>
+
+            <button
+              className="w-full bg-[#0A1220] hover:bg-[#003d54] text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center transition duration-150 ease-in-out shadow-md hover:shadow-lg cursor-pointer"
+              onClick={() => setShowAddModal(true)}
+            >
+              <Plus className="w-5 h-5 mr-2" />
+              Add Case
+            </button>
           </div>
 
-          <div className="flex-1 p-6 overflow-y-auto custom-scrollbar">
-            {displayCaseData ? (
-              <CaseInfoSection
-                infoType={infoType}
-                caseData={displayCaseData[infoType]}
-                isEditing={isEditing}
-                onFieldChange={handleCaseFieldChange}
-              />
+          <div ref={casesListRef} className="flex-1 overflow-y-auto pb-4 custom-scrollbar">
+            {sortedCases.length > 0 ? (
+              sortedCases.map((aCase) => (
+                <div
+                  ref={(el) => {
+                    if (el) {
+                      itemRefs.current.set(aCase.id, el);
+                    } else {
+                      itemRefs.current.delete(aCase.id);
+                    }
+                  }}
+                  data-case-id={aCase.id}
+                  key={aCase.id}
+                  className={`flex items-center justify-between p-4 border-b border-gray-200 cursor-pointer transition duration-150 ease-in-out ${selectedCaseId === aCase.id
+                      ? "bg-blue-100 border-l-4 border-blue-500"
+                      : "hover:bg-gray-50"
+                    }`}
+                  onClick={() => setSelectedCaseId(aCase.id)}
+                >
+                  {visibleIds.has(aCase.id) ? (
+                    <div className="flex items-center">
+                      <img
+                        src={user}
+                        alt="User"
+                        className="w-5 h-5 object-cover mr-5"
+                      />
+                      <div>
+                        <p className="font-semibold text-gray-800">
+                          {aCase.studentName}
+                        </p>
+                        <p className="text-sm text-gray-600">{aCase.studentId}</p>
+                      </div>
+                    </div>
+                  ) : null}
+                  <ChevronRight className="w-5 h-5 text-[#0A1220]" />
+                </div>
+              ))
             ) : (
-              <div className="flex-1 flex items-center justify-center text-gray-500 text-xl p-4 text-center">
-                Select a case from the list to view its information.
-              </div>
+              <p className="p-4 text-gray-500 text-center">No cases found.</p>
             )}
           </div>
-        </Fragment>
-      </div>
+        </div>
 
-      <AddCaseModal
-        visible={showAddModal}
-        onClose={() => setShowAddModal(false)}
-        newCaseForm={newCaseForm}
-        onChange={handleNewCaseFormChange}
-        onSave={handleAddCase}
-      />
-    </div>
+        <div className={`flex-1 bg-white flex flex-col`}>
+          <Fragment>
+            <div className="p-3 border-b border-gray-200 flex items-center justify-between flex-wrap gap-2">
+              <div className="flex items-center space-x-2 sm:space-x-4">
+                <button
+                  className="p-2 rounded-full hover:bg-gray-200 transition duration-150 ease-in-out cursor-pointer"
+                  onClick={() => setSelectedCaseId(null)}
+                >
+                  <ChevronLeft className="w-8 h-8 text-gray-700" />
+                </button>
+                <select
+                  className="block px-3 sm:px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out appearance-none bg-white pr-8 text-sm sm:text-base cursor-pointer"
+                  value={infoType}
+                  onChange={(e) => setInfoType(e.target.value)}
+                >
+                  <option value="caseDetails">Case Details</option>
+                  <option value="proof">Proof</option>
+                  <option value="actionsTaken">Actions Taken</option>
+                  <option value="counselorNotes">Counselor's Notes</option>
+                </select>
+              </div>
+
+              {selectedCaseId !== null ? (
+                <div className="flex items-center space-x-2 sm:space-x-3 mt-2 sm:mt-0">
+                  <button
+                    className={`px-3 sm:px-4 py-2 rounded-lg flex items-center transition duration-150 ease-in-out text-sm sm:text-base font-medium cursor-pointer ${isEditing
+                        ? "bg-gray-500 text-white shadow-md"
+                        : "bg-gray-800 hover:bg-gray-700 text-white shadow-md hover:shadow-lg"
+                      }`}
+                    onClick={() => {
+                      if (isEditing) {
+                        handleSaveEdits();
+                      }
+                      setIsEditing(!isEditing);
+                    }}
+                  >
+                    {isEditing ? "Save" : "Edit Case"}
+                    <Pencil className="w-4 h-4 sm:w-5 sm:h-5 ml-1 sm:ml-2" />
+                  </button>
+                  <button
+                    className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-3 sm:px-4 rounded-lg flex items-center transition duration-150 ease-in-out shadow-md hover:shadow-lg cursor-pointer"
+                    onClick={handleArchiveCase}
+                  >
+                    Resolve Case
+                    <Archive className="w-4 h-4 sm:w-5 sm:h-5 ml-1 sm:ml-2" />
+                  </button>
+                </div>
+              ) : null}
+            </div>
+
+            <div className="flex-1 p-6 overflow-y-auto custom-scrollbar">
+              {displayCaseData ? (
+                <CaseInfoSection
+                  infoType={infoType}
+                  caseData={displayCaseData[infoType]}
+                  isEditing={isEditing}
+                  onFieldChange={handleCaseFieldChange}
+                />
+              ) : (
+                <div className="flex-1 flex items-center justify-center text-gray-500 text-xl p-4 text-center">
+                  Select a case from the list to view its information.
+                </div>
+              )}
+            </div>
+          </Fragment>
+        </div>
+
+        <AddCaseModal
+          visible={showAddModal}
+          onClose={() => setShowAddModal(false)}
+          newCaseForm={newCaseForm}
+          onChange={handleNewCaseFormChange}
+          onSave={handleAddCase}
+        />
+      </div>
     </div>
   );
 }

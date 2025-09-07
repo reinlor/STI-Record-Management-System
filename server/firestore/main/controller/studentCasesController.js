@@ -12,6 +12,7 @@ const violationSchema = Joi.object({
   initiationDate: Joi.string().required().empty(""),
   initialTime: Joi.string().required().empty(""),
   counselingType: Joi.string().required().empty(""),
+  violation: Joi.string().required().empty(""),
   detailedDescription: Joi.string().required().empty(""),
   proofDescription: Joi.string().required().empty(""),
   actionTaken: Joi.string().required().empty(""),
@@ -19,6 +20,7 @@ const violationSchema = Joi.object({
   status: Joi.string().required().empty(""),
   notes: Joi.string().required().empty(""),
   proofUrl: Joi.string().optional().empty(""),
+  timeCreated: Joi.string().optional().empty("")
 });
 const updateSchema = Joi.object({
   sid: Joi.string().optional(),
@@ -26,6 +28,7 @@ const updateSchema = Joi.object({
   initiationDate: Joi.string().optional(),
   initialTime: Joi.string().optional(),
   counselingType: Joi.string().optional(),
+  violation: Joi.string().optional(),
   detailedDescription: Joi.string().optional(),
   proofDescription: Joi.string().optional(),
   actionTaken: Joi.string().optional(),
@@ -33,6 +36,8 @@ const updateSchema = Joi.object({
   status: Joi.string().optional(),
   notes: Joi.string().optional(),
   proofUrl: Joi.string().optional(),
+  timeCreated: Joi.string().optional("")
+
 });
 
 // Controller function to retrieve all violation
@@ -113,16 +118,15 @@ const addViolation = async (req, res) => {
 
     const sid = newViolation.sid;
     const reason = newViolation.counselingType;
+    const name = newViolation.name;
 
-    // Use FieldValue.serverTimestamp() for the main document
     const serverTimestamp = FieldValue.serverTimestamp();
 
-    // The chart data needs a concrete timestamp value
-    // Use a client-side Date object converted to a string for the array
     const chartData = {
       sid: sid,
       type: reason,
-      date: new Date().toISOString(), // <--- The correct way to get a timestamp for an array
+      name: name,
+      date: new Date().toISOString(),
     };
 
     const studentCaseRef = getChartDataCollection().doc("studentCase");
@@ -131,6 +135,7 @@ const addViolation = async (req, res) => {
     const violationData = {
       ...newViolation,
       date: serverTimestamp,
+      timeCreated: serverTimestamp
     };
 
     if (!docSnapshot.exists) {
