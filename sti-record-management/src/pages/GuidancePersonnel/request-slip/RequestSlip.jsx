@@ -61,6 +61,13 @@ function RequestSlip() {
   const [selectedSlip, setSelectedSlip] = useState(null); // This was missing
   const { authData } = useContext(AuthContext);
 
+  if (!authData?.user?.access?.requestSlip) {
+    const error401 = () => {
+      navigate('/error401')
+    }
+    return error401()
+  }
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -301,7 +308,7 @@ function RequestSlip() {
       </td>
       <td className="px-4 py-3">{slips.reason}</td>
       <td className="px-4 py-3">{slips.attachmentCount}</td>
-      {authData?.user?.access?.requestSlip?.canEdit ? <td className="px-4 py-3">
+      {authData?.user?.access?.requestSlip ? <td className="px-4 py-3">
         <button
           className="bg-gray-900 text-white px-6 py-1 rounded-full hover:bg-gray-700 transition"
           onClick={() => openSlip(slips._id)}>
@@ -311,12 +318,7 @@ function RequestSlip() {
     </tr>
   ));
 
-  if (!authData?.user?.access?.requestSlip?.canView) {
-    const error401 = () => {
-      navigate('/error401')
-    }
-    return error401()
-  }
+  
 
   return (
     <div className="bg-gray-100 h-full p-3">
@@ -343,7 +345,7 @@ function RequestSlip() {
 
           <div className="flex flex-col sm:flex-row gap-2 w-full lg:w-auto">
             {/* History button */}
-            {authData?.user?.access?.requestSlip?.canEdit && (
+            {authData?.user?.access?.requestSlip && (
               <button
                 className="flex items-center justify-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-full hover:bg-gray-700 transition w-full sm:w-auto"
                 onClick={() => navigate("/guidance/request-slip-history")}
@@ -420,7 +422,7 @@ function RequestSlip() {
                 
                 <td className="px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">{slips.attachmentCount}</td>
 
-                {authData?.user?.access?.requestSlip?.canEdit && (
+                {authData?.user?.access?.requestSlip && (
                   <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3">
                     <button
                       className="bg-gray-900 text-white px-3 sm:px-4 py-1 rounded-full hover:bg-gray-700 transition w-full sm:w-auto"

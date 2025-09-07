@@ -56,7 +56,7 @@ function BackNRestore() {
     const isGuidanceIndeterminate = (selectedItem.studentRecord || selectedItem.studentCase || selectedItem.users || selectedItem.wellness) && !allGuidanceChecked;
     const isDisciplinaryIndeterminate = (selectedItem.referralForm || selectedItem.requestSlip) && !allDisciplinaryChecked;
 
-    if (!authData?.user?.access?.backupRestore?.canView) {
+    if (!authData?.user?.access?.backupRestore) {
         return <Navigate to="/error401" replace />;
     }
 

@@ -26,54 +26,59 @@ export default function EditUserModal({ isOpen, onClose, editedUser, handleUserA
                             <p className="text-gray-900 font-semibold">{editedUser.email}</p>
                         </div>
                     </div>
-                    <div className="mt-6">
-                        <label className="block text-sm font-bold text-gray-700">Access</label>
-                        <div className="mt-2 space-y-2">
-                            {accessPermissions.map((permission, index) => (
-                                <div key={index}>
-                                    <div className="flex items-center justify-between p-2 rounded-lg bg-gray-50">
-                                        <span className="text-sm font-medium text-gray-700">{permission}</span>
-                                        {['Student 201 Files', 'Student Cases'].includes(permission) ? null : (
-                                            <input
-                                                type="checkbox"
-                                                name={permission}
-                                                id={`edit-toggle-${permission}`}
-                                                checked={editedUser.access[permission]}
-                                                onChange={() => handleUserAccessToggle(permission)}
-                                                className="toggle-checkbox"
-                                            />
+
+                    {/* 🚫 Hide access section if Teacher */}
+                    {!(editedUser.roles && editedUser.roles.includes('Teacher')) && (
+                        <div className="mt-6">
+                            <label className="block text-sm font-bold text-gray-700">Access</label>
+                            <div className="mt-2 space-y-2">
+                                {accessPermissions.map((permission, index) => (
+                                    <div key={index}>
+                                        <div className="flex items-center justify-between p-2 rounded-lg bg-gray-50">
+                                            <span className="text-sm font-medium text-gray-700">{permission}</span>
+                                            {['Student 201 Files', 'Student Cases'].includes(permission) ? null : (
+                                                <input
+                                                    type="checkbox"
+                                                    name={permission}
+                                                    id={`edit-toggle-${permission}`}
+                                                    checked={editedUser.access[permission]}
+                                                    onChange={() => handleUserAccessToggle(permission)}
+                                                    className="toggle-checkbox"
+                                                />
+                                            )}
+                                        </div>
+                                        {['Student 201 Files', 'Student Cases'].includes(permission) && (
+                                            <div className="ml-6 mt-2 space-y-2">
+                                                <div className="flex items-center justify-between p-2 rounded-lg bg-gray-100">
+                                                    <span className="text-sm text-gray-600">Can View</span>
+                                                    <input
+                                                        type="checkbox"
+                                                        name={`${permission}-canView`}
+                                                        id={`edit-toggle-${permission}-canView`}
+                                                        checked={editedUser.access[permission].canView}
+                                                        onChange={() => handleUserAccessToggle(permission, 'canView')}
+                                                        className="toggle-checkbox"
+                                                    />
+                                                </div>
+                                                <div className="flex items-center justify-between p-2 rounded-lg bg-gray-100">
+                                                    <span className="text-sm text-gray-600">Can Edit</span>
+                                                    <input
+                                                        type="checkbox"
+                                                        name={`${permission}-canEdit`}
+                                                        id={`edit-toggle-${permission}-canEdit`}
+                                                        checked={editedUser.access[permission].canEdit}
+                                                        onChange={() => handleUserAccessToggle(permission, 'canEdit')}
+                                                        className="toggle-checkbox"
+                                                    />
+                                                </div>
+                                            </div>
                                         )}
                                     </div>
-                                    {['Student 201 Files', 'Student Cases'].includes(permission) && (
-                                        <div className="ml-6 mt-2 space-y-2">
-                                            <div className="flex items-center justify-between p-2 rounded-lg bg-gray-100">
-                                                <span className="text-sm text-gray-600">Can View</span>
-                                                <input
-                                                    type="checkbox"
-                                                    name={`${permission}-canView`}
-                                                    id={`edit-toggle-${permission}-canView`}
-                                                    checked={editedUser.access[permission].canView}
-                                                    onChange={() => handleUserAccessToggle(permission, 'canView')}
-                                                    className="toggle-checkbox"
-                                                />
-                                            </div>
-                                            <div className="flex items-center justify-between p-2 rounded-lg bg-gray-100">
-                                                <span className="text-sm text-gray-600">Can Edit</span>
-                                                <input
-                                                    type="checkbox"
-                                                    name={`${permission}-canEdit`}
-                                                    id={`edit-toggle-${permission}-canEdit`}
-                                                    checked={editedUser.access[permission].canEdit}
-                                                    onChange={() => handleUserAccessToggle(permission, 'canEdit')}
-                                                    className="toggle-checkbox"
-                                                />
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            ))}
+                                ))}
+                            </div>
                         </div>
-                    </div>
+                    )}
+
                     <div className="flex justify-end space-x-4 mt-6">
                         <button
                             onClick={onClose}
@@ -92,6 +97,7 @@ export default function EditUserModal({ isOpen, onClose, editedUser, handleUserA
                     </div>
                 </div>
             )}
+
         </Modal>
     );
 }

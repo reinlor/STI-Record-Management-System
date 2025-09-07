@@ -31,9 +31,9 @@ function WelnessAssessment() {
     }
   };
 
-  // if (!authData?.user?.access?.wellness?.canView) {
-  //   return <Navigate to="/error401" replace />
-  // }
+  if (!authData?.user?.access?.wellness) {
+    return <Navigate to="/error401" replace />
+  }
 
   return (
     <div className="p-6 max-w-6xl mx-auto w-full">

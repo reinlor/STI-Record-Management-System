@@ -7,8 +7,7 @@ import React from 'react';
 export default function Sidebar() {
     const { authData = {}, logout } = useContext(AuthContext);
     const navigate = useNavigate();
-    const [isOpen, setIsOpen] = useState(window.innerWidth >= 768); // open by default on desktop
-
+    const [isOpen, setIsOpen] = useState(window.innerWidth >= 768); 
     let menuPages = [];
     let panelName = '';
     const access = authData?.user?.access ?? null;
@@ -23,10 +22,10 @@ export default function Sidebar() {
             access.studentRecords?.canView ? { label: "Student Records", path: "/guidance/student-records" } : null,
             access.studentCases?.canView ? { label: "Student Cases", path: "/guidance/student-cases" } : null,
             access.userManagement?.canView ? { label: "Users", path: "/guidance/users" } : null,
-            access.requestSlip?.canView ? { label: "Request Slips", path: "/guidance/request-slip" } : null,
-            access.referralForm?.canView ? { label: "Referral Forms", path: "/guidance/referral-form" } : null,
-            access.backupRestore?.canView ? { label: "Back Up and Restore", path: "/guidance/back-n-restore" } : null,
-            access.wellness?.canView ? { label: "Wellness Assessment", path: "/guidance/wellness" } : null,
+            access.requestSlip ? { label: "Request Slips", path: "/guidance/request-slip" } : null,
+            access.referralForm ? { label: "Referral Forms", path: "/guidance/referral-form" } : null,
+            access.backupRestore ? { label: "Back Up and Restore", path: "/guidance/back-n-restore" } : null,
+            access.wellness ? { label: "Wellness Assessment", path: "/guidance/wellness" } : null,
             {label: "Content Managemet", path: "/guidance/content-management" },
         ].filter(Boolean);
     }

@@ -92,7 +92,7 @@ function ReferralFormProcessing() {
       ref.studentName?.toLowerCase().includes(search.toLowerCase())
   );
 
-  if (!authData?.user?.access?.referralForm?.canView) {
+  if (!authData?.user?.access?.referralForm) {
         return <Navigate to="/error401" replace />
     }
 
@@ -107,7 +107,7 @@ function ReferralFormProcessing() {
             <p className="text-gray-500 text-sm sm:text-base">View pending Referral Forms</p>
           </div>
           <div className="flex flex-col sm:flex-row gap-2 w-full lg:w-auto">
-            {authData?.user?.access?.referralForm?.canEdit && (
+            {authData?.user?.access?.referralForm && (
               <button
                 className="flex items-center justify-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-full hover:bg-gray-700 transition w-full sm:w-auto"
                 onClick={() => navigate("/guidance/referral-form-history")}
@@ -169,7 +169,7 @@ function ReferralFormProcessing() {
                       }`}>
                         {ref.status}
                       </td>
-                      {authData?.user?.access?.referralForm?.canEdit && (
+                      {authData?.user?.access?.referralForm && (
                         <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3">
                           <button
                             className="bg-gray-900 text-white px-3 sm:px-4 py-1 rounded-full hover:bg-gray-700 transition w-full sm:w-auto"
