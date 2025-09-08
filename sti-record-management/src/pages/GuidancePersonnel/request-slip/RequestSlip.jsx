@@ -91,10 +91,11 @@ function RequestSlip() {
         )
       );
 
-      alert(`Slip updated to ${status} and email sent!`);
+      toast.success(`Slip updated to ${status} and email sent!`);
+      closeModal()
     } catch (err) {
       console.error(err);
-      alert("Failed to update slip or send email");
+      toast.error("Failed to update slip or send email");
     }
   };
 
@@ -139,7 +140,7 @@ function RequestSlip() {
     if (!display || !selectedSlip) return null;
 
     // Destructure URLs here, where selectedSlip is guaranteed to exist
-    const { proofUrl, excuseLetterUrl, guardianValidUrl, medicalCertificateUrl } = selectedSlip;
+    const { proofUrl, excuseLetterUrl, guardianValidIDUrl, medicalCertificateUrl } = selectedSlip;
 
     return (
       <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-[9999]">
@@ -245,11 +246,11 @@ function RequestSlip() {
                 )}
 
                 {/* Guardian’s ID */}
-                {guardianValidUrl && (
+                {guardianValidIDUrl && (
                   <div className="flex flex-col items-center">
-                    <a href={guardianValidUrl} target="_blank" rel="noopener noreferrer">
+                    <a href={guardianValidIDUrl} target="_blank" rel="noopener noreferrer">
                       <img
-                        src={guardianValidUrl}
+                        src={guardianValidIDUrl}
                         alt="Guardian’s ID"
                         className="w-24 h-24 object-cover rounded"
                       />

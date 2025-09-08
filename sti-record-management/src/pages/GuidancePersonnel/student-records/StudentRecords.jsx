@@ -297,6 +297,25 @@ function StudentRecords() {
         return ["STEM", "TVL", "GAS", "HUMSS", "ABM", "ICT"];
     });
 
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const [programRes, strandRes] = await Promise.all([
+                    axios.get("/content/program/get"),
+                    axios.get("/content/strand/get")
+                ]);
+
+                setTertiaryPrograms(programRes.data.programs.map(p => p.acronym));
+                setShsStrands(strandRes.data.strands.map(s => s.acronym));
+            } catch (error) {
+                console.error("Error fetching programs/strands:", error);
+                toast.error("Failed to load program & strand options.");
+            }
+        };
+
+        fetchData();
+    }, []);
+
     // Listen for changes in localStorage (in case another tab updates)
     useEffect(() => {
         const syncLists = () => {
@@ -410,15 +429,15 @@ function StudentRecords() {
                                         Archive
                                     </button>
                                     <button className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out cursor-pointer hover:bg-[#003d54] 
-                                    ${activeTab === 'Enrolled' ? 'bg-[#0a1220] text-white shadow-sm' : 'text-gray-700 hover:bg-gray-300'}`} 
-                                    onClick={() => setActiveTab('Enrolled')}>Enrolled</button>
+                                    ${activeTab === 'Enrolled' ? 'bg-[#0a1220] text-white shadow-sm' : 'text-gray-700 hover:bg-gray-300'}`}
+                                        onClick={() => setActiveTab('Enrolled')}>Enrolled</button>
                                 </div>
                             </div>
                             {/* Search Bar */}
                             <div className="relative p-2">
-                                <input type="text" placeholder="Name/ ID" 
-                                className="w-full pl-2 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out hover:bg-gray-100" 
-                                value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+                                <input type="text" placeholder="Name/ ID"
+                                    className="w-full pl-2 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out hover:bg-gray-100"
+                                    value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
                                 <Search className="w-5 h-5 absolute right-5 top-4.5 text-gray-400" />
                             </div>
 
@@ -474,139 +493,139 @@ function StudentRecords() {
                                 </div>
                             ) : null}
 
-                    <div ref={studentsListRef} className="flex-1 overflow-y-auto pb-4 custom-scrollbar">
-                        {filteredStudents.length > 0 ? (
-                            filteredStudents.map((student) => {
-                                const sid = student.sid ?? student.id ?? 'N/A';
-                                const name = student.studentProfile?.name ?? student.name ?? sid;
-                                const isVisible = visibleIds.has(sid);
+                            <div ref={studentsListRef} className="flex-1 overflow-y-auto pb-4 custom-scrollbar">
+                                {filteredStudents.length > 0 ? (
+                                    filteredStudents.map((student) => {
+                                        const sid = student.sid ?? student.id ?? 'N/A';
+                                        const name = student.studentProfile?.name ?? student.name ?? sid;
+                                        const isVisible = visibleIds.has(sid);
 
-                                return (
-                                    <div
-                                        key={sid}
-                                        data-student-id={sid}
-                                        ref={(el) => setRef(el, sid)}
-                                        className={`flex items-center justify-between p-4 border-b border-gray-200 cursor-pointer transition duration-150 ease-in-out ${selectedStudentId === sid
-                                                ? 'bg-blue-100 border-l-4 border-blue-500'
-                                                : 'hover:bg-gray-50'
-                                            }`}
-                                        onClick={() => setSelectedStudentId(sid)}
-                                    >
-                                        {isVisible ? (
-                                            <div className="flex items-center">
-                                                <img src={user} alt="User" className="w-5 h-5 object-cover mr-5" />
-                                                <div>
-                                                    <p className="font-semibold text-gray-800">{name}</p>
-                                                    <p className="text-sm text-gray-600">{sid}</p>
-                                                </div>
+                                        return (
+                                            <div
+                                                key={sid}
+                                                data-student-id={sid}
+                                                ref={(el) => setRef(el, sid)}
+                                                className={`flex items-center justify-between p-4 border-b border-gray-200 cursor-pointer transition duration-150 ease-in-out ${selectedStudentId === sid
+                                                    ? 'bg-blue-100 border-l-4 border-blue-500'
+                                                    : 'hover:bg-gray-50'
+                                                    }`}
+                                                onClick={() => setSelectedStudentId(sid)}
+                                            >
+                                                {isVisible ? (
+                                                    <div className="flex items-center">
+                                                        <img src={user} alt="User" className="w-5 h-5 object-cover mr-5" />
+                                                        <div>
+                                                            <p className="font-semibold text-gray-800">{name}</p>
+                                                            <p className="text-sm text-gray-600">{sid}</p>
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <div style={{ height: '50px', width: '100%' }}></div>
+                                                )}
+                                                <ChevronRight className="w-5 h-5 text-[#0a1220]" />
                                             </div>
-                                        ) : (
-                                            <div style={{ height: '50px', width: '100%' }}></div>
-                                        )}
-                                        <ChevronRight className="w-5 h-5 text-[#0a1220]" />
-                                    </div>
-                                );
-                            })
-                        ) : (
-                            <p className="p-4 text-gray-500 text-center">No students found.</p>
-                        )}
-                    </div>
-                </>
-                )}
-            </div>
+                                        );
+                                    })
+                                ) : (
+                                    <p className="p-4 text-gray-500 text-center">No students found.</p>
+                                )}
+                            </div>
+                        </>
+                    )}
+                </div>
 
-            {/* --- Student Details --- */}
-            <div
-                className={`
+                {/* --- Student Details --- */}
+                <div
+                    className={`
                 flex-1 bg-white flex flex-col
                 ${selectedStudentId ? 'flex' : 'hidden lg:flex'} /* keep visible on desktop */
             `}
-            >
-                <Fragment>
-                    <div className="p-4 border-b border-gray-200 flex items-center justify-between flex-wrap gap-2">
-                        <div className="flex items-center space-x-2 sm:space-x-4">
-                            {/* Back button */}
-                            <button
-                                className="p-2 rounded-full hover:bg-gray-200 transition duration-150 ease-in-out cursor-pointer"
-                                onClick={() => setSelectedStudentId(null)}
-                            >
-                                <img src={back} alt="backIcon" className="w-5 h-5 object-cover" />
-                            </button>
+                >
+                    <Fragment>
+                        <div className="p-4 border-b border-gray-200 flex items-center justify-between flex-wrap gap-2">
+                            <div className="flex items-center space-x-2 sm:space-x-4">
+                                {/* Back button */}
+                                <button
+                                    className="p-2 rounded-full hover:bg-gray-200 transition duration-150 ease-in-out cursor-pointer"
+                                    onClick={() => setSelectedStudentId(null)}
+                                >
+                                    <img src={back} alt="backIcon" className="w-5 h-5 object-cover" />
+                                </button>
 
-                            <select
-                                className="block px-3 sm:px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out appearance-none bg-white pr-8 text-sm sm:text-base cursor-pointer"
-                                value={infoType}
-                                onChange={(e) => setInfoType(e.target.value)}
-                            >
-                                <option value="basic">Basic Information</option>
-                                <option value="personal">Personal Information</option>
-                                <option value="contact">Contact Information</option>
-                                <option value="family">Family Background</option>
-                                <option value="educational">Educational Background</option>
-                                <option value="work">Work Experience (Optional)</option>
-                                <option value="interests">Interests and Activities</option>
-                                <option value="health">Health</option>
-                                <option value="life">Life Circumstances</option>
-                            </select>
+                                <select
+                                    className="block px-3 sm:px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out appearance-none bg-white pr-8 text-sm sm:text-base cursor-pointer"
+                                    value={infoType}
+                                    onChange={(e) => setInfoType(e.target.value)}
+                                >
+                                    <option value="basic">Basic Information</option>
+                                    <option value="personal">Personal Information</option>
+                                    <option value="contact">Contact Information</option>
+                                    <option value="family">Family Background</option>
+                                    <option value="educational">Educational Background</option>
+                                    <option value="work">Work Experience (Optional)</option>
+                                    <option value="interests">Interests and Activities</option>
+                                    <option value="health">Health</option>
+                                    <option value="life">Life Circumstances</option>
+                                </select>
+                            </div>
+
+                            {/* actions */}
+                            {selectedStudentId !== null && (
+                                <div className="flex items-center space-x-2 sm:space-x-3 mt-2 sm:mt-0">
+                                    {selectedStudentId !== null ? <div className="flex items-center space-x-2 sm:space-x-3 mt-2 sm:mt-0">
+                                        {authData?.user?.access?.studentRecords?.canEdit ?
+                                            <button
+                                                className={`px-3 sm:px-4 py-2 rounded-lg flex items-center transition duration-150 ease-in-out text-m sm:text-base font-medium cursor-pointer ${isEditing ? 'bg-gray-500 text-white shadow-md' : 'bg-[#0a1220] hover:bg-gray-900 text-white shadow-md hover:shadow-lg'}`}
+                                                onClick={() => { if (isEditing) { handleSaveEdits(); } setIsEditing(!isEditing); }}>
+
+                                                {isEditing ? 'Save' : 'Edit Student'}
+                                                <img src={edit} alt="editIcon" className="w-5 h-5 sm:w-5 sm:h-5 ml-3" />
+                                            </button> : null}
+
+                                        <button className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-3 sm:px-4 rounded-lg flex items-center transition duration-150 ease-in-out shadow-md hover:shadow-lg cursor-pointer" onClick={() => setShowArchiveConfirmModal(true)}>
+                                            {activeTab === 'Archived' ? 'Restore' : 'Archive'}
+                                            <img src={archive} alt="archiveIcon" className="w-5 h-5 sm:w-5 sm:h-5 ml-3" />
+                                        </button>
+
+                                        <button className="bg-[#0a1220] hover:bg-[#003d54] text-white font-bold py-2 px-3 sm:px-4 rounded-lg flex items-center transition duration-150 ease-in-out shadow-md hover:shadow-lg cursor-pointer"
+                                            onClick={() => handleCaseButton()}>
+                                            Case
+                                            <img src={cases} alt="caseIcon" className="w-5 h-5 sm:w-5 sm:h-5 ml-3" />
+                                        </button>
+                                    </div> : null}
+                                </div>
+                            )}
                         </div>
 
-                        {/* actions */}
-                        {selectedStudentId !== null && (
-                            <div className="flex items-center space-x-2 sm:space-x-3 mt-2 sm:mt-0">
-                                {selectedStudentId !== null ? <div className="flex items-center space-x-2 sm:space-x-3 mt-2 sm:mt-0">
-                                    {authData?.user?.access?.studentRecords?.canEdit ?
-                                        <button
-                                            className={`px-3 sm:px-4 py-2 rounded-lg flex items-center transition duration-150 ease-in-out text-m sm:text-base font-medium cursor-pointer ${isEditing ? 'bg-gray-500 text-white shadow-md' : 'bg-[#0a1220] hover:bg-gray-900 text-white shadow-md hover:shadow-lg'}`}
-                                            onClick={() => { if (isEditing) { handleSaveEdits(); } setIsEditing(!isEditing); }}>
-
-                                            {isEditing ? 'Save' : 'Edit Student'}
-                                            <img src={edit} alt="editIcon" className="w-5 h-5 sm:w-5 sm:h-5 ml-3" />
-                                        </button> : null}
-
-                                    <button className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-3 sm:px-4 rounded-lg flex items-center transition duration-150 ease-in-out shadow-md hover:shadow-lg cursor-pointer" onClick={() => setShowArchiveConfirmModal(true)}>
-                                        {activeTab === 'Archived' ? 'Restore' : 'Archive'}
-                                        <img src={archive} alt="archiveIcon" className="w-5 h-5 sm:w-5 sm:h-5 ml-3" />
-                                    </button>
-
-                                    <button className="bg-[#0a1220] hover:bg-[#003d54] text-white font-bold py-2 px-3 sm:px-4 rounded-lg flex items-center transition duration-150 ease-in-out shadow-md hover:shadow-lg cursor-pointer"
-                                        onClick={() => handleCaseButton()}>
-                                        Case
-                                        <img src={cases} alt="caseIcon" className="w-5 h-5 sm:w-5 sm:h-5 ml-3" />
-                                    </button>
-                                </div> : null}
-                            </div>
-                        )}
-                    </div>
-
-                {/* Details body */}
-                <div className="flex-1 p-6 overflow-y-auto">
-                    {selectedStudentDetails ? (
-                    <InfoSection
-                        infoType={infoType}
-                        student={displayStudentData[infoType]}
-                        isEditing={isEditing}
-                        onFieldChange={handleInfoFieldChange}
-                    />
-                    ) : (
-                    <div className="flex-1 flex items-center justify-center text-gray-500 text-xl p-4 text-center">
-                        Select a student from the list to view their information.
-                    </div>
-                    )}
+                        {/* Details body */}
+                        <div className="flex-1 p-6 overflow-y-auto">
+                            {selectedStudentDetails ? (
+                                <InfoSection
+                                    infoType={infoType}
+                                    student={displayStudentData[infoType]}
+                                    isEditing={isEditing}
+                                    onFieldChange={handleInfoFieldChange}
+                                />
+                            ) : (
+                                <div className="flex-1 flex items-center justify-center text-gray-500 text-xl p-4 text-center">
+                                    Select a student from the list to view their information.
+                                </div>
+                            )}
+                        </div>
+                    </Fragment>
                 </div>
-                </Fragment>
-            </div>
 
-            {/* --- Modals --- */}
-            <AddStudentModal
-                visible={showAddStudentModal}
-                onClose={() => setShowAddStudentModal(false)}
-                newStudentForm={newStudentForm}
-                handleNewStudentFormChange={handleNewStudentFormChange}
-                onSave={handleAddStudent}
-                clearForm={handleClearStudentForm}
-            />
-            <BulkModal visible={showBulkModal} onClose={() => setShowBulkModal(false)} />
-            <PhotoToTextModal
+                {/* --- Modals --- */}
+                <AddStudentModal
+                    visible={showAddStudentModal}
+                    onClose={() => setShowAddStudentModal(false)}
+                    newStudentForm={newStudentForm}
+                    handleNewStudentFormChange={handleNewStudentFormChange}
+                    onSave={handleAddStudent}
+                    clearForm={handleClearStudentForm}
+                />
+                <BulkModal visible={showBulkModal} onClose={() => setShowBulkModal(false)} />
+                <PhotoToTextModal
                     visible={showPhotoToTextModal}
                     onClose={() => setShowPhotoToTextModal(false)}
                     onOCRSuccess={(ocr) => {
@@ -631,16 +650,16 @@ function StudentRecords() {
                         setShowAddStudentModal(true);
                     }}
                 />
-            <ArchiveConfirmModal
-                visible={showArchiveConfirmModal}
-                onCancel={() => setShowArchiveConfirmModal(false)}
-                onConfirm={handleArchiveStudent}
-                todo={activeTab === 'Archived' ? 'restore' : 'archive'}
-            />
+                <ArchiveConfirmModal
+                    visible={showArchiveConfirmModal}
+                    onCancel={() => setShowArchiveConfirmModal(false)}
+                    onConfirm={handleArchiveStudent}
+                    todo={activeTab === 'Archived' ? 'restore' : 'archive'}
+                />
             </div>
         </div>
-        );
+    );
 
-        }
+}
 
 export default StudentRecords;

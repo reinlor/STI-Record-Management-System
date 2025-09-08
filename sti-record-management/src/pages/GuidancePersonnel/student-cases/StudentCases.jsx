@@ -1,5 +1,6 @@
-import React, { useState, Fragment, useEffect, useRef, useMemo } from "react";
+import React, { useState, Fragment, useEffect, useRef, useMemo, useContext } from "react";
 import { useLocation } from "react-router-dom";
+import { AuthContext } from '../../../AuthProvider.jsx';
 import axios from "axios";
 import {
   ChevronRight,
@@ -24,6 +25,7 @@ import {
 } from "./components/CaseUtils.jsx";
 
 function StudentCases() {
+  const { authData, logout } = useContext(AuthContext);
   const myRef = useRef();
   const casesListRef = useRef(null);
   const itemRefs = useRef(new Map());
@@ -390,13 +392,13 @@ function StudentCases() {
                 </svg>
               </div>
 
-              <button
+              {authData?.user?.access?.studentCases?.canEdit ? (<button
                 className="w-full bg-[#0A1220] hover:bg-[#003d54] text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center transition duration-150 ease-in-out shadow-md hover:shadow-lg cursor-pointer"
                 onClick={() => setShowAddModal(true)}
               >
                 <Plus className="w-5 h-5 mr-2" />
                 Add Case
-              </button>
+              </button>) : null}
             </div>
 
             <div className="flex-1 overflow-y-auto pb-4 custom-scrollbar">
@@ -414,8 +416,8 @@ function StudentCases() {
                     key={aCase.id}
                     className={`flex items-center justify-between p-4 border-b border-gray-200 cursor-pointer transition duration-150 ease-in-out 
                       ${selectedCaseId === aCase.id
-                      ? "bg-blue-100 border-l-4 border-blue-500"
-                      : "hover:bg-gray-50"
+                        ? "bg-blue-100 border-l-4 border-blue-500"
+                        : "hover:bg-gray-50"
                       }`}
                     onClick={() => setSelectedCaseId(aCase.id)}
                   >
@@ -512,7 +514,7 @@ function StudentCases() {
                 </select>
               </div>
 
-              {selectedCaseId !== null ? (
+              {selectedCaseId !== null && authData?.user?.access?.studentCases?.canEdit ? (
                 <div className="flex items-center space-x-2 sm:space-x-3 mt-2 sm:mt-0">
                   <button
                     className={`px-3 sm:px-4 py-2 rounded-lg flex items-center transition duration-150 ease-in-out text-sm sm:text-base font-medium cursor-pointer ${isEditing

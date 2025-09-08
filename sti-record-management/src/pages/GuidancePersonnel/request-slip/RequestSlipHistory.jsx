@@ -91,7 +91,7 @@ function RequestSlipHistory() {
   const displayRequestSlipForm = () => {
     if (!selectedSlip) return null;
 
-    const { proofUrl, excuseLetterUrl, guardianValidUrl, medicalCertificateUrl } = selectedSlip;
+    const { proofUrl, excuseLetterUrl, guardianValidIDUrl, medicalCertificateUrl } = selectedSlip;
 
     return (
       <div className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-sm">
@@ -149,10 +149,10 @@ function RequestSlipHistory() {
                 <span className="text-xs text-gray-600 mt-2 text-center">Medical Certificate</span>
               </div>
             )}
-            {guardianValidUrl && (
+            {guardianValidIDUrl && (
               <div className="flex flex-col items-center">
-                <a href={guardianValidUrl} target="_blank" rel="noopener noreferrer">
-                  <img src={guardianValidUrl} alt="Guardian ID" className="w-24 h-24 object-cover rounded" />
+                <a href={guardianValidIDUrl} target="_blank" rel="noopener noreferrer">
+                  <img src={guardianValidIDUrl} alt="Guardian ID" className="w-24 h-24 object-cover rounded" />
                 </a>
                 <span className="text-xs text-gray-600 mt-2 text-center">Guardian’s ID</span>
               </div>
