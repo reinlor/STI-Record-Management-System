@@ -6,6 +6,7 @@ import ProfileView from "./module-content/ProfileView.jsx";
 import StudentRequestSlip from "./module-content/StudentRequestSlip.jsx";
 import StudentViewRequest from "./module-content/StudentViewRequest.jsx";
 import WellnessCheck from "./module-content/WellnessCheck.jsx";
+import SurveyForm from "./module-content/SurveyForm.jsx";
 import ConsentModal from "./ConsentModal.jsx";
 import { ToastContainer, toast } from "react-toastify";
 import { AuthContext } from "../../AuthProvider.jsx";
@@ -35,6 +36,8 @@ export default function StudentHomepage() {
         return <StudentRequestSlip />;
       case "history":
         return <StudentViewRequest />;
+      case "survey":
+        return <SurveyForm />;
       default:
         return (
           <div className="animate-fade-in text-center mt-12">
