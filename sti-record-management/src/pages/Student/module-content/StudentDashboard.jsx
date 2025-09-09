@@ -24,20 +24,23 @@ export default function StudentDashboard() {
         );
         setWellnessLink(wellnessRes.data.link);
 
+        const handbookRes = await axios.get(
+          "http://localhost:5000/content/studentHandbook/get"
+        );
         setHandbooks([
           {
             title: "High School Handbook",
             level: "High School",
             description:
               "Covers policies, guidelines, and services for junior and senior high students.",
-            url: "https://www.unicef.org/media/66436/file/Child_Friendly_Schools_Manual.pdf",
+            url: handbookRes.data.link,
           },
           {
             title: "Tertiary Handbook",
             level: "College / University",
             description:
               "Provides academic rules, student services, and conduct guidelines for tertiary students.",
-            url: "https://www.unicef.org/media/66436/file/Child_Friendly_Schools_Manual.pdf",
+            url: handbookRes.data.link,
           },
         ]);
       } catch (err) {
