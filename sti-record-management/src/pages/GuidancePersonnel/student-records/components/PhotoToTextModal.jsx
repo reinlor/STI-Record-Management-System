@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import closeB from '../../../../assets/closeblack.png';
 import axios from 'axios';
+import {X,Check} from 'lucide-react';
 
 const PhotoToTextModal = ({ visible, onClose, onOCRSuccess }) => {
     const [loading, setLoading] = useState(false);
@@ -38,9 +39,9 @@ const PhotoToTextModal = ({ visible, onClose, onOCRSuccess }) => {
         <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-4">
             <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md">
                 <div className="flex justify-between items-center border-b pb-3 mb-4">
-                    <h3 className="text-2xl font-bold text-gray-800">Photo-to-Text (OCR)</h3>
+                    <h3 className="text-2xl font-bold text-[#0172bd]">Photo-to-Text (OCR)</h3>
                     <button className="p-2 rounded-lg hover:bg-gray-200 cursor-pointer" onClick={onClose}>
-                        <img src={closeB} alt="closeIcon" className="w-5 h-5 object-cover" />
+                        <X className="w-10 h-10 text-[#0172bd]" /> 
                     </button>
                 </div>
                 <div className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-8 mb-4">

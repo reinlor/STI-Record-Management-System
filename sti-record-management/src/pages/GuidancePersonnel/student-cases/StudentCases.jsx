@@ -2,15 +2,36 @@ import React, { useState, Fragment, useEffect, useRef, useMemo, useContext } fro
 import { useLocation } from "react-router-dom";
 import { AuthContext } from '../../../AuthProvider.jsx';
 import axios from "axios";
+// Lucide icons
 import {
-  ChevronRight,
-  ChevronLeft,
-  Plus,
-  X,
-  Check,
-  Pencil,
-  Archive,
-} from "lucide-react";
+    ChevronRight,
+    ChevronLeft,
+    ChevronDown,
+    Search,
+    User,
+    Archive,
+    Edit as Pencil,
+    Users,
+    ArrowLeft,
+    Plus,
+    FolderOpen,
+    FileText,
+    Check,
+    X,
+    Briefcase,
+    HeartPulse,
+    Star,
+    Home,
+    Phone,
+    UserPlus,
+    ClipboardList,
+    RefreshCcw,
+    FileEdit,
+    CircleCheck,
+    Clock,
+    Camera,
+    FileCheck, // <-- add this
+} from 'lucide-react';
 import user from "../../../assets/user.png";
 
 import { ToastContainer, toast } from 'react-toastify';
@@ -349,55 +370,60 @@ function StudentCases() {
       <div className="flex bg-gray-100 h-full overflow-hidden">
         <ToastContainer position="top-right" autoClose={4000} />
         <div
-          className={`h-full bg-white border-r border-gray-200 shadow-lg flex flex-col rounded-lg transition-all duration-200
-    ${selectedCaseId ? 'w-0 lg:w-96' : 'w-full lg:w-96'}`}
+          className={`h-full bg-white border-r border-gray-200 shadow-lg flex flex-col rounded-lg transition-all duration-200 border
+          ${selectedCaseId ? 'w-0 lg:w-96' : 'w-full lg:w-96'}`}
         >
           {!(selectedCaseId && window.innerWidth < 1024) && (<>
-            <div className="p-4 border-b border-gray-200">
+            <div className="p-2 border-b border-gray-200">
               <div className="flex items-center space-x-2 mb-4">
-                <h2 className="text-3xl font-bold text-gray-800">Student Cases</h2>
+                <FileText className="inline-block w-8 h-8 mr-2 text-[#0172bd]" />
+                <h2 className="text-3xl font-bold text-[#0172bd]">Student Cases</h2>
               </div>
 
-              <div className="flex justify-around bg-gray-200 p-1 rounded-lg mb-4">
+              <div className="flex justify-around bg-[#f3f4f6] p-1 rounded-lg mb-4">
                 <button
-                  className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out cursor-pointer hover:bg-[#003d54] ${activeTab === "Resolved"
-                    ? "bg-[#0A1220] text-white shadow-sm hover:bg-[#003d54]"
-                    : "text-gray-700 hover:bg-gray-300"
+                  className={`flex-1 flex items-center justify-center px-4 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out cursor-pointer hover:bg-[#003d54]  
+                    ${activeTab === "Resolved"
+                    ? "bg-[#0172bd] text-[#fef201] shadow-sm hover:bg-blue-500"
+                    : "text-black hover:bg-gray-200"
                     }`}
                   onClick={() => setActiveTab("Resolved")}
                 >
+                  <FileCheck className="inline-block w-5 h-5 mr-2" />
                   Resolved
                 </button>
+                
                 <button
-                  className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out cursor-pointer ${activeTab === "On-going"
-                    ? "bg-[#0A1220] text-white shadow-sm hover:bg-[#003d54]"
-                    : "text-gray-700 hover:bg-gray-300"
+                  className={`flex-1 flex items-center justify-center px-4 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out cursor-pointer hover:bg-[#003d54]
+                    ${activeTab === "On-going"
+                    ? "bg-[#0172bd] text-[#fef201] shadow-sm hover:bg-blue-500"
+                    : "text-black hover:bg-gray-200"
                     }`}
                   onClick={() => setActiveTab("On-going")}
                 >
+                  <Clock className="inline-block w-5 h-5 mr-2" />
                   On-going
                 </button>
               </div>
 
-              <div className="relative mb-4">
+              <div className="relative mb-3">
                 <input
                   type="text"
                   placeholder="Name/ ID"
-                  className="w-full pl-2 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out"
+                  className="w-full pl-2 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#0172bd] focus:border-transparent transition duration-150 ease-in-out hover:bg-gray-50"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 absolute right-3 top-7.5 -translate-y-1/2 text-gray-400">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-                </svg>
+                <Search className="w-5 h-5 absolute right-3 top-2.5 text-gray-400"/>
               </div>
 
               {authData?.user?.access?.studentCases?.canEdit ? (<button
-                className="w-full bg-[#0A1220] hover:bg-[#003d54] text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center transition duration-150 ease-in-out shadow-md hover:shadow-lg cursor-pointer"
+                className="w-full bg-[#0172bd] hover:bg-blue-500 text-[#fef201] font-bold py-2 px-4 rounded-lg flex items-center justify-center transition duration-150 ease-in-out shadow-md hover:shadow-lg cursor-pointer"
                 onClick={() => setShowAddModal(true)}
               >
-                <Plus className="w-5 h-5 mr-2" />
+                
                 Add Case
+                <Plus className="w-5 h-5 ml-2 text-[#fef201]" />
               </button>) : null}
             </div>
 
@@ -437,7 +463,7 @@ function StudentCases() {
                     <ChevronRight className="w-5 h-5 text-[#0A1220]" />
                   </div>
                 ))
-              ) : (
+              ): (
                 <p className="p-4 text-gray-500 text-center">No cases found.</p>
               )}
             </div>
@@ -481,7 +507,7 @@ function StudentCases() {
                   <ChevronRight className="w-5 h-5 text-[#0A1220]" />
                 </div>
               ))
-            ) : (
+            : (
               <p className="p-4 text-gray-500 text-center">No cases found.</p>
             )}
           </div> */}
@@ -489,37 +515,48 @@ function StudentCases() {
 
         <div
           className={`
-          h-full bg-white border-r border-gray-200 shadow-sm flex flex-col rounded-lg transition-all duration-300 flex-1
+          h-full bg-white  shadow-sm flex flex-col rounded-lg transition-all duration-300 flex-1
             ${selectedCaseId ? 'flex' : 'hidden lg:flex'} /* keep visible on desktop */
         `}
         >
           <Fragment>
-            <div className="p-3 border-b border-gray-200 flex items-center justify-between flex-wrap gap-2">
+            <div className="p-4 border-b border-gray-300 flex items-center justify-between flex-wrap gap-2">
               <div className="flex items-center space-x-2 sm:space-x-4">
                 <button
-                  className="p-2 rounded-full hover:bg-gray-200 transition duration-150 ease-in-out cursor-pointer"
+                  className="p-2 rounded-lg hover:bg-gray-200 transition duration-150 ease-in-out cursor-pointer"
                   onClick={() => setSelectedCaseId(null)}
                 >
-                  <ChevronLeft className="w-8 h-8 text-gray-700" />
+                  <ChevronLeft className="w-8 h-8 text-[#0172bd]" />
                 </button>
-                <select
-                  className="block px-3 sm:px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out appearance-none bg-white pr-8 text-sm sm:text-base cursor-pointer"
-                  value={infoType}
-                  onChange={(e) => setInfoType(e.target.value)}
-                >
-                  <option value="caseDetails">Case Details</option>
-                  <option value="proof">Proof</option>
-                  <option value="actionsTaken">Actions Taken</option>
-                  <option value="counselorNotes">Counselor's Notes</option>
-                </select>
+
+                {/* Student Name beside back button */}
+                {selectedCaseId && caseDetailsMap[selectedCaseId]?.name && (
+                  <span className="text-xl sm:text-2xl font-semibold text-black truncate max-w-[120px] sm:max-w-[250px] md:max-w-[350px]">
+                    {caseDetailsMap[selectedCaseId].name}
+                  </span>
+                )}
+                <div className="relative w-full sm:w-auto lg:w-56 flex-shrink-0">
+                  <select
+                    className="block w-50 px-3 sm:px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-1 text-[#0172bd] focus:ring-[#0172bd] focus:border-transparent transition duration-150 ease-in-out appearance-none bg-white pr-8 text-sm sm:text-base cursor-pointer"
+                    value={infoType}
+                    onChange={(e) => setInfoType(e.target.value)}
+                  >
+                    <option value="caseDetails">Case Details</option>
+                    <option value="proof">Proof</option>
+                    <option value="actionsTaken">Actions Taken</option>
+                    <option value="counselorNotes">Counselor's Notes</option>
+                  </select>
+                  
+                </div>
               </div>
 
               {selectedCaseId !== null && authData?.user?.access?.studentCases?.canEdit ? (
                 <div className="flex items-center space-x-2 sm:space-x-3 mt-2 sm:mt-0">
                   <button
-                    className={`px-3 sm:px-4 py-2 rounded-lg flex items-center transition duration-150 ease-in-out text-sm sm:text-base font-medium cursor-pointer ${isEditing
-                      ? "bg-gray-500 text-white shadow-md"
-                      : "bg-gray-800 hover:bg-gray-700 text-white shadow-md hover:shadow-lg"
+                    className={`py-2 px-4 rounded-lg flex items-center justify-center transition duration-150 ease-in-out font-medium shadow-md hover:shadow-lg
+                      ${isEditing
+                      ? "bg-blue-400 hover:bg-blue-600 text-white"
+                      : "bg-[#0172bd] hover:bg-blue-500 text-[#fef201]"
                       }`}
                     onClick={() => {
                       if (isEditing) {
@@ -532,7 +569,7 @@ function StudentCases() {
                     <Pencil className="w-4 h-4 sm:w-5 sm:h-5 ml-1 sm:ml-2" />
                   </button>
                   <button
-                    className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-3 sm:px-4 rounded-lg flex items-center transition duration-150 ease-in-out shadow-md hover:shadow-lg cursor-pointer"
+                    className="bg-[#dc3545] font-semibold hover:bg-red-700 text-white py-2 px-4 rounded-lg flex items-center justify-center transition duration-150 ease-in-out shadow-md hover:shadow-lg"
                     onClick={handleArchiveCase}
                   >
                     Resolve Case
@@ -546,7 +583,7 @@ function StudentCases() {
               {displayCaseData ? (
                 <CaseInfoSection
                   infoType={infoType}
-                  caseData={displayCaseData[infoType]}
+                  caseData={displayCaseData && displayCaseData[infoType] ? displayCaseData[infoType] : {}}
                   isEditing={isEditing}
                   onFieldChange={handleCaseFieldChange}
                 />

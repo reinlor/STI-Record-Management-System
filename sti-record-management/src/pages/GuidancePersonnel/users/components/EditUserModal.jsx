@@ -10,19 +10,19 @@ export default function EditUserModal({ isOpen, onClose, editedUser, handleUserA
                 <div className="space-y-4">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-500">Name</label>
+                            <label className="block text-sm font-medium text-[#0172bd] ">Name</label>
                             <p className="text-gray-900 font-semibold">{editedUser.name}</p>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-500">Role</label>
+                            <label className="block text-sm font-medium text-[#0172bd] ">Role</label>
                             <p className="text-gray-900 font-semibold">{(editedUser.roles || []).join(', ')}</p>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-500">Employee Number</label>
+                            <label className="block text-sm font-medium text-[#0172bd] ">Employee Number</label>
                             <p className="text-gray-900 font-semibold">{editedUser.employeeNumber}</p>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-500">Email</label>
+                            <label className="block text-sm font-medium text-[#0172bd] ">Email</label>
                             <p className="text-gray-900 font-semibold">{editedUser.email}</p>
                         </div>
                     </div>
@@ -30,12 +30,12 @@ export default function EditUserModal({ isOpen, onClose, editedUser, handleUserA
                     {/* 🚫 Hide access section if Teacher */}
                     {!(editedUser.roles && editedUser.roles.includes('Teacher')) && (
                         <div className="mt-6">
-                            <label className="block text-sm font-bold text-gray-700">Access</label>
+                            <label className="block text-sm font-bold text-[#0172bd]">Access</label>
                             <div className="mt-2 space-y-2">
                                 {accessPermissions.map((permission, index) => (
                                     <div key={index}>
-                                        <div className="flex items-center justify-between p-2 rounded-lg bg-gray-50">
-                                            <span className="text-sm font-medium text-gray-700">{permission}</span>
+                                        <div className="flex items-center justify-between p-2 rounded-lg  bg-[#f3f4f6]">
+                                            <span className="text-sm font-medium text-[#0172bd]">{permission}</span>
                                             {['Student 201 Files', 'Student Cases'].includes(permission) ? null : (
                                                 <input
                                                     type="checkbox"
@@ -43,13 +43,13 @@ export default function EditUserModal({ isOpen, onClose, editedUser, handleUserA
                                                     id={`edit-toggle-${permission}`}
                                                     checked={editedUser.access[permission]}
                                                     onChange={() => handleUserAccessToggle(permission)}
-                                                    className="toggle-checkbox"
+                                                    className="toggle-checkbox accent-[#fef201]"
                                                 />
                                             )}
                                         </div>
                                         {['Student 201 Files', 'Student Cases'].includes(permission) && (
                                             <div className="ml-6 mt-2 space-y-2">
-                                                <div className="flex items-center justify-between p-2 rounded-lg bg-gray-100">
+                                                <div className="flex items-center justify-between p-2 rounded-lg bg-[#f3f4f6]">
                                                     <span className="text-sm text-gray-600">Can View</span>
                                                     <input
                                                         type="checkbox"
@@ -57,10 +57,10 @@ export default function EditUserModal({ isOpen, onClose, editedUser, handleUserA
                                                         id={`edit-toggle-${permission}-canView`}
                                                         checked={editedUser.access[permission].canView}
                                                         onChange={() => handleUserAccessToggle(permission, 'canView')}
-                                                        className="toggle-checkbox"
+                                                        className="toggle-checkbox accent-[#fef201]"
                                                     />
                                                 </div>
-                                                <div className="flex items-center justify-between p-2 rounded-lg bg-gray-100">
+                                                <div className="flex items-center justify-between p-2 rounded-lg bg-[#f3f4f6]">
                                                     <span className="text-sm text-gray-600">Can Edit</span>
                                                     <input
                                                         type="checkbox"
@@ -68,7 +68,7 @@ export default function EditUserModal({ isOpen, onClose, editedUser, handleUserA
                                                         id={`edit-toggle-${permission}-canEdit`}
                                                         checked={editedUser.access[permission].canEdit}
                                                         onChange={() => handleUserAccessToggle(permission, 'canEdit')}
-                                                        className="toggle-checkbox"
+                                                        className="toggle-checkbox accent-[#fef201]"
                                                     />
                                                 </div>
                                             </div>
@@ -82,14 +82,14 @@ export default function EditUserModal({ isOpen, onClose, editedUser, handleUserA
                     <div className="flex justify-end space-x-4 mt-6">
                         <button
                             onClick={onClose}
-                            className="flex items-center justify-center space-x-2 bg-red-500 text-white font-semibold py-2 px-4 rounded-lg hover:bg-red-600 transition duration-150 ease-in-out"
+                            className="flex items-center justify-center space-x-2 bg-[#dc3545] hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-150 ease-in-out"
                         >
                             <X className="w-5 h-5" />
                             <span>Cancel</span>
                         </button>
                         <button
                             onClick={handleSaveChanges}
-                            className="flex items-center justify-center space-x-2 bg-[#16A34A] text-white font-semibold py-2 px-4 rounded-lg hover:bg-green-700 transition duration-150 ease-in-out"
+                            className="flex items-center justify-center space-x-2 bg-[#28a745] hover:bg-green-500 text-white font-semibold py-2 px-4 rounded-lg transition duration-150 ease-in-out"
                         >
                             <Check className="w-5 h-5" />
                             <span>Save Changes</span>
