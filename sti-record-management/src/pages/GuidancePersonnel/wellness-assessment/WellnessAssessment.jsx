@@ -1,6 +1,7 @@
 import React, { useState, useContext } from "react";
 import { AuthContext } from '../../../AuthProvider.jsx';
 import WellnessGeneration from "./wellness-generation/WellnessGeneration";
+import WellnessForm from "./wellness-form/WellnessForm.jsx";
 import WellnessScoring from './wellness-scoring/WellnessScoring.jsx';
 import WellnessSummary from "./wellnessSummary/WellnessSummaryReport.jsx";
 import { Navigate } from "react-router-dom";
@@ -13,7 +14,7 @@ function WelnessAssessment() {
   const renderView = () => {
     switch (activeView) {
       case "form":
-        return <WellnessGeneration />;
+        return <WellnessForm />;
       case "grade":
         return (
           <WellnessScoring />
@@ -31,9 +32,9 @@ function WelnessAssessment() {
     }
   };
 
-  if (!authData?.user?.access?.wellness) {
-    return <Navigate to="/error401" replace />
-  }
+  // if (!authData?.user?.access?.wellness) {
+  //   return <Navigate to="/error401" replace />
+  // }
 
   return (
     <div className="p-6 max-w-6xl mx-auto w-full">

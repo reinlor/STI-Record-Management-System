@@ -1,6 +1,6 @@
 import React from 'react';
 
-const QuestionList = ({ questions, isLoading, error, onEdit, onDelete }) => {
+const QuestionList = ({ questions, likertScale, isLoading, error, onEdit, onDelete }) => {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-48">

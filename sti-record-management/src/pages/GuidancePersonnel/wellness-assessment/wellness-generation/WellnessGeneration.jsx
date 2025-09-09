@@ -17,6 +17,7 @@ function WellnessGeneration() {
   const [wellnessForm, setWellnessForm] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [theme, setTheme] = useState([])
 
   const [newQuestion, setNewQuestion] = useState('');
   const [newOptions, setNewOptions] = useState([{ id: uniqueId(), answer: '', score: '' }]);
@@ -33,6 +34,10 @@ function WellnessGeneration() {
         await new Promise(resolve => setTimeout(resolve, 1000));
         const response = await axios.get('/exam/get');
         setWellnessForm(response.data.questions || []);
+
+        const themeResponse = await axios.get('/exam/theme/get');
+        setTheme(themeResponse.data.questions || []);
+
       } catch (error) {
         console.error('Failed to fetch wellness data:', error);
         setError('Failed to load questions. Please try again later.');
@@ -162,6 +167,7 @@ function WellnessGeneration() {
     <div className="p-8 bg-gray-50 min-h-screen font-sans">
       <QuestionList
         questions={wellnessForm}
+        likertScale={theme}
         isLoading={isLoading}
         error={error}
         onEdit={startEditing}

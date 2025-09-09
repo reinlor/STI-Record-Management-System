@@ -1,72 +1,181 @@
 const { getAssessmentExamCollection } = require("../models/assessmentExamModel");
 const Joi = require('joi');
+const admin = require('firebase-admin');
 
 // AssessmentExamForm Schema
-const optionSchema = Joi.object({
-  answer: Joi.string().required(),
-  score: Joi.number().required()
-});
 const ScoreDistribution = Joi.object({
   name: Joi.string().optional().allow(''),
   percentage: Joi.number().optional().allow('')
 });
 const assessmentExamSchema = Joi.object({
   questions: Joi.array().required().items(Joi.object({
+    category: Joi.string().required(),
     question: Joi.string().required().min(0).max(150),
-    options: Joi.array().required().items(optionSchema)
+    options: Joi.array().required()
   })),
   totalScore: Joi.number().optional(),
   scoreDistribution: Joi.array().optional().items(ScoreDistribution)
 });
 const updateSchema = Joi.object({
   questions: Joi.array().optional().items(Joi.object({
+    category: Joi.string().required(),
     question: Joi.string().required().min(0).max(150),
-    options: Joi.array().required().items(optionSchema)
+    options: Joi.array().required()
   })),
   totalScore: Joi.number().optional().allow(''),
   scoreDistribution: Joi.array().optional().items(ScoreDistribution).allow('')
 });
+const themeSchema = Joi.object({
+  themeName: Joi.string().required(),
+  scale: Joi.array().required()
+});
 
-// The single, unique document ID
+// Mga document ID
 const ASSESSMENT_FORM_DOC_ID = 'assessmentForm';
+const LIKERT_THEME_DOC_ID = 'likertScale';
 
 // Helper function to calculate total score
 const calculateTotalScore = (questions) => {
-    if (!questions || !Array.isArray(questions)) {
-        return 0;
-    }
-    const highestScorePerQuestion = 5; // Assuming the highest score is 5 for each question
-    return questions.length * highestScorePerQuestion;
+  if (!questions || !Array.isArray(questions)) {
+    return 0;
+  }
+  const highestScorePerQuestion = 5;
+  return questions.length * highestScorePerQuestion;
 };
 
-// Controller Function for adding an assessment exam form
-const addAssessmentExam = async (req, res) => {
+const addLikertTheme = async (req, res) => {
   try {
-    // Check if the document already exists
-    const docRef = getAssessmentExamCollection().doc(ASSESSMENT_FORM_DOC_ID);
+    const docRef = getAssessmentExamCollection().doc(LIKERT_THEME_DOC_ID);
     const doc = await docRef.get();
 
     if (doc.exists) {
       return res.status(409).json({ error: 'Assessment form already exists. Use the update route to modify it.' });
     }
 
-    const { error, value: newExam } = assessmentExamSchema.validate(req.body);
+    const { error, value: newTheme } = themeSchema.validate(req.body);
+    if (error) {
+      return res.status(400).json({ error: error.details[0].message });
+    }
+    await docRef.set(newTheme);
+
+    res.status(200).send({
+      message: `Theme added successfully!`,
+      data: newTheme
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+}
+
+const getLikertTheme = async (req, res) => {
+  try {
+    const docRef = getAssessmentExamCollection().doc(LIKERT_THEME_DOC_ID);
+    const doc = await docRef.get();
+
+    if (!doc.exists) {
+      return res.status(404).send({
+        error: `Assessment exam form not found.`,
+      });
+    }
+
+    const assessmentExamForm = {
+      _id: doc.id,
+      ...doc.data(),
+    };
+
+    res.status(200).send(assessmentExamForm);
+  } catch (error) {
+    res.status(500).send({ error: error.message });
+  }
+};
+
+const updateLikertTheme = async (req, res) => {
+  try {
+    const updates = req.body;
+    const docRef = getAssessmentExamCollection().doc(LIKERT_THEME_DOC_ID);
+    const doc = await docRef.get();
+
+    if (!doc.exists) {
+      return res.status(404).send({ error: `Assessment Form not found. Please create it first.` });
+    }
+
+    const { error, value: validatedUpdates } = themeSchema.validate(updates);
+
     if (error) {
       return res.status(400).json({ error: error.details[0].message });
     }
 
-    // Automatically calculate the totalScore based on the number of questions
-    const totalScore = calculateTotalScore(newExam.questions);
-    newExam.totalScore = totalScore;
-
-    await docRef.set(newExam);
+    // This line is the solution. It tells the database to safely add
+    // your new theme to the 'likert' array without any risk of data loss.
+    await docRef.update({
+      likert: admin.firestore.FieldValue.arrayUnion(validatedUpdates)
+    });
 
     res.status(200).send({
-      message: `Assessment Exam Form added successfully!`,
-      data: newExam // Return the full object including the new totalScore
+      message: `Exam Assessment Form updated successfully.`,
+      updates: validatedUpdates
     });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("Error updating assessment exam:", error);
+    res.status(500).send({
+      error: `Failed to update exam assessment form. Please try again.`,
+      details: error.message
+    });
+  }
+};
+
+// Controller Function for adding an assessment exam form
+const addAssessmentExam = async (req, res) => {
+  try {
+    const docRef = getAssessmentExamCollection().doc(ASSESSMENT_FORM_DOC_ID);
+    const doc = await docRef.get();
+
+    // The data to be added/updated
+    const { error, value: newExamData } = assessmentExamSchema.validate(req.body);
+    if (error) {
+      return res.status(400).json({ error: error.details[0].message });
+    }
+
+    if (doc.exists) {
+      // Logic for when the document already exists: update it
+      const existingData = doc.data();
+
+      // Get the new questions to be added from the request body
+      const newQuestions = newExamData.questions;
+
+      // Use arrayUnion to safely add the new questions to the existing array.
+      // This is the correct, atomic way to append data to an array in Firestore.
+      await docRef.update({
+        questions: admin.firestore.FieldValue.arrayUnion(...newQuestions)
+      });
+
+      // Recalculate the total score with the newly added questions
+      const updatedQuestions = [...existingData.questions, ...newQuestions];
+      const newTotalScore = calculateTotalScore(updatedQuestions);
+
+      // Update the totalScore field in the database
+      await docRef.update({ totalScore: newTotalScore });
+
+      return res.status(200).send({
+        message: 'Questions added to existing assessment form.',
+        data: { ...existingData, questions: updatedQuestions, totalScore: newTotalScore }
+      });
+
+    } else {
+      // Logic for when the document does NOT exist: create it for the first time
+      const totalScore = calculateTotalScore(newExamData.questions);
+      newExamData.totalScore = totalScore;
+
+      await docRef.set(newExamData);
+
+      return res.status(200).send({
+        message: 'Assessment Exam Form added successfully!',
+        data: newExamData
+      });
+    }
+  } catch (error) {
+    console.error("Error in addAssessmentExam:", error);
+    return res.status(500).json({ error: error.message });
   }
 };
 
@@ -80,7 +189,7 @@ const updateAssessmentExam = async (req, res) => {
     if (!doc.exists) {
       return res.status(404).send({ error: `Assessment Form not found. Please create it first.` });
     }
-    
+
     const { error, value: validatedUpdates } = updateSchema.validate(updates);
 
     if (error) {
@@ -90,9 +199,8 @@ const updateAssessmentExam = async (req, res) => {
       return res.status(400).json({ error: "No valid update data provided." });
     }
 
-    // If 'questions' are being updated, recalculate the totalScore
     if (validatedUpdates.questions) {
-        validatedUpdates.totalScore = calculateTotalScore(validatedUpdates.questions);
+      validatedUpdates.totalScore = calculateTotalScore(validatedUpdates.questions);
     }
 
     await docRef.update(validatedUpdates);
@@ -137,4 +245,7 @@ module.exports = {
   addAssessmentExam,
   updateAssessmentExam,
   getAssessmentExamForm,
+  addLikertTheme,
+  getLikertTheme,
+  updateLikertTheme
 };
