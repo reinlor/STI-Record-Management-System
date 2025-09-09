@@ -1,176 +1,236 @@
-import react, { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import back from '../../../assets/back.png'
-import closeB from '../../../assets/closeblack.png';
-import axios from 'axios';
+import axios from 'axios'
+import {
+  Search,
+  ChevronLeft,
+  ChevronRight,
+  X,
+} from 'lucide-react';
 
 function ReferralFormHistory() {
-    const navigate = useNavigate();
-    const [display, setDisplay] = useState(false);
-    const [search, setSearch] = useState("");
-    const [selectedReferral, setSelectedReferral] = useState(null);
-    const [referralData, setReferralData] = useState([]);
+  const navigate = useNavigate();
+  const [search, setSearch] = useState("");
+  const [selectedReferral, setSelectedReferral] = useState(null);
+  const [referralData, setReferralData] = useState([]);
 
-    useEffect(() => {
-        axios
-            .get("/referral/getAll")
-            .then((res) => setReferralData(res.data))
-            .catch((err) => console.error("Error fetching list:", err.message));
-    }, []);
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const rowsPerPage = 10;
 
-    const displayReferralTable = () => {
-        return referralData.map((referrals) => {
-            if (referrals.status !== 'Resolved') return null;
-            return (
-                <tr key={referrals.id} className="hover:bg-gray-100 transition">
-                    <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 whitespace-nowrap">{referrals.referredBy}</td>
-                    <td className="px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto whitespace-nowrap">{referrals.employeeID}</td>
-                    <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 whitespace-normal break-words max-w-[150px]">{referrals.reasonForReferral}</td>
-                    <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 whitespace-nowrap">{referrals.studentName}</td>
-                    <td className="px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto whitespace-nowrap">{referrals.preparedDate}</td>
-                    <td className={`px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto font-semibold ${
-                        referrals.status === 'Resolved' ? 'text-green-600' : 'text-red-600'
-                    } whitespace-nowrap`}>
-                        {referrals.status}
-                    </td>
-                    <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3">
-                        <button
-                            onClick={() => setSelectedReferral(referrals)}
-                            className="bg-gray-900 text-white px-3 sm:px-4 py-1 rounded-full hover:bg-gray-700 transition w-full sm:w-auto"
-                        >
-                            Open
-                        </button>
-                    </td>
-                </tr>
-            );
-        });
-    };
+  useEffect(() => {
+    axios
+      .get("/referral/getAll")
+      .then((res) => setReferralData(res.data))
+      .catch((err) => console.error("Error fetching list:", err.message));
+  }, []);
 
-    const displayReferralData = () => {
-        if (!selectedReferral) return null;
-        return (
-            <div className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-sm">
-                <div className="bg-white w-full max-w-[95vw] sm:max-w-xl lg:max-w-2xl rounded-lg shadow-lg p-4 sm:p-6 relative overflow-y-auto max-h-[90vh] outline-solid outline-2 outline-gray-300">
-                    <div className="flex items-center justify-between mb-2">
-                        <h2 className="text-2xl font-bold">Referral Form</h2>
-                        <button
-                            onClick={() => setSelectedReferral(null)}
-                            className="text-gray-700 hover:text-black transition-transform hover:scale-110"
-                        >
-                            <img src={closeB} alt="closeb" className="w-7 h-7 object-cover rounded" />
-                        </button>
-                    </div>
-                    <hr className="mb-4" />
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-8">
-                        {/* Left Column */}
-                        <div className="space-y-2">
-                            <p><strong>School Year:</strong> {selectedReferral.schoolYear || "-"}</p>
-                            <p><strong>Tertiary (Semester):</strong> {selectedReferral.semester || "-"}</p>
-                            <p><strong>Senior High (Quarter):</strong> {selectedReferral.quarter || "-"}</p>
-                            <p><strong>Student Number:</strong> {selectedReferral.studentNumber || "-"}</p>
-                            <p><strong>Student’s Name:</strong> {selectedReferral.studentName || "-"}</p>
-                            <p><strong>Program and Section:</strong> {selectedReferral.programSection || "-"}</p>
-                            <p><strong>Gender:</strong> {selectedReferral.gender || "-"}</p>
-                            <p><strong>Age:</strong> {selectedReferral.age || "-"}</p>
-                            <p><strong>Referred By:</strong> {selectedReferral.referredBy || "-"}</p>
-                            <p><strong>Areas of Concern:</strong> {selectedReferral.areasOfConcern || "-"}</p>
-                            <p><strong>Action Required:</strong> {selectedReferral.actionRequired || "-"}</p>
-                            <p><strong>Level of Priority:</strong> {selectedReferral.levelPriority || "-"}</p>
-                            <div>
-                                <p className="font-semibold">Actions Taken before Referral:</p>
-                                <textarea
-                                    readOnly
-                                    value={selectedReferral.actionsBefore || ""}
-                                    className="w-full border border-gray-300 rounded p-2 mt-1 resize-none bg-gray-50"
-                                    rows={3}
-                                />
-                            </div>
-                            <div>
-                                <p className="font-semibold">Reasons for Referral / Comments:</p>
-                                <textarea
-                                    readOnly
-                                    value={selectedReferral.reasons || ""}
-                                    className="w-full border border-gray-300 rounded p-2 mt-1 resize-none bg-gray-50"
-                                    rows={3}
-                                />
-                            </div>
-                        </div>
-                        {/* Right Column */}
-                        <div className="space-y-2">
-                            <p className="font-semibold">Counselor’s Initial Action:</p>
-                            <textarea
-                                readOnly
-                                value={selectedReferral.counselorAction || ""}
-                                className="w-full border border-gray-300 rounded p-2 resize-none bg-gray-50"
-                                rows={10}
-                            />
-                        </div>
-                    </div>
-                </div>
-            </div>
-        );
-    };
+  // Filter and pagination logic
+  const filtered = referralData.filter(
+    (ref) =>
+      (ref.status === 'Resolved') &&
+      (
+        ref.referredBy?.toLowerCase().includes(search.toLowerCase()) ||
+        ref.studentName?.toLowerCase().includes(search.toLowerCase())
+      )
+  );
+  const totalRows = filtered.length;
+  const totalPages = Math.ceil(totalRows / rowsPerPage);
+  const pagedReferrals = filtered.slice(
+    (currentPage - 1) * rowsPerPage,
+    currentPage * rowsPerPage
+  );
 
+  // Table rows
+  const displayReferralTable = () => {
+    return pagedReferrals.map((referrals) => (
+      <tr key={referrals.id} className="hover:bg-gray-100 transition">
+        <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 font-bold text-[#0172bd] w-1/4">{referrals.referredBy}</td>
+        <td className="px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">{referrals.employeeID}</td>
+        <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 break-words max-w-[150px] truncate align-middle">{referrals.reasonForReferral}</td>
+        <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3">{referrals.studentName}</td>
+        <td className="px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">{referrals.preparedDate}</td>
+        <td className={`px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto font-semibold ${
+          referrals.status === 'Resolved' ? 'text-green-600' : 'text-red-600'
+        }`}>
+          {referrals.status}
+        </td>
+        <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3">
+          <button
+            onClick={() => setSelectedReferral(referrals)}
+            className="bg-[#0172bd] text-[#fef201] font-semibold px-3 sm:px-4 py-1 rounded-lg hover:bg-blue-500 transition w-full sm:w-auto flex items-center justify-center gap-2"
+          >
+            Open
+          </button>
+        </td>
+      </tr>
+    ));
+  };
+
+  // Modal
+  const displayReferralData = () => {
+    if (!selectedReferral) return null;
     return (
-        <div className="bg-gray-100 min-h-screen p-2 sm:p-3">
-            <div className="bg-white shadow-md p-2 sm:p-4 rounded-lg">
-                <div className="flex items-center gap-2 mb-2">
-                    <button
-                        onClick={() => navigate(-1)}
-                        style={{ cursor: 'pointer' }}
-                        className='flex items-center justify-center p-1 hover:bg-gray-300 transition duration-200 rounded'
-                    >
-                        <img src={back} alt="back" className="w-7 h-7 object-cover rounded" />
-                    </button>
-                    <p className="text-2xl sm:text-3xl lg:text-4xl font-bold">Referral Form History</p>
-                </div>
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-2">
-                    <p className="text-gray-500">View Referral Forms History</p>
-                    <div className="flex gap-2 w-full sm:w-auto">
-                        <div className="relative w-full sm:w-64">
-                            <input
-                                type="text"
-                                placeholder="Name/ ID"
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
-                                className="w-full border border-gray-300 rounded-full px-4 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-gray-300"
-                            />
-                            <span className="absolute right-3 top-3 text-gray-400">
-                                <svg width="16" height="16" fill="none" viewBox="0 0 24 24">
-                                    <path
-                                        stroke="currentColor"
-                                        strokeWidth="2"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        d="M21 21l-4.35-4.35M11 19a8 8 0 1 1 0-16 8 8 0 0 1 0 16z"
-                                    />
-                                </svg>
-                            </span>
-                        </div>
-                    </div>
-                </div>
-                <div className="bg-white rounded-lg shadow-md overflow-y-auto custom-scrollbar h-full">
-                    <table className="w-full text-left">
-                        <thead>
-                            <tr className="bg-gray-200 text-gray-700">
-                                <th className="sticky top-0 z-10 bg-gray-300 px-2 sm:px-3 lg:px-4 py-2 sm:py-3 font-semibold">Name</th>
-                                <th className="sticky top-0 z-10 bg-gray-300 px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto font-semibold whitespace-nowrap">Employee No.</th>
-                                <th className="sticky top-0 z-10 bg-gray-300 px-2 sm:px-3 lg:px-4 py-2 sm:py-3 font-semibold">Violation</th>
-                                <th className="sticky top-0 z-10 bg-gray-300 px-2 sm:px-3 lg:px-4 py-2 sm:py-3 font-semibold">Referred Student</th>
-                                <th className="sticky top-0 z-10 bg-gray-300 px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto font-semibold whitespace-nowrap">Date</th>
-                                <th className="sticky top-0 z-10 bg-gray-300 px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto font-semibold whitespace-nowrap">Status</th>
-                                <th className="sticky top-0 z-10 bg-gray-300 px-2 sm:px-3 lg:px-4 py-2 sm:py-3 font-semibold"></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {displayReferralTable()}
-                        </tbody>
-                    </table>
-                    <div>{displayReferralData()}</div>
-                </div>
+      <div className="fixed inset-0 p-2 backdrop-blur-sm flex items-center justify-center z-50 transition-opacity duration-300 ease-out opacity-100">
+        <div className="bg-white w-full sm:max-w-350 lg:max-w-400 rounded-lg shadow-lg overflow-y-auto max-h-[92vh] p-6 sm:p-8 relative transform transition-all duration-300 ease-out scale-100 custom-scrollbar">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-bold text-[#0172bd]">Referral Form</h2>
+            
+            <div className="flex items-center gap-4">
+                <span
+                    className={`font-semibold text-lg ${selectedReferral.status === 'Resolved' ? 'text-[#28a745]' : 'text-gray-500'}`}
+                  >
+                    Status: {selectedReferral.status}
+                  </span>
+              
+            <button
+              onClick={() => setSelectedReferral(null)}
+              className="text-[#0172bd] hover:text-blue-500 transition-transform hover:scale-110"
+            >
+              <X className="w-10 h-10 object-cover rounded" />
+            </button>
             </div>
+          </div>
+          <hr className="mb-4" />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
+            {/* Left Column */}
+            <div className="space-y-3">
+              <p><span className="font-bold text-[#0172bd]">School Year:</span> {selectedReferral.schoolYear || "-"}</p>
+              <p><span className="font-bold text-[#0172bd]">Tertiary (Semester):</span> {selectedReferral.semester || "-"}</p>
+              <p><span className="font-bold text-[#0172bd]">Senior High (Quarter):</span> {selectedReferral.quarter || "-"}</p>
+              <p><span className="font-bold text-[#0172bd]">Student Number:</span> {selectedReferral.studentNumber || "-"}</p>
+              <p><span className="font-bold text-[#0172bd]">Student’s Name:</span> {selectedReferral.studentName || "-"}</p>
+              <p><span className="font-bold text-[#0172bd]">Program and Section:</span> {selectedReferral.programSection || "-"}</p>
+              <p><span className="font-bold text-[#0172bd]">Gender:</span> {selectedReferral.gender || "-"}</p>
+              <p><span className="font-bold text-[#0172bd]">Age:</span> {selectedReferral.age || "-"}</p>
+              <p><span className="font-bold text-[#0172bd]">Referred By:</span> {selectedReferral.referredBy || "-"}</p>
+              <p><span className="font-bold text-[#0172bd]">Areas of Concern:</span> {selectedReferral.areasOfConcern || "-"}</p>
+              <p><span className="font-bold text-[#0172bd]">Action Required:</span> {selectedReferral.actionRequired || "-"}</p>
+              <p><span className="font-bold text-[#0172bd]">Level of Priority:</span> {selectedReferral.levelPriority || "-"}</p>
+              <div>
+                <p className="font-bold text-[#0172bd]">Actions Taken before Referral:</p>
+                <textarea
+                  readOnly
+                  value={selectedReferral.actionsBefore || ""}
+                  className="w-full border border-gray-300 rounded p-2 mt-1 resize-none bg-gray-50"
+                  rows={3}
+                />
+              </div>
+              <div>
+                <p className="font-bold text-[#0172bd]">Reasons for Referral / Comments:</p>
+                <textarea
+                  readOnly
+                  value={selectedReferral.reasons || ""}
+                  className="w-full border border-gray-300 rounded p-2 mt-1 resize-none bg-gray-50"
+                  rows={3}
+                />
+              </div>
+            </div>
+            {/* Right Column */}
+            <div className="space-y-3">
+              <p className="font-bold text-[#0172bd]">Counselor’s Initial Action:</p>
+              <textarea
+                readOnly
+                value={selectedReferral.counselorAction || ""}
+                className="w-full border border-gray-300 rounded p-2 resize-none bg-gray-50"
+                rows={10}
+              />
+              
+            </div>
+          </div>
         </div>
+      </div>
     );
+  };
+
+  return (
+    <div className="bg-gray-100 h-220 p-3">
+          <div className="bg-white shadow-md p-4 rounded-lg">
+            {/* Header */}
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-4 gap-3">
+              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+                <div className="text-left">
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => navigate(-1)}
+                      style={{ cursor: 'pointer' }}
+                      className='flex items-top justify-top hover:bg-gray-300 transition duration-200 rounded'
+                    >
+                      <ChevronLeft className="w-10 h-10 object-cover rounded text-[#0172bd] " />
+                    </button>
+                    <p className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[#0172bd] mb-2">Referral Forms History</p>
+                  </div>
+                  <p className="text-gray-500 text-sm sm:text-base ">View Resolved Referral Forms</p>
+                </div>
+              </div>
+              {/* Search Bar */}
+              <div className="flex flex-col sm:flex-row gap-2 w-full lg:w-auto">
+                <div className="relative w-full sm:w-64">
+                  <input
+                    type="text"
+                    placeholder="Name/ ID"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="w-full border border-gray-300 rounded-lg px-4 py-2 pr-10 focus:outline-none focus:ring-1 focus:ring-[#0172bd]"
+                  />
+                  <span className="absolute right-3 top-3 text-gray-400">
+                    <Search className="w-4 h-4" />
+                  </span>
+                </div>
+              </div>
+            </div>
+
+        <div className="bg-white rounded-lg shadow-md overflow-y-auto custom-scrollbar h-full">
+          <table className="w-full text-left">
+            <thead>
+              <tr className="bg-[#0172bd] text-[#fef201]">
+                <th className="sticky top-0 z-10 bg-[#0172bd] px-2 sm:px-3 lg:px-4 py-2 sm:py-3 font-bold">Name</th>
+                <th className="sticky top-0 z-10 bg-[#0172bd] px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto font-bold whitespace-nowrap">Employee No.</th>
+                <th className="sticky top-0 z-10 bg-[#0172bd] px-2 sm:px-3 lg:px-4 py-2 sm:py-3 font-bold">Violation</th>
+                <th className="sticky top-0 z-10 bg-[#0172bd] px-2 sm:px-3 lg:px-4 py-2 sm:py-3 font-bold">Referred Student</th>
+                <th className="sticky top-0 z-10 bg-[#0172bd] px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto font-bold whitespace-nowrap">Date</th>
+                <th className="sticky top-0 z-10 bg-[#0172bd] px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto font-bold whitespace-nowrap">Status</th>
+                <th className="sticky top-0 z-10 bg-[#0172bd] px-2 sm:px-3 lg:px-4 py-2 sm:py-3 font-bold"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {displayReferralTable()}
+            </tbody>
+
+          </table>
+          {/* Pagination controls */}
+          <div className="w-full flex justify-center lg:justify-end items-center mt-2 pr-0 lg:pr-2">
+            <nav className="flex items-center space-x-1">
+              <button
+                className="px-2 py-1 rounded hover:bg-gray-200 text-[#0172bd] font-bold"
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+              >
+                <ChevronLeft className="w-5 h-5 object-cover rounded" />
+              </button>
+              {Array.from({ length: totalPages }, (_, i) => (
+                <button
+                  key={i + 1}
+                  className={`px-2 py-1 rounded ${currentPage === i + 1 ? 'bg-[#0172bd] text-[#fef201]' : 'hover:bg-gray-200 text-[#0172bd]'}`}
+                  onClick={() => setCurrentPage(i + 1)}
+                >
+                  {i + 1}
+                </button>
+              ))}
+              <button
+                className="px-2 py-1 rounded hover:bg-gray-200 text-[#0172bd] font-bold"
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+              >
+                <ChevronRight className="w-5 h-5 object-cover rounded" />
+              </button>
+            </nav>
+          </div>
+          <div>{displayReferralData()}</div>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default ReferralFormHistory;

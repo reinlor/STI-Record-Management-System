@@ -6,20 +6,23 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import '../../../index.css';
 
-// Para sa interesection observers
-import { ChevronRight, ChevronLeft, Search } from 'lucide-react';
-import { useInView } from 'react-intersection-observer';
-
-import studentIcon from '../../../assets/student.png';
-import dropdown from '../../../assets/dropdown.png';
-import back from '../../../assets/back.png';
-import user from '../../../assets/user.png';
-import next from '../../../assets/next.png';
-import cases from '../../../assets/cases.png';
-import archive from '../../../assets/archive.png';
-import edit from '../../../assets/edit.png';
-
-import { X, Check } from 'lucide-react';
+// Lucide icons
+import {
+    ChevronRight,
+    ChevronLeft,
+    ChevronDown,
+    Search,
+    User,
+    Archive as FileArchive,
+    Edit,
+    Users,
+    Plus,
+    FolderOpen,
+    FileText,
+    X,
+    UserPlus,
+    Camera, // <-- add this
+} from 'lucide-react';
 
 import InfoSection from './components/InfoSection.jsx';
 import AddStudentModal from './components/AddStudentModal.jsx';
@@ -414,51 +417,61 @@ function StudentRecords() {
 
                     {/* --- Student List --- */}
                     <div
-                        className={`h-full bg-white border-r border-gray-200 shadow-lg flex flex-col rounded-lg transition-all duration-300
+                        className={`h-full bg-white border shadow-lg flex flex-col rounded-lg transition-all duration-300 
                     ${selectedStudentId ? 'w-0 lg:w-96' : 'w-full lg:w-96'}`}
                     >
                         {/* Only show content if not collapsed */}
                         {!(selectedStudentId && window.innerWidth < 1024) && (
                             <>
-                                <div className="p-2 border-b border-gray-200">
+                                <div className="p-2">
                                     <div className="flex items-center space-x-3">
-                                        <p className="text-3xl font-bold text-gray-800">Student List</p>
+                                        <p className="flex items-center space-x-2 mb-4">
+                                            <Users className="inline-block w-8 h-8 mr-2 text-[#0172bd]" />
+                                            <h2 className="text-3xl font-bold text-[#0172bd]">Student Records</h2>
+                                        </p>
                                     </div>
 
-                                    {/* Archive/Enrolled */}
-                                    <div className="flex justify-around bg-gray-200 p-1 rounded-lg mb-2">
-                                        <button className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out cursor-pointer hover:bg-[#003d54] 
-                                ${activeTab === 'Archived' ? 'bg-[#0a1220] text-white shadow-sm' : 'text-gray-700 hover:bg-gray-300'}`}
+                                {/* Archive/Enrolled */}
+                                    <div className="flex justify-around bg-[#f3f4f6] p-1 rounded-lg mb-2">
+                                        <button className={`flex-1 flex items-center justify-center px-4 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out cursor-pointer hover:bg-[#003d54] 
+                                        ${activeTab === 'Archived' ? 'bg-[#0172bd] text-[#fef201] shadow-sm hover:bg-blue-500' : 'text-black hover:bg-gray-200'}`}
                                             onClick={() => setActiveTab('Archived')}>
+                                            <FileArchive className="inline-block w-5 h-5 mr-2" />
                                             Archive
                                         </button>
-                                        <button className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out cursor-pointer hover:bg-[#003d54] 
-                                    ${activeTab === 'Enrolled' ? 'bg-[#0a1220] text-white shadow-sm' : 'text-gray-700 hover:bg-gray-300'}`}
-                                            onClick={() => setActiveTab('Enrolled')}>Enrolled</button>
+                                        <button className={`flex-1 flex items-center justify-center px-4 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out cursor-pointer hover:bg-[#003d54] 
+                                        ${activeTab === 'Enrolled' ? 'bg-[#0172bd] text-[#fef201] shadow-sm hover:bg-blue-500' : 'text-gray-700 hover:bg-gray-200'}`}
+                                            onClick={() => setActiveTab('Enrolled')}>
+                                            <Users className="inline-block w-5 h-5 mr-2" />
+                                            Enrolled
+                                        </button>
                                     </div>
                                 </div>
+
                                 {/* Search Bar */}
                                 <div className="relative p-2">
                                     <input type="text" placeholder="Name/ ID"
-                                        className="w-full pl-2 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out hover:bg-gray-100"
+                                        className="w-full pl-2 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#0172bd] focus:border-transparent transition duration-150 ease-in-out hover:bg-gray-50"
                                         value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
                                     <Search className="w-5 h-5 absolute right-5 top-4.5 text-gray-400" />
                                 </div>
 
                                 <div className="flex space-x-2 p-2">
                                     <div className="relative flex-1">
-                                        <select className="text-sm block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#0a1220] focus:border-transparent transition duration-150 ease-in-out appearance-none bg-white pr-8 cursor-pointer" value={selectedYearLevel} onChange={(e) => setSelectedYearLevel(e.target.value)}>
+                                        <select className="text-sm text-[#0172bd] block w-full px-4 py-2 border hover:bg-gray-100 border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-[#0172bd] focus:border-transparent transition duration-150 ease-in-out appearance-none bg-white pr-8 cursor-pointer" 
+                                        value={selectedYearLevel} onChange={(e) => setSelectedYearLevel(e.target.value)}>
+
                                             <option value="none">Year Level</option>
                                             {yearLevelOptions.filter(opt => opt !== "none").map(option => (<option key={option} value={option}>{option}</option>))}
                                         </select>
-                                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                                            <img src={dropdown} alt="dropdownIcon" className="w-2.5 h-2.5 object-cover mr-2" />
+                                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 ">
+                                            <ChevronDown className="w-4 h-4 text-[#0172bd]" />
                                         </div>
                                     </div>
 
                                     <div className="relative flex-1">
                                         <select
-                                            className="text-sm block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#0a1220] focus:border-transparent transition duration-150 ease-in-out appearance-none bg-white pr-8 cursor-pointer"
+                                            className="text-sm text-[#0172bd] block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-[#0172bd] focus:border-transparent transition duration-150 ease-in-out appearance-none bg-white pr-8 cursor-pointer"
                                             value={selectedProgram}
                                             onChange={(e) => setSelectedProgram(e.target.value)}
                                         >
@@ -468,32 +481,37 @@ function StudentRecords() {
                                             ))}
                                         </select>
                                         <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                                            <img src={dropdown} alt="dropdownIcon" className="w-2.5 h-2.5 object-cover mr-2" />
+                                            <ChevronDown className="w-4 h-4 text-[#0172bd]" />
                                         </div>
                                     </div>
                                 </div>
 
                                 {authData?.user?.access?.studentRecords?.canEdit ? (
-                                    <div className="flex space-x-2 p-2">
-                                        <button className="flex-1 bg-[#0a1220] hover:bg-[#003d54] text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center transition duration-150 ease-in-out shadow-md hover:shadow-lg" onClick={handleAddStudentButtonClick}>
-                                            {addMode === 'individual' && 'Add Student'}
-                                            {addMode === 'bulk' && 'Bulk Add'}
-                                            {addMode === 'photo' && 'Photo-to-Text'}
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 ml-2">
-                                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                                            </svg>
+                                    <div className="flex gap-2 p-2">
+                                        <button
+                                            className="flex-1 bg-[#0172bd] hover:bg-blue-500 text-white p-2 rounded-lg flex items-center justify-center transition duration-150 ease-in-out shadow-md hover:shadow-lg "
+                                            title="Add Individual Student"
+                                            onClick={() => setShowAddStudentModal(true)}
+                                        >
+                                            <UserPlus className="w-6 h-6 text-[#fef201]" />
+                                            
                                         </button>
-
-                                        <div className="relative">
-                                            <select className="block px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#0a1220] focus:border-transparent transition duration-150 ease-in-out appearance-none bg-white pr-8 text-sm cursor-pointer" value={addMode} onChange={e => setAddMode(e.target.value)}>
-                                                <option value="individual">Individual</option>
-                                                <option value="photo">Photo-to-Text</option>
-                                                <option value="bulk">Bulk</option>
-                                            </select>
-                                            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                                                <img src={dropdown} alt="dropdownIcon" className="w-2.5 h-2.5 object-cover mr-2" />
-                                            </div>
-                                        </div>
+                                        <button
+                                            className="flex-1 bg-[#0172bd] hover:bg-blue-500 text-white p-2 rounded-lg flex items-center justify-center transition duration-150 ease-in-out shadow-md hover:shadow-lg"
+                                            title="Bulk Add Students"
+                                            onClick={() => setShowBulkModal(true)}
+                                        >
+                                            <Users className="w-6 h-6 text-[#fef201]" />
+                                            <Plus className="w-5 h-5 text-[#fef201]" />
+                                        </button>
+                                        <button
+                                            className="flex-1 bg-[#0172bd] hover:bg-blue-500 text-white p-2 rounded-lg flex items-center justify-center transition duration-150 ease-in-out shadow-md hover:shadow-lg"
+                                            title="Photo-to-Text Add"
+                                            onClick={() => setShowPhotoToTextModal(true)}
+                                        >
+                                            <Camera className="w-6 h-6 text-[#fef201]" />
+                                            <Plus className="w-5 h-5 text-[#fef201]" />
+                                        </button>
                                     </div>
                                 ) : null}
 
@@ -517,7 +535,7 @@ function StudentRecords() {
                                                 >
                                                     {isVisible ? (
                                                         <div className="flex items-center">
-                                                            <img src={user} alt="User" className="w-5 h-5 object-cover mr-5" />
+                                                            <User className="w-8 h-8 mr-5 text-[#0172bd]" />
                                                             <div>
                                                                 <p className="font-semibold text-gray-800">{name}</p>
                                                                 <p className="text-sm text-gray-600">{sid}</p>
@@ -526,7 +544,7 @@ function StudentRecords() {
                                                     ) : (
                                                         <div style={{ height: '50px', width: '100%' }}></div>
                                                     )}
-                                                    <ChevronRight className="w-5 h-5 text-[#0a1220]" />
+                                                    <ChevronRight className="w-5 h-5 text-[#0172bd]" />
                                                 </div>
                                             );
                                         })
@@ -541,23 +559,32 @@ function StudentRecords() {
                     {/* --- Student Details --- */}
                     <div
                         className={`
-                flex-1 bg-white flex flex-col
-                ${selectedStudentId ? 'flex' : 'hidden lg:flex'} /* keep visible on desktop */
-            `}
+                            h-full bg-white border-r border-gray-200 shadow-sm flex flex-col rounded-lg transition-all duration-300 flex-1
+                            ${selectedStudentId ? 'flex' : 'hidden lg:flex'} /* keep visible on desktop */
+                        `}
                     >
                         <Fragment>
-                            <div className="p-4 border-b border-gray-200 flex items-center justify-between flex-wrap gap-2">
-                                <div className="flex items-center space-x-2 sm:space-x-4">
-                                    {/* Back button */}
+                            <div className="p-4 border-b border-gray-200">
+                            <div className="flex flex-wrap lg:items-center gap-2 lg:gap-4 w-full">
+                                {/* Back + Name */}
+                                <div className="flex items-center min-w-0 flex-shrink gap-2">
                                     <button
-                                        className="p-2 rounded-full hover:bg-gray-200 transition duration-150 ease-in-out cursor-pointer"
+                                        className="p-2 rounded-lg hover:bg-gray-200 transition duration-150 ease-in-out cursor-pointer flex-shrink-0"
                                         onClick={() => setSelectedStudentId(null)}
                                     >
-                                        <img src={back} alt="backIcon" className="w-5 h-5 object-cover" />
+                                        <ChevronLeft className="w-8 h-8 text-[#0172bd]" />
                                     </button>
-
+                                    {selectedStudentDetails && (
+                                        <span className="text-xl sm:text-2xl font-semibold text-black truncate min-w-0 max-w-[100vw] lg:max-w-[350px]">
+                                            {selectedStudentDetails.studentProfile?.name ?? selectedStudentDetails.name ?? ''}
+                                        </span>
+                                    )}
+                                </div>
+                                
+                                {/* InfoType Dropdown */}
+                                <div className="relative w-full sm:w-auto lg:w-56 flex-shrink-0">
                                     <select
-                                        className="block px-3 sm:px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out appearance-none bg-white pr-8 text-sm sm:text-base cursor-pointer"
+                                        className="block w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-1 text-[#0172bd] focus:ring-[#0172bd] focus:border-transparent transition duration-150 ease-in-out appearance-none bg-white pr-8 text-sm sm:text-base cursor-pointer"
                                         value={infoType}
                                         onChange={(e) => setInfoType(e.target.value)}
                                     >
@@ -571,39 +598,56 @@ function StudentRecords() {
                                         <option value="health">Health</option>
                                         <option value="life">Life Circumstances</option>
                                     </select>
+                                    <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
+                                        <ChevronDown className="w-4 h-4 text-[#0172bd]" />
+                                    </div>
                                 </div>
-
-                                {/* actions */}
-                                <div className="flex items-center space-x-2 sm:space-x-3 mt-2 sm:mt-0">
-                                    <button className="bg-[#0a1220] hover:bg-[#003d54] text-white font-bold py-2 px-3 sm:px-4 rounded-lg flex items-center transition duration-150 ease-in-out shadow-md hover:shadow-lg cursor-pointer"
-                                        onClick={() => setDisplayStudentList(true)}>
-                                        Student List
-                                        <img src={cases} alt="caseIcon" className="w-5 h-5 sm:w-5 sm:h-5 ml-3" />
+                                {/* Buttons */}
+                                <div className="flex gap-2 flex-1 justify-end flex-wrap">
+                                    <button
+                                        className="bg-[#0172bd] font-semibold  hover:bg-blue-500 text-[#fef201] py-2 px-4 rounded-lg flex items-center justify-center transition duration-150 ease-in-out shadow-md hover:shadow-lg"
+                                        onClick={() => setDisplayStudentList(true)}
+                                        title="Student List"
+                                    >
+                                        <span className="block lg:w-0 lg:h-0 lg:p-0 lg:m-0"><FolderOpen className="lg:w-0 lg:h-0 w-5 h-5" /></span>
+                                        <span className="w-0 h-0 p-0 m-0 overflow-hidden lg:w-auto lg:h-auto lg:p-1 lg:m-0 lg:ml-1 lg:overflow-visible lg:flex items-center">Student List <FolderOpen className="w-5 h-5 ml-2" /></span>
                                     </button>
-
-                                    {selectedStudentId !== null ? <div className="flex items-center space-x-2 sm:space-x-3 mt-2 sm:mt-0">
-                                        {authData?.user?.access?.studentRecords?.canEdit ?
+                                    {selectedStudentId !== null && (
+                                        <>
+                                            {authData?.user?.access?.studentRecords?.canEdit && (
+                                                <button
+                                                    className={`py-2 px-4 rounded-lg flex items-center justify-center transition duration-150 ease-in-out font-medium shadow-md hover:shadow-lg
+                                                    ${isEditing 
+                                                        ? 'bg-blue-400 hover:bg-blue-600 text-white' 
+                                                        : 'bg-[#0172bd] hover:bg-blue-500 text-[#fef201]'}`}
+                                                    onClick={() => { if (isEditing) { handleSaveEdits(); } setIsEditing(!isEditing); }}
+                                                    title={isEditing ? "Save" : "Edit Student"}
+                                                >
+                                                    <span className="block lg:w-0 lg:h-0 lg:p-0 lg:m-0"><Edit className="lg:w-0 lg:h-0 w-5 h-5" /></span>
+                                                    <span className="w-0 h-0 p-0 m-0 overflow-hidden lg:w-auto lg:h-auto lg:p-1 lg:m-0 lg:ml-1 lg:overflow-visible lg:flex items-center">{isEditing ? 'Save' : 'Edit Student'} <Edit className="w-5 h-5 ml-2" /></span>
+                                                </button>
+                                            )}
                                             <button
-                                                className={`px-3 sm:px-4 py-2 rounded-lg flex items-center transition duration-150 ease-in-out text-m sm:text-base font-medium cursor-pointer ${isEditing ? 'bg-gray-500 text-white shadow-md' : 'bg-[#0a1220] hover:bg-gray-900 text-white shadow-md hover:shadow-lg'}`}
-                                                onClick={() => { if (isEditing) { handleSaveEdits(); } setIsEditing(!isEditing); }}>
-
-                                                {isEditing ? 'Save' : 'Edit Student'}
-                                                <img src={edit} alt="editIcon" className="w-5 h-5 sm:w-5 sm:h-5 ml-3" />
-                                            </button> : null}
-
-                                        <button className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-3 sm:px-4 rounded-lg flex items-center transition duration-150 ease-in-out shadow-md hover:shadow-lg cursor-pointer" onClick={() => setShowArchiveConfirmModal(true)}>
-                                            {activeTab === 'Archived' ? 'Restore' : 'Archive'}
-                                            <img src={archive} alt="archiveIcon" className="w-5 h-5 sm:w-5 sm:h-5 ml-3" />
-                                        </button>
-
-                                        <button className="bg-[#0a1220] hover:bg-[#003d54] text-white font-bold py-2 px-3 sm:px-4 rounded-lg flex items-center transition duration-150 ease-in-out shadow-md hover:shadow-lg cursor-pointer"
-                                            onClick={() => handleCaseButton()}>
-                                            Case
-                                            <img src={cases} alt="caseIcon" className="w-5 h-5 sm:w-5 sm:h-5 ml-3" />
-                                        </button>
-                                    </div> : null}
+                                                className="bg-[#0172bd] text-[#fef201] font-semibold hover:bg-blue-500  py-2 px-4 rounded-lg flex items-center justify-center transition duration-150 ease-in-out shadow-md hover:shadow-lg"
+                                                onClick={handleCaseButton}
+                                                title="Case"
+                                            >
+                                                <span className="block lg:w-0 lg:h-0 lg:p-0 lg:m-0"><FileText className="lg:w-0 lg:h-0 w-5 h-5" /></span>
+                                                <span className="w-0 h-0 p-0 m-0 overflow-hidden lg:w-auto lg:h-auto lg:p-1 lg:m-0 lg:ml-1 lg:overflow-visible lg:flex items-center">Case <FileText className="w-5 h-5 ml-2" /></span>
+                                            </button>
+                                            <button
+                                                className="bg-[#dc3545] font-semibold hover:bg-red-700 text-white py-2 px-4 rounded-lg flex items-center justify-center transition duration-150 ease-in-out shadow-md hover:shadow-lg"
+                                                onClick={() => setShowArchiveConfirmModal(true)}
+                                                title={activeTab === 'Archived' ? 'Restore' : 'Archive'}
+                                            >
+                                                <span className="block lg:w-0 lg:h-0 lg:p-0 lg:m-0"><FileArchive className="lg:w-0 lg:h-0 w-5 h-5" /></span>
+                                                <span className="w-0 h-0 p-0 m-0 overflow-hidden lg:w-auto lg:h-auto lg:p-1 lg:m-0 lg:ml-1 lg:overflow-visible lg:flex items-center">{activeTab === 'Archived' ? 'Restore' : 'Archive'} <FileArchive className="w-5 h-5 ml-2" /></span>
+                                            </button>
+                                        </>
+                                    )}
                                 </div>
                             </div>
+                        </div>
 
                             {/* Details body */}
                             <div className="flex-1 p-6 overflow-y-auto">

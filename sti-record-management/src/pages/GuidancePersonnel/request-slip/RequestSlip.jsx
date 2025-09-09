@@ -8,6 +8,18 @@ import closeW from "../../../assets/close.png";
 import checkW from "../../../assets/check.png";
 import { AuthContext } from '../../../AuthProvider.jsx';
 
+import {
+    Search,
+    User,
+    Clipboard,
+    Plus,
+    Check,
+    X,
+    Clock,
+    ChevronLeft,
+    ChevronRight
+  } from 'lucide-react';
+
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -61,6 +73,8 @@ function RequestSlip() {
   const [selectedSlip, setSelectedSlip] = useState(null); // This was missing
   const { authData } = useContext(AuthContext);
   const navigate = useNavigate();
+  const [currentPage, setCurrentPage] = useState(1);
+  const rowsPerPage = 10;
 
   if (!authData?.user?.access?.requestSlip) {
     const error401 = () => {
@@ -144,20 +158,21 @@ function RequestSlip() {
 
     return (
       <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-[9999]">
-        <div className="relative bg-white w-full max-w-[95vw] sm:max-w-xl lg:max-w-2xl rounded-lg shadow-xl p-4 sm:p-6 overflow-y-auto max-h-[90vh] animate-fadeIn custom-scrollbar outline-solid outline-2 outline-gray-300">
+        <div className="bg-white w-full sm:max-w-350 lg:max-w-400 rounded-lg shadow-lg overflow-y-auto max-h-[92vh] p-6 sm:p-8 relative transform transition-all duration-300 ease-out scale-100 custom-scrollbar">
+          
           {/* header */}
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-4">
-              <h2 className="text-2xl font-bold">Request Slip Form</h2>
+              <h2 className="text-2xl font-bold text-[#0172bd]">Request Slip Form</h2>
               <span className="px-3 py-2 bg-gray-100 text-gray-800 text-md font-medium rounded">
                 {selectedSlip.typeOfSlip}
               </span>
             </div>
             <button
               onClick={closeModal}
-              className="text-2xl text-gray-700 hover:text-black"
+              className="text-2xl text-[#0172bd] hover:scale-110 hover:text-blue-500"
             >
-              <img src={closeB} alt="closeb" className="w-7 h-7 object-cover rounded " />
+              <X className="w-10 h-10 object-cover rounded " />
             </button>
           </div>
           <hr className="mb-4" />
@@ -188,13 +203,14 @@ function RequestSlip() {
                   { label: "Days Absent: ", value: selectedSlip.daysAbsent },
                 ].map((item, i) => (
                   <div key={i} className="flex items-center flex-wrap">
-                    <p className="font-bold text-gray-600 mr-5">{item.label}</p>
+                    <p className="font-bold text-[#0172bd] mr-5">{item.label}</p>
                     <p className={`font-semibold ${item.className || "text-black"} break-all`}>
                       {item.value}
                     </p>
                   </div>
                 ))}
               </div>
+              
               {/* Attachments Section */}
               <div className="grid grid-cols-2 gap-6">
                 {/* Proof of Transaction */}
@@ -207,7 +223,7 @@ function RequestSlip() {
                         className="w-24 h-24 object-cover rounded"
                       />
                     </a>
-                    <span className="text-xs text-gray-600 mt-2 text-center">
+                    <span className="text-xs text-[#0172bd] mt-2 text-center">
                       Proof of Transaction
                     </span>
                   </div>
@@ -223,7 +239,7 @@ function RequestSlip() {
                         className="w-24 h-24 object-cover rounded"
                       />
                     </a>
-                    <span className="text-xs text-gray-600 mt-2 text-center">
+                    <span className="text-xs text-[#0172bd] mt-2 text-center">
                       Excuse Letter
                     </span>
                   </div>
@@ -239,7 +255,7 @@ function RequestSlip() {
                         className="w-24 h-24 object-cover rounded"
                       />
                     </a>
-                    <span className="text-xs text-gray-600 mt-2 text-center">
+                    <span className="text-xs text-[#0172bd] mt-2 text-center">
                       Medical Certificate
                     </span>
                   </div>
@@ -255,7 +271,7 @@ function RequestSlip() {
                         className="w-24 h-24 object-cover rounded"
                       />
                     </a>
-                    <span className="text-xs text-gray-600 mt-2 text-center">
+                    <span className="text-xs text-[#0172bd] mt-2 text-center">
                       Guardian’s ID
                     </span>
                   </div>
@@ -267,7 +283,7 @@ function RequestSlip() {
             {/* RIGHT PANEL */}
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-semibold mb-1">Send Email To</label>
+                <label className="block text-sm font-semibold mb-1 text-[#0172bd]">Send Email To</label>
                 <input
                   type="text"
                   value={selectedSlip.email}
@@ -284,7 +300,7 @@ function RequestSlip() {
                 />
               </div> */}
               <div>
-                <label className="block text-sm font-semibold mb-1">Body</label>
+                <label className="block text-sm font-semibold mb-1 text-[#0172bd]">Body</label>
                 <textarea
                   className="border rounded px-3 py-2 w-full h-20 sm:h-24 resize-none text-xs sm:text-sm"
                   value={body}
@@ -298,7 +314,7 @@ function RequestSlip() {
           <div className="flex flex-col sm:flex-row gap-2 pt-6">
             <button
               onClick={() => handleStatusChange(selectedSlip.typeOfSlip, selectedSlip._id, "Denied", selectedSlip)}
-              className="flex-1 flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded"
+              className="flex-1 flex items-center justify-center gap-2 bg-[#dc3545] hover:bg-red-600 text-white px-4 py-2 rounded"
             >
               Deny
               <img src={closeW} alt="closeW" className="w-4 h-4 object-cover rounded " />
@@ -306,7 +322,7 @@ function RequestSlip() {
 
             <button
               onClick={() => handleStatusChange(selectedSlip.typeOfSlip, selectedSlip._id, "Approved", selectedSlip)}
-              className="flex-1 flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded"
+              className="flex-1 flex items-center justify-center gap-2 bg-[#28a745] hover:bg-green-500 text-white px-4 py-2 rounded"
             >
               Approve
               <img src={checkW} alt="checkW" className="w-4 h-4 object-cover rounded " />
@@ -327,9 +343,17 @@ function RequestSlip() {
     })
     .sort((a, b) => (b.timeCreatedMs || 0) - (a.timeCreatedMs || 0));
 
+  // Pagination logic
+  const totalRows = filteredSlipData.length;
+  const totalPages = Math.ceil(totalRows / rowsPerPage);
+  const pagedSlipData = filteredSlipData.slice(
+    (currentPage - 1) * rowsPerPage,
+    currentPage * rowsPerPage
+  );
+
   // data na iloload sa table
-  const requestTable = filteredSlipData.map((slips) => (
-    <tr key={slips._id} className="hover:bg-gray-100 transition">
+  const requestTable = pagedSlipData.map((slips) => (
+    <tr key={slips._id} className="hover:bg-gray-100 transition bg-[#0172bd]">
       <td className="px-4 py-3">{slips.name}</td>
       <td className="px-4 py-3">{slips.sid}</td>
       <td className="px-4 py-3">{slips.typeOfSlip}</td>
@@ -337,10 +361,10 @@ function RequestSlip() {
       {/* STATUS with conditional styling */}
       <td
         className={`px-4 py-3 font-semibold ${slips.status === "Approved"
-          ? "text-green-600"
+          ? "text-green-600 bg-green-300"
           : slips.status === "Rejected"
-            ? "text-red-600"
-            : "text-gray-600"
+            ? "text-red-600 bg-red-300"
+            : "text-gray-600 bg-gray-300"
           }`}
       >
         {slips.status}
@@ -356,8 +380,6 @@ function RequestSlip() {
       </td> : null}
     </tr>
   ));
-
-
 
   return (
     <div className="bg-gray-100 h-full p-3">
@@ -378,19 +400,19 @@ function RequestSlip() {
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-4 gap-3">
           <div className="text-left">
-            <p className="text-2xl sm:text-3xl lg:text-4xl font-bold">Request Slip Processing</p>
-            <p className="text-gray-500 text-sm sm:text-base ">Approve/ Deny Request Slips.</p>
+            <p className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[#0172bd] mb-2">Request Slip Processing</p>
+            <p className="text-gray-500 text-sm sm:text-base">Approve/ Deny Request Slips.</p>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-2 w-full lg:w-auto">
             {/* History button */}
             {authData?.user?.access?.requestSlip && (
               <button
-                className="flex items-center justify-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-full hover:bg-gray-700 transition w-full sm:w-auto"
+                className="flex items-center justify-center gap-2 bg-[#0172bd] text-[#fef201] px-4 py-2 rounded-lg hover:bg-blue-500 transition w-full sm:w-auto shadow-lg font-semibold"
                 onClick={() => navigate("/guidance/request-slip-history")}
               >
                 History
-                <img src={historyW} alt="history" className="w-5 h-5 object-cover rounded" />
+                <Clock className="w-5 h-5 object-cover rounded" />
               </button>
             )}
 
@@ -401,45 +423,37 @@ function RequestSlip() {
                 placeholder="Name/ ID"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full border border-gray-300 rounded-full px-4 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-gray-300"
+                className="w-full border border-gray-300 rounded-lg px-4 py-2 pr-10 focus:outline-none focus:ring-1 focus:ring-[#0172bd]"
               />
               <span className="absolute right-3 top-3 text-gray-400">
-                <svg width="16" height="16" fill="none" viewBox="0 0 24 24">
-                  <path
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M21 21l-4.35-4.35M11 19a8 8 0 1 1 0-16 8 8 0 0 1 0 16z"
-                  />
-                </svg>
+                <Search className="w-4 h-4 object-cover rounded "/>
               </span>
             </div>
           </div>
         </div>
 
         {/* Table */}
-        <div className="bg-white rounded-lg shadow-md overflow-x-auto custom-scrollbar h-[70vh]">
+        <div className="bg-white rounded-lg shadow-md overflow-x-auto custom-scrollbar h-[70vh] relative pb-12">
           <table className="w-full text-left">
             <thead>
-              <tr className="bg-white text-gray-700">
-                <th className="sticky top-0 z-10 bg-gray-300 px-2 sm:px-3 lg:px-4 py-2 sm:py-3 font-bold">Name</th>
-                <th className="sticky top-0 z-10 px-0 py-0 text-[0px] bg-gray-300 w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">Student No.</th>
-                <th className="sticky top-0 z-10 bg-gray-300 px-2 sm:px-3 lg:px-4 py-2 sm:py-3 font-bold">Type of Slip</th>
-                <th className="sticky top-0 z-10 px-0 py-0 text-[0px] bg-gray-300 w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">Date</th>
-                <th className="sticky top-0 z-10 px-0 py-0 text-[0px] bg-gray-300 w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">Status</th>
-                <th className="sticky top-0 z-10 bg-gray-300 px-2 sm:px-3 lg:px-4 py-2 sm:py-3 font-bold">Reason</th>
+              <tr className=" text-[#fef201]">
+                <th className="sticky bg-[#0172bd] top-0 z-10 px-2 sm:px-3 lg:px-4 py-2 sm:py-3 font-bold">Name</th>
+                <th className="sticky bg-[#0172bd] top-0 z-10 px-0 py-0 text-[0px]  w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">Student No.</th>
+                <th className="sticky bg-[#0172bd] top-0 z-10 px-2 sm:px-3 lg:px-4 py-2 sm:py-3 font-bold">Type of Slip</th>
+                <th className="sticky bg-[#0172bd] top-0 z-10 px-0 py-0 text-[0px]  w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">Date</th>
+                <th className="sticky bg-[#0172bd] top-0 z-10 px-0 py-0 text-[0px]  w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">Status</th>
+                <th className="sticky bg-[#0172bd] top-0 z-10 px-2 sm:px-3 lg:px-4 py-2 sm:py-3 font-bold">Reason</th>
 
                 {/* Shrunk columns for small/tablet */}
-                <th className="sticky top-0 z-10 px-0 py-0 text-[0px] bg-gray-300 w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">Attachments</th>
+                <th className="sticky bg-[#0172bd] top-0 z-10 px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">Attachments</th>
 
-                <th className="sticky top-0 z-10 bg-gray-300 px-2 sm:px-3 lg:px-4 py-2 sm:py-3"></th>
+                <th className="sticky bg-[#0172bd] top-0 z-10 px-2 sm:px-3 lg:px-4 py-2 sm:py-3"></th>
               </tr>
             </thead>
             <tbody>
-              {filteredSlipData.map((slips) => (
+              {pagedSlipData.map((slips) => (
                 <tr key={slips._id} className="hover:bg-gray-100 transition">
-                  <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 lg:whitespace-nowrap">{slips.name}</td>
+                  <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 lg:whitespace-nowrap font-bold w-1/4">{slips.name}</td>
                   <td className="px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">{slips.sid}</td>
                   <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 lg:whitespace-nowrap">{slips.typeOfSlip}</td>
                   <td className="px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">
@@ -455,17 +469,19 @@ function RequestSlip() {
                   >
                     {slips.status}
                   </td>
-                  <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 whitespace-normal break-words max-w-[150px]">{slips.reason}</td>
+                  <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 break-words max-w-[120px] truncate align-middle" title={slips.reason}>
+                    <span className="block overflow-hidden text-ellipsis whitespace-nowrap max-w-[140px]">
+                      {slips.reason}
+                    </span>
+                  </td>
 
                   {/* Shrunk columns */}
-
-
                   <td className="px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">{slips.attachmentCount}</td>
 
                   {authData?.user?.access?.requestSlip && (
                     <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3">
                       <button
-                        className="bg-gray-900 text-white px-3 sm:px-4 py-1 rounded-full hover:bg-gray-700 transition w-full sm:w-auto"
+                        className="bg-[#0172bd] text-[#fef201] font-bold px-3 sm:px-4 py-1 rounded-lg hover:bg-blue-500 transition w-full sm:w-auto"
                         onClick={() => openSlip(slips._id)}
                       >
                         Open
@@ -476,6 +492,35 @@ function RequestSlip() {
               ))}
             </tbody>
           </table>
+
+          {/* Pagination controls - OUTSIDE the scrollable table */}
+          <div className="w-full flex justify-center lg:justify-end items-center mt-2 pr-0 lg:pr-2">
+            <nav className="flex items-center space-x-1">
+              <button
+                className="px-2 py-1 rounded hover:bg-gray-200 text-[#0172bd] font-bold"
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+              >
+                <ChevronLeft className="w-5 h-5 object-cover rounded" />
+              </button>
+              {Array.from({ length: totalPages }, (_, i) => (
+                <button
+                  key={i + 1}
+                  className={`px-2 py-1 rounded ${currentPage === i + 1 ? 'bg-[#0172bd] text-[#fef201]' : 'hover:bg-gray-200 text-[#0172bd]'}`}
+                  onClick={() => setCurrentPage(i + 1)}
+                >
+                  {i + 1}
+                </button>
+              ))}
+              <button
+                className="px-2 py-1 rounded hover:bg-gray-200 text-[#0172bd] font-bold"
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+              >
+                <ChevronRight className="w-5 h-5 object-cover rounded" />
+              </button>
+            </nav>
+          </div>
         </div>
       </div>
 

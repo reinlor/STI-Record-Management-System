@@ -1,11 +1,11 @@
 function Leaderboard({ leaderboardData }) {
     return (
-        <div className="col-span-1 md:col-span-1 row-span-1 bg-white rounded-lg border border-gray-200 p-4 shadow-sm flex flex-col min-h-[400px]">
-            <h2 className="text-lg font-semibold mb-2">Leaderboards</h2>
+        <div className="col-span-1 md:col-span-1 row-span-1 bg-white rounded-lg border border-gray-300 p-4 shadow-sm flex flex-col min-h-[400px]">
+            <h2 className="text-lg font-bold mb-2 text-[#0172bd]">Leaderboards</h2>
             <div className="flex-1 overflow-auto">
                 <table className="w-full text-sm">
                     <thead>
-                        <tr className="text-xs text-gray-500 border-b">
+                        <tr className="text-xs text-[#0172bd] border-b border-[#757575]">
                             <th className="text-left py-1">NAME</th>
                             <th className="text-center py-1">NO. OF VIOLATIONS</th>
                             <th className="text-right py-1">YEAR/SECTION</th>

@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { X, Check } from 'lucide-react';
+import { X, Check, Calendar } from 'lucide-react';
 import upload from '../../../../assets/upload.png';
 import closeB from '../../../../assets/closeblack.png';
 import axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify'; // Import ToastContainer and toast
 import 'react-toastify/dist/ReactToastify.css'; // Import toast CSS
 import DatePicker from 'react-datepicker';
+
 
 const AddStudentModal = ({ visible, onClose, newStudentForm, handleNewStudentFormChange, clearForm }) => {
 
@@ -94,10 +95,10 @@ const AddStudentModal = ({ visible, onClose, newStudentForm, handleNewStudentFor
                 pauseOnHover
             />
             <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto custom-scrollbar">
-                <div className="flex justify-between items-center border-b pb-3 mb-4">
-                    <h3 className="text-2xl font-bold text-gray-800">Fill up Basic Information</h3>
+                <div className="flex justify-between items-center border-b border-[#0172bd] pb-3 mb-4">
+                    <h3 className="text-2xl font-bold text-[#0172bd] ">Fill up Basic Information</h3>
                     <button className="p-2 rounded-lg hover:bg-gray-200 cursor-pointer" onClick={onClose}>
-                        <img src={closeB} alt="closeIcon" className="w-5 h-5 object-cover" />
+                        <X className="w-10 h-10 text-[#0172bd]" />
                     </button>
                 </div>
 
@@ -117,12 +118,12 @@ const AddStudentModal = ({ visible, onClose, newStudentForm, handleNewStudentFor
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700">Year Level:</label>
+                            <label className="block text-sm font-medium text-gray-700 ">Year Level:</label>
                             <select
                                 name="gradeYearLevel"
                                 value={newStudentForm.gradeYearLevel}
                                 onChange={handleNewStudentFormChange}
-                                className="border rounded-md px-3 py-2 w-full"
+                                className="border rounded-md px-3 py-2 w-full focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                             >
                                 <option value="">Select Year Level</option>
                                 {yearLevelOptions.map((level) => (
@@ -133,14 +134,14 @@ const AddStudentModal = ({ visible, onClose, newStudentForm, handleNewStudentFor
                             </select>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700">
+                            <label className="block text-sm font-medium text-gray-700   ">
                                 {newStudentForm.gradeYearLevel === "Tertiary" ? "Program" : "Strand"}:
                             </label>
                             <select
                                 name="programStrand"
                                 value={newStudentForm.programStrand}
                                 onChange={handleNewStudentFormChange}
-                                className="border rounded-md px-3 py-2 w-full"
+                                className="border rounded-md px-3 py-2 w-full focus:outline-none focus:ring-blue-500 focus:border-blue-500 "
                                 disabled={!newStudentForm.gradeYearLevel}
                             >
                                 <option value="">
@@ -179,11 +180,8 @@ const AddStudentModal = ({ visible, onClose, newStudentForm, handleNewStudentFor
                                     onClick={() => document.getElementById('birthDate').showPicker && document.getElementById('birthDate').showPicker()}
                                     tabIndex={-1}
                                 >
-                                    {/* Calendar SVG */}
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <rect x="4" y="4" width="18" height="18" rx="2" fill="none" stroke="currentColor" strokeWidth="2" />
-                                        <path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" strokeWidth="2" />
-                                    </svg>
+                                    {/* Calendar */}
+                                    <Calendar className="w-5 h-5 mt-6" />
                                 </span>
                             </div>
                         </div>
@@ -200,7 +198,8 @@ const AddStudentModal = ({ visible, onClose, newStudentForm, handleNewStudentFor
                             <label className="block text-sm font-medium text-gray-700 mb-1">Gender:</label>
                             <div className="flex space-x-4">
                                 <label className="inline-flex items-center">
-                                    <input type="radio" name="gender" value="Male" checked={newStudentForm.gender === 'Male'} onChange={handleNewStudentFormChange} className="form-radio text-blue-600 h-4 w-4" />
+                                    <input type="radio" name="gender" value="Male" checked={newStudentForm.gender === 'Male'} onChange={handleNewStudentFormChange} 
+                                    className="form-radio text-blue-600 h-4 w-4" />
                                     <span className="ml-2 text-gray-700">Male</span>
                                 </label>
                                 <label className="inline-flex items-center">
@@ -251,11 +250,11 @@ const AddStudentModal = ({ visible, onClose, newStudentForm, handleNewStudentFor
                 </form>
 
                 <div className="mt-6 flex justify-end space-x-4">
-                    <button className="bg-red-500 hover:bg-red-400 text-white font-bold py-2 px-4 rounded-lg flex items-center transition duration-150 ease-in-out cursor-pointer" onClick={onClose}>
+                    <button className="bg-[#dc3545] hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg flex items-center transition duration-150 ease-in-out cursor-pointer" onClick={onClose}>
                         Cancel
                         <X className="w-8 h-8 ml-2" />
                     </button>
-                    <button className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg flex items-center transition duration-150 ease-in-out cursor-pointer" onClick={handleAddStudent}>
+                    <button className="bg-[#28a745] hover:bg-green-500 text-white font-bold py-2 px-4 rounded-lg flex items-center transition duration-150 ease-in-out cursor-pointer" onClick={handleAddStudent}>
                         Save
                         <Check className="w-8 h-8 ml-2" />
                     </button>

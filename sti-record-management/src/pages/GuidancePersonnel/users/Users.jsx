@@ -1,7 +1,6 @@
 // ...existing code...
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Search, Plus, X, Check, Archive } from 'lucide-react';
 import Modal from './components/Modal';
 import AddUserModal from './components/AddUserModal';
 import EditUserModal from './components/EditUserModal';
@@ -10,6 +9,15 @@ import { accessPermissions, initialNewUserAccess, serverAccessPresets, serverToU
 
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+
+import 
+    { Search, 
+        Plus, 
+        X, 
+        Check, 
+        Archive, 
+        Users as User  } from 'lucide-react';
+
 
 // ...existing code...
 export default function Users() {
@@ -294,7 +302,7 @@ export default function Users() {
                 transition: all 0.2s ease-in-out;
                 box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
             }
-            .toggle-checkbox:checked { background-color: #0A1220; }
+            .toggle-checkbox:checked { background-color: #fef201; }
             .toggle-checkbox::before {
                 content: '';
                 position: absolute;
@@ -323,17 +331,20 @@ export default function Users() {
                 pauseOnHover
             />
 
-            <div className="flex flex-col h-full bg-gray-100 p-2 rounded-xl shadow-lg overflow-hidden">
+            <div className="flex flex-col h-full bg-gray-100 p-2 lg:p-3 rounded-xl shadow-lg overflow-hidden border border-gray-200">
                 <div className="bg-white shadow-md p-1 lg:p-4 rounded-lg flex flex-col" style={{ height: "90vh" }}>
                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-2">
                         <div className="flex flex-col space-y-1">
-                            <h2 className="text-2xl sm:text-4xl font-bold text-gray-800">User List</h2>
+                            <div className="flex items-center space-x-2"> 
+                                <User className="w-6 h-6 sm:w-8 sm:h-8 text-[#0172bd] mt-1" />
+                                <h2 className="text-2xl sm:text-4xl font-bold text-[#0172bd]">User List</h2>
+                            </div>
                             <p className="text-xs sm:text-base text-gray-500">Create new users, customize user permission, and remove users</p>
                         </div>
                         <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 w-full sm:w-auto">
 
                             <button
-                                className="flex-1 flex items-center justify-center space-x-2 bg-[#0A1220] text-white font-semibold py-2 px-2 rounded-lg shadow-md hover:bg-gray-900 transition duration-150 ease-in-out text-xs sm:text-base"
+                                className="flex-1 flex items-center justify-center space-x-2 bg-[#0172bd] text-[#fef201] font-semibold py-2 px-2 rounded-lg shadow-md hover:bg-blue-500 transition duration-150 ease-in-out text-xs sm:text-base"
                                 onClick={() => setShowAddUserModal(true)}
                             >
                                 <span>Add User</span>
@@ -341,7 +352,7 @@ export default function Users() {
                             </button>
                             <button
                                 className={`flex-1 flex items-center justify-center space-x-2 font-semibold py-2 px-2 rounded-lg shadow-md transition duration-150 ease-in-out text-xs sm:text-base
-                                    ${showArchived ? 'bg-green-600 text-white hover:bg-green-500' : 'bg-red-600 text-white hover:bg-red-500'}`}
+                                    ${showArchived ? 'bg-[#28a745] text-white hover:bg-green-500' : 'bg-[#dc3545] text-white hover:bg-red-600'}`}
                                 onClick={() => setShowArchived(!showArchived)}
                             >
                                 <span>{showArchived ? 'Show Active' : 'Show Archived'}</span>
@@ -355,7 +366,7 @@ export default function Users() {
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                 />
-                                <Search className="w-4 h-4 sm:w-5 sm:h-5 absolute right-3 top-3 text-gray-400" />
+                                <Search className="w-4 h-4 sm:w-5 sm:h-5 absolute right-3 top-2.5 text-gray-400" />
                             </div>
                         </div>
                     </div>

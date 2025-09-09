@@ -117,12 +117,12 @@ function ViolationFrequency({ allData }) {
     }, [lineTimePeriod])
 
     return (
-        <div className="col-span-1 md:col-span-2 row-span-1 bg-white rounded-lg border border-gray-200 p-4 shadow-sm flex flex-col min-h-[400px]">
+        <div className="col-span-1 md:col-span-2 row-span-1 bg-white rounded-lg border border-gray-300 p-4 shadow-sm flex flex-col min-h-[400px]">
             <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-semibold">Violation Frequency</h2>
+                <h2 className="text-lg font-bold text-[#0172bd]">Violation Frequency</h2>
                 <div className="relative">
                     <select
-                        className="block appearance-none w-full bg-white border border-gray-300 hover:border-gray-500 px-4 py-2 pr-8 rounded-lg shadow leading-tight focus:outline-none focus:shadow-outline text-sm cursor-pointer"
+                        className="block appearance-none w-full bg-white text-[#0172bd] border border-gray-300 hover:border-gray-500 px-4 py-2 pr-8 rounded-lg shadow leading-tight focus:outline-none focus:shadow-outline text-sm cursor-pointer"
                         value={lineTimePeriod}
                         onChange={handleLineTimePeriodChange}
                     >

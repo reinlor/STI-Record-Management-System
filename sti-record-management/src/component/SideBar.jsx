@@ -1,8 +1,20 @@
 import { useNavigate } from "react-router-dom";
-import styles from './components-css/SideBar.module.css';
 import { AuthContext } from '../AuthProvider.jsx';
 import { useContext, useState } from 'react';
 import React from 'react';
+
+// Lucide icons
+import {
+  LayoutDashboard,
+  Users,
+  FileText,
+  ClipboardList,
+  RefreshCcw,
+  HeartPulse,
+  FileEdit,
+  FolderKanban,
+  User,
+} from "lucide-react";
 
 export default function Sidebar() {
     const { authData = {}, logout } = useContext(AuthContext);
@@ -11,6 +23,19 @@ export default function Sidebar() {
     let menuPages = [];
     let panelName = '';
     const access = authData?.user?.access ?? null;
+
+    // Icon mapping
+    const iconMap = {
+        "Dashboard": <LayoutDashboard className="w-5 h-5 mr-3" />,
+        "Student Records": <Users className="w-5 h-5 mr-3" />,
+        "Student Cases": <FileText className="w-5 h-5 mr-3" />,
+        "Users": <User className="w-5 h-5 mr-3" />,
+        "Request Slips": <ClipboardList className="w-5 h-5 mr-3" />,
+        "Referral Forms": <FileEdit className="w-5 h-5 mr-3" />,
+        "Back Up and Restore": <RefreshCcw className="w-5 h-5 mr-3" />,
+        "Wellness Assessment": <HeartPulse className="w-5 h-5 mr-3" />,
+        "Content Managemet": <FolderKanban className="w-5 h-5 mr-3" />,
+    };
 
     if (!access) {
         menuPages = [
@@ -49,7 +74,9 @@ export default function Sidebar() {
         <>
             {/* Toggle button for mobile/tablet */}
             <button
-                className={styles.toggleBtn}
+                className={`fixed bottom-4 left-4 z-[100] rounded-md px-3 py-2 text-lg cursor-pointer shadow-md transition
+                    ${isOpen ? 'bg-white' : 'bg-white/30'}
+                    md:hidden`}
                 onClick={() => setIsOpen(!isOpen)}
                 aria-label={isOpen ? "Close sidebar" : "Open sidebar"}
             >
@@ -68,19 +95,26 @@ export default function Sidebar() {
                     </svg>
                 )}
             </button>
-            <aside className={`${styles.sideBar} ${isOpen ? styles.open : styles.closed}`}>
-                <div className={styles.sideBarHeader}>{panelName} Panel</div>
-                <ul className={styles.menu}>
+            <aside className={`
+                fixed left-0 top-0 h-screen w-[220px] bg-[#1a1a2e] z-50 transition-transform duration-300 shadow-md text-white flex flex-col ease-in-out
+                ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+                md:static md:h-auto md:shadow-none md:translate-x-0
+            `}>
+                <div className="font-bold text-[1.1rem] py-[21px] px-5 border-b border-[#757575] bg-[#1a1a2e]">
+                    {panelName} Panel
+                </div>
+                <ul className="list-none p-0 m-0 flex-1">
                     {menuPages.map((page) => (
                         <li
                             key={page.path}
-                            className={styles.menuItem}
+                            className="px-5 py-[14px] cursor-pointer text-white transition bg-none border-none text-[1rem] hover:bg-yellow-400 flex items-center"
                             onClick={() => {
                                 navigate(page.path);
                                 if (window.innerWidth < 768) setIsOpen(false); // auto-close on mobile
                             }}
                         >
-                            {page.label}
+                            {iconMap[page.label]}
+                            <span>{page.label}</span>
                         </li>
                     ))}
                 </ul>
