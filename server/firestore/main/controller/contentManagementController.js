@@ -1,4 +1,6 @@
 const { Timestamp } = require("firebase-admin/firestore");
+const cloudinary = require("../../../config/cloudinary.js");
+const streamifier = require("streamifier");
 
 const {
   getContentManagementCollection,
@@ -63,31 +65,32 @@ const addAnnouncement = async (req, res) => {
 
 // Controller function for getting announcements
 const getAnnouncement = async (req, res) => {
-    try {
-        const announcementDocRef = getContentManagementCollection().doc("announcement");
-        const docSnapshot = await announcementDocRef.get();
+  try {
+    const announcementDocRef =
+      getContentManagementCollection().doc("announcement");
+    const docSnapshot = await announcementDocRef.get();
 
-        if (!docSnapshot.exists){
-            return res.status(404).json({ error: "No announcements found." });
-        }
-
-        const messages = docSnapshot.data().messages || [];
-
-        const cutOffDate = new Date();
-        cutOffDate.setDate(cutOffDate.getDate() - 30); 
-
-        const recentAnnouncements = messages.filter(announcement => {
-            if (!announcement.timeCreated) return false;
-            const announcementDate = announcement.timeCreated.toDate();
-            return announcementDate >= cutOffDate;
-        });
-
-        res.status(200).json( {announcements: recentAnnouncements });
-    } catch (error) {
-        console.error("Error fetching announcements:", error);
-        res.status(500).json({ error: "Failed to fetch announcements." });
+    if (!docSnapshot.exists) {
+      return res.status(404).json({ error: "No announcements found." });
     }
-}
+
+    const messages = docSnapshot.data().messages || [];
+
+    const cutOffDate = new Date();
+    cutOffDate.setDate(cutOffDate.getDate() - 30);
+
+    const recentAnnouncements = messages.filter((announcement) => {
+      if (!announcement.timeCreated) return false;
+      const announcementDate = announcement.timeCreated.toDate();
+      return announcementDate >= cutOffDate;
+    });
+
+    res.status(200).json({ announcements: recentAnnouncements });
+  } catch (error) {
+    console.error("Error fetching announcements:", error);
+    res.status(500).json({ error: "Failed to fetch announcements." });
+  }
+};
 
 // Controller function for adding program
 const addProgram = async (req, res) => {
@@ -127,21 +130,21 @@ const addProgram = async (req, res) => {
 
 // Controller function for getting programs
 const getProgram = async (req, res) => {
-    try {
-        const programDocRef = getContentManagementCollection().doc("programStrand");
-        const docSnapshot = await programDocRef.get();
-    
-        if (!docSnapshot.exists) {
-        return res.status(404).json({ error: "No programs found." });
-        }
-    
-        const programData = docSnapshot.data().program || [];
-        res.status(200).json({ programs: programData });
-    } catch (error) {
-        console.error("Error fetching programs:", error);
-        res.status(500).json({ error: "Failed to fetch programs." });
+  try {
+    const programDocRef = getContentManagementCollection().doc("programStrand");
+    const docSnapshot = await programDocRef.get();
+
+    if (!docSnapshot.exists) {
+      return res.status(404).json({ error: "No programs found." });
     }
-}
+
+    const programData = docSnapshot.data().program || [];
+    res.status(200).json({ programs: programData });
+  } catch (error) {
+    console.error("Error fetching programs:", error);
+    res.status(500).json({ error: "Failed to fetch programs." });
+  }
+};
 
 // Controller function for adding strand
 const addStrand = async (req, res) => {
@@ -181,21 +184,21 @@ const addStrand = async (req, res) => {
 
 // Controller function for getting strands
 const getStrand = async (req, res) => {
-    try {
-        const strandDocRef = getContentManagementCollection().doc("programStrand");
-        const docSnapshot = await strandDocRef.get();
-    
-        if (!docSnapshot.exists) {
-        return res.status(404).json({ error: "No strands found." });
-        }
-    
-        const strandData = docSnapshot.data().strand || [];
-        res.status(200).json({ strands: strandData });
-    } catch (error) {
-        console.error("Error fetching strands:", error);
-        res.status(500).json({ error: "Failed to fetch strands." });
+  try {
+    const strandDocRef = getContentManagementCollection().doc("programStrand");
+    const docSnapshot = await strandDocRef.get();
+
+    if (!docSnapshot.exists) {
+      return res.status(404).json({ error: "No strands found." });
     }
-}
+
+    const strandData = docSnapshot.data().strand || [];
+    res.status(200).json({ strands: strandData });
+  } catch (error) {
+    console.error("Error fetching strands:", error);
+    res.status(500).json({ error: "Failed to fetch strands." });
+  }
+};
 
 // Controller function for changing wellness link
 const changeWellnessLink = async (req, res) => {
@@ -219,20 +222,100 @@ const changeWellnessLink = async (req, res) => {
 
 // Controller function for getting wellness link
 const getWellnessLink = async (req, res) => {
-    try {
-        const wellnessDocRef = getContentManagementCollection().doc("wellness");
-        const docSnapshot = await wellnessDocRef.get();
+  try {
+    const wellnessDocRef = getContentManagementCollection().doc("wellness");
+    const docSnapshot = await wellnessDocRef.get();
 
-        if (!docSnapshot.exists){
-            return res.status(404).json({ error: "No wellness link found." });
+    if (!docSnapshot.exists) {
+      return res.status(404).json({ error: "No wellness link found." });
+    }
+
+    const wellnessLink = docSnapshot.data().link || "N/A";
+    res.status(200).json({ link: wellnessLink });
+  } catch (error) {
+    console.error("Error fetching wellness link:", error);
+    res.status(500).json({ error: "Failed to fetch wellness link." });
+  }
+};
+
+const addPDF = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: "No file uploaded." });
+    }
+
+    if (req.file.mimetype !== "application/pdf") {
+      return res.status(400).json({ error: "Only PDF files are allowed." });
+    }
+
+    const studentHandbookDocRef = getContentManagementCollection().doc("studentHandbook");
+
+    const uploadStream = cloudinary.uploader.upload_stream(
+      {
+        resource_type: "raw",
+        folder: "studentHandbook",
+        public_id: "studentHandbook", // Always overwrite the same doc
+        overwrite: true,
+        format: "pdf",
+      },
+      async (error, result) => {
+        if (error) {
+          console.error("Cloudinary upload failed:", error);
+          return res.status(500).json({
+            error: "Cloudinary upload failed",
+            details: error.message,
+          });
         }
 
-        const wellnessLink = docSnapshot.data().link || "N/A";
-        res.status(200).json({ link: wellnessLink });
-    } catch (error) {
-        console.error("Error fetching wellness link:", error);
-        res.status(500).json({ error: "Failed to fetch wellness link." });
-    }
-}
+        await studentHandbookDocRef.set(
+          {
+            link: result.secure_url,
+            public_id: result.public_id,
+            uploadedAt: new Date().toISOString(),
+          },
+          { merge: true }
+        );
 
-module.exports = { addAnnouncement, addProgram, addStrand, changeWellnessLink, getProgram, getStrand, getWellnessLink, getAnnouncement };
+        res.json({
+          message: "PDF uploaded successfully"
+        });
+      }
+    );
+
+    streamifier.createReadStream(req.file.buffer).pipe(uploadStream);
+  } catch (error) {
+    console.error("Error updating student handbook link:", error);
+    res.status(500).json({ error: "Failed to update student handbook link." });
+  }
+};
+
+const getPDF = async (req, res) => {
+  try {
+    const studentHandbookDocRef = getContentManagementCollection().doc("studentHandbook");
+    const docSnapshot = await studentHandbookDocRef.get();
+
+    if (!docSnapshot.exists) {
+      return res.status(404).json({ error: "PDF not found" });
+    }
+
+    const { link } = docSnapshot.data();
+
+    res.status(200).json({ link });
+  } catch (error) {
+    console.error("Error retrieving PDF:", error);
+    res.status(500).json({ error: "Failed to retrieve PDF." });
+  }
+};
+
+module.exports = {
+  addAnnouncement,
+  addProgram,
+  addStrand,
+  changeWellnessLink,
+  getProgram,
+  getStrand,
+  getWellnessLink,
+  getAnnouncement,
+  addPDF,
+  getPDF,
+};

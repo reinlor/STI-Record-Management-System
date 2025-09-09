@@ -1,4 +1,5 @@
 const express = require("express");
+const multer = require("multer");
 
 const {
     addAnnouncement,
@@ -8,8 +9,12 @@ const {
     getProgram,
     getStrand,
     getWellnessLink,
-    getAnnouncement
+    getAnnouncement,
+    addPDF,
+    getPDF
 } = require("../controller/contentManagementController.js");
+
+const upload = multer({ storage: multer.memoryStorage() });
 
 const router = express.Router();
 
@@ -17,10 +22,12 @@ router.post("/announcement/add", addAnnouncement);
 router.post("/program/add", addProgram);
 router.post("/strand/add", addStrand);
 router.put("/wellness/change", changeWellnessLink);
+router.put("/studentHandbook/add", upload.single("file"), addPDF);
 
 router.get("/program/get", getProgram);
 router.get("/strand/get", getStrand);
 router.get("/wellness/get", getWellnessLink);
 router.get("/announcement/get", getAnnouncement);
+router.get("/studentHandbook/get", getPDF);
 
 module.exports = router;
