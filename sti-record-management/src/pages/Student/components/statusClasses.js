@@ -10,6 +10,7 @@ export const getStatusClasses = (status, variant = "table") => {
       return variant === "modal"
         ? "bg-yellow-400 text-yellow-900 border-yellow-500"
         : "bg-yellow-100 text-yellow-700 font-medium";
+    case "Denied":
     case "Rejected":
       return variant === "modal"
         ? "bg-red-100 text-red-700 border-red-200"
