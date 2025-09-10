@@ -10,8 +10,10 @@ const {
     getStrand,
     getWellnessLink,
     getAnnouncement,
-    addPDF,
-    getPDF
+    addCollegeStudentHandbook,
+    getCollegeStudentHandbook,
+    addShsStudentHandbook,
+    getShsStudentHandbook
 } = require("../controller/contentManagementController.js");
 
 const upload = multer({ storage: multer.memoryStorage() });
@@ -22,12 +24,14 @@ router.post("/announcement/add", addAnnouncement);
 router.post("/program/add", addProgram);
 router.post("/strand/add", addStrand);
 router.put("/wellness/change", changeWellnessLink);
-router.put("/studentHandbook/add", upload.single("file"), addPDF);
+router.put("/studentHandbook/add", upload.single("file"), addCollegeStudentHandbook);
+router.put("/shsStudentHandbook/add", upload.single("file"), addShsStudentHandbook);
 
 router.get("/program/get", getProgram);
 router.get("/strand/get", getStrand);
 router.get("/wellness/get", getWellnessLink);
 router.get("/announcement/get", getAnnouncement);
-router.get("/studentHandbook/get", getPDF);
+router.get("/studentHandbook/get", getCollegeStudentHandbook);
+router.get("/shsStudentHandbook/get", getShsStudentHandbook);
 
 module.exports = router;

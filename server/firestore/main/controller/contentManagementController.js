@@ -238,7 +238,8 @@ const getWellnessLink = async (req, res) => {
   }
 };
 
-const addPDF = async (req, res) => {
+// Controller function for adding college student handbook PDF
+const addCollegeStudentHandbook = async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: "No file uploaded." });
@@ -248,13 +249,13 @@ const addPDF = async (req, res) => {
       return res.status(400).json({ error: "Only PDF files are allowed." });
     }
 
-    const studentHandbookDocRef = getContentManagementCollection().doc("studentHandbook");
+    const collegeStudentHandbookDocRef = getContentManagementCollection().doc("collegeStudentHandbook");
 
     const uploadStream = cloudinary.uploader.upload_stream(
       {
         resource_type: "raw",
         folder: "studentHandbook",
-        public_id: "studentHandbook", // Always overwrite the same doc
+        public_id: "collegeStudentHandbook", // Always overwrite the same doc
         overwrite: true,
         format: "pdf",
       },
@@ -267,7 +268,7 @@ const addPDF = async (req, res) => {
           });
         }
 
-        await studentHandbookDocRef.set(
+        await collegeStudentHandbookDocRef.set(
           {
             link: result.secure_url,
             public_id: result.public_id,
@@ -277,33 +278,105 @@ const addPDF = async (req, res) => {
         );
 
         res.json({
-          message: "PDF uploaded successfully"
+          message: "College Student Handbook uploaded successfully"
         });
       }
     );
 
     streamifier.createReadStream(req.file.buffer).pipe(uploadStream);
   } catch (error) {
-    console.error("Error updating student handbook link:", error);
-    res.status(500).json({ error: "Failed to update student handbook link." });
+    console.error("Error updating college student handbook link:", error);
+    res.status(500).json({ error: "Failed to update college student handbook link." });
   }
 };
 
-const getPDF = async (req, res) => {
+// Controller function for getting college student handbook PDF link
+const getCollegeStudentHandbook = async (req, res) => {
   try {
-    const studentHandbookDocRef = getContentManagementCollection().doc("studentHandbook");
-    const docSnapshot = await studentHandbookDocRef.get();
+    const collegeStudentHandbook = getContentManagementCollection().doc("collegeStudentHandbook");
+    const docSnapshot = await collegeStudentHandbook.get();
 
     if (!docSnapshot.exists) {
-      return res.status(404).json({ error: "PDF not found" });
+      return res.status(404).json({ error: "College Student Handbook not found" });
     }
 
     const { link } = docSnapshot.data();
 
     res.status(200).json({ link });
   } catch (error) {
-    console.error("Error retrieving PDF:", error);
-    res.status(500).json({ error: "Failed to retrieve PDF." });
+    console.error("Error retrieving college student handbook:", error);
+    res.status(500).json({ error: "Failed to retrieve college student handbook." });
+  }
+};
+
+// Controller function for adding SHS student handbook PDF
+const addShsStudentHandbook = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: "No file uploaded." });
+    }
+
+    if (req.file.mimetype !== "application/pdf") {
+      return res.status(400).json({ error: "Only PDF files are allowed." });
+    }
+
+    const shsStudentHandbookDocRef = getContentManagementCollection().doc("shsStudentHandbook");
+
+    const uploadStream = cloudinary.uploader.upload_stream(
+      {
+        resource_type: "raw",
+        folder: "studentHandbook",
+        public_id: "shsStudentHandbook", // Always overwrite the same doc
+        overwrite: true,
+        format: "pdf",
+      },
+      async (error, result) => {
+        if (error) {
+          console.error("Cloudinary upload failed:", error);
+          return res.status(500).json({
+            error: "Cloudinary upload failed",
+            details: error.message,
+          });
+        }
+
+        await shsStudentHandbookDocRef.set(
+          {
+            link: result.secure_url,
+            public_id: result.public_id,
+            uploadedAt: new Date().toISOString(),
+          },
+          { merge: true }
+        );
+
+        res.json({
+          message: "SHS Student Handbook uploaded successfully"
+        });
+      }
+    );
+
+    streamifier.createReadStream(req.file.buffer).pipe(uploadStream);
+  } catch (error) {
+    console.error("Error updating SHS student handbook link:", error);
+    res.status(500).json({ error: "Failed to update SHS student handbook link." });
+  }
+};
+
+// Controller function for getting SHS student handbook PDF link
+const getShsStudentHandbook = async (req, res) => {
+  try {
+    const shsStudentHandbook = getContentManagementCollection().doc("shsStudentHandbook");
+    const docSnapshot = await shsStudentHandbook.get();
+
+    if (!docSnapshot.exists) {
+      return res.status(404).json({ error: "SHS Student Handbook not found" });
+    }
+
+    const { link } = docSnapshot.data();
+
+    res.status(200).json({ link });
+  } catch (error) {
+    console.error("Error retrieving SHS student handbook:", error);
+    res.status(500).json({ error: "Failed to retrieve SHS student handbook." });
   }
 };
 
@@ -316,6 +389,8 @@ module.exports = {
   getStrand,
   getWellnessLink,
   getAnnouncement,
-  addPDF,
-  getPDF,
+  addCollegeStudentHandbook,
+  getCollegeStudentHandbook,
+  addShsStudentHandbook,
+  getShsStudentHandbook
 };
