@@ -110,7 +110,6 @@ function SubmitReferralForm({ teacher = {}, onCancel, onSuccess }) {
             counselingTypeCategory: referral.counselingTypeCategory,
             violation: referral.violation,
             actionRequired: 'awaiting for response',
-            levelOfPriority: referral.priorityLevel,
             actionTaken: referral.actionsBefore,
             reasonForReferral: referral.reasons,
             initialAction: 'awaiting for response',
@@ -280,9 +279,9 @@ function SubmitReferralForm({ teacher = {}, onCancel, onSuccess }) {
                             />
                         </div>
 
-                        {/* Student ID */}
+                        {/* Student Number */}
                         <div>
-                            <label className="block text-gray-700 font-medium mb-1">Student ID:</label>
+                            <label className="block text-gray-700 font-medium mb-1">Student Number:</label>
                             <input
                                 type="text"
                                 className="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-800 focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition-all duration-200"
@@ -407,21 +406,6 @@ function SubmitReferralForm({ teacher = {}, onCancel, onSuccess }) {
                         {/* Counseling Type/Category and Violation fields*/}
                         {handleCategoryDropDown()}
                         {handleViolationInput()}
-
-                        {/* Level of Priority */}
-                        <div>
-                            <label className="block text-gray-700 font-medium mb-1">Level of Priority:</label>
-                            <select
-                                className="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-800 focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition-all duration-200"
-                                value={referral.priorityLevel || ""}
-                                onChange={(e) => handleReferralForm(e, "priorityLevel")}
-                            >
-                                <option value="">Select Priority</option>
-                                <option className="text-red-600 font-semibold" value="High Priority">High Priority</option>
-                                <option className="text-yellow-600 font-semibold" value="Medium Priority">Medium Priority</option>
-                                <option className="text-green-600 font-semibold" value="Low Priority">Low Priority</option>
-                            </select>
-                        </div>
 
                         {/* Actions Taken Before Referral */}
                         <div>
