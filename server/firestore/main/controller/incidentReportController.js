@@ -5,7 +5,6 @@ const {
 } = require("../models/incidentReportModel");
 const { getChartDataCollection } = require("../models/chartDataModel");
 const cloudinary = require("../../../config/cloudinary.js");
-const fs = require("fs");
 
 // Incident Report Form Schema
 const incidentReportSchema = Joi.object({
@@ -107,7 +106,7 @@ const getAllIncident = async (req, res) => {
   }
 };
 
-// Controller function for retrieving incident by ID
+// Controller function for retrieving incident by student ID
 const getIncidentByID = async (req, res) => {
   try {
     const { sid } = req.params;
@@ -136,7 +135,7 @@ const getIncidentByID = async (req, res) => {
   }
 };
 
-// Controller function for updating incident by ID
+// Controller function for updating incident by document ID
 const updateIncident = async (req, res) => {
     try {
       const { _id } = req.params;
