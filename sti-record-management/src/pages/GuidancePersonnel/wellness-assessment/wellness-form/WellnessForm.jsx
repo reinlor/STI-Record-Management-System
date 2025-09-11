@@ -47,7 +47,7 @@ function WellnessForm() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 font-sans flex flex-col md:flex-row gap-6 p-6">
+        <div className="min-h-screen bg-white font-sans flex flex-col md:flex-row gap-6 p-2">
             {/* Left panel - Questions */}
             <div className="flex-1 md:w-2/3 bg-white rounded-2xl shadow-md p-6 overflow-y-auto">
                 <WellnessTableList data={wellnessForm} />

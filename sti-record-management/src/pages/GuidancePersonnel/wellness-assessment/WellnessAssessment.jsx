@@ -37,7 +37,7 @@ function WelnessAssessment() {
   // }
 
   return (
-    <div className="p-6 max-w-6xl mx-auto w-full">
+    <div className="p-6 max-w-420 mx-auto w-full">
       <h1 className="text-2xl font-bold mb-4">Wellness Assessment</h1>
 
       <div className="flex gap-2 mb-6">

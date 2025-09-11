@@ -212,7 +212,8 @@ function StudentRecords() {
                     updateData
                 );
 
-                // Update local state
+                console.log(updateData)
+
                 setStudents(prev =>
                     prev.map(student =>
                         (student.id === selectedStudentId || student.sid === selectedStudentId) ? res.data : student
@@ -417,7 +418,7 @@ function StudentRecords() {
 
                     {/* --- Student List --- */}
                     <div
-                        className={`h-full bg-white border shadow-lg flex flex-col rounded-lg transition-all duration-300 
+                        className={`h-full bg-white border border-gray-100 shadow-lg flex flex-col rounded-lg transition-all duration-300 
                     ${selectedStudentId ? 'w-0 lg:w-96' : 'w-full lg:w-96'}`}
                     >
                         {/* Only show content if not collapsed */}
@@ -434,7 +435,7 @@ function StudentRecords() {
                                 {/* Archive/Enrolled */}
                                     <div className="flex justify-around bg-[#f3f4f6] p-1 rounded-lg mb-2">
                                         <button className={`flex-1 flex items-center justify-center px-4 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out cursor-pointer hover:bg-[#003d54] 
-                                        ${activeTab === 'Archived' ? 'bg-[#0172bd] text-[#fef201] shadow-sm hover:bg-blue-500' : 'text-black hover:bg-gray-200'}`}
+                                        ${activeTab === 'Archived' ? 'bg-[#0172bd] text-[#fef201] shadow-sm hover:bg-blue-900' : 'text-black hover:bg-gray-200'}`}
                                             onClick={() => setActiveTab('Archived')}>
                                             <FileArchive className="inline-block w-5 h-5 mr-2" />
                                             Archive

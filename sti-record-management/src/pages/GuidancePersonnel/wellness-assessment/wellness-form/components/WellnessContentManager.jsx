@@ -67,7 +67,7 @@ function WellnessContentManager({ data, theme }) {
             const response = await axios.post("/exam/add", requestBody);
             console.log("Question added successfully:", response.data);
             alert("Question added successfully!");
-            // Reset form fields
+            
             setQuestion("");
             setSelectedCategory("");
             setOtherCategory("");
@@ -165,6 +165,12 @@ function WellnessContentManager({ data, theme }) {
                 {/* Themes section */}
                 <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
                     <h2 className="text-lg font-bold mb-4 text-indigo-700">🎨 Existing Themes</h2>
+                    <div>
+                        <h2>Create new theme</h2>
+                        <label>Name</label>
+                        <input placeholder="Enter a theme name"/>
+
+                    </div>
                     {displayExistingTheme()}
                 </div>
             </div>

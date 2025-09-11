@@ -49,7 +49,7 @@ const absentSlipSchema = Joi.object({
   section: Joi.string().required(),
   typeOfSlip: Joi.string().valid("Absent Slip").required(),
   email: Joi.string().email().required(),
-  reason: Joi.string().required(),
+  reason: Joi.string().optional(),
   excuseLetterUrl: Joi.string().required(),
   medicalCertificateUrl: Joi.string().required(),
   guardianValidIDUrl: Joi.string().required(),
