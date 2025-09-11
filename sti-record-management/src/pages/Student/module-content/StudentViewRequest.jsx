@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState, useContext } from "react";
+import React, { useEffect, useMemo, useState, useContext, useRef } from "react";
 import axios from "axios";
 import ViewRequestModal from "./ViewRequestModal";
 import { getStatusClasses } from "../components/statusClasses";
@@ -24,6 +24,26 @@ export default function StudentViewRequest() {
     customEnd: "",
   });
   const [sortOption, setSortOption] = useState("Newest First");
+
+  // REF for the status dropdown to detect outside clicks
+  const dropdownRef = useRef(null);
+
+  // Effect to handle clicks outside the status dropdown
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowStatusDropdown(false);
+      }
+    }
+    // Add the listener when the dropdown is open
+    if (showStatusDropdown) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    // Clean up the event listener
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showStatusDropdown]);
 
   // fetch slips
   useEffect(() => {
@@ -232,12 +252,12 @@ export default function StudentViewRequest() {
               >
                 <option value="All">All Forms</option>
                 <option value="Absent Slip">Absent Slip</option>
-                <option value="Incident Report Form">Incident Report Form</option>
+                <option value="Incident Report">Incident Report</option>
               </select>
             </div>
 
             {/* Status multi-select */}
-            <div className="relative flex-grow">
+            <div ref={dropdownRef} className="relative flex-grow">
               <label htmlFor="status-select" className="block text-xs font-medium text-gray-500 mb-1">Status</label>
               <button
                 id="status-select"

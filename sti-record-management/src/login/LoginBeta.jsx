@@ -15,11 +15,10 @@ function LoginBeta() {
     const navigate = useNavigate();
 
     const [showPassword, setShowPassword] = useState(false);
-    const [isForgotPassword, setIsForgotPassword] = useState(false); // New state to toggle views between login and forgot password
+    const [isForgotPassword, setIsForgotPassword] = useState(false);
 
     const { login } = useContext(AuthContext);
 
-    // Existing handleLogin function...
     const handleLogin = async (e) => {
         e.preventDefault();
         setErrorMsg("");
@@ -78,15 +77,15 @@ function LoginBeta() {
         }
     };
 
-    // NOTE: New function to handle forgot password ---
     const handleForgotPassword = async (e) => {
         e.preventDefault();
         setLoading(true);
         setErrorMsg("");
-        
+
         try {
             const resetResponse = await axios.post(`/user/reset-password`, {
-                email: schoolId});
+                email: schoolId
+            });
 
             const newEmailMessage = {
                 email: schoolId,
@@ -94,11 +93,11 @@ function LoginBeta() {
             }
 
             await axios.post(`/email/sendResetPassword`, newEmailMessage);
-            
+
             setLoading(false);
             toast.success("Reset link sent to your email!");
-            setIsForgotPassword(false); // Switch back to login view
-            setSchoolId(""); // Clear the email field
+            setIsForgotPassword(false);
+            setSchoolId("");
         } catch (error) {
             setLoading(false);
             console.error("Password Reset Error:", error);
@@ -111,41 +110,39 @@ function LoginBeta() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-100 font-sans">
-            <div className="flex w-[700px] h-[450px] rounded-3xl shadow-3xl bg-white overflow-hidden">
-                <div className="w-1/2 bg-[#0172B9] flex items-center justify-center p-8">
-                    <div className="text-white text-center">
-                        <h2 className="text-4xl font-extrabold mb-4">Welcome</h2>
-                        <p className="text-gray-100 font-light text-sm">
+        <div className="min-h-screen flex items-center justify-center bg-gray-100 font-sans p-4 md:p-8">
+            <div className="flex flex-col md:flex-row w-full max-w-5xl rounded-3xl shadow-3xl bg-white overflow-hidden">
+                <div className="md:w-1/2 w-full bg-[#0172B9] flex items-center justify-center p-8 md:p-12 text-white">
+                    <div className="text-center">
+                        <h2 className="text-4xl md:text-5xl font-extrabold mb-4">STI GORMS</h2>
+                        <p className="font-light text-base md:text-lg opacity-90">
                             Sign in to access your dashboard and manage your account.
                         </p>
                     </div>
                 </div>
-                <div className="w-1/2 flex flex-col justify-center items-center px-12 bg-white">
-                    <h2 className="text-3xl font-bold mb-8 text-center text-gray-800 tracking-tight">
+                <div className="md:w-1/2 w-full flex flex-col justify-center items-center p-8 md:px-16 bg-white">
+                    <h2 className="text-3xl md:text-4xl font-bold mb-8 text-center text-gray-800 tracking-tight">
                         {isForgotPassword ? "Reset Your Password" : "Sign in to Your Account"}
                     </h2>
-                    
-                    {/* Toggle between login and forgot password views based on isForgotPassword state */}
+
                     {isForgotPassword ? (
-                        // Forgot Password Form
-                        <form className="w-full flex flex-col items-center" onSubmit={handleForgotPassword}>
-                            <div className="w-full mb-5">
+                        <form className="w-full max-w-md flex flex-col items-center" onSubmit={handleForgotPassword}>
+                            <div className="w-full mb-6">
                                 <label className="block text-sm font-medium mb-2 text-gray-600">Email Address</label>
                                 <input
                                     type="email"
                                     placeholder="you@example.com"
                                     value={schoolId}
                                     onChange={(e) => setSchoolId(e.target.value)}
-                                    className="w-full px-5 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0172B9] focus:border-[#0172B9] transition-all duration-300 ease-in-out text-gray-700 placeholder-gray-400"
+                                    className="w-full px-5 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0172B9] transition-all duration-300 ease-in-out text-gray-700 placeholder-gray-400"
                                     required
                                 />
                             </div>
-                            <p className="text-sm text-center text-gray-500 mb-4">
+                            <p className="text-sm text-center text-gray-500 mb-6">
                                 A password reset link will be sent to your email address. Be sure to check your spam folder!
                             </p>
                             <button
-                                className="w-full py-3 bg-[#0172B9] text-white font-semibold rounded-xl hover:bg-[#00426b] focus:outline-none focus:ring-2 focus:ring-[#FFFC6C] transition-all duration-300 ease-in-out transform hover:scale-105"
+                                className="w-full py-3 bg-[#0172B9] text-white font-semibold rounded-xl hover:bg-[#00426b] focus:outline-none focus:ring-2 focus:ring-[#FFFC6C] transition-all duration-300 ease-in-out transform hover:scale-105 disabled:bg-gray-400 disabled:transform-none"
                                 type="submit"
                                 disabled={loading}
                             >
@@ -158,30 +155,28 @@ function LoginBeta() {
                                     setErrorMsg("");
                                     setSchoolId("");
                                 }}
-                                className="mt-4 text-sm text-gray-600 hover:text-[#0172B9] underline"
+                                className="mt-6 text-sm text-[#0172B9] font-medium hover:underline transition-colors duration-200"
                             >
                                 Back to Login
                             </button>
-                            <ToastContainer />
                             {errorMsg && (
                                 <p className="mt-4 text-red-500 text-sm text-center font-medium">{errorMsg}</p>
                             )}
                         </form>
                     ) : (
-                        // Regular Login Form
-                        <form className="w-full flex flex-col items-center" onSubmit={handleLogin}>
-                            <div className="w-full mb-5">
+                        <form className="w-full max-w-md flex flex-col items-center" onSubmit={handleLogin}>
+                            <div className="w-full mb-6">
                                 <label className="block text-sm font-medium mb-2 text-gray-600">Email Address</label>
                                 <input
                                     type="email"
                                     placeholder="you@example.com"
                                     value={schoolId}
                                     onChange={(e) => setSchoolId(e.target.value)}
-                                    className="w-full px-5 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0172B9] focus:border-[#0172B9] transition-all duration-300 ease-in-out text-gray-700 placeholder-gray-400"
+                                    className="w-full px-5 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0172B9] transition-all duration-300 ease-in-out text-gray-700 placeholder-gray-400"
                                     required
                                 />
                             </div>
-                            <div className="w-full mb-2">
+                            <div className="w-full mb-4">
                                 <label className="block text-sm font-medium mb-2 text-gray-600">Password</label>
                                 <div className="relative">
                                     <input
@@ -189,7 +184,7 @@ function LoginBeta() {
                                         placeholder="••••••••"
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
-                                        className="w-full px-5 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0172B9] focus:border-[#0172B9] transition-all duration-300 ease-in-out text-gray-700 pr-12"
+                                        className="w-full px-5 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0172B9] transition-all duration-300 ease-in-out text-gray-700 pr-12"
                                         required
                                     />
                                     <button
@@ -201,26 +196,26 @@ function LoginBeta() {
                                     </button>
                                 </div>
                             </div>
-                            <div className="w-full mb-7 flex justify-end">
+                            <div className="w-full mb-8 flex justify-end">
                                 <button
                                     type="button"
                                     onClick={() => {
                                         setIsForgotPassword(true);
                                         setErrorMsg("");
+                                        setPassword("");
                                     }}
-                                    className="text-sm text-gray-600 hover:text-[#0172B9] underline"
+                                    className="text-sm text-[#0172B9] font-medium hover:underline transition-colors duration-200"
                                 >
                                     Forgot Password?
                                 </button>
                             </div>
                             <button
-                                className="w-full py-3 bg-[#0172B9] text-white font-semibold rounded-xl hover:bg-[#00426b] focus:outline-none focus:ring-2 focus:ring-[#FFFC6C] transition-all duration-300 ease-in-out transform hover:scale-105"
+                                className="w-full py-3 bg-[#0172B9] text-white font-semibold rounded-xl hover:bg-[#00426b] focus:outline-none focus:ring-2 focus:ring-[#FFFC6C] transition-all duration-300 ease-in-out transform hover:scale-105 disabled:bg-gray-400 disabled:transform-none"
                                 type="submit"
                                 disabled={loading}
                             >
                                 {loading ? "Logging in..." : "Login"}
                             </button>
-                            <ToastContainer />
                             {errorMsg && (
                                 <p className="mt-4 text-red-500 text-sm text-center font-medium">{errorMsg}</p>
                             )}
@@ -228,6 +223,7 @@ function LoginBeta() {
                     )}
                 </div>
             </div>
+            <ToastContainer />
         </div>
     );
 }
