@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState, useContext, useRef } from "react";
 import axios from "axios";
 import ViewRequestModal from "./ViewRequestModal";
 import { getStatusClasses } from "../components/statusClasses";
-import { Search, Loader2, X, ChevronDown } from "lucide-react";
+import { Search, Loader2, X, ChevronDown, Filter } from "lucide-react";
 import { AuthContext } from "../../../AuthProvider.jsx";
 
 export default function StudentViewRequest() {
@@ -14,6 +14,10 @@ export default function StudentViewRequest() {
   const [selectedRow, setSelectedRow] = useState(null);
   const [search, setSearch] = useState("");
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
+  
+  // State for window width to handle responsive text truncation
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 
   // Filters & sorting
   const [filters, setFilters] = useState({
@@ -44,6 +48,13 @@ export default function StudentViewRequest() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [showStatusDropdown]);
+  
+  // Effect to update window width on resize for responsive logic
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // fetch slips
   useEffect(() => {
@@ -82,6 +93,12 @@ export default function StudentViewRequest() {
   const formatDate = (val) => {
     const d = parseToDate(val);
     return d ? d.toLocaleString() : "-";
+  };
+  
+  // Helper for text truncation
+  const truncateText = (text, limit) => {
+    if (!text) return "-";
+    return text.length > limit ? `${text.substring(0, limit)}...` : text;
   };
 
   // Date range helpers
@@ -217,18 +234,27 @@ export default function StudentViewRequest() {
                 ) : null}
               </p>
             </div>
-
+            {/* Search and Filters buttons */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
-                <div className="flex items-center w-full sm:min-w-[280px] md:min-w-[320px] lg:min-w-[400px] border border-gray-300 rounded-lg bg-gray-50 focus-within:ring-2 focus-within:ring-yellow-400 focus-within:border-yellow-400">
-                    <Search className="ml-3 text-gray-400 w-5 h-5" />
-                    <input
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    placeholder="Search by form, reason, or status"
-                    className="w-full pl-3 pr-4 py-2 bg-transparent text-sm md:text-base focus:outline-none"
-                    />
-                </div>
+              <div className="flex items-center w-full sm:min-w-[280px] md:min-w-[320px] lg:min-w-[400px] border border-gray-300 rounded-lg bg-gray-50 focus-within:ring-2 focus-within:ring-yellow-400 focus-within:border-yellow-400">
+                <Search className="ml-3 text-gray-400 w-5 h-5" />
+                <input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search by form, reason, or status"
+                  className="w-full pl-3 pr-4 py-2 bg-transparent text-sm md:text-base focus:outline-none"
+                />
+              </div>
 
+              {/* Toggle filter button for mobile view */}
+              <button
+                onClick={() => setShowFilters(!showFilters)}
+                className="px-3 py-2 bg-gray-100 text-gray-700 border border-gray-200 rounded-lg text-sm hover:bg-gray-200 sm:hidden flex items-center gap-2 whitespace-nowrap"
+              >
+                <Filter size={16} />
+                Filters
+              </button>
+              
               <button
                 onClick={() => clearFilters()}
                 className="px-3 py-2 bg-red-50 text-red-700 border border-red-100 rounded-lg text-sm hover:bg-red-100 whitespace-nowrap"
@@ -238,9 +264,10 @@ export default function StudentViewRequest() {
               </button>
             </div>
           </div>
-
-          {/* Filters */}
-          <div className="flex flex-wrap items-end gap-3 mb-4">
+          
+          {/* Filters section - conditionally rendered */}
+          {/* Hidden on mobile until the button is clicked, always visible on larger screens */}
+          <div className={`flex-wrap items-end gap-3 mb-4 ${showFilters ? 'flex' : 'hidden'} sm:flex`}>
             {/* Form Type */}
             <div className="flex-grow">
               <label htmlFor="form-type-select" className="block text-xs font-medium text-gray-500 mb-1">Form Type</label>
@@ -320,7 +347,7 @@ export default function StudentViewRequest() {
           </div>
           
           {/* Custom date range inputs (visible only when Custom selected) */}
-          {filters.dateRange === "Custom" && (
+          {filters.dateRange === "Custom" && showFilters && (
             <div className="flex flex-col md:flex-row gap-4 mb-4">
               <input
                 type="date"
@@ -392,7 +419,7 @@ export default function StudentViewRequest() {
                   <tr>
                     <th scope="col" className="px-6 py-3 text-sm font-semibold text-gray-700 whitespace-nowrap">Form Type</th>
                     <th scope="col" className="px-6 py-3 text-sm font-semibold text-gray-700 whitespace-nowrap">Date Submitted</th>
-                    <th scope="col" className="px-6 py-3 text-sm font-semibold text-gray-700">Reason</th>
+                    <th scope="col" className="px-6 py-3 text-sm font-semibold text-gray-700">Details</th>
                     <th scope="col" className="px-6 py-3 text-sm font-semibold text-gray-700">Status</th>
                     <th scope="col" className="px-6 py-3 text-sm font-semibold text-gray-700 whitespace-nowrap">Processed Date</th>
                     <th scope="col" className="px-6 py-3 text-sm font-semibold text-gray-700">Actions</th>
@@ -404,7 +431,15 @@ export default function StudentViewRequest() {
                       <tr key={idx} className="bg-white border-b hover:bg-yellow-50 transition-colors">
                         <td className="px-6 py-4 text-sm font-medium text-gray-900 whitespace-nowrap">{row.typeOfSlip}</td>
                         <td className="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">{formatDate(row.timeCreated)}</td>
-                        <td className="px-6 py-4 text-sm text-gray-600 max-w-xs truncate">{row.reason || "-"}</td>
+                        <td className="px-6 py-4 text-sm text-gray-600 max-w-xs truncate">
+                          {row.typeOfSlip === "Absent Slip" ? (
+                            `${formatDate(row.dateAbsent)} - ${formatDate(row.dateAbsentEnd)}`
+                          ) : row.typeOfSlip === "Incident Report" ? (
+                            truncateText(row.narrativeReport, windowWidth < 640 ? 50 : 100)
+                          ) : (
+                            row.reason || "-"
+                          )}
+                        </td>
                         <td className="px-6 py-4 text-sm">
                           <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusClasses(row.status, "table")}`}>
                             {row.status || "N/A"}
