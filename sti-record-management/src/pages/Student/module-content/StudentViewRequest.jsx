@@ -232,7 +232,7 @@ export default function StudentViewRequest() {
               >
                 <option value="All">All Forms</option>
                 <option value="Absent Slip">Absent Slip</option>
-                <option value="Incident Report Form">Incident Report Form</option>
+                <option value="Incident Report">Incident Report</option>
               </select>
             </div>
 
