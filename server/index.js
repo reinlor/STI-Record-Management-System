@@ -19,6 +19,7 @@ const batchUpdateRoute = require("./firestore/main/batch/batchUpdateRoute");
 const chartDataRoute = require("./firestore/main/routes/chartDataRoute");
 const demoOCRRoute = require("./modules/photo-to-text/routes/demoHTRRoute")
 const contentManagementRoute = require("./firestore/main/routes/contentManagementRoute");
+const incidentReportRoute = require("./firestore/main/routes/incidentReportRoute");
 
 
 const app = express();
@@ -47,6 +48,7 @@ app.use("/chartData", chartDataRoute);
 app.use("/wellnessVersion", assessmentVersionHistory)
 app.use('/photo-to-text', demoOCRRoute);
 app.use("/content", contentManagementRoute)
+app.use("/incidentReport", incidentReportRoute);
  
 // Start the server
 app.listen(PORT, () => {
