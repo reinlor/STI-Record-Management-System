@@ -29,40 +29,32 @@ export default function TeacherHomepage() {
     }
   };
 
-  const fetchData = async (teacherID) => {
-    try {
-      const res = await axios.get(`/user/get/${teacherID}`);
-      setTeacherData(res.data);
-    } catch (error) {
-      console.error("Error fetching teacher data:", error);
-      setTeacherData({});
-    }
-  };
 
   useEffect(() => {
     if (!authData) return;
     const teacherID = authData.user?.uid;
-    fetchData(teacherID);
     fetchReferral(teacherID);
+    console.log(authData)
   }, [authData]);
 
   const handlePasswordChange = (currentPassword, newPassword) => {
     console.log("Current Password entered:", currentPassword);
     console.log("Password changed successfully to:", newPassword);
     toast.success("Password change successfully!");
-      //NOTE: Palitan kung pano ihandle yung password change sa backend
-      //This is just a placeholder function
+    //NOTE: Palitan kung pano ihandle yung password change sa backend
+    //This is just a placeholder function
   };
 
   const renderModule = () => {
     switch (selected) {
       case "submit":
-        return teacherData && (
+        return authData && (
           <SubmitReferralForm
-            teacher={teacherData}
+            teacher={authData}
             onSuccess={() => fetchReferral(authData.user?.uid)}
           />
         );
+
       case "view":
         return (
           <ViewRequest

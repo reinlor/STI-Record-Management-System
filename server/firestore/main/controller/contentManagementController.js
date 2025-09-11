@@ -380,6 +380,40 @@ const getShsStudentHandbook = async (req, res) => {
   }
 };
 
+// Controller function for getting violation data
+const getViolations = async (req, res) => {
+  try {
+    const violation = getContentManagementCollection().doc("violations");
+    const docSnapshot = await violation.get();
+
+    if (!docSnapshot.exists) {
+      return res.status(404).json({ error: "Violation not found" });
+    }
+
+    res.status(200).json(docSnapshot.data());
+  } catch (error) {
+    console.error("Error retrieving violation data:", error);
+    res.status(500).json({ error: "Failed to retrieve violation data." });
+  }
+};
+
+// Controller function for getting current school periods
+const getSchoolPeriod = async (req, res) => {
+  try {
+    const schoolPeriod = getContentManagementCollection().doc("schoolPeriod");
+    const docSnapshot = await schoolPeriod.get();
+
+    if (!docSnapshot.exists) {
+      return res.status(404).json({ error: "School period not found" });
+    }
+
+    res.status(200).json(docSnapshot.data());
+  } catch (error) {
+    console.error("Error retrieving school period data:", error);
+    res.status(500).json({ error: "Failed to retrieve school period data." });
+  }
+};
+
 module.exports = {
   addAnnouncement,
   addProgram,
@@ -392,5 +426,7 @@ module.exports = {
   addCollegeStudentHandbook,
   getCollegeStudentHandbook,
   addShsStudentHandbook,
-  getShsStudentHandbook
+  getShsStudentHandbook,
+  getViolations,
+  getSchoolPeriod
 };

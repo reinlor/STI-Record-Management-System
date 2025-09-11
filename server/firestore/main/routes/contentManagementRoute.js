@@ -13,7 +13,9 @@ const {
     addCollegeStudentHandbook,
     getCollegeStudentHandbook,
     addShsStudentHandbook,
-    getShsStudentHandbook
+    getShsStudentHandbook,
+    getViolations,
+    getSchoolPeriod
 } = require("../controller/contentManagementController.js");
 
 const upload = multer({ storage: multer.memoryStorage() });
@@ -33,5 +35,8 @@ router.get("/wellness/get", getWellnessLink);
 router.get("/announcement/get", getAnnouncement);
 router.get("/studentHandbook/get", getCollegeStudentHandbook);
 router.get("/shsStudentHandbook/get", getShsStudentHandbook);
+
+router.get("/violations/get", getViolations);
+router.get("/schoolPeriod/get", getSchoolPeriod);
 
 module.exports = router;
