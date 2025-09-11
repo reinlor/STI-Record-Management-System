@@ -15,8 +15,28 @@ import {
     X,
     Clock,
     ChevronLeft,
-    ChevronRight
+    ChevronRight,
+    FileEdit
   } from 'lucide-react';
+
+const PRIORITY_LEVELS = [
+  { value: "", label: "No Priority" },
+  { value: "Level 1 Academics", label: "Level 1 Academics" },
+  { value: "Level 2 Abt Self Esteem, Motivation", label: "Level 2 Abt Self Esteem, Motivation" },
+  { value: "Level 3 Safety and Security", label: "Level 3 Safety and Security" },
+];
+
+const STATUS_OPTIONS = [
+  { value: "", label: "All Status" },
+  { value: "Pending", label: "Pending" },
+  { value: "In Progress", label: "In Progress" },
+];
+
+// Add sort options
+const SORT_OPTIONS = [
+  { value: "newest", label: "Newest First" },
+  { value: "oldest", label: "Oldest First" },
+];
 
 function ReferralFormProcessing() {
   const { authData, logout } = useContext(AuthContext);
@@ -40,6 +60,11 @@ function ReferralFormProcessing() {
   // PAGINATION STATE
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 10;
+
+  // FILTER STATE
+  const [filterStatus, setFilterStatus] = useState("");
+  const [filterPriority, setFilterPriority] = useState("");
+  const [sortBy, setSortBy] = useState("newest"); // <-- Add sort state
 
   useEffect(() => {
     const fetchReferrals = async () => {
@@ -100,14 +125,30 @@ function ReferralFormProcessing() {
   };
 
 
-  // filter logic stays the same
+  // filter logic with status and priority
   const filtered = referralData.filter(
     (ref) =>
-      ref.referredBy?.toLowerCase().includes(search.toLowerCase()) ||
-      ref.studentName?.toLowerCase().includes(search.toLowerCase())
+      (filterStatus === "" || ref.status === filterStatus) &&
+      (filterPriority === "" || ref.priority === filterPriority) &&
+      (
+        ref.referredBy?.toLowerCase().includes(search.toLowerCase()) ||
+        ref.studentName?.toLowerCase().includes(search.toLowerCase())
+      )
   );
 
-  const filteredPending = filtered.filter((ref) => ref.status !== 'Resolved');
+  // Sort logic
+  const sorted = [...filtered].sort((a, b) => {
+    const aDate = new Date(a.preparedDate || a.createdAt || 0).getTime();
+    const bDate = new Date(b.preparedDate || b.createdAt || 0).getTime();
+    if (sortBy === "newest") {
+      return bDate - aDate;
+    } else {
+      return aDate - bDate;
+    }
+  });
+
+  // Remove resolved from display
+  const filteredPending = sorted.filter((ref) => ref.status !== 'Resolved');
   const totalRows = filteredPending.length;
   const totalPages = Math.ceil(totalRows / rowsPerPage);
   const pagedReferrals = filteredPending.slice(
@@ -122,23 +163,27 @@ function ReferralFormProcessing() {
   return (
     <div className="bg-gray-100 h-full p-3">
       <ToastContainer
-                position="top-right"
-                autoClose={5000}
-                hideProgressBar={false}
-                newestOnTop={false}
-                closeOnClick
-                rtl={false}
-                pauseOnFocusLoss
-                draggable
-                pauseOnHover
-              />
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
 
       <div className="bg-white shadow-md p-4 rounded-lg overflow-y-auto">
 
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-4 gap-3">
           <div className="text-left">
+            <div className="flex items-center gap-2">
+            <FileEdit className="h-10 w-10 text-[#0172bd]" />
             <p className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[#0172bd] mb-2">Referral Form Processing</p>
+            </div>
+            
             <p className="text-gray-500 text-sm sm:text-base">View pending Referral Forms</p>
           </div>
           
@@ -146,7 +191,7 @@ function ReferralFormProcessing() {
             {/* History Button */}
             {authData?.user?.access?.referralForm && (
               <button
-                className="flex items-center justify-center gap-2 bg-[#0172bd] text-[#fef201] px-4 py-2 rounded-lg hover:bg-blue-500 transition w-full sm:w-auto shadow-lg font-semibold"
+                className="flex items-center justify-center gap-2 bg-[#0172bd] text-white px-4 py-2 rounded-lg hover:bg-blue-500 transition w-full sm:w-auto shadow-lg font-semibold"
                 onClick={() => navigate("/guidance/referral-form-history")}
               >
                 History
@@ -168,11 +213,52 @@ function ReferralFormProcessing() {
           </div>
         </div>
 
+        {/* --- FILTER ROW --- */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-auto-fit gap-4 mb-4"
+             style={{ gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))" }}>
+          <div>
+            <label className="block text-xs font-semibold text-gray-500 mb-1">Status</label>
+            <select
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-1 focus:ring-[#0172bd]"
+              value={filterStatus}
+              onChange={e => setFilterStatus(e.target.value)}
+            >
+              {STATUS_OPTIONS.map(opt => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-gray-500 mb-1">Priority Level</label>
+            <select
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-1 focus:ring-[#0172bd]"
+              value={filterPriority}
+              onChange={e => setFilterPriority(e.target.value)}
+            >
+              {PRIORITY_LEVELS.map(opt => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-gray-500 mb-1">Sort By</label>
+            <select
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-1 focus:ring-[#0172bd]"
+              value={sortBy}
+              onChange={e => setSortBy(e.target.value)}
+            >
+              {SORT_OPTIONS.map(opt => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
         {/* Table Section */}
         <div className="bg-white rounded-lg shadow-md overflow-x-auto custom-scrollbar h-[70vh] relative pb-12">
           <table className="w-full text-left">
             <thead>
-              <tr className="text-[#fef201]">
+              <tr className="text-white">
                 <th className="sticky bg-[#0172bd] top-0 z-10 px-2 sm:px-3 lg:px-4 py-2 sm:py-3 font-bold">Name</th>
                 <th className="sticky bg-[#0172bd] top-0 z-10 px-0 py-0 text-[0px]  w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">Employee No.</th>
                 <th className="sticky bg-[#0172bd] top-0 z-10 px-2 sm:px-3 lg:px-4 py-2 sm:py-3 font-bold">Reason</th>
@@ -186,7 +272,7 @@ function ReferralFormProcessing() {
               {pagedReferrals.length > 0 ? (
                 pagedReferrals.map((ref) => (
                     <tr key={ref.id} className="hover:bg-gray-100 transition">
-                      <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 lg:whitespace-nowrap font-bold w-1/4">{ref.referredBy}</td>
+                      <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 lg:whitespace-nowrap font-semibold w-1/4">{ref.referredBy}</td>
                       <td className="px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">{ref.employeeID}</td>
                       <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 break-words max-w-[120px] truncate align-middle">{ref.reasonForReferral}</td>
                       <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 lg:whitespace-nowrap">{ref.studentName}</td>
@@ -199,7 +285,7 @@ function ReferralFormProcessing() {
                       {authData?.user?.access?.referralForm && (
                         <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3">
                           <button
-                            className="bg-[#0172bd] text-[#fef201] font-semibold px-3 sm:px-4 py-1 rounded-lg hover:bg-blue-500 transition w-full sm:w-auto"
+                            className="bg-[#0172bd] text-white font-semibold px-3 sm:px-4 py-1 rounded-lg hover:bg-blue-500 transition w-full sm:w-auto"
                             onClick={() => openForm(ref)}
                           >
                             Open
@@ -233,7 +319,7 @@ function ReferralFormProcessing() {
               {Array.from({ length: totalPages }, (_, i) => (
                 <button
                   key={i + 1}
-                  className={`px-2 py-1 rounded ${currentPage === i + 1 ? 'bg-[#0172bd] text-[#fef201]' : 'hover:bg-gray-200 text-[#0172bd]'}`}
+                  className={`px-2 py-1 rounded ${currentPage === i + 1 ? 'bg-[#0172bd] text-white' : 'hover:bg-gray-200 text-[#0172bd]'}`}
                   onClick={() => setCurrentPage(i + 1)}
                 >
                   {i + 1}
@@ -259,6 +345,27 @@ function ReferralFormProcessing() {
               <h2 className="text-2xl font-bold text-[#0172bd]">Referral Form</h2>
               
               <div className="flex items-center gap-4">
+                {/* --- PRIORITY DROPDOWN LEFT OF STATUS --- */}
+                <select
+                  className="px-3 py-1 rounded-lg font-semibold text-xs sm:text-sm bg-gray-100 text-[#0172bd] hover:bg-blue-100"
+                  value={selectedReferral?.priority || ""}
+                  onChange={e => {
+                    setSelectedReferral(prev => prev ? { ...prev, priority: e.target.value } : prev);
+                    setReferralData(prev =>
+                      prev.map(r =>
+                        r.id === selectedReferral.id
+                          ? { ...r, priority: e.target.value }
+                          : r
+                      )
+                    );
+                  }}
+                  disabled={selectedReferral?.status === "Resolved"}
+                >
+                  {PRIORITY_LEVELS.map(opt => (
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  ))}
+                </select>
+                {/* --- STATUS --- */}
                 {selectedReferral && (
                   <span
                     className={`font-semibold text-lg ${selectedReferral.status === 'Resolved' ? 'text-[#28a745]' : 'text-gray-500'}`}
@@ -402,7 +509,7 @@ function ReferralFormProcessing() {
 
                     <div className="flex flex-col sm:flex-row gap-2 mt-4">
                       <button
-                        className="flex-1 bg-[#0172bd] text-[#fef201] px-4 py-2 rounded-lg hover:bg-blue-500 transition duration-200 shadow-md"
+                        className="flex-1 bg-[#0172bd] text-white px-4 py-2 rounded-lg hover:bg-blue-500 transition duration-200 shadow-md"
                         onClick={() => handleUpdate("In Progress")}
                       >
                         Update

@@ -92,6 +92,8 @@ const BulkModal = ({ visible, onClose }) => {
                 </div>
 
                 <p className="text-gray-500 text-center">{statusMessage}</p>
+                <a className="text-blue-500 hover:underline mt-4 block text-center"
+                href='downloadlinkngemptyexcelformat'>Download excel format</a>
             </div>
         </div>
     );

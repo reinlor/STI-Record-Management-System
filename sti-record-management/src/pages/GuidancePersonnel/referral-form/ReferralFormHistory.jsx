@@ -45,7 +45,7 @@ function ReferralFormHistory() {
   const displayReferralTable = () => {
     return pagedReferrals.map((referrals) => (
       <tr key={referrals.id} className="hover:bg-gray-100 transition">
-        <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 font-bold text-[#0172bd] w-1/4">{referrals.referredBy}</td>
+        <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 font-semibold text-[#0172bd] w-1/4">{referrals.referredBy}</td>
         <td className="px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">{referrals.employeeID}</td>
         <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 break-words max-w-[150px] truncate align-middle">{referrals.reasonForReferral}</td>
         <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3">{referrals.studentName}</td>
@@ -58,7 +58,7 @@ function ReferralFormHistory() {
         <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3">
           <button
             onClick={() => setSelectedReferral(referrals)}
-            className="bg-[#0172bd] text-[#fef201] font-semibold px-3 sm:px-4 py-1 rounded-lg hover:bg-blue-500 transition w-full sm:w-auto flex items-center justify-center gap-2"
+            className="bg-[#0172bd] text-white font-semibold px-3 sm:px-4 py-1 rounded-lg hover:bg-blue-500 transition w-full sm:w-auto flex items-center justify-center gap-2"
           >
             Open
           </button>
@@ -183,7 +183,7 @@ function ReferralFormHistory() {
         <div className="bg-white rounded-lg shadow-md overflow-y-auto custom-scrollbar h-full">
           <table className="w-full text-left">
             <thead>
-              <tr className="bg-[#0172bd] text-[#fef201]">
+              <tr className="bg-[#0172bd] text-white">
                 <th className="sticky top-0 z-10 bg-[#0172bd] px-2 sm:px-3 lg:px-4 py-2 sm:py-3 font-bold">Name</th>
                 <th className="sticky top-0 z-10 bg-[#0172bd] px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto font-bold whitespace-nowrap">Employee No.</th>
                 <th className="sticky top-0 z-10 bg-[#0172bd] px-2 sm:px-3 lg:px-4 py-2 sm:py-3 font-bold">Violation</th>
@@ -211,7 +211,7 @@ function ReferralFormHistory() {
               {Array.from({ length: totalPages }, (_, i) => (
                 <button
                   key={i + 1}
-                  className={`px-2 py-1 rounded ${currentPage === i + 1 ? 'bg-[#0172bd] text-[#fef201]' : 'hover:bg-gray-200 text-[#0172bd]'}`}
+                  className={`px-2 py-1 rounded ${currentPage === i + 1 ? 'bg-[#0172bd] text-white' : 'hover:bg-gray-200 text-[#0172bd]'}`}
                   onClick={() => setCurrentPage(i + 1)}
                 >
                   {i + 1}

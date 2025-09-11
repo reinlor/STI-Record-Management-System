@@ -17,12 +17,59 @@ import {
     X,
     Clock,
     ChevronLeft,
-    ChevronRight
+    ChevronRight,
+    ClipboardList
   } from 'lucide-react';
 
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
+const SLIP_TYPE_OPTIONS = [
+  { value: "", label: "All" },
+  { value: "Absent Slip", label: "Absent Slip" },
+  { value: "Student Report", label: "Student Report" },
+];
+
+const DATE_FILTER_OPTIONS = [
+  { value: "", label: "All Dates" },
+  { value: "today", label: "Today" },
+  { value: "week", label: "This Week" },
+  { value: "month", label: "This Month" },
+  { value: "year", label: "This Year" },
+];
+
+// Helper for date filtering
+function isWithinDate(ms, filter) {
+  if (!ms) return false;
+  const now = new Date();
+  const date = new Date(ms);
+  switch (filter) {
+    case "today":
+      return (
+        date.getFullYear() === now.getFullYear() &&
+        date.getMonth() === now.getMonth() &&
+        date.getDate() === now.getDate()
+      );
+    case "week": {
+      const startOfWeek = new Date(now);
+      startOfWeek.setDate(now.getDate() - now.getDay());
+      startOfWeek.setHours(0, 0, 0, 0);
+      const endOfWeek = new Date(startOfWeek);
+      endOfWeek.setDate(startOfWeek.getDate() + 6);
+      endOfWeek.setHours(23, 59, 59, 999);
+      return date >= startOfWeek && date <= endOfWeek;
+    }
+    case "month":
+      return (
+        date.getFullYear() === now.getFullYear() &&
+        date.getMonth() === now.getMonth()
+      );
+    case "year":
+      return date.getFullYear() === now.getFullYear();
+    default:
+      return true;
+  }
+}
 
 function parseToMillis(dateInput) {
   // Your existing date parsing logic
@@ -70,11 +117,18 @@ function RequestSlip() {
   const [display, setDisplay] = useState(false);
   const [allSlipData, setAllSlipData] = useState([]);
   const [search, setSearch] = useState("");
-  const [selectedSlip, setSelectedSlip] = useState(null); // This was missing
+  const [selectedSlip, setSelectedSlip] = useState(null);
   const { authData } = useContext(AuthContext);
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 10;
+  const [filterSlipType, setFilterSlipType] = useState("");
+  const [filterDate, setFilterDate] = useState("");
+  const [body, setBody] = useState("Please proceed to the Guidance and Counseling Office");
+  const [sortBy, setSortBy] = useState("newest");
+
+  // Add state for editable remarks
+  const [remarks, setRemarks] = useState("");
 
   if (!authData?.user?.access?.requestSlip) {
     const error401 = () => {
@@ -83,13 +137,14 @@ function RequestSlip() {
     return error401()
   }
 
-
-  const [body, setBody] = useState("Please proceed to the Guidance and Counseling Office");
-
-
   const handleStatusChange = async (slipType, slipId, status, slip) => {
     try {
-      await axios.put(`/slip/update/${slipType}/${slipId}`, { status });
+      // Include remarks if Absent Slip
+      const updatePayload = slipType === "Absent Slip"
+        ? { status, remarks }
+        : { status };
+
+      await axios.put(`/slip/update/${slipType}/${slipId}`, updatePayload);
 
       const emailData = {
         to: slip.email,
@@ -101,18 +156,19 @@ function RequestSlip() {
 
       setAllSlipData((prev) =>
         prev.map((s) =>
-          s.id === slipId ? { ...s, status } : s
+          s._id === slipId
+            ? { ...s, status, ...(slipType === "Absent Slip" ? { remarks } : {}) }
+            : s
         )
       );
 
       toast.success(`Slip updated to ${status} and email sent!`);
-      closeModal()
+      closeModal();
     } catch (err) {
       console.error(err);
       toast.error("Failed to update slip or send email");
     }
   };
-
 
   useEffect(() => {
     const fetchData = async () => {
@@ -135,19 +191,215 @@ function RequestSlip() {
     fetchData();
   }, []);
 
+  // --- Add sortBy state and logic ---
+  const filteredSlipData = allSlipData
+    .filter((slip) => slip.status === "Pending")
+    .filter((slip) => {
+      const nameMatch = String(slip.name || '').toLowerCase().includes(search.toLowerCase());
+      const sidMatch = String(slip.sid || '').toLowerCase().includes(search.toLowerCase());
+      return nameMatch || sidMatch;
+    })
+    .filter((slip) => {
+      if (!filterSlipType) return true;
+      return slip.typeOfSlip === filterSlipType;
+    })
+    .filter((slip) => {
+      if (!filterDate) return true;
+      return isWithinDate(slip.timeCreatedMs, filterDate);
+    })
+    .sort((a, b) => {
+      if (sortBy === "newest") {
+        return (b.timeCreatedMs || 0) - (a.timeCreatedMs || 0);
+      } else {
+        return (a.timeCreatedMs || 0) - (b.timeCreatedMs || 0);
+      }
+    });
+
+  // Pagination logic
+  const totalRows = filteredSlipData.length;
+  const totalPages = Math.ceil(totalRows / rowsPerPage);
+  const pagedSlipData = filteredSlipData.slice(
+    (currentPage - 1) * rowsPerPage,
+    currentPage * rowsPerPage
+  );
+
+  // data na iloload sa table
+  const requestTable = pagedSlipData.map((slips) => (
+    <tr key={slips._id} className="hover:bg-gray-100 transition bg-[#0172bd]">
+      <td className="px-4 py-3">{slips.name}</td>
+      <td className="px-4 py-3">{slips.sid}</td>
+      <td className="px-4 py-3">{slips.typeOfSlip}</td>
+      <td className="px-4 py-3">{slips.timeCreatedFormatted || formatDate(slips.timeCreated)}</td>
+      {/* STATUS with conditional styling */}
+      <td
+        className={`px-4 py-3 font-semibold ${slips.status === "Approved"
+          ? "text-green-600 bg-green-300"
+          : slips.status === "Rejected"
+            ? "text-red-600 bg-red-300"
+            : "text-gray-600 bg-gray-300"
+          }`}
+      >
+        {slips.status}
+      </td>
+      <td className="px-4 py-3">{slips.reason}</td>
+      <td className="px-4 py-3">{slips.attachmentCount}</td>
+      {authData?.user?.access?.requestSlip ? <td className="px-4 py-3">
+        <button
+          className="bg-gray-900 text-white px-6 py-1 rounded-full hover:bg-gray-700 transition"
+          onClick={() => openSlip(slips._id)}>
+          Open
+        </button>
+      </td> : null}
+    </tr>
+  ));
+
+  // --- Modal logic ---
+  const [showStudentReportModal, setShowStudentReportModal] = useState(false);
+  const [studentReportSlip, setStudentReportSlip] = useState(null);
+
+  const closeStudentReportModal = () => {
+    setShowStudentReportModal(false);
+    setStudentReportSlip(null);
+  };
+
+  function StudentReportModal({ slip, onClose }) {
+    if (!slip) return null;
+    return (
+      <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-[9999]">
+        <div className="bg-white w-full sm:max-w-3xl rounded-lg shadow-lg overflow-y-auto max-h-[92vh] p-6 sm:p-8 relative transform transition-all duration-300 ease-out scale-100 custom-scrollbar">
+          {/* Header */}
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-4">
+              <h2 className="text-2xl font-bold text-[#0172bd]">Student Report</h2>
+              <span className="px-3 py-2 bg-gray-100 text-gray-800 text-md font-medium rounded">
+                {slip.typeOfSlip}
+              </span>
+            </div>
+            <button
+              onClick={onClose}
+              className="text-2xl text-[#0172bd] hover:scale-110 hover:text-blue-500"
+            >
+              <X className="w-10 h-10 object-cover rounded " />
+            </button>
+          </div>
+          <hr className="mb-4" />
+
+          {/* Student Info */}
+          <div className="mb-6">
+            <h3 className="font-bold text-lg text-[#0172bd] mb-2">Student Information</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-600">Name</label>
+                <div className="border rounded px-3 py-2 bg-gray-50">{slip.name}</div>
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-600">Student No.</label>
+                <div className="border rounded px-3 py-2 bg-gray-50">{slip.sid}</div>
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-600">Email</label>
+                <div className="border rounded px-3 py-2 bg-gray-50">{slip.email}</div>
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-600">Program/Section</label>
+                <div className="border rounded px-3 py-2 bg-gray-50">{slip.program}</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Report Details */}
+          <div className="mb-6">
+            <h3 className="font-bold text-lg text-[#0172bd] mb-2">Report Details</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-600">Date of Incident</label>
+                <div className="border rounded px-3 py-2 bg-gray-50">{slip.incidentDate || ""}</div>
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-600">Time of Incident</label>
+                <div className="border rounded px-3 py-2 bg-gray-50">{slip.incidentTime || ""}</div>
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-600">Location of Incident</label>
+                <div className="border rounded px-3 py-2 bg-gray-50">{slip.incidentLocation || ""}</div>
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-600">Person/s Involved</label>
+                <div className="border rounded px-3 py-2 bg-gray-50">{slip.personsInvolved || ""}</div>
+              </div>
+              <div className="sm:col-span-2">
+                <label className="block text-sm font-semibold text-gray-600">Witness Name (if any)</label>
+                <div className="border rounded px-3 py-2 bg-gray-50">{slip.witnessName || ""}</div>
+              </div>
+              <div className="sm:col-span-2">
+                <label className="block text-sm font-semibold text-gray-600">Witness Contact Info</label>
+                <div className="border rounded px-3 py-2 bg-gray-50">{slip.witnessContact || ""}</div>
+              </div>
+              <div className="sm:col-span-2">
+                <label className="block text-sm font-semibold text-gray-600">Narrative of the Incident</label>
+                <div className="border rounded px-3 py-2 bg-gray-50 whitespace-pre-line">{slip.narrative || ""}</div>
+              </div>
+              <div className="sm:col-span-2">
+                <label className="block text-sm font-semibold text-gray-600">Actions Taken</label>
+                <div className="border rounded px-3 py-2 bg-gray-50 whitespace-pre-line">{slip.actionsTaken || ""}</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Attachments */}
+          <div className="mb-4">
+            <h3 className="font-bold text-lg text-[#0172bd] mb-2">Supporting Evidence</h3>
+            <div className="flex flex-wrap gap-4">
+              {(slip.attachments || []).length === 0 && (
+                <span className="text-gray-400">No attachments.</span>
+              )}
+              {(slip.attachments || []).map((url, idx) => (
+                <div key={idx} className="flex flex-col items-center">
+                  <a href={url} target="_blank" rel="noopener noreferrer">
+                    <img
+                      src={url}
+                      alt={`Attachment ${idx + 1}`}
+                      className="w-24 h-24 object-cover rounded"
+                    />
+                  </a>
+                  <span className="text-xs text-[#0172bd] mt-2 text-center">
+                    Attachment {idx + 1}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const openSlip = (id) => {
     const foundSlip = allSlipData.find((slip) => slip._id === id);
     if (foundSlip) {
-      setSelectedSlip(foundSlip);
-      setDisplay(true);
+      if (foundSlip.typeOfSlip === "Student Report") {
+        setStudentReportSlip(foundSlip);
+        setShowStudentReportModal(true);
+      } else {
+        setSelectedSlip(foundSlip);
+        setDisplay(true);
+        // Set remarks if Absent Slip
+        if (foundSlip.typeOfSlip === "Absent Slip") {
+          setRemarks(foundSlip.remarks || "");
+        } else {
+          setRemarks("");
+        }
+      }
     } else {
       console.error("Slip not found in local data");
     }
   };
 
+  // Reset remarks when closing modal
   const closeModal = () => {
     setDisplay(false);
     setSelectedSlip(null);
+    setRemarks("");
   };
 
   const displaySlipForm = () => {
@@ -291,14 +543,6 @@ function RequestSlip() {
                   readOnly
                 />
               </div>
-              {/* <div>
-                <label className="block text-sm font-semibold mb-1">Subject</label>
-                <input
-                  type="text"
-                  defaultValue="Requested Slip Form Status"
-                  className="border rounded px-3 py-2 w-full text-xs sm:text-sm"
-                />
-              </div> */}
               <div>
                 <label className="block text-sm font-semibold mb-1 text-[#0172bd]">Body</label>
                 <textarea
@@ -307,6 +551,18 @@ function RequestSlip() {
                   onChange={(e) => setBody(e.target.value)}
                 />
               </div>
+              {/* --- EDITABLE REMARKS FIELD FOR ABSENT SLIP --- */}
+              {selectedSlip.typeOfSlip === "Absent Slip" && (
+                <div>
+                  <label className="block text-sm font-semibold mb-1 text-[#0172bd]">Remarks</label>
+                  <textarea
+                    className="border rounded px-3 py-2 w-full h-16 sm:h-20 resize-none text-xs sm:text-sm"
+                    value={remarks}
+                    onChange={e => setRemarks(e.target.value)}
+                    placeholder="Enter remarks here..."
+                  />
+                </div>
+              )}
             </div>
           </div>
 
@@ -333,58 +589,9 @@ function RequestSlip() {
     );
   };
 
-  // Filtered + sorted data for search (latest -> oldest)
-  const filteredSlipData = allSlipData
-    .filter((slip) => slip.status === "Pending")   // ✅ show only pending slips
-    .filter((slip) => {
-      const nameMatch = String(slip.name || '').toLowerCase().includes(search.toLowerCase());
-      const sidMatch = String(slip.sid || '').toLowerCase().includes(search.toLowerCase());
-      return nameMatch || sidMatch;
-    })
-    .sort((a, b) => (b.timeCreatedMs || 0) - (a.timeCreatedMs || 0));
-
-  // Pagination logic
-  const totalRows = filteredSlipData.length;
-  const totalPages = Math.ceil(totalRows / rowsPerPage);
-  const pagedSlipData = filteredSlipData.slice(
-    (currentPage - 1) * rowsPerPage,
-    currentPage * rowsPerPage
-  );
-
-  // data na iloload sa table
-  const requestTable = pagedSlipData.map((slips) => (
-    <tr key={slips._id} className="hover:bg-gray-100 transition bg-[#0172bd]">
-      <td className="px-4 py-3">{slips.name}</td>
-      <td className="px-4 py-3">{slips.sid}</td>
-      <td className="px-4 py-3">{slips.typeOfSlip}</td>
-      <td className="px-4 py-3">{slips.timeCreatedFormatted || formatDate(slips.timeCreated)}</td>
-      {/* STATUS with conditional styling */}
-      <td
-        className={`px-4 py-3 font-semibold ${slips.status === "Approved"
-          ? "text-green-600 bg-green-300"
-          : slips.status === "Rejected"
-            ? "text-red-600 bg-red-300"
-            : "text-gray-600 bg-gray-300"
-          }`}
-      >
-        {slips.status}
-      </td>
-      <td className="px-4 py-3">{slips.reason}</td>
-      <td className="px-4 py-3">{slips.attachmentCount}</td>
-      {authData?.user?.access?.requestSlip ? <td className="px-4 py-3">
-        <button
-          className="bg-gray-900 text-white px-6 py-1 rounded-full hover:bg-gray-700 transition"
-          onClick={() => openSlip(slips._id)}>
-          Open
-        </button>
-      </td> : null}
-    </tr>
-  ));
-
   return (
     <div className="bg-gray-100 h-full p-3">
       <div className="bg-white shadow-md p-4 rounded-lg overflow-y-auto">
-
         <ToastContainer
           position="top-right"
           autoClose={5000}
@@ -400,7 +607,10 @@ function RequestSlip() {
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-4 gap-3">
           <div className="text-left">
+            <div className="flex items-center gap-2">
+            <ClipboardList className="h-10 w-10 text-[#0172bd]" />
             <p className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[#0172bd] mb-2">Request Slip Processing</p>
+            </div>
             <p className="text-gray-500 text-sm sm:text-base">Approve/ Deny Request Slips.</p>
           </div>
 
@@ -408,7 +618,7 @@ function RequestSlip() {
             {/* History button */}
             {authData?.user?.access?.requestSlip && (
               <button
-                className="flex items-center justify-center gap-2 bg-[#0172bd] text-[#fef201] px-4 py-2 rounded-lg hover:bg-blue-500 transition w-full sm:w-auto shadow-lg font-semibold"
+                className="flex items-center justify-center gap-2 bg-[#0172bd] text-white px-4 py-2 rounded-lg hover:bg-blue-500 transition w-full sm:w-auto shadow-lg font-semibold"
                 onClick={() => navigate("/guidance/request-slip-history")}
               >
                 History
@@ -432,28 +642,64 @@ function RequestSlip() {
           </div>
         </div>
 
+        {/* Filter Row */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-4">
+          <div>
+            <label className="block text-xs font-semibold text-gray-500 mb-1">Type of Slip</label>
+            <select
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-1 focus:ring-[#0172bd]"
+              value={filterSlipType}
+              onChange={e => setFilterSlipType(e.target.value)}
+            >
+              {SLIP_TYPE_OPTIONS.map(opt => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-gray-500 mb-1">Date</label>
+            <select
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-1 focus:ring-[#0172bd]"
+              value={filterDate}
+              onChange={e => setFilterDate(e.target.value)}
+            >
+              {DATE_FILTER_OPTIONS.map(opt => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-gray-500 mb-1">Sort By</label>
+            <select
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-1 focus:ring-[#0172bd]"
+              value={sortBy}
+              onChange={e => setSortBy(e.target.value)}
+            >
+              <option value="newest">Newest First</option>
+              <option value="oldest">Oldest First</option>
+            </select>
+          </div>
+        </div>
+
         {/* Table */}
         <div className="bg-white rounded-lg shadow-md overflow-x-auto custom-scrollbar h-[70vh] relative pb-12">
           <table className="w-full text-left">
             <thead>
-              <tr className=" text-[#fef201]">
+              <tr className=" text-white">
                 <th className="sticky bg-[#0172bd] top-0 z-10 px-2 sm:px-3 lg:px-4 py-2 sm:py-3 font-bold">Name</th>
                 <th className="sticky bg-[#0172bd] top-0 z-10 px-0 py-0 text-[0px]  w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">Student No.</th>
                 <th className="sticky bg-[#0172bd] top-0 z-10 px-2 sm:px-3 lg:px-4 py-2 sm:py-3 font-bold">Type of Slip</th>
                 <th className="sticky bg-[#0172bd] top-0 z-10 px-0 py-0 text-[0px]  w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">Date</th>
                 <th className="sticky bg-[#0172bd] top-0 z-10 px-0 py-0 text-[0px]  w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">Status</th>
                 <th className="sticky bg-[#0172bd] top-0 z-10 px-2 sm:px-3 lg:px-4 py-2 sm:py-3 font-bold">Reason</th>
-
-                {/* Shrunk columns for small/tablet */}
                 <th className="sticky bg-[#0172bd] top-0 z-10 px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">Attachments</th>
-
                 <th className="sticky bg-[#0172bd] top-0 z-10 px-2 sm:px-3 lg:px-4 py-2 sm:py-3"></th>
               </tr>
             </thead>
             <tbody>
               {pagedSlipData.map((slips) => (
                 <tr key={slips._id} className="hover:bg-gray-100 transition">
-                  <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 lg:whitespace-nowrap font-bold w-1/4">{slips.name}</td>
+                  <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 lg:whitespace-nowrap font-semibold w-1/4">{slips.name}</td>
                   <td className="px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">{slips.sid}</td>
                   <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 lg:whitespace-nowrap">{slips.typeOfSlip}</td>
                   <td className="px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">
@@ -474,14 +720,12 @@ function RequestSlip() {
                       {slips.reason}
                     </span>
                   </td>
-
-                  {/* Shrunk columns */}
                   <td className="px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">{slips.attachmentCount}</td>
 
                   {authData?.user?.access?.requestSlip && (
                     <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3">
                       <button
-                        className="bg-[#0172bd] text-[#fef201] font-bold px-3 sm:px-4 py-1 rounded-lg hover:bg-blue-500 transition w-full sm:w-auto"
+                        className="bg-[#0172bd] text-white font-bold px-3 sm:px-4 py-1 rounded-lg hover:bg-blue-500 transition w-full sm:w-auto"
                         onClick={() => openSlip(slips._id)}
                       >
                         Open
@@ -506,7 +750,7 @@ function RequestSlip() {
               {Array.from({ length: totalPages }, (_, i) => (
                 <button
                   key={i + 1}
-                  className={`px-2 py-1 rounded ${currentPage === i + 1 ? 'bg-[#0172bd] text-[#fef201]' : 'hover:bg-gray-200 text-[#0172bd]'}`}
+                  className={`px-2 py-1 rounded ${currentPage === i + 1 ? 'bg-[#0172bd] text-white' : 'hover:bg-gray-200 text-[#0172bd]'}`}
                   onClick={() => setCurrentPage(i + 1)}
                 >
                   {i + 1}
@@ -524,9 +768,12 @@ function RequestSlip() {
         </div>
       </div>
 
+      {/* Modals */}
       {displaySlipForm()}
+      {showStudentReportModal && (
+        <StudentReportModal slip={studentReportSlip} onClose={closeStudentReportModal} />
+      )}
     </div>
-
   );
 }
 

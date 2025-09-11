@@ -5,6 +5,7 @@ import WellnessForm from "./wellness-form/WellnessForm.jsx";
 import WellnessScoring from './wellness-scoring/WellnessScoring.jsx';
 import WellnessSummary from "./wellnessSummary/WellnessSummaryReport.jsx";
 import { Navigate } from "react-router-dom";
+import { HeartPulse } from "lucide-react";
 
 function WelnessAssessment() {
   const [activeView, setActiveView] = useState("form");
@@ -38,14 +39,16 @@ function WelnessAssessment() {
 
   return (
     <div className="p-6 max-w-6xl mx-auto w-full">
-      <h1 className="text-2xl font-bold mb-4">Wellness Assessment</h1>
-
+      <div className="flex items-center gap-2 mb-4">
+            <HeartPulse className="h-10 w-10 text-[#0172bd]" />
+            <h1 className="text-4xl font-bold text-[#0172bd] mb-1">Wellness Assessment</h1>
+      </div>
       <div className="flex gap-2 mb-6">
         <button
           onClick={() => setActiveView("form")}
           className={`px-4 py-2 rounded-md ${activeView === "form"
-            ? "bg-blue-500 text-white"
-            : "bg-gray-200"
+            ? "bg-[#0172bd] text-white hover:bg-blue-500"
+            : "bg-gray-200 hover:bg-gray-300"
             }`}
         >
           Form
@@ -53,8 +56,8 @@ function WelnessAssessment() {
         <button
           onClick={() => setActiveView("grade")}
           className={`px-4 py-2 rounded-md ${activeView === "grade"
-            ? "bg-green-500 text-white"
-            : "bg-gray-200"
+            ? "bg-[#fef201] text-black hover:bg-yellow-400"
+            : "bg-gray-200 hover:bg-gray-300"
             }`}
         >
           Conditions
@@ -62,8 +65,8 @@ function WelnessAssessment() {
         <button
           onClick={() => setActiveView("summary")}
           className={`px-4 py-2 rounded-md ${activeView === "summary"
-            ? "bg-yellow-500 text-white"
-            : "bg-gray-200"
+            ? "bg-[#28a745] text-white hover:bg-green-500"
+            : "bg-gray-200 hover:bg-gray-300"
             }`}
         >
           Summary

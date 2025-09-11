@@ -6,6 +6,7 @@ import axios from 'axios';
 
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { RefreshCcw } from 'lucide-react';
 
 // Mock AuthContext for demonstration.
 const AuthContext = React.createContext({
@@ -94,7 +95,7 @@ function BackNRestore() {
     };
 
     return (
-        <div className="bg-gray-100 flex items-start justify-center p-2 sm:p-6 h-full font-sans">
+        <div className="bg-gray-100 flex items-start justify-center p-2 sm:p-6 h-full w-full font-sans">
             <RestoreModal onClick={() => setShowModal(false)} visible={showModal}/>
                 <ToastContainer
                 position="top-right"
@@ -108,15 +109,18 @@ function BackNRestore() {
                 pauseOnHover
             />
             <div className="w-full h-full bg-white rounded-lg p-2 sm:p-4 shadow-sm flex flex-col max-w-full sm:max-w-2xl md:max-w-4xl">
-                <p className="text-xl sm:text-3xl md:text-4xl font-bold text-gray-800 mb-2">Back-up and Restore</p>
+                <div className="flex items-center gap-2">
+                    <RefreshCcw className="h-10 w-10 text-[#0172bd]" />
+                    <p className="text-xl sm:text-3xl md:text-4xl font-bold text-[#0172bd] mb-2">Back-up and Restore</p>
+                </div>
                 <p className="text-xs sm:text-base text-gray-600 mb-5">Create a back-up for emergency and restore files.</p>
                 <div className="flex flex-col items-center justify-center p-2 sm:p-6 bg-gray-50 rounded-lg border border-gray-200">
                     <img src={server} alt="Server" className="w-32 h-32 sm:w-48 sm:h-48 object-cover" />
-                    <h2 className="text-lg sm:text-2xl font-bold text-black mb-4 mt-2 sm:mt-4 text-center">Save your files, download it here:</h2>
+                    <h2 className="text-lg sm:text-2xl font-bold text-[#0172bd] mb-4 mt-2 sm:mt-4 text-center">Save your files, download it here:</h2>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-8 mb-6 text-gray-700 w-full">
                         {/* Guidance Head */}
                         <div className="flex flex-col">
-                            <span className="font-semibold text-base sm:text-lg text-black mb-2">
+                            <span className="font-bold text-base sm:text-lg text-[#0172bd] mb-2">
                                 Guidance Head:
                                 <label className="inline-flex items-center ml-2 cursor-pointer">
                                     <input
@@ -171,7 +175,7 @@ function BackNRestore() {
                         </div>
                         {/* Disciplinary Officer */}
                         <div className="flex flex-col">
-                            <span className="font-semibold text-base sm:text-lg text-black mb-2">
+                            <span className="font-semibold text-base sm:text-lg text-[#0172bd] mb-2">
                                 Disciplinary Officer:
                                 <label className="inline-flex items-center ml-2 cursor-pointer">
                                     <input
@@ -220,7 +224,7 @@ function BackNRestore() {
                     ) : (
                         <div className='flex flex-col sm:flex-row gap-2 w-full items-stretch'>
                             <button
-                                className="bg-[#0B1320] hover:bg-[#1A2635] text-white font-bold py-2 sm:py-3 px-4 sm:px-6 rounded-lg shadow-md hover:shadow-lg transition duration-300 ease-in-out flex items-center justify-center text-sm sm:text-lg w-full"
+                                className="bg-[#0172bd] hover:bg-blue-500 text-white font-bold py-2 sm:py-3 px-4 sm:px-6 rounded-lg shadow-md hover:shadow-lg transition duration-300 ease-in-out flex items-center justify-center text-sm sm:text-lg w-full"
                                 onClick={exportData}
                             >
                                 Backup (.json)
@@ -240,7 +244,7 @@ function BackNRestore() {
                                 </svg>
                             </button>
                             <button
-                                className="bg-[#0B1320] hover:bg-[#1A2635] text-white font-bold py-2 sm:py-3 px-4 sm:px-6 rounded-lg shadow-md hover:shadow-lg transition duration-300 ease-in-out flex items-center justify-center text-sm sm:text-lg w-full"
+                                className="bg-[#0172bd] hover:bg-blue-500 text-white font-bold py-2 sm:py-3 px-4 sm:px-6 rounded-lg shadow-md hover:shadow-lg transition duration-300 ease-in-out flex items-center justify-center text-sm sm:text-lg w-full"
                                 onClick={() => setShowModal(true)}
                             >
                                 Restore (.json)

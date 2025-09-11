@@ -7,10 +7,10 @@ export default function UserTable({ filteredUsers, displayRoles, displayAccess, 
             <table className="min-w-full table-fixed divide-y divide-gray-200 text-[10px] sm:text-xs md:text-sm lg:text-base">
                 <thead className="bg-gray-50">
                     <tr>
-                        <th className="sticky top-0 z-10 bg-[#0172bd] text-[#fef201] px-4 py-2 text-left font-semibold w-1/4">Name</th>
-                        <th className="sticky top-0 z-10 bg-[#0172bd] text-[#fef201] px-1 py-2 text-left font-semibold w-1/4">Roles</th>
-                        <th className="sticky top-0 z-10 bg-[#0172bd] text-[#fef201] px-1 py-2 text-left font-semibold w-1/4">Access</th>
-                        <th className="sticky top-0 z-10 bg-[#0172bd] text-[#fef201] px-1 py-2 text-right font-semibold w-1/4"></th>
+                        <th className="sticky top-0 z-10 bg-[#0172bd] text-white px-4 py-2 text-left font-semibold w-1/4">Name</th>
+                        <th className="sticky top-0 z-10 bg-[#0172bd] text-white px-1 py-2 text-left font-semibold w-1/4">Roles</th>
+                        <th className="sticky top-0 z-10 bg-[#0172bd] text-white px-1 py-2 text-left font-semibold w-1/4">Access</th>
+                        <th className="sticky top-0 z-10 bg-[#0172bd] text-white px-1 py-2 text-right font-semibold w-1/4"></th>
                     </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -18,7 +18,7 @@ export default function UserTable({ filteredUsers, displayRoles, displayAccess, 
                         filteredUsers.map((user) => (
                             <tr key={user.id} className="hover:bg-gray-50 transition duration-150 ease-in-out">
                                 <td className="px-4 py-2 break-words w-1/4 max-w-[180px]">
-                                    <div className="font-bold text-black ">{user.name}</div>
+                                    <div className="font-semibold text-black ">{user.name}</div>
                                     <div className="text-gray-400 text-medium">{user.employeeNumber}</div>
                                 </td>
                                 <td className="px-1 py-1 break-words w-1/4 max-w-[50px] text-black font-semibold">{displayRoles(user.roles)}</td>

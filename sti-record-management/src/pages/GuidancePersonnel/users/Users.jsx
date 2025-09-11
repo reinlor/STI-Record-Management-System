@@ -344,7 +344,7 @@ export default function Users() {
                         <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 w-full sm:w-auto">
 
                             <button
-                                className="flex-1 flex items-center justify-center space-x-2 bg-[#0172bd] text-[#fef201] font-semibold py-2 px-2 rounded-lg shadow-md hover:bg-blue-500 transition duration-150 ease-in-out text-xs sm:text-base"
+                                className="flex-1 flex items-center justify-center space-x-2 bg-[#0172bd] text-white font-semibold py-2 px-2 rounded-lg shadow-md hover:bg-blue-500 transition duration-150 ease-in-out text-xs sm:text-base"
                                 onClick={() => setShowAddUserModal(true)}
                             >
                                 <span>Add User</span>

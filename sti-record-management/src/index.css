@@ -51,7 +51,7 @@ h1 {
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: #0B1320;
+  background-color: #0172bd;
   border-radius: 8px;}
   
 button:hover {
@@ -68,5 +68,22 @@ button:hover {
       display: flex !important;
     }
   }
+}
+
+@media (max-width: 425px) { html { font-size: 14px; } }
+@media (max-width: 768px) { html { font-size: 15px; } }
+
+@media (max-width: 425px) {
+    .custom-scrollbar {
+        font-size: 14px;
+    }
+    .custom-scrollbar .text-2xl, .custom-scrollbar .text-3xl {
+        font-size: 1.2rem !important;
+    }
+}
+@media (max-width: 768px) {
+    .custom-scrollbar {
+        font-size: 15px;
+    }
 }
 
