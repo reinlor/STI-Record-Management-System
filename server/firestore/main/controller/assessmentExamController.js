@@ -241,11 +241,134 @@ const getAssessmentExamForm = async (req, res) => {
   }
 };
 
+// Controller Function for Deleting a specific question
+const deleteAssessmentExamQuestion = async (req, res) => {
+  try {
+    const { question } = req.body;
+    const docRef = getAssessmentExamCollection().doc(ASSESSMENT_FORM_DOC_ID);
+    const doc = await docRef.get();
+
+    if (!doc.exists) return res.status(404).send({ error: "Form not found" });
+
+    const existingData = doc.data();
+    const updatedQuestions = existingData.questions.filter(q => q.question !== question);
+
+    await docRef.update({
+      questions: updatedQuestions,
+      totalScore: calculateTotalScore(updatedQuestions)
+    });
+
+    res.status(200).send({ message: "Question deleted successfully", questions: updatedQuestions });
+  } catch (err) {
+    res.status(500).send({ error: err.message });
+  }
+};
+
+// Controller Function for Updating category name
+const updateAssessmentExamCategory = async (req, res) => {
+  try {
+    const { oldCategory, newCategory } = req.body;
+    const docRef = getAssessmentExamCollection().doc(ASSESSMENT_FORM_DOC_ID);
+    const doc = await docRef.get();
+
+    if (!doc.exists) return res.status(404).send({ error: "Form not found" });
+
+    const existingData = doc.data();
+    const updatedQuestions = existingData.questions.map(q =>
+      q.category === oldCategory ? { ...q, category: newCategory } : q
+    );
+
+    await docRef.update({
+      questions: updatedQuestions
+    });
+
+    res.status(200).send({ message: "Category updated", questions: updatedQuestions });
+  } catch (err) {
+    res.status(500).send({ error: err.message });
+  }
+};
+
+// Controller Function for editing likert theme
+const editLikertTheme = async (req, res) => {
+  try {
+    const { oldThemeName, newTheme } = req.body;
+    const docRef = getAssessmentExamCollection().doc(LIKERT_THEME_DOC_ID);
+    const doc = await docRef.get();
+
+    if (!doc.exists) return res.status(404).send({ error: "Theme document not found" });
+
+    const data = doc.data();
+    if (!data.likert) return res.status(404).send({ error: "No themes found" });
+
+    const updatedThemes = data.likert.map((theme) =>
+      theme.themeName === oldThemeName ? newTheme : theme
+    );
+
+    await docRef.update({ likert: updatedThemes });
+
+    res.status(200).send({ message: "Theme updated successfully", themes: updatedThemes });
+  } catch (err) {
+    res.status(500).send({ error: err.message });
+  }
+};
+
+// Controller function for deleting a likert theme
+const deleteLikertTheme = async (req, res) => {
+  try {
+    const { themeName } = req.body;
+    const docRef = getAssessmentExamCollection().doc(LIKERT_THEME_DOC_ID);
+    const doc = await docRef.get();
+
+    if (!doc.exists) return res.status(404).send({ error: "Theme document not found" });
+
+    const data = doc.data();
+    if (!data.likert) return res.status(404).send({ error: "No themes found" });
+
+    const updatedThemes = data.likert.filter((theme) => theme.themeName !== themeName);
+
+    await docRef.update({ likert: updatedThemes });
+
+    res.status(200).send({ message: "Theme deleted successfully", themes: updatedThemes });
+  } catch (err) {
+    res.status(500).send({ error: err.message });
+  }
+};
+
+// Controller function for Toggling release status
+const toggleReleaseExam = async (req, res) => {
+  try {
+    const { isReleased } = req.body;
+    const docRef = getAssessmentExamCollection().doc(ASSESSMENT_FORM_DOC_ID);
+    const doc = await docRef.get();
+
+    if (!doc.exists) {
+      return res.status(404).send({ error: "Assessment Form not found." });
+    }
+
+    await docRef.update({ isReleased });
+
+    res.status(200).send({
+      message: `Exam ${isReleased ? "released" : "disabled"} successfully.`,
+      isReleased,
+    });
+  } catch (error) {
+    res.status(500).send({ error: error.message });
+  }
+};
+
+
+
+
 module.exports = {
   addAssessmentExam,
   updateAssessmentExam,
   getAssessmentExamForm,
   addLikertTheme,
   getLikertTheme,
-  updateLikertTheme
+  updateLikertTheme,
+  deleteAssessmentExamQuestion,
+  updateAssessmentExamCategory,
+  editLikertTheme,
+  deleteLikertTheme,
+  toggleReleaseExam
 };
