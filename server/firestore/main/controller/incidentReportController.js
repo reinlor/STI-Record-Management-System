@@ -10,33 +10,45 @@ const cloudinary = require("../../../config/cloudinary.js");
 const incidentReportSchema = Joi.object({
   name: Joi.string().required().empty(""),
   sid: Joi.string().required().empty(""),
-  programSection: Joi.string().required().empty(""),
+  program: Joi.string().required().empty(""),
+  section: Joi.string().required().empty(""),
   email: Joi.string().required().empty(""),
+  typeOfSlip: Joi.string().required().empty(""),
   dateOfIncident: Joi.string().required().empty(""),
+  incidentTime: Joi.string().required().empty(""),
   locationOfIncident: Joi.string().required().empty(""),
-  personInvolved: Joi.string().required().empty(""),
-  witnessName: Joi.string().required().empty(""),
+  personInvolved: Joi.string().required().allow("").empty(""),
+  witnessName: Joi.string().required().allow("").empty(""),
+  witnessContact: Joi.string().optional().allow("").empty(""),
   narrativeReport: Joi.string().required().empty(""),
   actionTaken: Joi.string().required().empty(""),
-  status: Joi.string().required().empty(""),
-  remarks: Joi.string().required().empty(""),
+  attachmentCount: Joi.number().required(),
+  status: Joi.string().optional().empty(""),
+  remarks: Joi.string().required().allow(""),
   attachmentUrl: Joi.array().items(Joi.string()).optional(),
+  timeCreated: Joi.date().required(),
 });
 
 const updateIncidentReportSchema = Joi.object({
   name: Joi.string().optional().empty(""),
   sid: Joi.string().optional().empty(""),
-  programSection: Joi.optional().required().empty(""),
+  program: Joi.optional().required().empty(""),
+  section: Joi.optional().required().empty(""),
   email: Joi.string().optional().empty(""),
+  typeOfSlip: Joi.string().optional().empty(""),
   dateOfIncident: Joi.string().optional().empty(""),
+  incidentTime: Joi.string().optional().empty(""),
   locationOfIncident: Joi.string().optional().empty(""),
   personInvolved: Joi.string().optional().empty(""),
   witnessName: Joi.string().optional().empty(""),
+  witnessContact: Joi.string().optional().allow("").empty(""),
   narrativeReport: Joi.string().optional().empty(""),
   actionTaken: Joi.string().optional().empty(""),
+  attachmentCount: Joi.number().optional(),
   status: Joi.string().optional().empty(""),
   remarks: Joi.string().optional().empty(""),
   attachmentUrl: Joi.array().items(Joi.string()).optional(),
+  timeCreated: Joi.date().optional()
 });
 
 // Controller function for adding new incidents
@@ -61,6 +73,9 @@ const addIncident = async (req, res) => {
     const incidentData = {
       ...req.body,
       attachmentUrl: attachmentUrls,
+      status: "Pending",
+      timeCreated: new Date(),
+      attachmentCount: attachmentUrls.length
     };
 
     const { error, value: newIncidentReport } =
@@ -80,7 +95,7 @@ const addIncident = async (req, res) => {
     const existingDataArray = updatedData.data || [];
     
     existingDataArray.push({
-      sid: newAbsentSlip.sid,
+      sid: newIncidentReport.sid,
       type: "Incident Report",
       date: new Date().toISOString()
     });

@@ -58,6 +58,7 @@ const absentSlipSchema = Joi.object({
   timeCreated: Joi.date().required(),
   dateAbsent: Joi.string().required(),
   dateAbsentEnd: Joi.string().required(),
+  remarks: Joi.string().optional()
 });
 
 const idPassSchema = Joi.object({
@@ -267,6 +268,7 @@ const addAbsentSlip = async (req, res) => {
       timeCreated: new Date(),
       dateAbsent: req.body.dateAbsent,
       dateAbsentEnd: req.body.dateAbsentEnd,
+      remarks: ""
     };
 
     const { error, value: newAbsentSlip } = absentSlipSchema.validate(slipData);

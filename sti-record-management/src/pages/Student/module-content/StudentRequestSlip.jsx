@@ -116,23 +116,22 @@ export default function StudentRequestSlip() {
       endpoint = "/slip/absentSlip/add";
     } else if (activeSlip === "Report") {
       form.append("typeOfSlip", "Incident Report");
-      form.append("incidentDate", formData.incidentDate);
+      form.append("dateOfIncident", formData.incidentDate);
       form.append("incidentTime", formData.incidentTime);
-      form.append("incidentLocation", formData.incidentLocation);
-      form.append("personsInvolved", formData.personsInvolved);
+      form.append("locationOfIncident", formData.incidentLocation);
+      form.append("personInvolved", formData.personsInvolved);
       form.append("witnessName", formData.witnessName);
       form.append("witnessContact", formData.witnessContact);
-      form.append("narrative", formData.narrative);
-      form.append("actionsTaken", formData.actionsTaken);
+      form.append("narrativeReport", formData.narrative);
+      form.append("actionTaken", formData.actionsTaken);
+      form.append("remarks", "");
 
       // NEW: append evidence images if any
-      if (incidentEvidence.length > 0) {
-        incidentEvidence.forEach((evidence) => {
-          form.append("attachments", evidence.file);
-        });
-      }
+      incidentEvidence.forEach((evidence) => {
+        form.append("attachments", evidence.file);
+      });
 
-      endpoint = "/slip/report/add";
+      endpoint = "/incidentReport/add";
     }
 
     try {
@@ -161,11 +160,11 @@ export default function StudentRequestSlip() {
       console.error(error);
       toast.error(
         error.response?.data?.error ||
-          error.message ||
-          "Failed to submit form. Please try again."
+        error.message ||
+        "Failed to submit form. Please try again."
       );
     } finally {
-      setIsLoading(false);
+      setIsLoading(false); 
     }
   };
 
@@ -201,7 +200,7 @@ export default function StudentRequestSlip() {
           </label>
         ) : (
           <div className="flex items-center p-3 bg-white border border-gray-200 rounded-lg shadow-sm hover:border-yellow-400 transition-colors duration-200">
-            <span className="text-sm font-medium text-gray-800 flex-grow"> 
+            <span className="text-sm font-medium text-gray-800 flex-grow">
               {file.name}
             </span>
             <button
@@ -248,11 +247,10 @@ export default function StudentRequestSlip() {
               key={slip.id}
               type="button"
               onClick={() => setActiveSlip(slip.id)}
-              className={`flex items-center gap-2 py-3 px-4 rounded-xl text-sm font-semibold transition-all duration-300 ${
-                activeSlip === slip.id
+              className={`flex items-center gap-2 py-3 px-4 rounded-xl text-sm font-semibold transition-all duration-300 ${activeSlip === slip.id
                   ? "bg-yellow-400 text-black shadow-lg"
                   : "bg-gray-200 text-gray-700 hover:bg-gray-300 hover:text-black"
-              }`}
+                }`}
             >
               <slip.icon className="w-5 h-5" />
               {slip.label}
