@@ -112,6 +112,7 @@ export const fieldDefinitions = {
 
 export const normalizeForUI = (raw) => {
     if (!raw) return {};
+
     const profile = raw.studentProfile || {};
     const contact = raw.contactInfo || {};
     const family = raw.familyBackground || {};
@@ -123,18 +124,23 @@ export const normalizeForUI = (raw) => {
 
     return {
         basic: {
-            fullName: profile.name || `${profile.lastName || ''}` || 'N/A',
+            fullName: profile.name ?? 'N/A',
             studentId: raw.sid ?? raw.id ?? 'N/A',
             emailAddress: contact.email ?? 'N/A',
             mobilePhoneNumber: contact.contactNo ?? 'N/A',
             academicLevel: profile.academicLevel ?? 'N/A',
-            programYearSection: `${profile.program ?? ''} ${profile.section ?? ''}`.trim() || 'N/A',
+            program: profile.program ?? 'N/A',
+            section: profile.section ?? 'N/A',
             gender: profile.gender ?? 'N/A',
             birthDate: profile.birthday ?? 'N/A',
-            address: (contact.address && (contact.address.currentAddress || contact.address.permanentAddress)) || 'N/A',
+            address:
+                contact.address?.currentAddress ??
+                contact.address?.permanentAddress ??
+                'N/A',
             emergencyContact: family?.emergency?.contactNo ?? 'N/A',
             healthCondition: health?.illness ?? 'N/A',
         },
+
         personal: {
             fullName: profile.name ?? 'N/A',
             nickname: profile.nickname ?? 'N/A',
@@ -148,6 +154,7 @@ export const normalizeForUI = (raw) => {
             religion: profile.religion ?? 'N/A',
             status: profile.status ?? 'N/A',
         },
+
         contact: {
             mobilePhoneNumber: contact.contactNo ?? 'N/A',
             emailAddress: contact.email ?? 'N/A',
@@ -158,6 +165,7 @@ export const normalizeForUI = (raw) => {
             emergencyContact: family?.emergency?.contactNo ?? 'N/A',
             contactNumber: contact.contactNo ?? 'N/A',
         },
+
         family: {
             fatherName: family?.fatherInfo?.name ?? 'N/A',
             fatherAge: family?.fatherInfo?.age ?? 'N/A',
@@ -168,6 +176,7 @@ export const normalizeForUI = (raw) => {
             fatherOccupation: family?.fatherInfo?.occupation ?? 'N/A',
             fatherContactNumber: family?.fatherInfo?.contactNo ?? 'N/A',
             fatherEmailAddress: family?.fatherInfo?.email ?? 'N/A',
+
             motherName: family?.motherInfo?.name ?? 'N/A',
             motherAge: family?.motherInfo?.age ?? 'N/A',
             motherBirthDate: family?.motherInfo?.birthday ?? 'N/A',
@@ -177,16 +186,23 @@ export const normalizeForUI = (raw) => {
             motherOccupation: family?.motherInfo?.occupation ?? 'N/A',
             motherContactNumber: family?.motherInfo?.contactNo ?? 'N/A',
             motherEmailAddress: family?.motherInfo?.email ?? 'N/A',
+
             statusOfParents: family?.statusOfParent ?? 'N/A',
             nameOfGuardian: family?.guardian?.name ?? 'N/A',
             typeOfRelationWithGuardian: family?.guardian?.relation ?? 'N/A',
             guardianContactNumber: family?.guardian?.contactNo ?? 'N/A',
             guardianEmailAddress: family?.guardian?.email ?? 'N/A',
             parentGuardianAddress: family?.address ?? 'N/A',
-            siblings: Array.isArray(family?.siblings) ? family.siblings.join(', ') : (family?.siblings ?? 'N/A'),
-            siblingsCount: Array.isArray(family?.siblings) ? family.siblings.length : 'N/A',
+
+            siblings: Array.isArray(family?.siblings)
+                ? family.siblings.join(', ')
+                : family?.siblings ?? 'N/A',
+            siblingsCount: Array.isArray(family?.siblings)
+                ? family.siblings.length
+                : 'N/A',
             birthOrder: family?.birthOrder ?? 'N/A',
         },
+
         educational: {
             nameOfGradeSchool: edu?.elementary?.schoolName ?? 'N/A',
             yearsAttendedGradeSchool: edu?.elementary?.dateEnrolled ?? 'N/A',
@@ -201,6 +217,7 @@ export const normalizeForUI = (raw) => {
             mostLikedSubject: edu?.likedSubject ?? 'N/A',
             leastLikedSubject: edu?.leastSubject ?? 'N/A',
         },
+
         work: {
             nameOfCompanyInstitution: work?.name ?? 'N/A',
             durationFromTo: work?.duration ?? 'N/A',
@@ -208,6 +225,7 @@ export const normalizeForUI = (raw) => {
             companyContactNo: work?.contactNo ?? 'N/A',
             companyEmailAddress: work?.email ?? 'N/A',
         },
+
         interests: {
             sports: interests?.sports ?? 'N/A',
             hobbies: interests?.hobbies ?? 'N/A',
@@ -215,6 +233,7 @@ export const normalizeForUI = (raw) => {
             socioCivic: interests?.socioCivic ?? 'N/A',
             organizationsInvolved: interests?.organization ?? 'N/A',
         },
+
         health: {
             hospitalized: health?.hospitalized ?? 'N/A',
             reason: health?.reason ?? 'N/A',
@@ -225,6 +244,7 @@ export const normalizeForUI = (raw) => {
             hereditaryIllness: health?.hereditary ?? 'N/A',
             lastSawDoctor: health?.doctorLastSeen ?? 'N/A',
         },
+
         life: {
             recentLoss: life?.recentLoss ?? 'N/A',
             currentConcern: life?.currentConcern ?? 'N/A',
@@ -251,71 +271,79 @@ export const updateRawField = (raw, category, field, value) => {
         switch (category) {
             case 'basic':
                 if (field === 'fullName') setPath('studentProfile.name', value);
-                if (field === 'studentId') { next.sid = value; next.id = value; }
+                if (field === 'studentId') {
+                    next.sid = value;
+                    next.id = value;
+                }
                 if (field === 'emailAddress') setPath('contactInfo.email', value);
                 if (field === 'mobilePhoneNumber') setPath('contactInfo.contactNo', value);
                 if (field === 'academicLevel') setPath('studentProfile.academicLevel', value);
-                if (field === 'programYearSection') {
-                    setPath('studentProfile.program', value);
-                }
+                if (field === 'program') setPath('studentProfile.program', value);
+                if (field === 'section') setPath('studentProfile.section', value);
                 if (field === 'gender') setPath('studentProfile.gender', value);
                 if (field === 'birthDate') setPath('studentProfile.birthday', value);
-                if (field === 'address') {
-                    if (!next.contactInfo) next.contactInfo = {};
-                    if (!next.contactInfo.address) next.contactInfo.address = {};
-                    next.contactInfo.address.currentAddress = value;
-                }
-                if (field === 'emergencyContact') {
-                    if (!next.familyBackground) next.familyBackground = {};
-                    if (!next.familyBackground.emergency) next.familyBackground.emergency = {};
-                    next.familyBackground.emergency.contactNo = value;
-                }
+                if (field === 'address') setPath('contactInfo.address.currentAddress', value);
+                if (field === 'emergencyContact')
+                    setPath('familyBackground.emergency.contactNo', value);
                 if (field === 'healthCondition') setPath('health.illness', value);
                 break;
+
             case 'personal':
+                if (field === 'fullName') setPath('studentProfile.name', value);
                 if (field === 'nickname') setPath('studentProfile.nickname', value);
+                if (field === 'studentId') {
+                    next.sid = value;
+                    next.id = value;
+                }
                 if (field === 'gradeYearLevel') setPath('studentProfile.academicLevel', value);
                 if (field === 'tertiaryCollegeProgram') setPath('studentProfile.program', value);
                 if (field === 'section') setPath('studentProfile.section', value);
+                if (field === 'birthDate') setPath('studentProfile.birthday', value);
                 if (field === 'nationality') setPath('studentProfile.nationality', value);
+                if (field === 'gender') setPath('studentProfile.gender', value);
                 if (field === 'religion') setPath('studentProfile.religion', value);
                 if (field === 'status') setPath('studentProfile.status', value);
                 break;
+
             case 'contact':
                 if (field === 'mobilePhoneNumber') setPath('contactInfo.contactNo', value);
                 if (field === 'emailAddress') setPath('contactInfo.email', value);
                 if (field === 'homeNumber') setPath('contactInfo.homeNo', value);
-                if (field === 'presentAddress') {
-                    if (!next.contactInfo) next.contactInfo = {};
-                    if (!next.contactInfo.address) next.contactInfo.address = {};
-                    next.contactInfo.address.currentAddress = value;
-                }
-                if (field === 'permanentAddress') {
-                    if (!next.contactInfo) next.contactInfo = {};
-                    if (!next.contactInfo.address) next.contactInfo.address = {};
-                    next.contactInfo.address.permanentAddress = value;
-                }
+                if (field === 'presentAddress') setPath('contactInfo.address.currentAddress', value);
+                if (field === 'permanentAddress') setPath('contactInfo.address.permanentAddress', value);
                 if (field === 'working') setPath('contactInfo.workNo', value);
+                if (field === 'emergencyContact')
+                    setPath('familyBackground.emergency.contactNo', value);
+                if (field === 'contactNumber') setPath('contactInfo.contactNo', value);
                 break;
+
             case 'family':
                 if (field.startsWith('father')) {
-                    const key = field.replace('father', '').replace(/^./, c => c.toLowerCase());
-                    setPath(`familyBackground.fatherInfo.${key}`, value);
+                    const key = field.replace('father', '');
+                    setPath(`familyBackground.fatherInfo.${key.charAt(0).toLowerCase() + key.slice(1)}`, value);
                 }
                 if (field.startsWith('mother')) {
-                    const key = field.replace('mother', '').replace(/^./, c => c.toLowerCase());
-                    setPath(`familyBackground.motherInfo.${key}`, value);
+                    const key = field.replace('mother', '');
+                    setPath(`familyBackground.motherInfo.${key.charAt(0).toLowerCase() + key.slice(1)}`, value);
                 }
                 if (field === 'statusOfParents') setPath('familyBackground.statusOfParent', value);
                 if (field === 'nameOfGuardian') setPath('familyBackground.guardian.name', value);
+                if (field === 'typeOfRelationWithGuardian') setPath('familyBackground.guardian.relation', value);
                 if (field === 'guardianContactNumber') setPath('familyBackground.guardian.contactNo', value);
+                if (field === 'guardianEmailAddress') setPath('familyBackground.guardian.email', value);
                 if (field === 'parentGuardianAddress') setPath('familyBackground.address', value);
-                if (field === 'siblings') setPath('familyBackground.siblings', Array.isArray(next.familyBackground?.siblings) ? value.split(',').map(s => s.trim()) : value);
+                if (field === 'siblings')
+                    setPath('familyBackground.siblings', value.split(',').map((s) => s.trim()));
                 if (field === 'birthOrder') setPath('familyBackground.birthOrder', value);
                 break;
+
             case 'educational':
                 if (field === 'nameOfGradeSchool') setPath('educationalBackground.elementary.schoolName', value);
                 if (field === 'yearsAttendedGradeSchool') setPath('educationalBackground.elementary.dateEnrolled', value);
+                if (field === 'nameOfJuniorHighSchool') setPath('educationalBackground.juniorHighSchool.schoolName', value);
+                if (field === 'yearsAttendedJuniorHighSchool') setPath('educationalBackground.juniorHighSchool.dateEnrolled', value);
+                if (field === 'nameOfSeniorHighSchool') setPath('educationalBackground.seniorHighSchool.schoolName', value);
+                if (field === 'yearsAttendedSeniorHighSchool') setPath('educationalBackground.seniorHighSchool.dateEnrolled', value);
                 if (field === 'nameOfCollege') setPath('educationalBackground.college.schoolName', value);
                 if (field === 'yearsAttendedCollege') setPath('educationalBackground.college.dateEnrolled', value);
                 if (field === 'extraCurricularActivities') setPath('educationalBackground.extraCurricular', value);
@@ -323,6 +351,7 @@ export const updateRawField = (raw, category, field, value) => {
                 if (field === 'mostLikedSubject') setPath('educationalBackground.likedSubject', value);
                 if (field === 'leastLikedSubject') setPath('educationalBackground.leastSubject', value);
                 break;
+
             case 'work':
                 if (field === 'nameOfCompanyInstitution') setPath('workExperience.name', value);
                 if (field === 'durationFromTo') setPath('workExperience.duration', value);
@@ -330,6 +359,7 @@ export const updateRawField = (raw, category, field, value) => {
                 if (field === 'companyContactNo') setPath('workExperience.contactNo', value);
                 if (field === 'companyEmailAddress') setPath('workExperience.email', value);
                 break;
+
             case 'interests':
                 if (field === 'sports') setPath('interests.sports', value);
                 if (field === 'hobbies') setPath('interests.hobbies', value);
@@ -337,6 +367,7 @@ export const updateRawField = (raw, category, field, value) => {
                 if (field === 'socioCivic') setPath('interests.socioCivic', value);
                 if (field === 'organizationsInvolved') setPath('interests.organization', value);
                 break;
+
             case 'health':
                 if (field === 'hospitalized') setPath('health.hospitalized', value);
                 if (field === 'reason') setPath('health.reason', value);
@@ -347,15 +378,17 @@ export const updateRawField = (raw, category, field, value) => {
                 if (field === 'hereditaryIllness') setPath('health.hereditary', value);
                 if (field === 'lastSawDoctor') setPath('health.doctorLastSeen', value);
                 break;
+
             case 'life':
                 if (field === 'recentLoss') setPath('lifeCircumstances.recentLoss', value);
                 if (field === 'currentConcern') setPath('lifeCircumstances.currentConcern', value);
                 break;
+
             default:
                 break;
         }
-    } catch (e) {
-        console.warn('Failed to map UI field to raw path', e);
+    } catch (err) {
+        console.error('updateRawField error:', err);
     }
 
     return next;

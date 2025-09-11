@@ -72,6 +72,23 @@ const addIncident = async (req, res) => {
 
     await getIncidentReportCollection().doc().set(newIncidentReport);
 
+    // Pang Charts
+    const chartDataDocRef = getChartDataCollection().doc("slip-n-pass");
+    const docSnapshot = await chartDataDocRef.get();
+    
+    const updatedData = docSnapshot.exists ? docSnapshot.data() : { id: "slip-n-pass", data: [] };
+    const existingDataArray = updatedData.data || [];
+    
+    existingDataArray.push({
+      sid: newAbsentSlip.sid,
+      type: "Incident Report",
+      date: new Date().toISOString()
+    });
+    
+    updatedData.data = existingDataArray;
+    await chartDataDocRef.set(updatedData, { merge: true });
+    // Pang Charts
+
     res.status(201).json({ message: "Incident report added successfully" });
   } catch (error) {
     if (publicIds.length) {

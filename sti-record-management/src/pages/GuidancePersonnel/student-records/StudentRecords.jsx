@@ -205,23 +205,29 @@ function StudentRecords() {
     const handleSaveEdits = async () => {
         if (editedStudentData && selectedStudentId) {
             try {
-                const { id, sid, ...updateData } = editedStudentData;
+                const payload = JSON.parse(JSON.stringify(editedStudentData));
+                delete payload.id;
 
                 const res = await axios.put(
                     `/student/update/${selectedStudentId}`,
-                    updateData
+                    payload
                 );
 
-                console.log(updateData)
+                const updatedStudent = {
+                    ...res.data.updates,
+                    id: res.data.id, 
+                };
 
                 setStudents(prev =>
                     prev.map(student =>
-                        (student.id === selectedStudentId || student.sid === selectedStudentId) ? res.data : student
+                        (student.id === selectedStudentId || student.sid === selectedStudentId)
+                            ? updatedStudent
+                            : student
                     )
                 );
 
-                setSelectedStudentDetails(res.data);
-                setEditedStudentData(JSON.parse(JSON.stringify(res.data)));
+                setSelectedStudentDetails(updatedStudent);
+                setEditedStudentData(JSON.parse(JSON.stringify(updatedStudent)));
                 setIsEditing(false);
                 toast.success("Changes saved successfully!");
             } catch (err) {
@@ -432,7 +438,7 @@ function StudentRecords() {
                                         </p>
                                     </div>
 
-                                {/* Archive/Enrolled */}
+                                    {/* Archive/Enrolled */}
                                     <div className="flex justify-around bg-[#f3f4f6] p-1 rounded-lg mb-2">
                                         <button className={`flex-1 flex items-center justify-center px-4 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out cursor-pointer hover:bg-[#003d54] 
                                         ${activeTab === 'Archived' ? 'bg-[#0172bd] text-[#fef201] shadow-sm hover:bg-blue-900' : 'text-black hover:bg-gray-200'}`}
@@ -459,8 +465,8 @@ function StudentRecords() {
 
                                 <div className="flex space-x-2 p-2">
                                     <div className="relative flex-1">
-                                        <select className="text-sm text-[#0172bd] block w-full px-4 py-2 border hover:bg-gray-100 border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-[#0172bd] focus:border-transparent transition duration-150 ease-in-out appearance-none bg-white pr-8 cursor-pointer" 
-                                        value={selectedYearLevel} onChange={(e) => setSelectedYearLevel(e.target.value)}>
+                                        <select className="text-sm text-[#0172bd] block w-full px-4 py-2 border hover:bg-gray-100 border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-[#0172bd] focus:border-transparent transition duration-150 ease-in-out appearance-none bg-white pr-8 cursor-pointer"
+                                            value={selectedYearLevel} onChange={(e) => setSelectedYearLevel(e.target.value)}>
 
                                             <option value="none">Year Level</option>
                                             {yearLevelOptions.filter(opt => opt !== "none").map(option => (<option key={option} value={option}>{option}</option>))}
@@ -495,7 +501,7 @@ function StudentRecords() {
                                             onClick={() => setShowAddStudentModal(true)}
                                         >
                                             <UserPlus className="w-6 h-6 text-[#fef201]" />
-                                            
+
                                         </button>
                                         <button
                                             className="flex-1 bg-[#0172bd] hover:bg-blue-500 text-white p-2 rounded-lg flex items-center justify-center transition duration-150 ease-in-out shadow-md hover:shadow-lg"
@@ -566,89 +572,89 @@ function StudentRecords() {
                     >
                         <Fragment>
                             <div className="p-4 border-b border-gray-200">
-                            <div className="flex flex-wrap lg:items-center gap-2 lg:gap-4 w-full">
-                                {/* Back + Name */}
-                                <div className="flex items-center min-w-0 flex-shrink gap-2">
-                                    <button
-                                        className="p-2 rounded-lg hover:bg-gray-200 transition duration-150 ease-in-out cursor-pointer flex-shrink-0"
-                                        onClick={() => setSelectedStudentId(null)}
-                                    >
-                                        <ChevronLeft className="w-8 h-8 text-[#0172bd]" />
-                                    </button>
-                                    {selectedStudentDetails && (
-                                        <span className="text-xl sm:text-2xl font-semibold text-black truncate min-w-0 max-w-[100vw] lg:max-w-[350px]">
-                                            {selectedStudentDetails.studentProfile?.name ?? selectedStudentDetails.name ?? ''}
-                                        </span>
-                                    )}
-                                </div>
-                                
-                                {/* InfoType Dropdown */}
-                                <div className="relative w-full sm:w-auto lg:w-56 flex-shrink-0">
-                                    <select
-                                        className="block w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-1 text-[#0172bd] focus:ring-[#0172bd] focus:border-transparent transition duration-150 ease-in-out appearance-none bg-white pr-8 text-sm sm:text-base cursor-pointer"
-                                        value={infoType}
-                                        onChange={(e) => setInfoType(e.target.value)}
-                                    >
-                                        <option value="basic">Basic Information</option>
-                                        <option value="personal">Personal Information</option>
-                                        <option value="contact">Contact Information</option>
-                                        <option value="family">Family Background</option>
-                                        <option value="educational">Educational Background</option>
-                                        <option value="work">Work Experience (Optional)</option>
-                                        <option value="interests">Interests and Activities</option>
-                                        <option value="health">Health</option>
-                                        <option value="life">Life Circumstances</option>
-                                    </select>
-                                    <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
-                                        <ChevronDown className="w-4 h-4 text-[#0172bd]" />
+                                <div className="flex flex-wrap lg:items-center gap-2 lg:gap-4 w-full">
+                                    {/* Back + Name */}
+                                    <div className="flex items-center min-w-0 flex-shrink gap-2">
+                                        <button
+                                            className="p-2 rounded-lg hover:bg-gray-200 transition duration-150 ease-in-out cursor-pointer flex-shrink-0"
+                                            onClick={() => setSelectedStudentId(null)}
+                                        >
+                                            <ChevronLeft className="w-8 h-8 text-[#0172bd]" />
+                                        </button>
+                                        {selectedStudentDetails && (
+                                            <span className="text-xl sm:text-2xl font-semibold text-black truncate min-w-0 max-w-[100vw] lg:max-w-[350px]">
+                                                {selectedStudentDetails.studentProfile?.name ?? selectedStudentDetails.name ?? ''}
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    {/* InfoType Dropdown */}
+                                    <div className="relative w-full sm:w-auto lg:w-56 flex-shrink-0">
+                                        <select
+                                            className="block w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-1 text-[#0172bd] focus:ring-[#0172bd] focus:border-transparent transition duration-150 ease-in-out appearance-none bg-white pr-8 text-sm sm:text-base cursor-pointer"
+                                            value={infoType}
+                                            onChange={(e) => setInfoType(e.target.value)}
+                                        >
+                                            <option value="basic">Basic Information</option>
+                                            <option value="personal">Personal Information</option>
+                                            <option value="contact">Contact Information</option>
+                                            <option value="family">Family Background</option>
+                                            <option value="educational">Educational Background</option>
+                                            <option value="work">Work Experience (Optional)</option>
+                                            <option value="interests">Interests and Activities</option>
+                                            <option value="health">Health</option>
+                                            <option value="life">Life Circumstances</option>
+                                        </select>
+                                        <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
+                                            <ChevronDown className="w-4 h-4 text-[#0172bd]" />
+                                        </div>
+                                    </div>
+                                    {/* Buttons */}
+                                    <div className="flex gap-2 flex-1 justify-end flex-wrap">
+                                        <button
+                                            className="bg-[#0172bd] font-semibold  hover:bg-blue-500 text-[#fef201] py-2 px-4 rounded-lg flex items-center justify-center transition duration-150 ease-in-out shadow-md hover:shadow-lg"
+                                            onClick={() => setDisplayStudentList(true)}
+                                            title="Student List"
+                                        >
+                                            <span className="block lg:w-0 lg:h-0 lg:p-0 lg:m-0"><FolderOpen className="lg:w-0 lg:h-0 w-5 h-5" /></span>
+                                            <span className="w-0 h-0 p-0 m-0 overflow-hidden lg:w-auto lg:h-auto lg:p-1 lg:m-0 lg:ml-1 lg:overflow-visible lg:flex items-center">Student List <FolderOpen className="w-5 h-5 ml-2" /></span>
+                                        </button>
+                                        {selectedStudentId !== null && (
+                                            <>
+                                                {authData?.user?.access?.studentRecords?.canEdit && (
+                                                    <button
+                                                        className={`py-2 px-4 rounded-lg flex items-center justify-center transition duration-150 ease-in-out font-medium shadow-md hover:shadow-lg
+                                                    ${isEditing
+                                                                ? 'bg-blue-400 hover:bg-blue-600 text-white'
+                                                                : 'bg-[#0172bd] hover:bg-blue-500 text-[#fef201]'}`}
+                                                        onClick={() => { if (isEditing) { handleSaveEdits(); } setIsEditing(!isEditing); }}
+                                                        title={isEditing ? "Save" : "Edit Student"}
+                                                    >
+                                                        <span className="block lg:w-0 lg:h-0 lg:p-0 lg:m-0"><Edit className="lg:w-0 lg:h-0 w-5 h-5" /></span>
+                                                        <span className="w-0 h-0 p-0 m-0 overflow-hidden lg:w-auto lg:h-auto lg:p-1 lg:m-0 lg:ml-1 lg:overflow-visible lg:flex items-center">{isEditing ? 'Save' : 'Edit Student'} <Edit className="w-5 h-5 ml-2" /></span>
+                                                    </button>
+                                                )}
+                                                <button
+                                                    className="bg-[#0172bd] text-[#fef201] font-semibold hover:bg-blue-500  py-2 px-4 rounded-lg flex items-center justify-center transition duration-150 ease-in-out shadow-md hover:shadow-lg"
+                                                    onClick={handleCaseButton}
+                                                    title="Case"
+                                                >
+                                                    <span className="block lg:w-0 lg:h-0 lg:p-0 lg:m-0"><FileText className="lg:w-0 lg:h-0 w-5 h-5" /></span>
+                                                    <span className="w-0 h-0 p-0 m-0 overflow-hidden lg:w-auto lg:h-auto lg:p-1 lg:m-0 lg:ml-1 lg:overflow-visible lg:flex items-center">Case <FileText className="w-5 h-5 ml-2" /></span>
+                                                </button>
+                                                <button
+                                                    className="bg-[#dc3545] font-semibold hover:bg-red-700 text-white py-2 px-4 rounded-lg flex items-center justify-center transition duration-150 ease-in-out shadow-md hover:shadow-lg"
+                                                    onClick={() => setShowArchiveConfirmModal(true)}
+                                                    title={activeTab === 'Archived' ? 'Restore' : 'Archive'}
+                                                >
+                                                    <span className="block lg:w-0 lg:h-0 lg:p-0 lg:m-0"><FileArchive className="lg:w-0 lg:h-0 w-5 h-5" /></span>
+                                                    <span className="w-0 h-0 p-0 m-0 overflow-hidden lg:w-auto lg:h-auto lg:p-1 lg:m-0 lg:ml-1 lg:overflow-visible lg:flex items-center">{activeTab === 'Archived' ? 'Restore' : 'Archive'} <FileArchive className="w-5 h-5 ml-2" /></span>
+                                                </button>
+                                            </>
+                                        )}
                                     </div>
                                 </div>
-                                {/* Buttons */}
-                                <div className="flex gap-2 flex-1 justify-end flex-wrap">
-                                    <button
-                                        className="bg-[#0172bd] font-semibold  hover:bg-blue-500 text-[#fef201] py-2 px-4 rounded-lg flex items-center justify-center transition duration-150 ease-in-out shadow-md hover:shadow-lg"
-                                        onClick={() => setDisplayStudentList(true)}
-                                        title="Student List"
-                                    >
-                                        <span className="block lg:w-0 lg:h-0 lg:p-0 lg:m-0"><FolderOpen className="lg:w-0 lg:h-0 w-5 h-5" /></span>
-                                        <span className="w-0 h-0 p-0 m-0 overflow-hidden lg:w-auto lg:h-auto lg:p-1 lg:m-0 lg:ml-1 lg:overflow-visible lg:flex items-center">Student List <FolderOpen className="w-5 h-5 ml-2" /></span>
-                                    </button>
-                                    {selectedStudentId !== null && (
-                                        <>
-                                            {authData?.user?.access?.studentRecords?.canEdit && (
-                                                <button
-                                                    className={`py-2 px-4 rounded-lg flex items-center justify-center transition duration-150 ease-in-out font-medium shadow-md hover:shadow-lg
-                                                    ${isEditing 
-                                                        ? 'bg-blue-400 hover:bg-blue-600 text-white' 
-                                                        : 'bg-[#0172bd] hover:bg-blue-500 text-[#fef201]'}`}
-                                                    onClick={() => { if (isEditing) { handleSaveEdits(); } setIsEditing(!isEditing); }}
-                                                    title={isEditing ? "Save" : "Edit Student"}
-                                                >
-                                                    <span className="block lg:w-0 lg:h-0 lg:p-0 lg:m-0"><Edit className="lg:w-0 lg:h-0 w-5 h-5" /></span>
-                                                    <span className="w-0 h-0 p-0 m-0 overflow-hidden lg:w-auto lg:h-auto lg:p-1 lg:m-0 lg:ml-1 lg:overflow-visible lg:flex items-center">{isEditing ? 'Save' : 'Edit Student'} <Edit className="w-5 h-5 ml-2" /></span>
-                                                </button>
-                                            )}
-                                            <button
-                                                className="bg-[#0172bd] text-[#fef201] font-semibold hover:bg-blue-500  py-2 px-4 rounded-lg flex items-center justify-center transition duration-150 ease-in-out shadow-md hover:shadow-lg"
-                                                onClick={handleCaseButton}
-                                                title="Case"
-                                            >
-                                                <span className="block lg:w-0 lg:h-0 lg:p-0 lg:m-0"><FileText className="lg:w-0 lg:h-0 w-5 h-5" /></span>
-                                                <span className="w-0 h-0 p-0 m-0 overflow-hidden lg:w-auto lg:h-auto lg:p-1 lg:m-0 lg:ml-1 lg:overflow-visible lg:flex items-center">Case <FileText className="w-5 h-5 ml-2" /></span>
-                                            </button>
-                                            <button
-                                                className="bg-[#dc3545] font-semibold hover:bg-red-700 text-white py-2 px-4 rounded-lg flex items-center justify-center transition duration-150 ease-in-out shadow-md hover:shadow-lg"
-                                                onClick={() => setShowArchiveConfirmModal(true)}
-                                                title={activeTab === 'Archived' ? 'Restore' : 'Archive'}
-                                            >
-                                                <span className="block lg:w-0 lg:h-0 lg:p-0 lg:m-0"><FileArchive className="lg:w-0 lg:h-0 w-5 h-5" /></span>
-                                                <span className="w-0 h-0 p-0 m-0 overflow-hidden lg:w-auto lg:h-auto lg:p-1 lg:m-0 lg:ml-1 lg:overflow-visible lg:flex items-center">{activeTab === 'Archived' ? 'Restore' : 'Archive'} <FileArchive className="w-5 h-5 ml-2" /></span>
-                                            </button>
-                                        </>
-                                    )}
-                                </div>
                             </div>
-                        </div>
 
                             {/* Details body */}
                             <div className="flex-1 p-6 overflow-y-auto">
