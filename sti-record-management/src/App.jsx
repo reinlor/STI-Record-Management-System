@@ -14,8 +14,8 @@ import GuidanceRequestSlip from './pages/GuidancePersonnel/request-slip/RequestS
 import GuidanceRequestSlipHistory from './pages/GuidancePersonnel/request-slip/RequestSlipHistory.jsx'
 import GuidanceUsers from './pages/GuidancePersonnel/users/Users.jsx'
 import GuidanceBackNRestore from './pages/GuidancePersonnel/backup-and-restore/BackupNRestore.jsx'
-import GuidanceWellnessGeneration from './pages/GuidancePersonnel/wellness-assessment/WellnessAssessment.jsx' 
-import GuidanceContentManagement from './pages/GuidancePersonnel/content-management/ContentManagement.jsx' 
+import GuidanceWellnessGeneration from './pages/GuidancePersonnel/wellness-assessment/WellnessAssessment.jsx'
+import GuidanceContentManagement from './pages/GuidancePersonnel/content-management/ContentManagement.jsx'
 
 import StudentHomepage from './pages/Student/StudentHomepage.jsx';
 
@@ -23,6 +23,10 @@ import TeacherHomepage from './pages/Teacher/TeacherHomepage.jsx';
 
 import PageNotFound from './pages/Others/PageNotFound.jsx';
 import UnauthorizeAccess from './pages/Others/UnauthorizeAccess.jsx';
+
+// For toast
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 import {
   Chart as ChartJS,
@@ -64,27 +68,38 @@ function App() {
   return (
     <Router>
       <AuthProvider>
+        <ToastContainer
+          position="top-right"
+          autoClose={3000}
+          hideProgressBar={false}
+          newestOnTop
+          closeOnClick
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="colored"
+        />
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<LoginBeta />} />
 
           {/* Guidance Personnel */}
-          <Route path='/guidance' element={<ProtectedRoute requiredRole={["Admin", "Disciplinary", "Super Admin"]}><GuidanceLayout/></ProtectedRoute>}>
-            <Route index element={<GuidanceDashboard/>}/>
-            <Route path="student-records" element={<GuidanceStudentRecords/>}/>
-            <Route path="student-cases" element={<GuidanceStudentCases/>}/>
-            <Route path="users" element={<GuidanceUsers/>}/>
-            <Route path="request-slip" element={<GuidanceRequestSlip/>}/>
-            <Route path="request-slip-history" element={<GuidanceRequestSlipHistory/>}/>
-            <Route path="referral-form" element={<GuidanceReferralForm/>}/>
-            <Route path="referral-form-history" element={<GuidanceReferralFormHistory/>}/>
-            <Route path="back-n-restore" element={<GuidanceBackNRestore/>}/>
-            <Route path="wellness" element={<GuidanceWellnessGeneration/>}/>
-            <Route path="content-management" element={<GuidanceContentManagement/>}/>
+          <Route path='/guidance' element={<ProtectedRoute requiredRole={["Admin", "Disciplinary", "Super Admin"]}><GuidanceLayout /></ProtectedRoute>}>
+            <Route index element={<GuidanceDashboard />} />
+            <Route path="student-records" element={<GuidanceStudentRecords />} />
+            <Route path="student-cases" element={<GuidanceStudentCases />} />
+            <Route path="users" element={<GuidanceUsers />} />
+            <Route path="request-slip" element={<GuidanceRequestSlip />} />
+            <Route path="request-slip-history" element={<GuidanceRequestSlipHistory />} />
+            <Route path="referral-form" element={<GuidanceReferralForm />} />
+            <Route path="referral-form-history" element={<GuidanceReferralFormHistory />} />
+            <Route path="back-n-restore" element={<GuidanceBackNRestore />} />
+            <Route path="wellness" element={<GuidanceWellnessGeneration />} />
+            <Route path="content-management" element={<GuidanceContentManagement />} />
           </Route>
 
           {/* Protected Student Routes */}
-          <Route path='/pupil' element={<ProtectedRoute requiredRole="Student"><StudentHomepage /></ProtectedRoute>}/>
+          <Route path='/pupil' element={<ProtectedRoute requiredRole="Student"><StudentHomepage /></ProtectedRoute>} />
 
           {/* Protected Teacher Routes */}
           <Route path='/educator' element={<ProtectedRoute requiredRole="Teacher"><TeacherHomepage /></ProtectedRoute>} />
