@@ -174,9 +174,12 @@ function SubmitReferralForm({ teacher = {}, onCancel, onSuccess }) {
             success: () => {
                 setReferral(prev => ({
                     id: prev.id,
+                    schoolYear: prev.schoolYear,
+                    email: prev.email,
                     referredBy: prev.referredBy,
                     preparedBy: prev.preparedBy,
                     preparedDate: prev.preparedDate,
+                    status: prev.status
                 }));
                 if (onSuccess) onSuccess();
                 return `Referral for ${referralData.studentName} has been submitted!`;
