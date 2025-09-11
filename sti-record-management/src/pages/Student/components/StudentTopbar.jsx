@@ -43,17 +43,17 @@ const StudentTopBar = ({
     <div className="bg-gray-900 text-white flex items-center justify-between px-4 py-4 relative">
       {/* Left Section (Logo + Nav) */}
       <div className="flex items-center">
-        <span className="text-2xl font-bold text-[#FFCF3F] mr-6">
+        <span className="text-xl sm:text-2xl font-bold text-[#FFCF3F] mr-3 sm:mr-6">
           STI GORMS
         </span>
 
         {/* Desktop Menu (show starting from sm: screens) */}
-        <div className="hidden sm:flex space-x-2 font-medium">
+        <div className="hidden sm:flex space-x-1 lg:space-x-2 font-medium">
           {modules.map((mod) => (
             <button
               key={mod.id}
               onClick={() => setSelected(mod.id)}
-              className={`py-2 px-4 rounded-md transition-colors ${
+              className={`py-2 px-3 lg:px-4 rounded-md transition-colors whitespace-nowrap text-sm lg:text-base ${
                 selected === mod.id
                   ? "bg-[#FFCF3F] text-black font-bold"
                   : "hover:bg-gray-700"
@@ -155,7 +155,6 @@ const StudentTopBar = ({
         </div>
       )}
     </div>
-
   );
 };
 
