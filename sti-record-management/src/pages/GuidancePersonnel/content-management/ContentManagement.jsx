@@ -4,10 +4,8 @@ import { Plus, X, Check, Bell, GraduationCap, Building, Link2, Settings } from '
 
 const Toast = ({ message, type, isVisible, onClose }) => {
     if (!isVisible) return null;
-
     const baseClasses = "fixed bottom-5 right-5 z-50 p-4 rounded-lg shadow-xl text-white flex items-center space-x-2 transition-transform transform duration-300";
     const typeClasses = type === 'success' ? "bg-green-500 translate-x-0" : "bg-red-500 translate-x-0";
-    
     return (
         <div className={`${baseClasses} ${typeClasses}`}>
             {type === 'success' ? <Check size={20} /> : <X size={20} />}
@@ -19,7 +17,16 @@ const Toast = ({ message, type, isVisible, onClose }) => {
     );
 };
 
+const PANEL = {
+    ANNOUNCEMENT: 'announcement',
+    PROGRAMS: 'programs',
+    WELLNESS: 'wellness',
+    QUICKLINKS: 'quicklinks'
+};
+
 export default function ContentManagement() {
+    const [activePanel, setActivePanel] = useState(PANEL.ANNOUNCEMENT);
+
     const [announcements, setAnnouncements] = useState([]);
     const [newAnnouncement, setNewAnnouncement] = useState({ title: '', body: '' });
 
@@ -134,7 +141,7 @@ export default function ContentManagement() {
     };
 
     const renderProgramList = (list) => (
-        <div className="flex flex-col space-y-2 lg:h-48 md:h-30 overflow-y-auto custom-scrollbar">
+        <div className="flex flex-col space-y-2 h-48 overflow-y-auto custom-scrollbar">
             {list.map((item, index) => (
                 <div key={index} className="p-2 bg-gray-100 rounded-lg shadow-sm">
                     <p className="font-semibold text-gray-800">{item.acronym}</p>
@@ -144,179 +151,246 @@ export default function ContentManagement() {
         </div>
     );
 
-    return (
-        <div className="flex flex-col md:flex-row h-full bg-gray-100 p-2 md:p-4 gap-2 md:gap-4">
-            {/* Left Column */}
-            <div className="w-full md:w-2/3 flex flex-col gap-2">
-                {/* Announcements */}
-                <div className="bg-white p-2 sm:p-3 md:p-4 rounded-xl shadow-lg flex flex-col h-auto">
-                    <div className="flex items-center gap-2 mb-2 md:mb-4">
-                        <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-black">Announcement</h2>
-                        <Bell className="w-5 h-5 md:w-7 md:h-7 text-gray-700 ml-2 mt-1" />
-                    </div>
-                    <div className="space-y-2 md:space-y-4 flex-grow flex flex-col">
-                        <input
-                            type="text"
-                            placeholder="Title of announcement"
-                            value={newAnnouncement.title}
-                            onChange={(e) => setNewAnnouncement({ ...newAnnouncement, title: e.target.value })}
-                            className="w-full p-2 sm:p-2 md:p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-300 text-xs sm:text-sm md:text-base"
-                        />
-                        <textarea
-                            placeholder="Body of announcement"
-                            value={newAnnouncement.body}
-                            onChange={(e) => setNewAnnouncement({ ...newAnnouncement, body: e.target.value })}
-                            className="w-full p-2 sm:p-2 md:p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-300 resizable-y min-h-[60px] md:min-h-[80px] text-xs sm:text-sm md:text-base"
-                        ></textarea>
-                        <button
-                            onClick={handlePostAnnouncement}
-                            className="self-end px-3 sm:px-4 md:px-6 py-2 bg-[#1a1a2e] text-white font-semibold rounded-lg hover:bg-[#3c2844] transition duration-150 ease-in-out text-xs sm:text-sm md:text-base"
-                        >
-                            Post
-                        </button>
-                    </div>
-                    <div className="flex-grow overflow-hidden flex flex-col mt-2 h-50">
-                        <h3 className="text-base sm:text-lg md:text-xl font-bold text-black mb-2">Past Announcements</h3>
-                        <div className="p-2 sm:p-2 md:p-4 bg-gray-50 rounded-lg border border-gray-200 overflow-y-auto custom-scrollbar flex-grow">
-                            {announcements.length > 0 ? (
-                                announcements.map((ann, index) => (
-                                    <div key={index} className="mb-2 md:mb-4 last:mb-0 p-2 sm:p-2 md:p-4 bg-white rounded-lg shadow-sm">
-                                        <h4 className="font-bold text-gray-900 text-xs sm:text-sm md:text-base">{ann.title}</h4>
-                                        <p className="text-xs sm:text-sm md:text-base text-gray-600 mt-1 whitespace-pre-wrap">
-                                            {ann.description || ann.body}
-                                        </p>
-                                    </div>
-                                ))
-                            ) : (
-                                <p className="text-gray-500 text-center text-xs sm:text-sm">No past announcements.</p>
-                            )}
-                        </div>
-                    </div>
-                </div>
-                {/* Programs and Strands */}
-                <div className="flex flex-col sm:flex-row gap-2 md:h-68 lg:h-full">
-                    <div className="flex-1 bg-white p-3 sm:p-4 md:p-6 rounded-xl shadow-lg flex flex-col mb-2 md:mb-0">
-                        <div className="flex items-center gap-2 mb-2 md:mb-4">
-                            <h2 className="text-base sm:text-lg md:text-lg font-bold text-gray-800">Tertiary Programs</h2>
-                            <GraduationCap className="w-5 h-5 md:w-6 md:h-6 text-gray-700" />
-                        </div>
-                        {renderProgramList(tertiaryPrograms)}
-                        <button
-                            onClick={() => handleAddProgram('Tertiary')}
-                            className="mt-2 md:mt-4 px-3 sm:px-4 md:px-6 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition duration-150 ease-in-out flex items-center justify-center gap-2 text-xs sm:text-sm md:text-base"
-                        >
-                            <Plus size={18} />
-                            <span>Add Program</span>
-                        </button>
-                    </div>
-                    <div className="flex-1 bg-white p-3 sm:p-4 md:p-6 rounded-xl shadow-lg flex flex-col">
-                        <div className="flex items-center gap-2 mb-2 md:mb-4 ">
-                            <h2 className="text-base sm:text-lg md:text-lg font-bold text-gray-800">SHS Strands</h2>
-                            <Building className="w-5 h-5 md:w-6 md:h-6 text-gray-700" />
-                        </div>
-                        {renderProgramList(shsStrands)}
-                        <button
-                            onClick={() => handleAddProgram('SHS')}
-                            className="mt-2 md:mt-4 px-3 sm:px-4 md:px-6 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition duration-150 ease-in-out flex items-center justify-center gap-2 text-xs sm:text-sm md:text-base"
-                        >
-                            <Plus size={18} />
-                            <span>Add Strand</span>
-                        </button>
-                    </div>
+    // --- Panels ---
+    const AnnouncementPanel = (
+        <div className="bg-white p-4 rounded-xl shadow-lg flex flex-col h-full">
+            <div className="flex items-center gap-2 ">
+                <h2 className="text-2xl font-bold text-[#0172bd]">Announcement</h2>
+                <Bell className="w-7 h-7 text-[#0172bd] ml-2 mt-1" />
+            </div>
+            <div className="space-y-4 flex flex-col">
+                <input
+                    type="text"
+                    placeholder="Title of announcement"
+                    value={newAnnouncement.title}
+                    onChange={(e) => setNewAnnouncement({ ...newAnnouncement, title: e.target.value })}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#0172bd]"
+                />
+                <textarea
+                    placeholder="Body of announcement"
+                    value={newAnnouncement.body}
+                    onChange={(e) => setNewAnnouncement({ ...newAnnouncement, body: e.target.value })}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#0172bd] resizable-y min-h-[200px]"
+                ></textarea>
+                <button
+                    onClick={handlePostAnnouncement}
+                    className="self-end px-6 py-2 bg-[#0172bd] text-white font-semibold rounded-lg hover:bg-blue-500 transition duration-150 ease-in-out"
+                >
+                    Post
+                </button>
+            </div>
+            <div className="mt-6">
+                <h3 className="text-xl font-bold text-[#0172bd] mb-2">Past Announcements</h3>
+                <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 overflow-y-auto custom-scrollbar max-h-150">
+                    {announcements.length > 0 ? (
+                        announcements.map((ann, index) => (
+                            <div
+                                key={index}
+                                className={`p-4 bg-white rounded-lg shadow-sm ${index !== 0 ? 'mt-2' : ''}`}
+                            >
+                                <h4 className="font-bold text-[#0172bd]">{ann.title}</h4>
+                                <p className="text-gray-600 mt-1 whitespace-pre-wrap">
+                                    {ann.description || ann.body}
+                                </p>
+                            </div>
+                        ))
+                    ) : (
+                        <p className="text-gray-500 text-center">No past announcements.</p>
+                    )}
                 </div>
             </div>
-            {/* Right Column */}
-            <div className="w-full md:w-1/3 flex flex-col gap-2">
-                {/* Wellness Program Link */}
-                <div className="bg-white p-3 sm:p-4 md:p-6 rounded-xl shadow-lg flex flex-col">
-                    <div className="flex items-center gap-2 mb-2 md:mb-4">
-                        <h2 className="text-base sm:text-lg md:text-2xl font-bold text-gray-800">Wellness Program</h2>
-                        <Link2 className="w-5 h-5 md:w-6 md:h-6 text-gray-700" />
+        </div>
+    );
+
+    const ProgramsPanel = (
+        <div className="bg-white p-4 rounded-xl shadow-lg flex-1 flex flex-col h-full">
+            <div className="flex flex-col md:flex-row gap-4 h-full">
+                {/* Tertiary Programs Panel */}
+                <div className="flex-1 flex flex-col bg-gray-50 rounded-xl shadow-md p-4 h-full">
+                    <div className="flex items-center gap-2 mb-2">
+                        <h2 className="text-lg font-bold text-[#0172bd]">Tertiary Programs</h2>
+                        <GraduationCap className="w-6 h-6 text-[#0172bd]" />
                     </div>
-                    <input
-                        type="url"
-                        placeholder="https://linkNgWellnessProgram.com"
-                        value={tempWellnessLink}
-                        onChange={(e) => setTempWellnessLink(e.target.value)}
-                        className="w-full p-2 sm:p-2 md:p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-300 text-xs sm:text-sm md:text-base"
-                    />
+                    <div className="flex-1">{renderProgramList(tertiaryPrograms)}</div>
                     <button
-                        onClick={handleSetWellnessLink}
-                        className="mt-2 md:mt-4 px-3 sm:px-4 md:px-6 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition duration-150 ease-in-out self-end text-xs sm:text-sm md:text-base"
+                        onClick={() => handleAddProgram('Tertiary')}
+                        className="mt-4 px-6 py-2 bg-[#28a745] text-white font-semibold rounded-lg hover:bg-green-500 transition duration-150 ease-in-out flex items-center justify-center gap-2"
                     >
-                        Set
+                        <Plus size={18} />
+                        <span>Add Program</span>
                     </button>
                 </div>
-                {/* Suggested Module */}
-                <div className="bg-white p-3 sm:p-4 md:p-6 rounded-xl shadow-lg flex flex-col flex-1">
-                    <div className="flex items-center gap-2 mb-2 md:mb-4">
-                        <h2 className="text-base sm:text-lg md:text-2xl font-bold text-gray-800">Quick Links & Resources</h2>
-                        <Settings className="w-5 h-5 md:w-6 md:h-6 text-gray-700" />
+                {/* SHS Strands Panel */}
+                <div className="flex-1 flex flex-col bg-gray-50 rounded-xl shadow-md p-4 h-full">
+                    <div className="flex items-center gap-2 mb-2">
+                        <h2 className="text-lg font-bold text-[#0172bd]">SHS Strands</h2>
+                        <Building className="w-6 h-6 text-[#0172bd]" />
                     </div>
-                    <div className="flex-grow flex items-center justify-center p-2 sm:p-2 md:p-4 text-center text-gray-500 text-xs sm:text-sm md:text-base">
-                        <p>This module can be used to manage important links for students and staff. You can add, edit, and remove links to keep them up to date with school resources and events.</p>
-                    </div>
+                    <div className="flex-1">{renderProgramList(shsStrands)}</div>
+                    <button
+                        onClick={() => handleAddProgram('SHS')}
+                        className="mt-4 px-6 py-2 bg-[#28a745] text-white font-semibold rounded-lg hover:bg-green-500 transition duration-150 ease-in-out flex items-center justify-center gap-2"
+                    >
+                        <Plus size={18} />
+                        <span>Add Strand</span>
+                    </button>
                 </div>
             </div>
-            
+        </div>
+    );
+
+    const WellnessPanel = (
+        <div className="bg-white p-4 rounded-xl shadow-lg flex flex-col">
+            <div className="flex items-center gap-2 mb-4">
+                <h2 className="text-2xl font-bold text-[#0172bd]">Wellness Program</h2>
+                <Link2 className="w-6 h-6 text-[#0172bd]" />
+            </div>
+            <input
+                type="url"
+                placeholder="https://linkNgWellnessProgram.com"
+                value={tempWellnessLink}
+                onChange={(e) => setTempWellnessLink(e.target.value)}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#0172bd]"
+            />
+            <button
+                onClick={handleSetWellnessLink}
+                className="mt-4 px-6 py-2 bg-[#28a745] text-white font-semibold rounded-lg hover:bg-green-500 transition duration-150 ease-in-out self-end"
+            >
+                Set
+            </button>
+        </div>
+    );
+
+    const QuickLinksPanel = (
+        <div className="bg-white p-4 rounded-xl shadow-lg flex flex-col flex-1 h-full">
+            <div className="flex items-center gap-2 mb-4">
+                <h2 className="text-2xl font-bold text-[#0172bd]">Quick Links & Resources</h2>
+                <Settings className="w-6 h-6 text-[#0172bd]" />
+            </div>
+            <div className="flex-grow flex items-center justify-center p-4 text-center text-gray-500">
+                <p>This module can be used to manage important links for students and staff. You can add, edit, and remove links to keep them up to date with school resources and events.</p>
+            </div>
+        </div>
+    );
+
+    // --- Top Buttons ---
+    const topButtons = [
+        {
+            key: PANEL.ANNOUNCEMENT,
+            label: "Announcement",
+            icon: <Bell className="w-5 h-5" />
+        },
+        {
+            key: PANEL.PROGRAMS,
+            label: "Programs/Strands",
+            icon: (
+                <span className="flex gap-1">
+                    <GraduationCap className="w-5 h-5" />
+                    <Building className="w-5 h-5" />
+                </span>
+            )
+        },
+        {
+            key: PANEL.WELLNESS,
+            label: "Wellness Link",
+            icon: <Link2 className="w-5 h-5" />
+        },
+        {
+            key: PANEL.QUICKLINKS,
+            label: "Quick Links & Resources",
+            icon: <Settings className="w-5 h-5" />
+        }
+    ];
+
+    return (
+        <div className="flex flex-col h-full bg-gray-100 p-2 md:p-4 gap-4">
+            {/* Top Row Buttons */}
+            <div className="flex flex-wrap gap-2 md:gap-4 w-full">
+                {topButtons.map(btn => (
+                    <button
+                        key={btn.key}
+                        onClick={() => setActivePanel(btn.key)}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition
+                            ${activePanel === btn.key
+                                ? "bg-[#0172bd] text-white shadow"
+                                : "bg-white text-black hover:bg-gray-200"}
+                            flex-1 min-w-[150px] justify-center`}
+                    >
+                        {btn.icon}
+                        <span>{btn.label}</span>
+                    </button>
+                ))}
+            </div>
+
+            {/* Panels */}
+            <div className="flex-1 w-full">
+                {activePanel === PANEL.ANNOUNCEMENT && AnnouncementPanel}
+                {activePanel === PANEL.PROGRAMS && ProgramsPanel}
+                {activePanel === PANEL.WELLNESS && WellnessPanel}
+                {activePanel === PANEL.QUICKLINKS && QuickLinksPanel}
+            </div>
+
             {/* Add Program/Strand Modal */}
             <div className={`${isAddModalOpen ? 'flex' : 'hidden'} fixed inset-0 z-50 items-center justify-center bg-black bg-opacity-50`}>
-                <div className="bg-white p-4 sm:p-6 rounded-xl shadow-2xl w-full max-w-xs sm:max-w-sm md:max-w-md transform transition-all scale-100 ease-out duration-300">
+                <div className="bg-white p-6 rounded-xl shadow-2xl w-full max-w-sm md:max-w-md transform transition-all scale-100 ease-out duration-300">
                     <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-lg sm:text-xl font-bold text-gray-800">Add New {modalType === 'SHS' ? 'Strand' : 'Program'}</h3>
+                        <h3 className="text-xl font-bold text-[#0172bd]">Add New {modalType === 'SHS' ? 'Strand' : 'Program'}</h3>
                         <button onClick={() => setIsAddModalOpen(false)} className="text-gray-400 hover:text-gray-600 transition">
                             <X className="w-6 h-6" />
                         </button>
                     </div>
+
                     <form onSubmit={handleModalSubmit}>
                         <div className="space-y-4">
                             <div>
-                                <label className="block text-xs sm:text-sm font-medium text-gray-700">Program/Strand</label>
+                                <label className="block text-sm font-medium text-gray-700">Program/Strand</label>
                                 <input
                                     type="text"
                                     required
                                     value={newItem.name}
                                     onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
-                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 text-xs sm:text-sm"
+                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
                                 />
                             </div>
                             <div>
-                                <label className="block text-xs sm:text-sm font-medium text-gray-700">Acronym</label>
+                                <label className="block text-sm font-medium text-gray-700">Acronym</label>
                                 <input
                                     type="text"
                                     required
                                     value={newItem.acronym}
                                     onChange={(e) => setNewItem({ ...newItem, acronym: e.target.value.toUpperCase() })}
-                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 text-xs sm:text-sm"
+                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
                                 />
                             </div>
                         </div>
-                        <div className="flex flex-col sm:flex-row justify-end gap-2 mt-6">
+                        <div className="flex flex-row justify-end gap-2 mt-6">
                             <button
                                 type="button"
                                 onClick={() => setIsAddModalOpen(false)}
-                                className="flex items-center justify-center gap-2 bg-red-500 text-white font-semibold py-2 px-4 rounded-lg hover:bg-red-600 transition duration-150 ease-in-out text-xs sm:text-sm"
+                                className="flex items-center justify-center gap-2 bg-[#dc3545] text-white font-semibold py-2 px-4 rounded-lg hover:bg-red-600 transition duration-150 ease-in-out"
                             >
-                                <X className="w-5 h-5" />
+                                
                                 <span>Cancel</span>
+                                <X className="w-5 h-5" />
                             </button>
                             <button
                                 type="submit"
-                                className="flex items-center justify-center gap-2 bg-green-500 text-white font-semibold py-2 px-4 rounded-lg hover:bg-green-600 transition duration-150 ease-in-out text-xs sm:text-sm"
+                                className="flex items-center justify-center gap-2 bg-[#28a745] text-white font-semibold py-2 px-4 rounded-lg hover:bg-green-500 transition duration-150 ease-in-out"
                             >
-                                <Check className="w-5 h-5" />
+                                
                                 <span>Add</span>
+                                <Check className="w-5 h-5" />
                             </button>
                         </div>
                     </form>
                 </div>
             </div>
-        <Toast
-            message={toast.message}
-            type={toast.type}
-            isVisible={toast.isVisible}
-            onClose={() => setToast({ ...toast, isVisible: false })}
-        />
-    </div>
-);
+            <Toast
+                message={toast.message}
+                type={toast.type}
+                isVisible={toast.isVisible}
+                onClose={() => setToast({ ...toast, isVisible: false })}
+            />
+        </div>
+    );
 }

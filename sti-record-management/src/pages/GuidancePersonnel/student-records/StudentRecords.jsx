@@ -438,21 +438,33 @@ function StudentRecords() {
                                         </p>
                                     </div>
 
-                                    {/* Archive/Enrolled */}
-                                    <div className="flex justify-around bg-[#f3f4f6] p-1 rounded-lg mb-2">
+                                {/* Archive/Enrolled */}
+                                    <div className="flex justify-around bg-[#f3f4f6] p-1 rounded-lg">
                                         <button className={`flex-1 flex items-center justify-center px-4 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out cursor-pointer hover:bg-[#003d54] 
-                                        ${activeTab === 'Archived' ? 'bg-[#0172bd] text-[#fef201] shadow-sm hover:bg-blue-900' : 'text-black hover:bg-gray-200'}`}
+                                        ${activeTab === 'Archived' ? 'bg-[#0172bd] text-white shadow-sm hover:bg-blue-500' : 'text-black hover:bg-gray-200'}`}
                                             onClick={() => setActiveTab('Archived')}>
                                             <FileArchive className="inline-block w-5 h-5 mr-2" />
                                             Archive
                                         </button>
                                         <button className={`flex-1 flex items-center justify-center px-4 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out cursor-pointer hover:bg-[#003d54] 
-                                        ${activeTab === 'Enrolled' ? 'bg-[#0172bd] text-[#fef201] shadow-sm hover:bg-blue-500' : 'text-gray-700 hover:bg-gray-200'}`}
+                                        ${activeTab === 'Enrolled' ? 'bg-[#0172bd] text-white shadow-sm hover:bg-blue-500' : 'text-gray-700 hover:bg-gray-200'}`}
                                             onClick={() => setActiveTab('Enrolled')}>
                                             <Users className="inline-block w-5 h-5 mr-2" />
                                             Enrolled
                                         </button>
                                     </div>
+
+                                </div>
+                                {/* Student List */}
+                                <div className="relative p-2">
+                                    <button
+                                        className="w-full bg-[#0172bd] font-semibold hover:bg-blue-500 text-white py-2 px-4 rounded-lg flex items-center justify-center transition duration-150 ease-in-out shadow-md hover:shadow-lg"
+                                        onClick={() => setDisplayStudentList(true)}
+                                        title="Student List"
+                                    >
+                                        <span className="pl-2">Student List</span>
+                                        <FolderOpen className="w-5 h-5 ml-2" />
+                                    </button>
                                 </div>
 
                                 {/* Search Bar */}
@@ -500,24 +512,24 @@ function StudentRecords() {
                                             title="Add Individual Student"
                                             onClick={() => setShowAddStudentModal(true)}
                                         >
-                                            <UserPlus className="w-6 h-6 text-[#fef201]" />
-
+                                            <UserPlus className="w-6 h-6 text-white" />
+                                            
                                         </button>
                                         <button
                                             className="flex-1 bg-[#0172bd] hover:bg-blue-500 text-white p-2 rounded-lg flex items-center justify-center transition duration-150 ease-in-out shadow-md hover:shadow-lg"
                                             title="Bulk Add Students"
                                             onClick={() => setShowBulkModal(true)}
                                         >
-                                            <Users className="w-6 h-6 text-[#fef201]" />
-                                            <Plus className="w-5 h-5 text-[#fef201]" />
+                                            <Users className="w-6 h-6 text-white" />
+                                            <Plus className="w-5 h-5 text-white" />
                                         </button>
                                         <button
                                             className="flex-1 bg-[#0172bd] hover:bg-blue-500 text-white p-2 rounded-lg flex items-center justify-center transition duration-150 ease-in-out shadow-md hover:shadow-lg"
                                             title="Photo-to-Text Add"
                                             onClick={() => setShowPhotoToTextModal(true)}
                                         >
-                                            <Camera className="w-6 h-6 text-[#fef201]" />
-                                            <Plus className="w-5 h-5 text-[#fef201]" />
+                                            <Camera className="w-6 h-6 text-white" />
+                                            <Plus className="w-5 h-5 text-white" />
                                         </button>
                                     </div>
                                 ) : null}

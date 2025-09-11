@@ -1,275 +1,63 @@
-import React, { useState, Fragment, useEffect, useRef, useMemo, useContext } from "react";
-import { useLocation } from "react-router-dom";
+import React, { useState, useEffect, useContext } from "react";
 import { AuthContext } from '../../../AuthProvider.jsx';
 import axios from "axios";
-// Lucide icons
 import {
-    ChevronRight,
-    ChevronLeft,
-    ChevronDown,
-    Search,
-    User,
-    Archive,
-    Edit as Pencil,
     Users,
-    ArrowLeft,
+    Search,
+    SlidersHorizontal,
     Plus,
-    FolderOpen,
     FileText,
-    Check,
-    X,
-    Briefcase,
-    HeartPulse,
-    Star,
-    Home,
-    Phone,
-    UserPlus,
-    ClipboardList,
-    RefreshCcw,
-    FileEdit,
-    CircleCheck,
+    FileCheck,
     Clock,
-    Camera,
-    FileCheck, // <-- add this
+    X,
+    Edit as Pencil,
+    Archive,
+    ChevronLeft,
+    ChevronRight,
+    Building,
+    GraduationCap
 } from 'lucide-react';
-import user from "../../../assets/user.png";
-
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-
-import CaseInfoSection from "./components/CaseInfoSection.jsx";
 import AddCaseModal from "./components/AddCaseModal.jsx";
+import CaseInfoSection from "./components/CaseInfoSection.jsx";
 import {
-  caseFieldDefinitions,
-  serverViolationToUIDetails,
-  uiDetailsToServerPayload,
+    serverViolationToUIDetails,
+    uiDetailsToServerPayload,
 } from "./components/CaseUtils.jsx";
 
+const TABS = [
+    { value: "On-going", label: "On-going", icon: <Clock className="w-5 h-5 ml-1" /> },
+    { value: "Resolved", label: "Resolved", icon: <FileCheck className="w-5 h-5 ml-1" /> },
+];
+
+const PRIORITY_LEVELS = [
+    { value: "", label: "No Priority" },
+    { value: "Level 1 Academics", label: "Level 1 Academics" },
+    { value: "Level 2 Abt Self Esteem, Motivation", label: "Level 2 Abt Self Esteem, Motivation" },
+    { value: "Level 3 Safety and Security", label: "Level 3 Safety and Security" },
+];
+
 function StudentCases() {
-  const { authData, logout } = useContext(AuthContext);
-  const myRef = useRef();
-  const casesListRef = useRef(null);
-  const itemRefs = useRef(new Map());
-  const [visibleIds, setVisibleIds] = useState(new Set());
+    const { authData } = useContext(AuthContext);
 
-  const [cases, setCases] = useState([]);
-  const [caseDetailsMap, setCaseDetailsMap] = useState({});
-  const [activeTab, setActiveTab] = useState("On-going");
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCaseId, setSelectedCaseId] = useState(null);
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
-  const [infoType, setInfoType] = useState("caseDetails");
-  const [editedCaseData, setEditedCaseData] = useState(null);
-  const location = useLocation();
+    // State
+    const [cases, setCases] = useState([]);
+    const [caseDetailsMap, setCaseDetailsMap] = useState({});
+    const [activeTab, setActiveTab] = useState("On-going");
+    const [searchTerm, setSearchTerm] = useState("");
+    const [selectedCaseId, setSelectedCaseId] = useState(null);
+    const [showAddModal, setShowAddModal] = useState(false);
+    const [isEditing, setIsEditing] = useState(false);
+    const [infoType, setInfoType] = useState("caseDetails");
+    const [editedCaseData, setEditedCaseData] = useState(null);
+    const [activeLevel, setActiveLevel] = useState("shs"); // <-- Add this line
 
-  const [newCaseForm, setNewCaseForm] = useState({
-    studentName: "",
-    studentId: "",
-    programSection: "",
-    dateOfInitiation: "",
-    timeOfInitiation: "",
-    counselingTypeCategory: "",
-    detailedDescription: "",
-    proofDescription: "",
-    proofImage: null,
-    actions: "",
-    dateOfAction: "",
-    caseStatus: "On-going",
-    counselorNotes: "",
-    violation: ''
-  });
-
-  const handleNewCaseFormChange = (e) => {
-    const { name, value, type, files } = e.target;
-    if (type === "file") {
-      setNewCaseForm((prev) => ({ ...prev, [name]: files[0] }));
-    } else {
-      setNewCaseForm((prev) => ({ ...prev, [name]: value }));
-    }
-  };
-
-  // The main change is here, using useMemo for filtered and sorted data
-  const sortedCases = useMemo(() => {
-    const filtered = cases.filter((c) => {
-      const matchesTab =
-        (activeTab === "All" && (c.status === "On-going" || c.status === "Resolved")) ||
-        c.status === activeTab;
-      const matchesSearch =
-        searchTerm === "" ||
-        (c.studentName && c.studentName.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (c.studentId && c.studentId.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (c.id && c.id.toLowerCase().includes(searchTerm.toLowerCase()));
-      return matchesTab && matchesSearch;
-    });
-
-    // Sort the filtered cases from newest to oldest based on timeCreated
-    return filtered.sort((a, b) => {
-      // Safely access the toDate method for Firestore Timestamps
-      const dateA = a.timeCreated && a.timeCreated.toDate ? a.timeCreated.toDate() : new Date(0);
-      const dateB = b.timeCreated && b.timeCreated.toDate ? b.timeCreated.toDate() : new Date(0);
-      return dateB - dateA; // Newest first
-    });
-  }, [cases, searchTerm, activeTab]);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        setVisibleIds((prev) => {
-          const next = new Set(prev);
-          entries.forEach((entry) => {
-            const id = entry.target.getAttribute("data-case-id");
-            if (!id) return;
-            if (entry.isIntersecting) {
-              next.add(id);
-            } else {
-              next.delete(id);
-            }
-          });
-          return next
-        })
-      },
-      {
-        root: casesListRef.current,
-        rootMargin: "200px",
-        threshold: 0.1
-      }
-    );
-
-    itemRefs.current.forEach((el) => {
-      if (el) observer.observe(el);
-    })
-
-    return () => observer.disconnect()
-  }, [sortedCases]) // Change dependency to sortedCases
-
-  useEffect(() => {
-    const fetchCases = async () => {
-      try {
-        const res = await axios.get("/cases");
-        const violations = Array.isArray(res.data) ? res.data : [];
-        const list = violations.map((v) => ({
-          id: v.id,
-          studentName: v.name ?? "Unknown",
-          studentId: v.sid ?? "",
-          status: v.status ?? "On-going",
-          timeCreated: v.timeCreated, // Make sure to include this in your list
-        }));
-        const details = {};
-        violations.forEach((v) => {
-          details[v.id] = v;
-        });
-
-        setCases(list);
-        setCaseDetailsMap(details);
-      } catch (err) {
-        console.error("Failed to fetch cases", err);
-        setCases([]);
-        setCaseDetailsMap({});
-      }
-    };
-
-    fetchCases();
-    console.log('My ref', myRef.current);
-  }, []);
-
-  useEffect(() => {
-    if (selectedCaseId) {
-      const raw = caseDetailsMap[selectedCaseId];
-      const ui = serverViolationToUIDetails(raw);
-      setEditedCaseData(ui ? JSON.parse(JSON.stringify(ui)) : null);
-      setIsEditing(false);
-    } else {
-      setEditedCaseData(null);
-      setIsEditing(false);
-    }
-  }, [selectedCaseId, caseDetailsMap]);
-
-  useEffect(() => {
-    const { idSearch } = location.state || {};
-    if (idSearch !== undefined && idSearch !== null) {
-      setSearchTerm(idSearch);
-    }
-  }, []);
-
-  useEffect(() => {
-    setSelectedCaseId(null);
-  }, [location.pathname]);
-
-  const filteredCases = cases.filter((c) => {
-    const matchesTab =
-      (activeTab === "All" &&
-        (c.status === "On-going" || c.status === "Resolved")) ||
-      c.status === activeTab;
-    const matchesSearch =
-      searchTerm === "" ||
-      (c.studentName &&
-        c.studentName.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (c.studentId &&
-        c.studentId.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (c.id && c.id.toLowerCase().includes(searchTerm.toLowerCase()));
-    return matchesTab && matchesSearch;
-  });
-
-  const handleAddCase = async () => {
-    if (
-      !newCaseForm.studentName ||
-      !newCaseForm.studentId ||
-      !newCaseForm.counselingTypeCategory
-    ) {
-      toast.error("Please fill in Student Name, Student ID, and Counseling Type/Category.");
-      return;
-    }
-
-    try {
-      const formData = new FormData();
-      formData.append("sid", newCaseForm.studentId || "");
-      formData.append("name", newCaseForm.studentName || "");
-      formData.append("programSection", newCaseForm.programSection || "");
-      formData.append("initiationDate", newCaseForm.dateOfInitiation || "");
-      formData.append("initialTime", newCaseForm.timeOfInitiation || "");
-      formData.append(
-        "counselingType",
-        newCaseForm.counselingTypeCategory || ""
-      );
-      formData.append("violation", newCaseForm.violation);
-      formData.append(
-        "detailedDescription",
-        newCaseForm.detailedDescription || ""
-      );
-      formData.append("proofDescription", newCaseForm.proofDescription || "");
-      formData.append("actionTaken", newCaseForm.actions || "");
-      formData.append("dateOfAction", newCaseForm.dateOfAction || "");
-      formData.append("status", newCaseForm.caseStatus || "On-going");
-      formData.append("notes", newCaseForm.counselorNotes || "");
-      if (newCaseForm.proofImage) {
-        formData.append("proof", newCaseForm.proofImage);
-      }
-
-      await axios.post("/cases/add", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-
-      const refresh = await axios.get("/cases");
-      const violations = Array.isArray(refresh.data) ? refresh.data : [];
-      const list = violations.map((v) => ({
-        id: v.id,
-        studentName: v.name ?? "Unknown",
-        studentId: v.sid ?? "",
-        status: v.status ?? "On-going",
-        timeCreated: v.timeCreated,
-      }));
-      const details = {};
-      violations.forEach((v) => {
-        details[v.id] = v;
-      });
-
-      setCases(list);
-      setCaseDetailsMap(details);
-
-      setNewCaseForm({
+    // Add Case Form
+    const [newCaseForm, setNewCaseForm] = useState({
         studentName: "",
         studentId: "",
+        programSection: "",
         dateOfInitiation: "",
         timeOfInitiation: "",
         counselingTypeCategory: "",
@@ -280,332 +68,487 @@ function StudentCases() {
         dateOfAction: "",
         caseStatus: "On-going",
         counselorNotes: "",
-      });
-      setShowAddModal(false);
-      toast.success("Case Added Successfully!");
-    } catch (err) {
-      console.error("Error adding case", err);
-      toast.error("Error adding case.");
-    }
-  };
-
-  const handleArchiveCase = async () => {
-    if (!selectedCaseId) return;
-
-    try {
-      await axios.put(`/cases/update/${selectedCaseId}`, {
-        status: "Resolved",
-      });
-
-      setCases((prev) =>
-        prev.map((c) =>
-          c.id === selectedCaseId ? { ...c, status: "Resolved" } : c
-        )
-      );
-      setCaseDetailsMap((prev) => {
-        const next = { ...prev };
-        if (next[selectedCaseId]) next[selectedCaseId].status = "Resolved";
-        return next;
-      });
-
-      setSelectedCaseId(null);
-      toast.success("Case status updated to Resolved!");
-    } catch (err) {
-      console.error("Error updating case status", err);
-      toast.error("Error archiving case.");
-    }
-  };
-
-  const handleSaveEdits = async () => {
-    if (!editedCaseData || !selectedCaseId) return;
-
-    try {
-      const payload = uiDetailsToServerPayload(editedCaseData);
-      await axios.put(`/cases/update/${selectedCaseId}`, payload);
-
-      const res = await axios.get("/cases");
-      const violations = Array.isArray(res.data) ? res.data : [];
-      const list = violations.map((v) => ({
-        id: v.id,
-        studentName: v.name ?? "Unknown",
-        studentId: v.sid ?? "",
-        status: v.status ?? "On-going",
-        timeCreated: v.timeCreated,
-      }));
-      const details = {};
-      violations.forEach((v) => {
-        details[v.id] = v;
-      });
-
-      setCases(list);
-      setCaseDetailsMap(details);
-
-      setIsEditing(false);
-      toast.success("Changes saved successfully!");
-    } catch (err) {
-      console.error("Error saving edits", err);
-      toast.error("Error saving changes.");
-    }
-  };
-
-  const handleCaseFieldChange = (category, field, value) => {
-    setEditedCaseData((prevData) => {
-      if (!prevData) return prevData;
-      const newData = JSON.parse(JSON.stringify(prevData));
-      if (!newData[category]) newData[category] = {};
-      newData[category][field] = value;
-      return newData;
+        violation: ''
     });
-  };
 
-  const displayCaseData =
-    isEditing && editedCaseData
-      ? editedCaseData
-      : selectedCaseId
-        ? serverViolationToUIDetails(caseDetailsMap[selectedCaseId])
-        : null;
+    // Pagination state
+    const [currentPage, setCurrentPage] = useState(1);
+    const rowsPerPage = 10;
 
-  return (
-    <div className="bg-gray-100 h-full p-3 rounded-lg">
-      <div className="flex bg-gray-100 h-full overflow-hidden">
-        <ToastContainer position="top-right" autoClose={4000} />
-        <div
-          className={`h-full bg-white border-r border-gray-200 shadow-lg flex flex-col rounded-lg transition-all duration-200 border
-          ${selectedCaseId ? 'w-0 lg:w-96' : 'w-full lg:w-96'}`}
-        >
-          {!(selectedCaseId && window.innerWidth < 1024) && (<>
-            <div className="p-2 border-b border-gray-200">
-              <div className="flex items-center space-x-2 mb-4">
-                <FileText className="inline-block w-8 h-8 mr-2 text-[#0172bd]" />
-                <h2 className="text-3xl font-bold text-[#0172bd]">Student Cases</h2>
-              </div>
+    // Fetch cases
+    useEffect(() => {
+        const fetchCases = async () => {
+            try {
+                const res = await axios.get("/cases");
+                const violations = Array.isArray(res.data) ? res.data : [];
+                const list = violations.map((v) => ({
+                    id: v.id,
+                    studentName: v.name ?? "Unknown",
+                    studentId: v.sid ?? "",
+                    status: v.status ?? "On-going",
+                    timeCreated: v.timeCreated,
+                    programSection: v.programSection ?? "",
+                }));
+                const details = {};
+                violations.forEach((v) => {
+                    details[v.id] = v;
+                });
+                setCases(list);
+                setCaseDetailsMap(details);
+            } catch (err) {
+                toast.error("Failed to fetch cases");
+                setCases([]);
+                setCaseDetailsMap({});
+            }
+        };
+        fetchCases();
+    }, []);
 
-              <div className="flex justify-around bg-[#f3f4f6] p-1 rounded-lg mb-4">
-                <button
-                  className={`flex-1 flex items-center justify-center px-4 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out cursor-pointer hover:bg-[#003d54]  
-                    ${activeTab === "Resolved"
-                    ? "bg-[#0172bd] text-[#fef201] shadow-sm hover:bg-blue-500"
-                    : "text-black hover:bg-gray-200"
-                    }`}
-                  onClick={() => setActiveTab("Resolved")}
-                >
-                  <FileCheck className="inline-block w-5 h-5 mr-2" />
-                  Resolved
-                </button>
-                
-                <button
-                  className={`flex-1 flex items-center justify-center px-4 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out cursor-pointer hover:bg-[#003d54]
-                    ${activeTab === "On-going"
-                    ? "bg-[#0172bd] text-[#fef201] shadow-sm hover:bg-blue-500"
-                    : "text-black hover:bg-gray-200"
-                    }`}
-                  onClick={() => setActiveTab("On-going")}
-                >
-                  <Clock className="inline-block w-5 h-5 mr-2" />
-                  On-going
-                </button>
-              </div>
+    // Filtered and sorted cases
+    const filteredCases = cases
+        .filter((c) => {
+            const matchesTab =
+                (activeTab === "All" && (c.status === "On-going" || c.status === "Resolved")) ||
+                c.status === activeTab;
+            const matchesSearch =
+                searchTerm === "" ||
+                (c.studentName && c.studentName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                (c.studentId && c.studentId.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                (c.id && c.id.toLowerCase().includes(searchTerm.toLowerCase()));
+            return matchesTab && matchesSearch;
+        })
+        .sort((a, b) => {
+            const dateA = a.timeCreated && a.timeCreated.toDate ? a.timeCreated.toDate() : new Date(0);
+            const dateB = b.timeCreated && b.timeCreated.toDate ? b.timeCreated.toDate() : new Date(0);
+            return dateB - dateA;
+        });
 
-              <div className="relative mb-3">
-                <input
-                  type="text"
-                  placeholder="Name/ ID"
-                  className="w-full pl-2 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#0172bd] focus:border-transparent transition duration-150 ease-in-out hover:bg-gray-50"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-                <Search className="w-5 h-5 absolute right-3 top-2.5 text-gray-400"/>
-              </div>
+    // Pagination logic
+    const totalRows = filteredCases.length;
+    const totalPages = Math.ceil(totalRows / rowsPerPage);
+    const pagedCases = filteredCases.slice(
+        (currentPage - 1) * rowsPerPage,
+        currentPage * rowsPerPage
+    );
 
-              {authData?.user?.access?.studentCases?.canEdit ? (<button
-                className="w-full bg-[#0172bd] hover:bg-blue-500 text-[#fef201] font-bold py-2 px-4 rounded-lg flex items-center justify-center transition duration-150 ease-in-out shadow-md hover:shadow-lg cursor-pointer"
-                onClick={() => setShowAddModal(true)}
-              >
-                
-                Add Case
-                <Plus className="w-5 h-5 ml-2 text-[#fef201]" />
-              </button>) : null}
-            </div>
+    // Reset to page 1 if filter/search changes and currentPage is out of bounds
+    useEffect(() => {
+        if (currentPage > totalPages) setCurrentPage(1);
+    }, [totalPages, currentPage]);
 
-            <div className="flex-1 overflow-y-auto pb-4 custom-scrollbar">
-              {filteredCases.length > 0 ? (
-                filteredCases.map((aCase) => (
-                  <div
-                    ref={(el) => {
-                      if (el) {
-                        itemRefs.current.set(aCase.id, el);
-                      } else {
-                        itemRefs.current.delete(aCase.id);
-                      }
-                    }}
-                    data-case-id={aCase.id}
-                    key={aCase.id}
-                    className={`flex items-center justify-between p-4 border-b border-gray-200 cursor-pointer transition duration-150 ease-in-out 
-                      ${selectedCaseId === aCase.id
-                        ? "bg-blue-100 border-l-4 border-blue-500"
-                        : "hover:bg-gray-50"
-                      }`}
-                    onClick={() => setSelectedCaseId(aCase.id)}
-                  >
-                    {visibleIds.has(aCase.id) ? (<div className="flex items-center">
-                      <img
-                        src={user}
-                        alt="User"
-                        className="w-5 h-5 object-cover mr-5"
-                      />
-                      <div>
-                        <p className="font-semibold text-gray-800">
-                          {aCase.studentName}
-                        </p>
-                        <p className="text-sm text-gray-600">{aCase.studentId}</p>
-                      </div>
-                    </div>) : null}
-                    <ChevronRight className="w-5 h-5 text-[#0A1220]" />
-                  </div>
-                ))
-              ): (
-                <p className="p-4 text-gray-500 text-center">No cases found.</p>
-              )}
-            </div>
-          </>)}
+    // Modal handlers
+    const openCaseModal = (caseId) => {
+        setSelectedCaseId(caseId);
+        setIsEditing(false);
+        setInfoType("caseDetails");
+        setEditedCaseData(serverViolationToUIDetails(caseDetailsMap[caseId]));
+    };
+    const closeCaseModal = () => {
+        setSelectedCaseId(null);
+        setIsEditing(false);
+    };
 
+    // Add Case
+    const handleAddCase = async () => {
+        if (!newCaseForm.studentName || !newCaseForm.studentId || !newCaseForm.counselingTypeCategory) {
+            toast.error("Please fill in Student Name, Student ID, and Counseling Type/Category.");
+            return;
+        }
+        try {
+            const formData = new FormData();
+            Object.entries(newCaseForm).forEach(([key, value]) => {
+                if (value !== null && value !== undefined) formData.append(key, value);
+            });
+            await axios.post("/cases/add", formData, {
+                headers: { "Content-Type": "multipart/form-data" },
+            });
+            toast.success("Case Added Successfully!");
+            setShowAddModal(false);
+            setNewCaseForm({
+                studentName: "",
+                studentId: "",
+                programSection: "",
+                dateOfInitiation: "",
+                timeOfInitiation: "",
+                counselingTypeCategory: "",
+                detailedDescription: "",
+                proofDescription: "",
+                proofImage: null,
+                actions: "",
+                dateOfAction: "",
+                caseStatus: "On-going",
+                counselorNotes: "",
+                violation: ''
+            });
+            // Refresh
+            const res = await axios.get("/cases");
+            const violations = Array.isArray(res.data) ? res.data : [];
+            const list = violations.map((v) => ({
+                id: v.id,
+                studentName: v.name ?? "Unknown",
+                studentId: v.sid ?? "",
+                status: v.status ?? "On-going",
+                timeCreated: v.timeCreated,
+                programSection: v.programSection ?? "",
+            }));
+            const details = {};
+            violations.forEach((v) => {
+                details[v.id] = v;
+            });
+            setCases(list);
+            setCaseDetailsMap(details);
+        } catch (err) {
+            toast.error("Error adding case.");
+        }
+    };
 
-          {/* <div ref={casesListRef} className="flex-1 overflow-y-auto pb-4 custom-scrollbar">
-            {sortedCases.length > 0 ? (
-              sortedCases.map((aCase) => (
-                <div
-                  ref={(el) => {
-                    if (el) {
-                      itemRefs.current.set(aCase.id, el);
-                    } else {
-                      itemRefs.current.delete(aCase.id);
-                    }
-                  }}
-                  data-case-id={aCase.id}
-                  key={aCase.id}
-                  className={`flex items-center justify-between p-4 border-b border-gray-200 cursor-pointer transition duration-150 ease-in-out ${selectedCaseId === aCase.id
-                    ? "bg-blue-100 border-l-4 border-blue-500"
-                    : "hover:bg-gray-50"
-                    }`}
-                  onClick={() => setSelectedCaseId(aCase.id)}
-                >
-                  {visibleIds.has(aCase.id) ? (
-                    <div className="flex items-center">
-                      <img
-                        src={user}
-                        alt="User"
-                        className="w-5 h-5 object-cover mr-5"
-                      />
-                      <div>
-                        <p className="font-semibold text-gray-800">
-                          {aCase.studentName}
-                        </p>
-                        <p className="text-sm text-gray-600">{aCase.studentId}</p>
-                      </div>
+    // Archive/Resolve
+    const handleArchiveCase = async () => {
+        if (!selectedCaseId) return;
+        try {
+            await axios.put(`/cases/update/${selectedCaseId}`, { status: "Resolved" });
+            setCases((prev) =>
+                prev.map((c) =>
+                    c.id === selectedCaseId ? { ...c, status: "Resolved" } : c
+                )
+            );
+            setCaseDetailsMap((prev) => {
+                const next = { ...prev };
+                if (next[selectedCaseId]) next[selectedCaseId].status = "Resolved";
+                return next;
+            });
+            setSelectedCaseId(null);
+            toast.success("Case status updated to Resolved!");
+        } catch (err) {
+            toast.error("Error archiving case.");
+        }
+    };
+
+    // Edit
+    const handleSaveEdits = async () => {
+        if (!editedCaseData || !selectedCaseId) return;
+        try {
+            const payload = uiDetailsToServerPayload(editedCaseData);
+            await axios.put(`/cases/update/${selectedCaseId}`, payload);
+            toast.success("Changes saved successfully!");
+            setIsEditing(false);
+            // Refresh
+            const res = await axios.get("/cases");
+            const violations = Array.isArray(res.data) ? res.data : [];
+            const list = violations.map((v) => ({
+                id: v.id,
+                studentName: v.name ?? "Unknown",
+                studentId: v.sid ?? "",
+                status: v.status ?? "On-going",
+                timeCreated: v.timeCreated,
+                programSection: v.programSection ?? "",
+            }));
+            const details = {};
+            violations.forEach((v) => {
+                details[v.id] = v;
+            });
+            setCases(list);
+            setCaseDetailsMap(details);
+        } catch (err) {
+            toast.error("Error saving changes.");
+        }
+    };
+
+    // Info field change
+    const handleCaseFieldChange = (category, field, value) => {
+        setEditedCaseData((prevData) => {
+            if (!prevData) return prevData;
+            const newData = JSON.parse(JSON.stringify(prevData));
+            if (!newData[category]) newData[category] = {};
+            newData[category][field] = value;
+            return newData;
+        });
+    };
+
+    // Table columns for large screens
+    const columns = [
+        { label: "Case ID", key: "id", show: "lg" },
+        { label: "Student Name", key: "studentName", show: "all" },
+        { label: "Student ID", key: "studentId", show: "lg" },
+        { label: "Program & Section", key: "programSection", show: "lg" },
+        { label: "Priority", key: "priority", show: "all" }, // Priority column
+        { label: "Status", key: "status", show: "all" },
+    ];
+
+    // Responsive filter layout
+    const filterGridClass = "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-2";
+
+    return (
+        <div className="bg-gray-100 h-full flex flex-col pb-3">
+            <ToastContainer
+                position="top-right"
+                autoClose={4000}
+                hideProgressBar={false}
+                newestOnTop={false}
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+            />
+
+            {/* --- SHS/College buttons removed here --- */}
+
+            {/* Header */}
+            <div className={`bg-white rounded-xl shadow-lg mx-2 sm:mx-4 flex-1 flex flex-col p-2 sm:p-6`} style={{ maxWidth: "100vw" }}>
+
+            <div className="flex flex-col gap-2 pb-2">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 w-full">
+                    <div className="text-3xl font-bold text-[#0172bd] flex items-center gap-2">
+                        <FileText className="w-8 h-8" />
+                        Student Cases
                     </div>
-                  ) : null}
-                  <ChevronRight className="w-5 h-5 text-[#0A1220]" />
+                    
+                    {/* Search bar aligned right */}
+                    <div className="flex gap-2 w-full md:w-auto md:justify-end md:items-center">
+                        <div className="relative flex-1 max-w-xs">
+                            <input
+                                type="text"
+                                placeholder="Search Name/ID"
+                                value={searchTerm}
+                                onChange={e => setSearchTerm(e.target.value)}
+                                className="w-full pr-10 pl-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#0172bd] focus:border-transparent text-sm"
+                                style={{ minWidth: 0 }}
+                            />
+                            <Search className="absolute right-3 top-2.5 text-gray-400 w-5 h-5" />
+                        </div>
+                    <div className="flex gap-2 flex-wrap">
+                        {authData?.user?.access?.studentCases?.canEdit ? (
+                          <button
+                            onClick={() => setShowAddModal(true)}
+                            className="flex items-center bg-[#0172bd] hover:bg-blue-500 text-sm text-white font-bold py-2 px-4 rounded-lg transition duration-150 ease-in-out shadow-md"
+                          >
+                            Add Case
+                            <Plus className="w-4 h-4 ml-2" />
+                          </button>
+                            ) : null}  
+                      </div>                          
+                    </div>             
                 </div>
-              ))
-            : (
-              <p className="p-4 text-gray-500 text-center">No cases found.</p>
+                     
+                {/* Showing X results of Y total */}
+                <div className="text-sm text-gray-500 mt-1 ml-1">
+                    Showing {filteredCases.length} result{filteredCases.length !== 1 ? "s" : ""} of {cases.length} total
+                </div>
+            </div>
+
+            {/* Table */}
+            <div
+                className="mt-4 overflow-x-auto rounded-lg shadow bg-white "
+                style={{
+                    width: "100%",
+                    minWidth: 0,
+                    maxWidth: "100vw",
+                }}
+            >
+                <table className="w-full text-left">
+                    <thead>
+                        <tr>
+                            {columns.map(col => (
+                                <th
+                                    key={col.key}
+                                    className={
+                                        "bg-[#0172bd] text-white font-bold px-4 py-2" +
+                                        (col.show === "lg"
+                                            ? " hidden lg:table-cell"
+                                            : "")
+                                    }
+                                >
+                                    {col.label}
+                                </th>
+                            ))}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {pagedCases.length === 0 ? (
+                            <tr>
+                                <td colSpan={columns.length} className="text-center py-8 text-gray-400">
+                                    No cases found.
+                                </td>
+                            </tr>
+                        ) : (
+                            pagedCases.map(aCase => (
+                                <tr
+                                    key={aCase.id}
+                                    className="hover:bg-gray-100 transition cursor-pointer"
+                                    onClick={() => openCaseModal(aCase.id)}
+                                >
+                                    <td className="px-4 py-3 whitespace-nowrap hidden lg:table-cell">{aCase.id}</td>
+                                    <td className="px-4 py-3 whitespace-nowrap">{aCase.studentName}</td>
+                                    <td className="px-4 py-3 whitespace-nowrap hidden lg:table-cell">{aCase.studentId}</td>
+                                    <td className="px-4 py-3 whitespace-nowrap hidden lg:table-cell">{aCase.programSection}</td>
+                                    {/* Priority column */}
+                                    <td className="px-4 py-3 whitespace-nowrap">
+                                        {caseDetailsMap[aCase.id]?.caseDetails?.priority ||
+                                         caseDetailsMap[aCase.id]?.priority ||
+                                         ""}
+                                    </td>
+                                    {/* Status column */}
+                                    <td className="px-4 py-3 whitespace-nowrap">
+                                        {aCase.status === "Resolved" ? (
+                                            <span className="bg-red-100 text-red-600 px-2 py-1 rounded text-xs font-semibold">Resolved</span>
+                                        ) : (
+                                            <span className="bg-green-100 text-green-600 px-2 py-1 rounded text-xs font-semibold">On-going</span>
+                                        )}
+                                    </td>
+                                </tr>
+                            ))
+                        )}
+                    </tbody>
+                </table>
+
+            </div>
+            {/* Pagination controls */}
+                <div className="w-full flex justify-center lg:justify-end items-center mt-2 pr-0 lg:pr-2">
+                    <nav className="flex items-center space-x-1">
+                        <button
+                            className="px-2 py-1 rounded hover:bg-gray-200 text-[#0172bd] font-bold"
+                            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                            disabled={currentPage === 1}
+                        >
+                            <ChevronLeft className="w-5 h-5 object-cover rounded" />
+                        </button>
+                        {Array.from({ length: totalPages }, (_, i) => (
+                            <button
+                                key={i + 1}
+                                className={`px-2 py-1 rounded ${currentPage === i + 1 ? 'bg-[#0172bd] text-white' : 'hover:bg-gray-200 text-[#0172bd]'}`}
+                                onClick={() => setCurrentPage(i + 1)}
+                            >
+                                {i + 1}
+                            </button>
+                        ))}
+                        <button
+                            className="px-2 py-1 rounded hover:bg-gray-200 text-[#0172bd] font-bold"
+                            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                            disabled={currentPage === totalPages}
+                        >
+                            <ChevronRight className="w-5 h-5 object-cover rounded" />
+                        </button>
+                    </nav>
+                </div>
+          </div>
+
+            {/* Case Modal */}
+            {selectedCaseId && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+                    <div
+                        className={`
+                            bg-white rounded-2xl shadow-2xl
+                            w-[98vw] max-w-[98vw] h-[98vh] max-h-[98vh]
+                            md:w-[90vw] md:max-w-[900px] md:h-[90vh] md:max-h-[900px]
+                            lg:w-[95vw] lg:max-w-[1600px] lg:h-[90vh] lg:max-h-[900px]
+                            flex flex-col p-3 sm:p-4 md:p-6 relative overflow-y-auto custom-scrollbar
+                        `}
+                        style={{
+                            minWidth: 0,
+                        }}
+                    >
+                        {/* Close button always top right */}
+                        <button
+                            className="absolute top-11 right-5 text-[#0172bd] hover:text-blue-500 transition-transform hover:scale-110"
+                            onClick={closeCaseModal}
+                        >
+                            <X className="w-8 h-8 sm:w-10 sm:h-10" />
+                        </button>
+                        {/* Header: Name, ID, Buttons aligned right */}
+                        <div className="flex flex-col gap-2 mb-4 mt-2 mr-15">
+                            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+                                {/* Name and ID */}
+                                <div className="flex items-center gap-3 flex-shrink min-w-0">
+                                    <FileText className="w-8 h-8 sm:w-10 sm:h-10 text-[#0172bd] flex-shrink-0" />
+                                    <div className="min-w-0">
+                                        <div className="text-xl sm:text-2xl md:text-3xl font-bold text-[#0172bd] break-words truncate md:break-normal md:whitespace-normal" style={{ maxWidth: "70vw" }}>
+                                            {caseDetailsMap[selectedCaseId]?.name || ""}
+                                        </div>
+                                        <div className="text-gray-500 text-sm sm:text-base md:text-lg break-all">{caseDetailsMap[selectedCaseId]?.sid || ""}</div>
+                                    </div>
+                                </div>
+                                {/* Buttons aligned right with name */}
+                                <div className="flex gap-2 mt-2 md:mt-0 flex-wrap justify-start md:justify-end">
+                                    <button
+                                        className={`flex items-center gap-1 px-3 sm:px-4 py-2 bg-[#0172bd] hover:bg-blue-500 text-white rounded-lg font-semibold text-sm sm:text-base shadow`}
+                                        onClick={() => {
+                                            if (isEditing) {
+                                                handleSaveEdits();
+                                            }
+                                            setIsEditing(!isEditing);
+                                        }}
+                                    >
+                                        {isEditing ? "Save" : "Edit Case"}
+                                        <Pencil className="w-5 h-5 ml-1" />
+                                    </button>
+                                    <button
+                                        className="flex items-center gap-1 px-3 sm:px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold text-sm sm:text-base shadow"
+                                        onClick={handleArchiveCase}
+                                    >
+                                        Resolve Case
+                                        <Archive className="w-5 h-5 ml-1" />
+                                    </button>
+                                </div>
+                            </div>
+                            {/* Priority Dropdown */}
+                            <div className="flex flex-wrap gap-2 mt-2 items-center">
+                                <label className="font-semibold text-[#0172bd]">Priority Level:</label>
+                                <select
+                                    className="px-3 py-1 rounded-lg font-semibold text-xs sm:text-sm bg-gray-100 text-[#0172bd] hover:bg-blue-100"
+                                    value={editedCaseData?.caseDetails?.priority || ""}
+                                    disabled={!isEditing}
+                                    onChange={e => {
+                                        if (!isEditing) return;
+                                        setEditedCaseData(prev => ({
+                                            ...prev,
+                                            caseDetails: {
+                                                ...prev.caseDetails,
+                                                priority: e.target.value,
+                                            }
+                                        }));
+                                    }}
+                                >
+                                    {PRIORITY_LEVELS.map(opt => (
+                                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                    ))}
+                                </select>
+                                {/* Info type tabs beside priority */}
+                                <select
+                                    className="px-3 py-1 rounded-lg font-semibold text-xs sm:text-sm bg-gray-100 text-[#0172bd] hover:bg-blue-100"
+                                    value={infoType}
+                                    onChange={e => setInfoType(e.target.value)}
+                                >
+                                    <option value="caseDetails">Case Details</option>
+                                    <option value="proof">Proof</option>
+                                    <option value="actionsTaken">Actions Taken</option>
+                                    <option value="counselorNotes">Counselor's Notes</option>
+                                </select>
+                            </div>
+                        </div>
+                        {/* Info Section */}
+                        <div className="flex-1 overflow-y-auto custom-scrollbar w-full">
+                            <CaseInfoSection
+                                infoType={infoType}
+                                caseData={editedCaseData && editedCaseData[infoType] ? editedCaseData[infoType] : {}}
+                                isEditing={isEditing}
+                                onFieldChange={handleCaseFieldChange}
+                            />
+                        </div>
+                    </div>
+                </div>
             )}
-          </div> */}
+
+            {/* Add Case Modal */}
+            <AddCaseModal
+                visible={showAddModal}
+                onClose={() => setShowAddModal(false)}
+                newCaseForm={newCaseForm}
+                onChange={setNewCaseForm}
+                onSave={handleAddCase}
+            />
         </div>
-
-        <div
-          className={`
-          h-full bg-white  shadow-sm flex flex-col rounded-lg transition-all duration-300 flex-1
-            ${selectedCaseId ? 'flex' : 'hidden lg:flex'} /* keep visible on desktop */
-        `}
-        >
-          <Fragment>
-            <div className="p-4 border-b border-gray-300 flex items-center justify-between flex-wrap gap-2">
-              <div className="flex items-center space-x-2 sm:space-x-4">
-                <button
-                  className="p-2 rounded-lg hover:bg-gray-200 transition duration-150 ease-in-out cursor-pointer"
-                  onClick={() => setSelectedCaseId(null)}
-                >
-                  <ChevronLeft className="w-8 h-8 text-[#0172bd]" />
-                </button>
-
-                {/* Student Name beside back button */}
-                {selectedCaseId && caseDetailsMap[selectedCaseId]?.name && (
-                  <span className="text-xl sm:text-2xl font-semibold text-black truncate max-w-[120px] sm:max-w-[250px] md:max-w-[350px]">
-                    {caseDetailsMap[selectedCaseId].name}
-                  </span>
-                )}
-                <div className="relative w-full sm:w-auto lg:w-56 flex-shrink-0">
-                  <select
-                    className="block w-50 px-3 sm:px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-1 text-[#0172bd] focus:ring-[#0172bd] focus:border-transparent transition duration-150 ease-in-out appearance-none bg-white pr-8 text-sm sm:text-base cursor-pointer"
-                    value={infoType}
-                    onChange={(e) => setInfoType(e.target.value)}
-                  >
-                    <option value="caseDetails">Case Details</option>
-                    <option value="proof">Proof</option>
-                    <option value="actionsTaken">Actions Taken</option>
-                    <option value="counselorNotes">Counselor's Notes</option>
-                  </select>
-                  
-                </div>
-              </div>
-
-              {selectedCaseId !== null && authData?.user?.access?.studentCases?.canEdit ? (
-                <div className="flex items-center space-x-2 sm:space-x-3 mt-2 sm:mt-0">
-                  <button
-                    className={`py-2 px-4 rounded-lg flex items-center justify-center transition duration-150 ease-in-out font-medium shadow-md hover:shadow-lg
-                      ${isEditing
-                      ? "bg-blue-400 hover:bg-blue-600 text-white"
-                      : "bg-[#0172bd] hover:bg-blue-500 text-[#fef201]"
-                      }`}
-                    onClick={() => {
-                      if (isEditing) {
-                        handleSaveEdits();
-                      }
-                      setIsEditing(!isEditing);
-                    }}
-                  >
-                    {isEditing ? "Save" : "Edit Case"}
-                    <Pencil className="w-4 h-4 sm:w-5 sm:h-5 ml-1 sm:ml-2" />
-                  </button>
-                  <button
-                    className="bg-[#dc3545] font-semibold hover:bg-red-700 text-white py-2 px-4 rounded-lg flex items-center justify-center transition duration-150 ease-in-out shadow-md hover:shadow-lg"
-                    onClick={handleArchiveCase}
-                  >
-                    Resolve Case
-                    <Archive className="w-4 h-4 sm:w-5 sm:h-5 ml-1 sm:ml-2" />
-                  </button>
-                </div>
-              ) : null}
-            </div>
-
-            <div className="flex-1 p-6 overflow-y-auto custom-scrollbar">
-              {displayCaseData ? (
-                <CaseInfoSection
-                  infoType={infoType}
-                  caseData={displayCaseData && displayCaseData[infoType] ? displayCaseData[infoType] : {}}
-                  isEditing={isEditing}
-                  onFieldChange={handleCaseFieldChange}
-                />
-              ) : (
-                <div className="flex-1 flex items-center justify-center text-gray-500 text-xl p-4 text-center">
-                  Select a case from the list to view its information.
-                </div>
-              )}
-            </div>
-          </Fragment>
-        </div>
-
-        <AddCaseModal
-          visible={showAddModal}
-          onClose={() => setShowAddModal(false)}
-          newCaseForm={newCaseForm}
-          onChange={handleNewCaseFormChange}
-          onSave={handleAddCase}
-        />
-      </div>
-    </div>
-  );
+    );
 }
 
 export default StudentCases;

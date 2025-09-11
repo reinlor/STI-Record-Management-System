@@ -5,6 +5,8 @@ import axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
+import {X} from 'lucide-react';
+
 
 const RestoreModal = ({ visible, onClick }) => {
     const [uploadProgress, setUploadProgress] = useState(0);
@@ -59,13 +61,13 @@ const RestoreModal = ({ visible, onClick }) => {
                 pauseOnHover
             />
             <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-lg">
-                <div className="flex justify-between items-center border-b pb-3 mb-4">
-                    <h3 className="text-2xl font-bold text-gray-800">Bulk Add Students</h3>
+                <div className="flex justify-between items-center border-b pb-3">
+                    <h3 className="text-2xl font-bold text-[#0172bd]">Insert Restore File</h3>
                     <button
                         className="p-2 rounded-lg hover:bg-gray-200 cursor-pointer"
                         onClick={onClick}
                     >
-                        <img src={closeB} alt="closeIcon" className="w-5 h-5 object-cover" />
+                        <X className="w-10 h-10 object-cover text-[#0172bd] " />
                     </button>
                 </div>
 
@@ -88,7 +90,7 @@ const RestoreModal = ({ visible, onClick }) => {
 
                 <div className="w-full bg-gray-200 rounded-full h-4 mb-2">
                     <div
-                        className="bg-blue-600 h-4 rounded-full transition-all duration-300"
+                        className="bg-[#fef201] h-4 rounded-full transition-all duration-300"
                         style={{ width: `${uploadProgress}%` }}
                     ></div>
                 </div>
