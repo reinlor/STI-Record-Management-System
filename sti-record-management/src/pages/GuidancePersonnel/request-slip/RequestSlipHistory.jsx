@@ -233,7 +233,7 @@ function RequestSlipHistory() {
   ));
 
   return (
-    <div className="bg-gray-100 h-220 p-3">
+    <div className="bg-gray-100 h-full p-3">
       <div className="bg-white shadow-md p-4 rounded-lg">
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-4 gap-3">
@@ -270,7 +270,7 @@ function RequestSlipHistory() {
         </div>
 
         {/* Table */}
-        <div className="bg-white rounded-lg shadow-md overflow-y-auto custom-scrollbar h-180 relative pb-12">
+        <div className="bg-white rounded-lg shadow-md overflow-y-auto custom-scrollbar h-[65vh] relative">
           <table className="w-full text-left">
             <thead>
               <tr className=" text-white">
@@ -286,36 +286,36 @@ function RequestSlipHistory() {
             </thead>
             <tbody>{displaySlipHistoryTable}</tbody>
           </table>
+          
+        </div>
           {/* Pagination controls - OUTSIDE the scrollable table */}
-        <div className="w-full flex justify-center lg:justify-end items-center mt-2 pr-0 lg:pr-2">
-          <nav className="flex items-center space-x-1">
-            <button
-              className="px-2 py-1 rounded hover:bg-gray-200 text-[#0172bd] font-bold"
-              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              disabled={currentPage === 1}
-            >
-              <ChevronLeft className="w-5 h-5 object-cover rounded" />
-            </button>
-            {Array.from({ length: totalPages }, (_, i) => (
+          <div className="w-full flex justify-center lg:justify-end items-center mt-2 pr-0 lg:pr-2">
+            <nav className="flex items-center space-x-1">
               <button
-                key={i + 1}
-                className={`px-2 py-1 rounded ${currentPage === i + 1 ? 'bg-[#0172bd] text-white' : 'hover:bg-gray-200 text-[#0172bd]'}`}
-                onClick={() => setCurrentPage(i + 1)}
+                className="px-2 py-1 rounded hover:bg-gray-200 text-[#0172bd] font-bold"
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
               >
-                {i + 1}
+                <ChevronLeft className="w-5 h-5 object-cover rounded" />
               </button>
-            ))}
-            <button
-              className="px-2 py-1 rounded hover:bg-gray-200 text-[#0172bd] font-bold"
-              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-              disabled={currentPage === totalPages}
-            >
-              <ChevronRight className="w-5 h-5 object-cover rounded" />
-            </button>
-          </nav>
-        </div>
-        </div>
-
+              {Array.from({ length: totalPages }, (_, i) => (
+                <button
+                  key={i + 1}
+                  className={`px-2 py-1 rounded ${currentPage === i + 1 ? 'bg-[#0172bd] text-white' : 'hover:bg-gray-200 text-[#0172bd]'}`}
+                  onClick={() => setCurrentPage(i + 1)}
+                >
+                  {i + 1}
+                </button>
+              ))}
+              <button
+                className="px-2 py-1 rounded hover:bg-gray-200 text-[#0172bd] font-bold"
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+              >
+                <ChevronRight className="w-5 h-5 object-cover rounded" />
+              </button>
+            </nav>
+          </div>
         
 
         <div>{displayRequestSlipForm()}</div>

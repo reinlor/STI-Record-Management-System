@@ -198,7 +198,11 @@ function ReferralFormHistory() {
             </tbody>
 
           </table>
-          {/* Pagination controls */}
+          
+          <div>{displayReferralData()}</div>
+          
+        </div>
+        {/* Pagination controls */}
           <div className="w-full flex justify-center lg:justify-end items-center mt-2 pr-0 lg:pr-2">
             <nav className="flex items-center space-x-1">
               <button
@@ -226,8 +230,6 @@ function ReferralFormHistory() {
               </button>
             </nav>
           </div>
-          <div>{displayReferralData()}</div>
-        </div>
       </div>
     </div>
   );

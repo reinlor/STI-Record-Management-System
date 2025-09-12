@@ -8,14 +8,8 @@ function RequestTypeFrequency({ slipData }) {
 
     const getColor = (label) => {
         const colors = {
-            'Violation': 'rgb(75, 192, 192)',
             'Absent Slip': 'rgb(75, 100, 192)',
-            'Late Slip': 'rgb(255, 99, 132)',
-            'Uniform Pass': 'rgb(54, 162, 235)',
-            'ID Pass': 'rgb(255, 206, 86)',
-            'Disciplinary Report': 'rgb(153, 102, 255)',
-            'misc': 'rgb(255, 159, 64)',
-            'betlog': 'rgb(201, 203, 207)',
+            'Incident Report': 'rgba(17, 240, 29, 1)',
         };
         return colors[label] || `hsl(${Math.random() * 360}, 70%, 50%)`;
     };
@@ -63,7 +57,7 @@ function RequestTypeFrequency({ slipData }) {
         }
 
         const filteredByType = filteredByDate.filter(item =>
-            ['Absent Slip', 'ID Pass', 'Uniform Pass', 'Late Slip'].includes(item.type)
+            ['Absent Slip', 'Incident Report'].includes(item.type)
         );
 
         const counts = {};

@@ -110,7 +110,7 @@ function LoginBeta() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-100 font-sans p-4 md:p-8">
+        <div className="min-h-screen flex items-center justify-center bg-[url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTLroixxrcJgD8QAh00obWKREohcySQ_tJAIQ&s')] bg-no-repeat bg-white font-sans p-4 md:p-8">
             <div className="flex flex-col md:flex-row w-full max-w-5xl rounded-3xl shadow-3xl bg-white overflow-hidden">
                 <div className="md:w-1/2 w-full bg-[#0172B9] flex items-center justify-center p-8 md:p-12 text-white">
                     <div className="text-center">

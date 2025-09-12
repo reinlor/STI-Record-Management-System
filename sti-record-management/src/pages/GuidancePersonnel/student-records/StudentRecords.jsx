@@ -623,14 +623,7 @@ function StudentRecords() {
                                     </div>
                                     {/* Buttons */}
                                     <div className="flex gap-2 flex-1 justify-end flex-wrap">
-                                        <button
-                                            className="bg-[#0172bd] font-semibold  hover:bg-blue-500 text-[#fef201] py-2 px-4 rounded-lg flex items-center justify-center transition duration-150 ease-in-out shadow-md hover:shadow-lg"
-                                            onClick={() => setDisplayStudentList(true)}
-                                            title="Student List"
-                                        >
-                                            <span className="block lg:w-0 lg:h-0 lg:p-0 lg:m-0"><FolderOpen className="lg:w-0 lg:h-0 w-5 h-5" /></span>
-                                            <span className="w-0 h-0 p-0 m-0 overflow-hidden lg:w-auto lg:h-auto lg:p-1 lg:m-0 lg:ml-1 lg:overflow-visible lg:flex items-center">Student List <FolderOpen className="w-5 h-5 ml-2" /></span>
-                                        </button>
+                                        
                                         {selectedStudentId !== null && (
                                             <>
                                                 {authData?.user?.access?.studentRecords?.canEdit && (
@@ -638,7 +631,7 @@ function StudentRecords() {
                                                         className={`py-2 px-4 rounded-lg flex items-center justify-center transition duration-150 ease-in-out font-medium shadow-md hover:shadow-lg
                                                     ${isEditing
                                                                 ? 'bg-blue-400 hover:bg-blue-600 text-white'
-                                                                : 'bg-[#0172bd] hover:bg-blue-500 text-[#fef201]'}`}
+                                                                : 'bg-[#0172bd] hover:bg-blue-500 text-white'}`}
                                                         onClick={() => { if (isEditing) { handleSaveEdits(); } setIsEditing(!isEditing); }}
                                                         title={isEditing ? "Save" : "Edit Student"}
                                                     >
@@ -647,7 +640,7 @@ function StudentRecords() {
                                                     </button>
                                                 )}
                                                 <button
-                                                    className="bg-[#0172bd] text-[#fef201] font-semibold hover:bg-blue-500  py-2 px-4 rounded-lg flex items-center justify-center transition duration-150 ease-in-out shadow-md hover:shadow-lg"
+                                                    className="bg-[#0172bd] text-white font-semibold hover:bg-blue-500  py-2 px-4 rounded-lg flex items-center justify-center transition duration-150 ease-in-out shadow-md hover:shadow-lg"
                                                     onClick={handleCaseButton}
                                                     title="Case"
                                                 >

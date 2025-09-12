@@ -141,7 +141,7 @@ export default function ContentManagement() {
     };
 
     const renderProgramList = (list) => (
-        <div className="flex flex-col space-y-2 h-48 overflow-y-auto custom-scrollbar">
+        <div className="flex flex-col space-y-2 h-full overflow-y-auto custom-scrollbar">
             {list.map((item, index) => (
                 <div key={index} className="p-2 bg-gray-100 rounded-lg shadow-sm">
                     <p className="font-semibold text-gray-800">{item.acronym}</p>

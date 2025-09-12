@@ -27,7 +27,7 @@ import 'react-toastify/dist/ReactToastify.css';
 const SLIP_TYPE_OPTIONS = [
   { value: "", label: "All" },
   { value: "Absent Slip", label: "Absent Slip" },
-  { value: "Student Report", label: "Student Report" },
+  { value: "Incident Report", label: "Incident Report" },
 ];
 
 const DATE_FILTER_OPTIONS = [
@@ -682,7 +682,7 @@ function RequestSlip() {
         </div>
 
         {/* Table */}
-        <div className="bg-white rounded-lg shadow-md overflow-x-auto custom-scrollbar h-[70vh] relative pb-12">
+        <div className="bg-white rounded-lg shadow-md overflow-x-auto custom-scrollbar h-[62vh] relative">
           <table className="w-full text-left">
             <thead>
               <tr className=" text-white">
@@ -736,8 +736,8 @@ function RequestSlip() {
               ))}
             </tbody>
           </table>
-
-          {/* Pagination controls - OUTSIDE the scrollable table */}
+        </div>
+                  {/* Pagination controls - OUTSIDE the scrollable table */}
           <div className="w-full flex justify-center lg:justify-end items-center mt-2 pr-0 lg:pr-2">
             <nav className="flex items-center space-x-1">
               <button
@@ -765,7 +765,6 @@ function RequestSlip() {
               </button>
             </nav>
           </div>
-        </div>
       </div>
 
       {/* Modals */}
