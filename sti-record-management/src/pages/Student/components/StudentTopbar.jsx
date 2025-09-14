@@ -43,7 +43,7 @@ const StudentTopBar = ({
     <div className="bg-[#0B5793] text-white flex items-center justify-between px-4 py-4 relative shadow-lg">
       {/* Left Section (Logo + Nav) */}
       <div className="flex items-center">
-        <span className="text-2xl sm:text-2xl font-bold mr-3 sm:mr-6">
+        <span className="text-2xl sm:text-3xl font-bold mr-3 sm:mr-6">
           <span className="text-[#F4D03F]">STI</span>{" "}
           <span className="text-white">GORMS</span>
         </span>
