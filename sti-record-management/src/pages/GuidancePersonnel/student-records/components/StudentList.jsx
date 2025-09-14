@@ -292,10 +292,10 @@ function StudentList({ onBack }) {
     const handleArchive = async () => {
         if (!modalStudent) return;
         try {
-            await axios.put(`/student/archive/${modalStudent._id}`);
+            await axios.put(`/student/archiveData/${modalStudent.id}`);
             setStudents(students =>
                 students.map(s =>
-                    s._id === modalStudent._id ? { ...s, isArchived: true } : s
+                    s.id === modalStudent.id ? { ...s, isArchived: true } : s
                 )
             );
             setShowArchiveModal(false);
