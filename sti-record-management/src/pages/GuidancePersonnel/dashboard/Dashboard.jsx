@@ -27,6 +27,7 @@ const App = () => {
     const [allData, setAllData] = useState([]);
     const [slipData, setSlipData] = useState([]);
     const [leaderboardData, setLeaderboardData] = useState([]);
+    const [schoolYear, setSchoolYear] = useState('');
 
     useEffect(() => {
         const fetchData = async () => {
@@ -42,6 +43,9 @@ const App = () => {
                 const slipYearKey = Object.keys(slipDataContainer).find(key => key !== 'id');
                 const fetchedSlipData = slipDataContainer[slipYearKey] || [];
                 setSlipData(fetchedSlipData);
+
+                const schoolyear = await axios.get('/content/schoolPeriod/get')
+                setSchoolYear(schoolyear.data.schoolYear);
 
                 console.log("Data fetched successfully from API.");
             } catch (error) {
@@ -89,14 +93,14 @@ const App = () => {
             });
 
             const computedLeaderboardData = Object.values(violationCounts)
-                .sort((a, b) => b.violations - a.violations) // Sort highest violations first
-                .slice(0, 10); // Keep only top 10
+                .sort((a, b) => b.violations - a.violations)
+                .slice(0, 10);
 
             setLeaderboardData(computedLeaderboardData);
         } else {
             setLeaderboardData([]);
         }
-    }, [allData]);
+    }, [allData, schoolYear]);
 
     if (isLoading) {
         return (
@@ -110,7 +114,7 @@ const App = () => {
         <div className="bg-[#f3f4f6] p-4 h-full">
             <div className="grid grid-cols-1 md:grid-cols-3 md:grid-rows-2 gap-4">
                 <ViolationFrequency allData={allData} />
-                <Leaderboard leaderboardData={leaderboardData} />
+                <Leaderboard leaderboardData={leaderboardData} schoolYear={schoolYear} />
                 <RequestTypeFrequency slipData={slipData} />
                 <div className="col-span-1 md:col-span-2 row-span-1 bg-white rounded-lg border border-gray-200 p-4 shadow-sm min-h-[300px]">
                     <h2 className="text-lg font-bold mb-2 text-[#0172bd]">Other Data</h2>
