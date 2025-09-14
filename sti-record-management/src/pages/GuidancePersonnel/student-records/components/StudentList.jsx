@@ -272,7 +272,8 @@ function StudentList({ onBack }) {
     };
     const handleSaveEdit = async () => {
         try {
-            await axios.put(`/student/update/${modalStudent._id}`, editedStudentData);
+            const { id, ...updatedData } = editedStudentData;
+            await axios.put(`/student/update/${modalStudent.id}`, updatedData);
             setStudents(students =>
                 students.map(s =>
                     s._id === modalStudent._id ? editedStudentData : s
