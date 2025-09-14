@@ -6,7 +6,7 @@ import LoginBeta from './login/LoginBeta.jsx';
 
 import GuidanceLayout from './layouts/AdminLayout.jsx'
 import GuidanceDashboard from './pages/GuidancePersonnel/dashboard/Dashboard.jsx'
-import GuidanceStudentRecords from './pages/GuidancePersonnel/student-records/StudentRecords.jsx'
+import GuidanceStudentRecords from './pages/GuidancePersonnel/student-records/components/StudentList.jsx'
 import GuidanceStudentCases from './pages/GuidancePersonnel/student-cases/StudentCases.jsx'
 import GuidanceReferralForm from './pages/GuidancePersonnel/referral-form/ReferralForm.jsx'
 import GuidanceReferralFormHistory from './pages/GuidancePersonnel/referral-form/ReferralFormHistory.jsx'
