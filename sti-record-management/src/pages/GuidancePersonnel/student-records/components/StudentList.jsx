@@ -244,7 +244,7 @@ function StudentList({ onBack }) {
     // Modal open handler
     const openStudentModal = (student) => {
         setModalStudent(student);
-        setEditedStudentData(student);
+        setEditedStudentData(JSON.parse(JSON.stringify(student)));
         setInfoType("basic");
         setIsEditing(false);
         setModalOpen(true);
@@ -268,15 +268,16 @@ function StudentList({ onBack }) {
     const handleEdit = () => setIsEditing(true);
     const handleCancelEdit = () => {
         setIsEditing(false);
-        setEditedStudentData(modalStudent);
+        setEditedStudentData(JSON.parse(JSON.stringify(modalStudent)));
     };
+
     const handleSaveEdit = async () => {
         try {
             const { id, ...updatedData } = editedStudentData;
             await axios.put(`/student/update/${modalStudent.id}`, updatedData);
             setStudents(students =>
                 students.map(s =>
-                    s._id === modalStudent._id ? editedStudentData : s
+                    s.id === modalStudent.id ? editedStudentData : s
                 )
             );
             setIsEditing(false);
@@ -333,13 +334,13 @@ function StudentList({ onBack }) {
                 students.map(s =>
                     s._id === modalStudent._id
                         ? {
-                              ...s,
-                              studentProfile: {
-                                  ...s.studentProfile,
-                                  program: transferProgram,
-                                  section: transferSection,
-                              },
-                          }
+                            ...s,
+                            studentProfile: {
+                                ...s.studentProfile,
+                                program: transferProgram,
+                                section: transferSection,
+                            },
+                        }
                         : s
                 )
             );
@@ -760,34 +761,34 @@ function StudentList({ onBack }) {
                     </table>
 
                 </div>
-                    {/* Pagination controls */}
-                    <div className="w-full flex justify-center lg:justify-end items-center mt-2 pr-0 lg:pr-2">
-                        <nav className="flex items-center space-x-1">
+                {/* Pagination controls */}
+                <div className="w-full flex justify-center lg:justify-end items-center mt-2 pr-0 lg:pr-2">
+                    <nav className="flex items-center space-x-1">
+                        <button
+                            className="px-2 py-1 rounded hover:bg-gray-200 text-[#0172bd] font-bold"
+                            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                            disabled={currentPage === 1}
+                        >
+                            <ChevronLeft className="w-5 h-5 object-cover rounded" />
+                        </button>
+                        {Array.from({ length: totalPages }, (_, i) => (
                             <button
-                                className="px-2 py-1 rounded hover:bg-gray-200 text-[#0172bd] font-bold"
-                                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                                disabled={currentPage === 1}
+                                key={i + 1}
+                                className={`px-2 py-1 rounded ${currentPage === i + 1 ? 'bg-[#0172bd] text-white' : 'hover:bg-gray-200 text-[#0172bd]'}`}
+                                onClick={() => setCurrentPage(i + 1)}
                             >
-                                <ChevronLeft className="w-5 h-5 object-cover rounded" />
+                                {i + 1}
                             </button>
-                            {Array.from({ length: totalPages }, (_, i) => (
-                                <button
-                                    key={i + 1}
-                                    className={`px-2 py-1 rounded ${currentPage === i + 1 ? 'bg-[#0172bd] text-white' : 'hover:bg-gray-200 text-[#0172bd]'}`}
-                                    onClick={() => setCurrentPage(i + 1)}
-                                >
-                                    {i + 1}
-                                </button>
-                            ))}
-                            <button
-                                className="px-2 py-1 rounded hover:bg-gray-200 text-[#0172bd] font-bold"
-                                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                                disabled={currentPage === totalPages}
-                            >
-                                <ChevronRight className="w-5 h-5 object-cover rounded" />
-                            </button>
-                        </nav>
-                    </div>
+                        ))}
+                        <button
+                            className="px-2 py-1 rounded hover:bg-gray-200 text-[#0172bd] font-bold"
+                            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                            disabled={currentPage === totalPages}
+                        >
+                            <ChevronRight className="w-5 h-5 object-cover rounded" />
+                        </button>
+                    </nav>
+                </div>
             </div>
 
             {/* Student Modal */}
