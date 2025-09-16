@@ -32,7 +32,7 @@ const absentSlipSchema = Joi.object({
   timeCreated: Joi.date().required(),
   dateAbsent: Joi.string().required(),
   dateAbsentEnd: Joi.string().required(),
-  remarks: Joi.string().optional()
+  remarks: Joi.string().optional().allow(''),
 });
 
 // Controller Function For adding Absent Slip
@@ -105,20 +105,20 @@ const addAbsentSlip = async (req, res) => {
     // Pang Charts
     const chartDataDocRef = getChartDataCollection().doc("slip-n-pass");
     const docSnapshot = await chartDataDocRef.get();
-    
+
     const updatedData = docSnapshot.exists ? docSnapshot.data() : { id: "slip-n-pass", data: [] };
     const existingDataArray = updatedData.data || [];
-    
+
     existingDataArray.push({
       sid: newAbsentSlip.sid,
       type: "Absent Slip",
       date: new Date().toISOString()
     });
-    
+
     updatedData.data = existingDataArray;
     await chartDataDocRef.set(updatedData, { merge: true });
     // Pang Charts
-    
+
     res
       .status(200)
       .send({ message: `Absent slip added to Student: ${newAbsentSlip.name}` });
@@ -250,13 +250,19 @@ const getAllSlipsById = async (req, res) => {
 // Controller Function for updating slips/passes
 const updateSlipStatus = async (req, res) => {
   const { slipType, slipId } = req.params;
-  const { status } = req.body;
+  const { status, remarks } = req.body;
 
   const statusSchema = Joi.object({
     status: Joi.string().valid("Approved", "Denied").required(),
+    remarks: Joi.string().required(),
+    processedDate: Joi.date()
   });
 
-  const { error } = statusSchema.validate({ status });
+  const { error } = statusSchema.validate({ 
+    status,
+    remarks,
+    processedDate: new Date(),
+  });
   if (error) {
     return res.status(400).json({ error: error.details[0].message });
   }
@@ -281,7 +287,10 @@ const updateSlipStatus = async (req, res) => {
       return res.status(404).json({ error: "Slip not found." });
     }
 
-    await docRef.update({ status });
+    await docRef.update({ 
+      status,
+      remarks,
+      processedDate: new Date() });
 
     res.status(200).send({ message: `Slip ${slipId} status updated to ${status}.` });
   } catch (error) {

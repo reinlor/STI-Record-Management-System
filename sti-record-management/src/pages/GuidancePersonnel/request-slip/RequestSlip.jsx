@@ -139,10 +139,13 @@ function RequestSlip() {
 
   const handleStatusChange = async (slipType, slipId, status, slip) => {
     try {
+      console.log(remarks)
       // Include remarks if Absent Slip
       const updatePayload = slipType === "Absent Slip"
         ? { status, remarks }
         : { status };
+      
+        console.log(updatePayload)
 
       await axios.put(`/slip/update/${slipType}/${slipId}`, updatePayload);
 
@@ -241,7 +244,7 @@ function RequestSlip() {
       >
         {slips.status}
       </td>
-      <td className="px-4 py-3">{slips.reason}</td>
+      {/* <td className="px-4 py-3">{slips.reason}</td> */}
       <td className="px-4 py-3">{slips.attachmentCount}</td>
       {authData?.user?.access?.requestSlip ? <td className="px-4 py-3">
         <button
@@ -451,7 +454,7 @@ function RequestSlip() {
                           ? "text-red-600 font-bold"
                           : "text-gray-600 font-bold",
                   },
-                  { label: "Reason: ", value: selectedSlip.reason },
+                  // { label: "Reason: ", value: selectedSlip.reason },
                   { label: "Days Absent: ", value: selectedSlip.daysAbsent },
                 ].map((item, i) => (
                   <div key={i} className="flex items-center flex-wrap">
@@ -691,7 +694,7 @@ function RequestSlip() {
                 <th className="sticky bg-[#0172bd] top-0 z-10 px-2 sm:px-3 lg:px-4 py-2 sm:py-3 font-bold">Type of Slip</th>
                 <th className="sticky bg-[#0172bd] top-0 z-10 px-0 py-0 text-[0px]  w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">Date</th>
                 <th className="sticky bg-[#0172bd] top-0 z-10 px-0 py-0 text-[0px]  w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">Status</th>
-                <th className="sticky bg-[#0172bd] top-0 z-10 px-2 sm:px-3 lg:px-4 py-2 sm:py-3 font-bold">Reason</th>
+                {/* <th className="sticky bg-[#0172bd] top-0 z-10 px-2 sm:px-3 lg:px-4 py-2 sm:py-3 font-bold">Reason</th> */}
                 <th className="sticky bg-[#0172bd] top-0 z-10 px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">Attachments</th>
                 <th className="sticky bg-[#0172bd] top-0 z-10 px-2 sm:px-3 lg:px-4 py-2 sm:py-3"></th>
               </tr>
@@ -715,11 +718,11 @@ function RequestSlip() {
                   >
                     {slips.status}
                   </td>
-                  <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 break-words max-w-[120px] truncate align-middle" title={slips.reason}>
+                  {/* <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 break-words max-w-[120px] truncate align-middle" title={slips.reason}>
                     <span className="block overflow-hidden text-ellipsis whitespace-nowrap max-w-[140px]">
                       {slips.reason}
                     </span>
-                  </td>
+                  </td> */}
                   <td className="px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">{slips.attachmentCount}</td>
 
                   {authData?.user?.access?.requestSlip && (

@@ -115,9 +115,9 @@ function RequestSlipHistory() {
 
   const colorStatusIndicator = (status) => {
     if (status === 'Approved') {
-      return <td className="px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-green-600 lg:font-bold">{status}</td>
+      return <td className="text-green-600 font-bold px-2 py-2 text-sm lg:text-base">{status}</td>
     } else {
-      return <td className="px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-red-600 lg:font-bold">{status}</td>
+      return <td className="text-red-600 font-bold px-2 py-2 text-sm lg:text-base">{status}</td>
     }
   }
 
@@ -160,7 +160,7 @@ function RequestSlipHistory() {
                   {selectedSlip.status}
                 </span>
               </p>
-              <p><span className="font-bold text-[#0172bd]">Reason:</span> {selectedSlip.reason}</p>
+              <p><span className="font-bold text-[#0172bd]">Remarks:</span> {selectedSlip.remarks}</p>
               <p><span className="font-bold text-[#0172bd]">Days Absent:</span> {selectedSlip.daysAbsent}</p>
               <p><span className="font-bold text-[#0172bd]">Date:</span> {selectedSlip.timeCreatedFormatted}</p>
             </div>
@@ -210,16 +210,17 @@ function RequestSlipHistory() {
 
   const displaySlipHistoryTable = pagedSlipData.map((slips, idx) => (
     <tr key={idx} className="hover:bg-gray-100 transition">
+      {console.log(slips.status)}
       <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 lg:whitespace-nowrap font-semibold w-1/4">{slips.name}</td>
       <td className="px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">{slips.sid}</td>
       <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 lg:whitespace-nowrap">{slips.typeOfSlip}</td>
       <td className="px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">{slips.timeCreatedFormatted}</td>
       {colorStatusIndicator(slips.status)}
-      <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 break-words max-w-[120px] truncate align-middle" title={slips.reason}>
+      {/* <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 break-words max-w-[120px] truncate align-middle" title={slips.reason}>
         <span className="block overflow-hidden text-ellipsis whitespace-nowrap max-w-[140px]">
           {slips.reason}
         </span>
-      </td>
+      </td> */}
       <td className="px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">{slips.attachmentCount}</td>
       <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3">
         <button
@@ -279,7 +280,7 @@ function RequestSlipHistory() {
                 <th className="sticky bg-[#0172bd] top-0 z-10 px-2 sm:px-3 lg:px-4 py-2 sm:py-3 font-bold">Type of Slip</th>
                 <th className="sticky bg-[#0172bd] top-0 z-10 px-0 py-0 text-[0px]  w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">Date</th>
                 <th className="sticky bg-[#0172bd] top-0 z-10 px-0 py-0 text-[0px]  w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">Status</th>
-                <th className="sticky bg-[#0172bd] top-0 z-10 px-2 sm:px-3 lg:px-4 py-2 sm:py-3 font-bold">Reason</th>
+                {/* <th className="sticky bg-[#0172bd] top-0 z-10 px-2 sm:px-3 lg:px-4 py-2 sm:py-3 font-bold">Reason</th> */}
                 <th className="sticky bg-[#0172bd] top-0 z-10 px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">Attachments</th>
                 <th className="sticky bg-[#0172bd] top-0 z-10 px-2 sm:px-3 lg:px-4 py-2 sm:py-3"></th>
               </tr>
