@@ -259,8 +259,8 @@ function SubmitReferralForm({ teacher = {}, onCancel, onSuccess }) {
                         </div>
 
                         <div>
-                            <label className="block text-gray-700 font-medium mb-1">Student ID:</label>
-                            <input type="text" className="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-800" value={referral.sid || ""} onChange={(e) => handleReferralForm(e, "sid")} />
+                            <label className="block text-gray-700 font-medium mb-1">Student Number:</label>
+                            <input type="text" className="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-800" value={referral.sid || ""} onChange={(e) => handleReferralForm(e, "sid")} placeholder="Enter student number to auto-fill details" />
                         </div>
 
                         {/* Grade Level */}
