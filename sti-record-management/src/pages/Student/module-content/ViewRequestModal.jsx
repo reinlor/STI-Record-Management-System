@@ -3,10 +3,12 @@ import { X, User, FileText, MessageSquare, Info, Paperclip, AlertTriangle } from
 import { getStatusClasses } from "../components/statusClasses";
 
 export default function ViewRequestModal({ data, onClose }) {
-  const renderField = (label, value) => (
+  const renderField = (label, value, isDate = false) => (
     <div className="space-y-1">
       <p className="text-gray-500 text-sm font-medium">{label}</p>
-      <p className="font-semibold text-gray-900 text-base">{value || "N/A"}</p>
+      <p className="font-semibold text-gray-900 text-base">
+        {isDate ? formatDate(value) : (value || "N/A")}
+      </p>
     </div>
   );
 
@@ -14,6 +16,21 @@ export default function ViewRequestModal({ data, onClose }) {
   const isIncidentReport = data.typeOfSlip === "Incident Report";
   // Check for the presence of any Absent Slip attachments
   const hasAbsentAttachments = data.excuseLetterUrl || data.guardianValidIDUrl || data.medicalCertificateUrl;
+
+  const parseToDate = (val) => {
+  if (!val) return null;
+  if (typeof val === "object" && val._seconds) {
+    return new Date(val._seconds * 1000);
+  }
+
+  const d = new Date(val);
+  return isNaN(d.getTime()) ? null : d;
+};
+
+const formatDate = (val) => {
+  const d = parseToDate(val);
+  return d ? d.toLocaleString() : "N/A";
+};
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm bg-black/30 animate-fade-in-backdrop">
@@ -74,16 +91,16 @@ export default function ViewRequestModal({ data, onClose }) {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 md:gap-x-8 md:gap-y-6 text-sm text-gray-700">
                 {renderField("Slip Type", data.typeOfSlip)}
-                {renderField("Processed Date", data.processedDate)}
+                {renderField("Processed Date", data.processedDate, true)}
                 {isAbsentSlip && (
                   <>
-                    {renderField("Start Date of Absence", data.dateAbsent)}
-                    {renderField("End Date of Absence", data.dateAbsentEnd)}
+                    {renderField("Start Date of Absence", data.dateAbsent, true)}
+                    {renderField("End Date of Absence", data.dateAbsentEnd, true)}
                   </>
                 )}
                 {isIncidentReport && (
                   <>
-                    {renderField("Date of Incident", data.dateOfIncident)}
+                    {renderField("Date of Incident", data.dateOfIncident, true)}
                     {renderField("Time of Incident", data.incidentTime)}
                     {renderField("Location of Incident", data.locationOfIncident)}
                     {renderField("Person/s Involved", data.personInvolved)}
