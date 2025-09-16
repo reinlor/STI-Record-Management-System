@@ -161,7 +161,7 @@ function RequestSlipHistory() {
                 </span>
               </p>
               <p><span className="font-bold text-[#0172bd]">Remarks:</span> {selectedSlip.remarks}</p>
-              <p><span className="font-bold text-[#0172bd]">Days Absent:</span> {selectedSlip.daysAbsent}</p>
+              <p><span className="font-bold text-[#0172bd]">Days Absent:</span> {selectedSlip.dateAbsent} to {selectedSlip.dateAbsentEnd}</p>
               <p><span className="font-bold text-[#0172bd]">Date:</span> {selectedSlip.timeCreatedFormatted}</p>
             </div>
 

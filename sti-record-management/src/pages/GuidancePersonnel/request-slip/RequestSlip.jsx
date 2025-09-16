@@ -455,7 +455,7 @@ function RequestSlip() {
                           : "text-gray-600 font-bold",
                   },
                   // { label: "Reason: ", value: selectedSlip.reason },
-                  { label: "Days Absent: ", value: selectedSlip.daysAbsent },
+                  { label: "Days Absent: ", value: `${selectedSlip.dateAbsent} to ${selectedSlip.dateAbsentEnd}` },
                 ].map((item, i) => (
                   <div key={i} className="flex items-center flex-wrap">
                     <p className="font-bold text-[#0172bd] mr-5">{item.label}</p>
