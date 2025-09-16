@@ -29,16 +29,14 @@ export const serverAccessPresets = {
     Disciplinary: {
         studentCases: { canView: true, canEdit: true },
         studentRecords: { canView: true, canEdit: false },
-        requestSlip: true,       // ⬅ use boolean
-        referralForm: false,     // ⬅ use boolean
-        backupRestore: false,    // ⬅ use boolean
-        wellness: false,         // ⬅ use boolean
+        requestSlip: true,
+        referralForm: false,
+        backupRestore: false,
+        wellness: false,
         userManagement: { canView: false, canEdit: false },
     },
     Teacher: undefined,
 };
-
-
 
 export const serverToUIAccess = (srv = {}) => ({
     'Student 201 Files': {
@@ -55,8 +53,6 @@ export const serverToUIAccess = (srv = {}) => ({
     'Student Wellness': !!srv.wellness,
 });
 
-
-
 export const uiToServerAccess = (ui) => ({
     studentCases: {
         canView: ui['Student Cases']?.canView || false,
@@ -71,8 +67,7 @@ export const uiToServerAccess = (ui) => ({
     backupRestore: !!ui['Backup and Restore'],
     wellness: !!ui['Student Wellness'],
     userManagement: {
-        canView: ui['User Management']?.canView ?? true, // keep forced default
+        canView: ui['User Management']?.canView ?? true,
         canEdit: ui['User Management']?.canEdit ?? true,
     },
 });
-
