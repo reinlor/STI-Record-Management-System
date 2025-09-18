@@ -1,9 +1,13 @@
 import { Line } from "react-chartjs-2";
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom"; // <-- Import useNavigate
+
 
 function ViolationFrequency({ allData }) {
     const [lineChartData, setLineChartData] = useState(null);
     const [lineTimePeriod, setLineTimePeriod] = useState('monthly');
+    const navigate = useNavigate(); // <-- Initialize navigate
+
 
     const getColor = (label) => {
         const colors = {
@@ -136,7 +140,11 @@ function ViolationFrequency({ allData }) {
                     </div>
                 </div>
             </div>
-            <div className="flex-1 flex items-center justify-center h-[200px]">
+            <div
+                className="flex-1 flex items-center justify-center h-[200px] cursor-pointer hover:bg-gray-50 transition"
+                onClick={() => navigate("/guidance/referral-form")}
+                title="View Refferal Form"
+            >
                 {lineChartData ? (
                     <Line data={lineChartData} options={chartOptions} />
                 ) : (

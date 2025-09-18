@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import { Doughnut } from "react-chartjs-2";
+import { useNavigate } from "react-router-dom"; // <-- Import useNavigate
 
 
 function RequestTypeFrequency({ slipData }) {
     const [pieChartData, setPieChartData] = useState(null);
     const [pieTimePeriod, setPieTimePeriod] = useState('monthly');
+    const navigate = useNavigate(); // <-- Initialize navigate
 
     const getColor = (label) => {
         const colors = {
@@ -118,7 +120,12 @@ function RequestTypeFrequency({ slipData }) {
                     </div>
                 </div>
             </div>
-            <div className="flex-1 flex items-center justify-center h-[200px]">
+            {/* Make chart area clickable */}
+            <div
+                className="flex-1 flex items-center justify-center h-[200px] cursor-pointer hover:bg-gray-50 transition"
+                onClick={() => navigate("/guidance/request-slip")}
+                title="View Request Slips"
+            >
                 {pieChartData ? (
                     <Doughnut data={pieChartData} options={pieChartOptions} />
                 ) : (
