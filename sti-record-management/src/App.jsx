@@ -16,6 +16,7 @@ import GuidanceUsers from './pages/GuidancePersonnel/users/Users.jsx'
 import GuidanceBackNRestore from './pages/GuidancePersonnel/backup-and-restore/BackupNRestore.jsx'
 import GuidanceWellnessGeneration from './pages/GuidancePersonnel/wellness-assessment/WellnessAssessment.jsx'
 import GuidanceContentManagement from './pages/GuidancePersonnel/content-management/ContentManagement.jsx'
+import GuidanceNotificationPage from './component/GuidanceNotificationPage.jsx';
 
 import StudentHomepage from './pages/Student/StudentHomepage.jsx';
 
@@ -96,6 +97,7 @@ function App() {
             <Route path="back-n-restore" element={<GuidanceBackNRestore />} />
             <Route path="wellness" element={<GuidanceWellnessGeneration />} />
             <Route path="content-management" element={<GuidanceContentManagement />} />
+            <Route path="notifications" element={<GuidanceNotificationPage />} />
           </Route>
 
           {/* Protected Student Routes */}

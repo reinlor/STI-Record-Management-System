@@ -44,11 +44,7 @@ function AdminLayoutContent() {
         />
 
         <div className={styles.adminContent}>
-          {selectedPage === "guidanceNotifications" ? (
-            <GuidanceNotificationPage setSelectedPage={setSelectedPage} />
-          ) : (
-            <Outlet />
-          )}
+            <Outlet/>
         </div>
       </div>
     </div>

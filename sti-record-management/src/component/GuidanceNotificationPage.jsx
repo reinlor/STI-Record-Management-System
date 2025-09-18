@@ -1,12 +1,7 @@
-import React, { useState } from 'react';
-import { Bell, Check, X, ClipboardList, Clock, ChevronLeft, ChevronRight } from "lucide-react";
-
-// MOCK DATA for Guidance Personnel
-const ALL_NOTIFICATIONS = [
-  { id: 'guidance_1', from: 'System', subject: 'New Incident Report Submitted', date: 'September 18, 2025', isRead: false, status: 'In Progress' },
-  { id: 'guidance_2', from: 'Admin', subject: 'Student Absent Slip Approved', date: 'September 17, 2025', isRead: false, status: 'Approved' },
-  { id: 'guidance_3', from: 'Registrar', subject: 'Student Enrollment Issue', date: 'September 16, 2025', isRead: true, status: 'Denied' },
-];
+import React, { useState, useEffect } from "react";
+import { Bell, Check, X, ClipboardList, Clock, ChevronLeft, ChevronRight, FilePen, FilePlus } from "lucide-react";
+import { doc, onSnapshot, updateDoc, getDoc } from "firebase/firestore";
+import { db } from "../firebaseClient";
 
 const getVisiblePageNumbers = (currentPage, totalPages, maxVisible = 5) => {
   const visiblePages = [];
@@ -14,9 +9,9 @@ const getVisiblePageNumbers = (currentPage, totalPages, maxVisible = 5) => {
   const endPage = Math.min(totalPages - 1, startPage + maxVisible - 1);
 
   visiblePages.push(1);
-  if (startPage > 2) visiblePages.push('...');
+  if (startPage > 2) visiblePages.push("...");
   for (let i = startPage; i <= endPage; i++) visiblePages.push(i);
-  if (endPage < totalPages - 1) visiblePages.push('...');
+  if (endPage < totalPages - 1) visiblePages.push("...");
   if (totalPages > 1 && !visiblePages.includes(totalPages)) visiblePages.push(totalPages);
   if (totalPages <= maxVisible + 2) {
     visiblePages.length = 0;
@@ -25,18 +20,58 @@ const getVisiblePageNumbers = (currentPage, totalPages, maxVisible = 5) => {
   return visiblePages;
 };
 
-const GuidanceNotificationPage = ({ setSelectedPage }) => {
-  const [notifications, setNotifications] = useState(ALL_NOTIFICATIONS);
+const GuidanceNotificationPage = () => {
+  const [notifications, setNotifications] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
-  const totalPages = Math.ceil(notifications.length / pageSize);
 
-  const toggleReadStatus = (id) => {
-    setNotifications(notifications.map(notif =>
-      notif.id === id ? { ...notif, isRead: !notif.isRead } : notif
-    ));
+  // Load notifications from Firestore
+  useEffect(() => {
+    const requestRef = doc(db, "notification", "request");
+    const referralRef = doc(db, "notification", "referral");
+
+    const unsubscribeRequest = onSnapshot(requestRef, (snap) => {
+      const data = snap.exists() ? snap.data().data || [] : [];
+      setNotifications((prev) => {
+        const referrals = prev.filter((n) => n.collectionType === "referral");
+        return [...data.map((n) => ({ ...n, collectionType: "request" })), ...referrals];
+      });
+    });
+
+    const unsubscribeReferral = onSnapshot(referralRef, (snap) => {
+      const data = snap.exists() ? snap.data().data || [] : [];
+      setNotifications((prev) => {
+        const requests = prev.filter((n) => n.collectionType === "request");
+        return [...requests, ...data.map((n) => ({ ...n, collectionType: "referral" }))];
+      });
+    });
+
+    return () => {
+      unsubscribeRequest();
+      unsubscribeReferral();
+    };
+  }, []);
+
+  // Toggle read status in Firestore
+  const toggleReadStatus = async (notif) => {
+    try {
+      const docRef = doc(db, "notification", notif.collectionType);
+      const snap = await getDoc(docRef);
+      if (!snap.exists()) return;
+
+      const data = snap.data().data || [];
+      const updatedData = data.map((item) =>
+        item.notifID === notif.notifID ? { ...item, isRead: !item.isRead } : item
+      );
+
+      await updateDoc(docRef, { data: updatedData });
+    } catch (err) {
+      console.error("Error updating notification:", err);
+    }
   };
 
+  // Pagination
+  const totalPages = Math.ceil(notifications.length / pageSize);
   const startIndex = (currentPage - 1) * pageSize;
   const paginatedNotifications = notifications.slice(startIndex, startIndex + pageSize);
   const visiblePages = getVisiblePageNumbers(currentPage, totalPages);
@@ -49,13 +84,8 @@ const GuidanceNotificationPage = ({ setSelectedPage }) => {
             <Bell className="w-8 h-8" />
             Guidance Notifications
           </h1>
-          <button
-            onClick={() => setSelectedPage('home')}
-            className="px-4 py-2 bg-[#0B5793] text-white rounded-lg hover:bg-[#3473A4] font-semibold"
-          >
-            Back
-          </button>
         </div>
+
         <div className="overflow-x-auto rounded-lg">
           <table className="w-full text-left">
             <thead>
@@ -69,27 +99,29 @@ const GuidanceNotificationPage = ({ setSelectedPage }) => {
             <tbody>
               {paginatedNotifications.map((notif) => (
                 <tr
-                  key={notif.id}
+                  key={notif.notifID}
                   className={`border-b last:border-b-0 transition-colors cursor-pointer
-                  ${notif.isRead ? 'bg-gray-50 hover:bg-gray-100' : 'bg-blue-50 hover:bg-blue-100'}`}
-                  onClick={() => toggleReadStatus(notif.id)}
+                  ${notif.isRead ? "bg-gray-50 hover:bg-gray-100" : "bg-blue-50 hover:bg-blue-100"}`}
+                  onClick={() => toggleReadStatus(notif)}
                 >
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
-                      <div className={`p-2 rounded-full ${
-                        notif.status === "Approved" ? "bg-green-100" :
-                        notif.status === "Denied" ? "bg-red-100" :
-                        notif.status === "Resolved" ? "bg-green-100" :
-                        notif.status === "In Progress" ? "bg-yellow-100" : "bg-gray-100"
-                      }`}>
-                        {notif.status === "Approved" ? (
-                          <Check className="w-5 h-5 text-green-600" />
-                        ) : notif.status === "Denied" ? (
-                          <X className="w-5 h-5 text-red-600" />
-                        ) : notif.status === "Resolved" ? (
-                          <Check className="w-5 h-5 text-green-600" />
-                        ) : notif.status === "In Progress" ? (
-                          <Clock className="w-5 h-5 text-yellow-600" />
+                      <div
+                        className={`p-2 rounded-full ${notif.status === "Approved"
+                            ? "bg-green-100"
+                            : notif.status === "Denied"
+                              ? "bg-red-100"
+                              : notif.status === "Resolved"
+                                ? "bg-green-100"
+                                : notif.status === "In Progress"
+                                  ? "bg-yellow-100"
+                                  : "bg-gray-100"
+                          }`}
+                      >
+                        {notif.type === "Update" ? (
+                          <FilePen className="w-5 h-5 text-green-600" />
+                        ) : notif.status === "Submission" ? (
+                          <FilePlus className="w-5 h-5 text-red-600" />
                         ) : (
                           <ClipboardList className="w-5 h-5 text-gray-600" />
                         )}
@@ -97,20 +129,22 @@ const GuidanceNotificationPage = ({ setSelectedPage }) => {
                       <span className="font-medium text-gray-800">{notif.from}</span>
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-gray-700 font-medium">
-                    {notif.subject}
-                  </td>
-                  <td className="px-4 py-3 text-gray-500 hidden md:table-cell">
-                    {notif.date}
-                  </td>
+                  <td className="px-4 py-3 text-gray-700 font-medium">{notif.subject}</td>
+                  <td className="px-4 py-3 text-gray-500 hidden md:table-cell">{notif.date?.toDate?.() ? notif.date.toDate().toLocaleString() : notif.date}</td>
                   <td className="px-4 py-3 text-gray-500 hidden sm:table-cell">
-                    {notif.isRead ? <Check className="w-5 h-5 text-green-500" /> : <X className="w-5 h-5 text-red-500" />}
+                    {notif.isRead ? (
+                      <Check className="w-5 h-5 text-green-500" />
+                    ) : (
+                      <X className="w-5 h-5 text-red-500" />
+                    )}
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
+
+        {/* Pagination controls */}
         {notifications.length > pageSize && (
           <div className="flex justify-center items-center mt-6 gap-2">
             <button
@@ -122,16 +156,15 @@ const GuidanceNotificationPage = ({ setSelectedPage }) => {
             </button>
             {visiblePages.map((num, index) => (
               <React.Fragment key={index}>
-                {num === '...' ? (
+                {num === "..." ? (
                   <span className="px-3 py-1 text-gray-500">...</span>
                 ) : (
                   <button
                     onClick={() => setCurrentPage(num)}
-                    className={`px-3 py-1 rounded-md text-sm sm:text-base ${
-                      currentPage === num
+                    className={`px-3 py-1 rounded-md text-sm sm:text-base ${currentPage === num
                         ? "bg-[#0B5793] text-white"
                         : "bg-gray-200 hover:bg-gray-300"
-                    }`}
+                      }`}
                   >
                     {num}
                   </button>
@@ -147,6 +180,8 @@ const GuidanceNotificationPage = ({ setSelectedPage }) => {
             </button>
           </div>
         )}
+
+        {/* Empty state */}
         {notifications.length === 0 && (
           <div className="text-center py-10 text-gray-500">
             <p className="mb-2">No notifications to display.</p>

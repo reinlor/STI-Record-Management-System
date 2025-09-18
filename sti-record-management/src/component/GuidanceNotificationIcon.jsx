@@ -1,40 +1,122 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Bell, Check, X, ClipboardList, Clock } from "lucide-react";
-import GuidanceNotificationPage from "./GuidanceNotificationPage"; // Import the GuidanceNotificationPage component
+import { Bell, Check, X, ClipboardList, Clock, FilePen, FilePlus } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { doc, onSnapshot, updateDoc, getDoc } from "firebase/firestore";
+import { db } from "../firebaseClient";
 
-// MOCK DATA for Guidance Personnel
-const ALL_NOTIFICATIONS = [
-  { id: 'guidance_1', from: 'System', subject: 'New Incident Report Submitted', date: 'September 18, 2025', isRead: false, status: 'In Progress' },
-  { id: 'guidance_2', from: 'Admin', subject: 'Student Absent Slip Approved', date: 'September 17, 2025', isRead: false, status: 'Approved' },
-  { id: 'guidance_3', from: 'Registrar', subject: 'Student Enrollment Issue', date: 'September 16, 2025', isRead: true, status: 'Denied' },
-];
 
-const GuidanceNotificationIcon = ({ setSelected }) => {
+const GuidanceNotificationIcon = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [notifications, setNotifications] = useState(ALL_NOTIFICATIONS);
+  const [requests, setRequests] = useState([]);
+  const [referrals, setReferrals] = useState([]);
+  const [notifications, setNotifications] = useState([]);
   const dropdownRef = useRef(null);
+  const navigate = useNavigate();
 
   const unreadCount = notifications.filter((notif) => !notif.isRead).length;
   const toggleDropdown = () => setIsDropdownOpen((prev) => !prev);
-  const markAllAsRead = () => setNotifications(notifications.map((notif) => ({ ...notif, isRead: true })));
-  const handleNotificationClick = (id) => {
-    setNotifications(
-      notifications.map((notif) =>
-        notif.id === id ? { ...notif, isRead: true } : notif
-      )
-    );
-    setIsDropdownOpen(false);
+  const markAllAsRead = async () => {
+  try {
+    const requestRef = doc(db, "notification", "request");
+    const requestSnap = await getDoc(requestRef);
+    if (requestSnap.exists()) {
+      const requestData = requestSnap.data().data || [];
+      const updatedRequests = requestData.map((item) => ({ ...item, isRead: true }));
+      await updateDoc(requestRef, { data: updatedRequests });
+    }
+
+    const referralRef = doc(db, "notification", "referral");
+    const referralSnap = await getDoc(referralRef);
+    if (referralSnap.exists()) {
+      const referralData = referralSnap.data().data || [];
+      const updatedReferrals = referralData.map((item) => ({ ...item, isRead: true }));
+      await updateDoc(referralRef, { data: updatedReferrals });
+    }
+  } catch (error) {
+    console.error("Error marking all notifications as read:", error);
+  }
+};
+
+
+  const handleNotificationClick = async (notif) => {
+    try {
+      const docRef = doc(db, "notification", notif.notifID.startsWith("adminReferral") ? "referral" : "request");
+
+      const docSnap = await getDoc(docRef);
+      if (!docSnap.exists()) return;
+
+      const data = docSnap.data().data || [];
+
+      const updatedData = data.map((item) =>
+        item.notifID === notif.notifID ? { ...item, isRead: true } : item
+      );
+
+      await updateDoc(docRef, { data: updatedData });
+
+    } catch (error) {
+      console.error("Error marking notification as read:", error);
+    }
   };
+
+  useEffect(() => {
+    const requestRef = doc(db, "notification", "request");
+    const referralRef = doc(db, "notification", "referral");
+
+    const unsubscribeRequest = onSnapshot(requestRef, (requestSnapshot) => {
+      const requestData = requestSnapshot.exists()
+        ? requestSnapshot.data().data || []
+        : [];
+      setRequests(requestData);
+    });
+
+    const unsubscribeReferral = onSnapshot(referralRef, (referralSnapshot) => {
+      const referralData = referralSnapshot.exists()
+        ? referralSnapshot.data().data || []
+        : [];
+      setReferrals(referralData);
+    });
+
+    return () => {
+      unsubscribeRequest();
+      unsubscribeReferral();
+    };
+  }, []);
+
+  useEffect(() => {
+    setNotifications([...requests, ...referrals]);
+  }, [requests, referrals]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsDropdownOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  const parseToDate = (val) => {
+    if (!val) return null;
+
+    if (val.toDate && typeof val.toDate === "function") {
+      return val.toDate();
+    }
+    if (val.seconds) {
+      return new Date(val.seconds * 1000);
+    }
+    if (val._seconds) {
+      return new Date(val._seconds * 1000);
+    }
+
+    const d = new Date(val);
+    return isNaN(d.getTime()) ? null : d;
+  };
+
+
+  const formatDate = (timestamp) => {
+    const d = parseToDate(timestamp);
+    return d ? d.toLocaleString() : "N/A";
+  };
 
   return (
     <div ref={dropdownRef} className="relative z-50">
@@ -67,35 +149,29 @@ const GuidanceNotificationIcon = ({ setSelected }) => {
             {notifications.slice(0, 5).map((notif) => (
               <li
                 key={notif.id}
-                className={`py-2 px-4 border-b last:border-b-0 cursor-pointer ${
-                  !notif.isRead
-                    ? "bg-blue-50 hover:bg-blue-100"
-                    : "hover:bg-gray-100"
-                }`}
-                onClick={() => handleNotificationClick(notif.id)}
+                className={`py-2 px-4 border-b last:border-b-0 cursor-pointer ${!notif.isRead
+                  ? "bg-blue-50 hover:bg-blue-100"
+                  : "hover:bg-gray-100"
+                  }`}
+                onClick={() => handleNotificationClick(notif)}
               >
                 <div className="flex items-start gap-3">
                   <div
-                    className={`p-2 rounded-full ${
-                      notif.status === "Approved"
-                        ? "bg-green-100"
-                        : notif.status === "Denied"
+                    className={`p-2 rounded-full ${notif.status === "Approved"
+                      ? "bg-green-100"
+                      : notif.status === "Denied"
                         ? "bg-red-100"
                         : notif.status === "Resolved"
-                        ? "bg-green-100"
-                        : notif.status === "In Progress"
-                        ? "bg-yellow-100"
-                        : "bg-gray-100"
-                    }`}
+                          ? "bg-green-100"
+                          : notif.status === "In Progress"
+                            ? "bg-yellow-100"
+                            : "bg-gray-100"
+                      }`}
                   >
-                    {notif.status === "Approved" ? (
-                      <Check className="w-5 h-5 text-green-600" />
-                    ) : notif.status === "Denied" ? (
-                      <X className="w-5 h-5 text-red-600" />
-                    ) : notif.status === "Resolved" ? (
-                      <Check className="w-5 h-5 text-green-600" />
-                    ) : notif.status === "In Progress" ? (
-                      <Clock className="w-5 h-5 text-yellow-600" />
+                    {notif.type === "Update" ? (
+                      <FilePen className="w-5 h-5 text-green-600" />
+                    ) : notif.status === "Submission" ? (
+                      <FilePlus className="w-5 h-5 text-red-600" />
                     ) : (
                       <ClipboardList className="w-5 h-5 text-gray-600" />
                     )}
@@ -103,7 +179,7 @@ const GuidanceNotificationIcon = ({ setSelected }) => {
                   <div className="flex-1">
                     <p className="font-semibold">{notif.subject}</p>
                     <p className="text-sm text-gray-600">{notif.from}</p>
-                    <p className="text-xs text-gray-400">{notif.date}</p>
+                    <p className="text-xs text-gray-400">{formatDate(notif.date)}</p>
                   </div>
                   {!notif.isRead && (
                     <span className="w-2 h-2 bg-[#F4D03F] rounded-full shrink-0 mt-2"></span>
@@ -116,8 +192,7 @@ const GuidanceNotificationIcon = ({ setSelected }) => {
             <button
               className="block w-full text-center text-[#0B5793] font-semibold hover:text-[#3473A4]"
               onClick={() => {
-                setSelected("guidanceNotifications");
-                setIsDropdownOpen(false);
+                navigate('/guidance/notifications')
               }}
             >
               See all notifications

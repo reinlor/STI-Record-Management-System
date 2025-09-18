@@ -101,6 +101,8 @@ function ReferralFormProcessing() {
         ...selectedReferral,
         // counselorNote: counselorNote,
         status: newStatus,
+        name: authData.user.displayName,
+        uid: selectedReferral.employeeID
       };
 
       const emailData = {

@@ -1,6 +1,7 @@
 const Joi = require("joi");
 const { getReferralFormCollection } = require("../models/referralModel");
 const { getChartDataCollection } = require("../models/chartDataModel");
+const { getNotificationCollection } = require("../models/notificationModel");
 const { FieldValue } = require("firebase-admin/firestore");
 
 // Referral Schema
@@ -108,17 +109,12 @@ const addReferral = async (req, res) => {
 const updateReferral = async (req, res) => {
   try {
     const { id } = req.params;
-
-    // --- The Critical Change ---
-    // Destructure req.body to remove the 'id' property before validation.
-    // The rest operator (...) puts all other properties into 'updates'.
-    const { id: _, ...updates } = req.body;
+    const { id: _, name, uid, ...updates } = req.body;
 
     if (!updates || Object.keys(updates).length === 0) {
       return res.status(400).json({ error: "No update data provided" });
     }
 
-    // Now, validate the 'updates' object which no longer contains the 'id'
     const { error, value: validatedUpdates } = updateSchema.validate(updates);
     if (error) {
       return res.status(400).json({ error: error.details[0].message });
@@ -133,6 +129,56 @@ const updateReferral = async (req, res) => {
 
     // Firestore update call is perfect.
     await referralRef.set(validatedUpdates, { merge: true });
+
+    const notifCollection = getNotificationCollection();
+    const teacherDoc = notifCollection.doc('teacher');
+    const teacherDocData = await teacherDoc.get();
+    const adminDoc = notifCollection.doc('referral');
+    const adminDocData = await adminDoc.get();
+
+    let existingNotifications = [];
+    if (teacherDocData.exists && teacherDocData.data()[uid]) {
+      existingNotifications = teacherDocData.data()[uid];
+    }
+
+    let existingAdminNotification = [];
+    if (adminDocData.exists && adminDocData.data()['data']) {
+      existingAdminNotification = adminDocData.data()['data'];
+    }
+
+
+    const newTeacherNotification = {
+      date: new Date(),
+      from: name,
+      isRead: false,
+      notifID: `TR-${uid}-${existingNotifications.length + 1}`,
+      status: updates.status,
+      subject: `Your Referral has been ${updates.status}`
+    };
+
+    const newAdminNotification = {
+      date: new Date(),
+      from: name,
+      isRead: false,
+      notifID: `adminReferral-${existingAdminNotification.length + 1}`,
+      type: 'Update',
+      subject: `${uid} referral has been ${updates.status}`
+    }
+
+    const updatedNotifications = [...existingNotifications, newTeacherNotification];
+    const updatedAdminNotifications = [...existingAdminNotification, newAdminNotification]
+
+    const updatePayload = {
+      [uid]: updatedNotifications,
+    };
+
+    const updateAdminPayload = {
+      data: updatedAdminNotifications
+    }
+
+    await teacherDoc.set(updatePayload, { merge: true });
+    await adminDoc.set(updateAdminPayload, { merge: true });
+
 
     res.status(201).json({
       message: `Referral Form (${id}) successfully updated.`,

@@ -300,29 +300,51 @@ const updateSlipStatus = async (req, res) => {
     const notifCollection = getNotificationCollection();
     const studentDoc = notifCollection.doc('student');
     const studentDocData = await studentDoc.get();
+    const adminDoc = notifCollection.doc('request');
+    const adminDocData = await adminDoc.get();
 
     let existingNotifications = [];
     if (studentDocData.exists && studentDocData.data()[uid]) {
       existingNotifications = studentDocData.data()[uid];
     }
 
-    const newNotification = {
+    let existingAdminNotification = [];
+    if (adminDocData.exists && adminDocData.data()['data']) {
+      existingAdminNotification = adminDocData.data()['data'];
+    }
+
+
+    const newStudentNotification = {
       date: new Date(),
       from: name,
       isRead: false,
-      notifID: existingNotifications.length.toString(),
+      notifID: `SR-${uid}-${existingNotifications.length + 1}`,
       status: status,
       subject: `Your ${typeOfSlip} has been ${status}`
     };
 
-    const updatedNotifications = [...existingNotifications, newNotification];
+    const newAdminNotification = {
+      date: new Date(),
+      from: name,
+      isRead: false,
+      notifID: `adminRequest-${existingAdminNotification.length + 1}`,
+      type: 'Update',
+      subject: `${uid} slip has been ${status}`
+    }
+
+    const updatedNotifications = [...existingNotifications, newStudentNotification];
+    const updatedAdminNotifications = [...existingAdminNotification, newAdminNotification]
 
     const updatePayload = {
       [uid]: updatedNotifications,
     };
 
-    // Update the student's notification array
+    const updateAdminPayload = {
+      data: updatedAdminNotifications
+    }
+
     await studentDoc.set(updatePayload, { merge: true });
+    await adminDoc.set(updateAdminPayload, { merge: true });
 
     res.status(200).send({ message: `Slip ${slipId} status updated to ${status}. Notification sent to ${name}.` });
   } catch (error) {
