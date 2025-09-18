@@ -13,6 +13,7 @@ const {
 } = require("../models/incidentReportModel");
 
 const { getChartDataCollection } = require("../models/chartDataModel");
+const { getNotificationCollection } = require("../models/notificationModel.js");
 
 
 // SLIPS / Passes Schema
@@ -250,7 +251,7 @@ const getAllSlipsById = async (req, res) => {
 // Controller Function for updating slips/passes
 const updateSlipStatus = async (req, res) => {
   const { slipType, slipId } = req.params;
-  const { status, remarks } = req.body;
+  const { status, remarks, uid, name } = req.body;
 
   const statusSchema = Joi.object({
     status: Joi.string().valid("Approved", "Denied").required(),
@@ -258,7 +259,7 @@ const updateSlipStatus = async (req, res) => {
     processedDate: Joi.date()
   });
 
-  const { error } = statusSchema.validate({ 
+  const { error } = statusSchema.validate({
     status,
     remarks,
     processedDate: new Date(),
@@ -268,11 +269,14 @@ const updateSlipStatus = async (req, res) => {
   }
 
   let collectionRef;
+  let typeOfSlip;
   switch (slipType) {
     case "Absent Slip":
+      typeOfSlip = 'Absent Slip';
       collectionRef = getAbsentSlipsCollection();
       break;
     case "Incident Report":
+      typeOfSlip = 'Incident Report';
       collectionRef = getIncidentReportCollection();
       break;
     default:
@@ -287,12 +291,40 @@ const updateSlipStatus = async (req, res) => {
       return res.status(404).json({ error: "Slip not found." });
     }
 
-    await docRef.update({ 
+    await docRef.update({
       status,
       remarks,
-      processedDate: new Date() });
+      processedDate: new Date()
+    });
 
-    res.status(200).send({ message: `Slip ${slipId} status updated to ${status}.` });
+    const notifCollection = getNotificationCollection();
+    const studentDoc = notifCollection.doc('student');
+    const studentDocData = await studentDoc.get();
+
+    let existingNotifications = [];
+    if (studentDocData.exists && studentDocData.data()[uid]) {
+      existingNotifications = studentDocData.data()[uid];
+    }
+
+    const newNotification = {
+      date: new Date(),
+      from: name,
+      isRead: false,
+      notifID: existingNotifications.length.toString(),
+      status: status,
+      subject: `Your ${typeOfSlip} has been ${status}`
+    };
+
+    const updatedNotifications = [...existingNotifications, newNotification];
+
+    const updatePayload = {
+      [uid]: updatedNotifications,
+    };
+
+    // Update the student's notification array
+    await studentDoc.set(updatePayload, { merge: true });
+
+    res.status(200).send({ message: `Slip ${slipId} status updated to ${status}. Notification sent to ${name}.` });
   } catch (error) {
     res.status(500).send({ error: error.message });
   }

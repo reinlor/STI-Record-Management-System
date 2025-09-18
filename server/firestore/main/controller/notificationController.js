@@ -38,7 +38,6 @@ const updateNotificationReadStatus = async (req, res) => {
             return res.status(400).json({ error: "Employee ID and Notification ID are required" });
         }
 
-        // Get the 'student' document reference
         const docRef = getNotificationCollection().doc('student');
         const doc = await docRef.get();
 
@@ -46,7 +45,6 @@ const updateNotificationReadStatus = async (req, res) => {
             return res.status(404).json({ error: "Student document not found" });
         }
 
-        // Access the array of notifications for the specific employee ID
         const data = doc.data();
         const notificationsForEmployee = data[employeeId];
 
@@ -54,7 +52,6 @@ const updateNotificationReadStatus = async (req, res) => {
             return res.status(404).json({ error: "No notifications found for this employee ID" });
         }
 
-        // Find the index of the specific notification using the unique notifID
         const notificationIndex = notificationsForEmployee.findIndex(
             (notification) => notification.notifID === notifID
         );
@@ -63,16 +60,13 @@ const updateNotificationReadStatus = async (req, res) => {
             return res.status(404).json({ error: "Notification with the given ID not found" });
         }
 
-        // Update the 'isRead' status locally on a copy of the array
         const updatedNotifications = [...notificationsForEmployee];
         updatedNotifications[notificationIndex].isRead = true;
 
-        // Create the update payload to replace the old array with the new one
         const updatePayload = {
             [employeeId]: updatedNotifications
         };
 
-        // Perform the update on Firestore
         await docRef.update(updatePayload);
 
         return res.status(200).json({ message: "Notification updated successfully" });

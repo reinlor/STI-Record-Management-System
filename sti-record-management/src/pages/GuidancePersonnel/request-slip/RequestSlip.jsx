@@ -142,7 +142,10 @@ function RequestSlip() {
       console.log(remarks)
       // Include remarks if Absent Slip
       const updatePayload = slipType === "Absent Slip"
-        ? { status, remarks }
+        ? { status, 
+            remarks,
+            name: authData.user.displayName,
+            uid: slip.sid}
         : { status };
       
         console.log(updatePayload)
