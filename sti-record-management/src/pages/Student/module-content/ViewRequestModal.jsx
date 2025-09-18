@@ -18,19 +18,19 @@ export default function ViewRequestModal({ data, onClose }) {
   const hasAbsentAttachments = data.excuseLetterUrl || data.guardianValidIDUrl || data.medicalCertificateUrl;
 
   const parseToDate = (val) => {
-  if (!val) return null;
-  if (typeof val === "object" && val._seconds) {
-    return new Date(val._seconds * 1000);
-  }
+    if (!val) return null;
+    if (typeof val === "object" && val._seconds) {
+      return new Date(val._seconds * 1000);
+    }
 
-  const d = new Date(val);
-  return isNaN(d.getTime()) ? null : d;
-};
+    const d = new Date(val);
+    return isNaN(d.getTime()) ? null : d;
+  };
 
-const formatDate = (val) => {
-  const d = parseToDate(val);
-  return d ? d.toLocaleString() : "N/A";
-};
+  const formatDate = (val) => {
+    const d = parseToDate(val);
+    return d ? d.toLocaleString() : "N/A";
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm bg-black/30 animate-fade-in-backdrop">

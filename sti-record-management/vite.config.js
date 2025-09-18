@@ -19,6 +19,7 @@ export default defineConfig({
       "/backup": "http://localhost:5000",
       "/content": "http://localhost:5000",
       "/incidentReport": "http://localhost:5000",
+      "/notifications": "http://localhost:5000",
     },
   },
 })

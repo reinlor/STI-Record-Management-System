@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Settings, LogOut, KeyRound, Menu, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import NotificationIcon from "./NotificationIcon";
+import NotificationIcon from "../../../component/NotificationIcon.jsx";
 
 const modules = [
   { id: "dashboard", text: "Dashboard" },
