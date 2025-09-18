@@ -42,7 +42,7 @@ export default function StudentHomepage() {
       case "survey":
         return <SurveyForm />;
       case "notifications": // Add a new case for notifications
-        return <NotificationsPage />;
+        return <NotificationsPage uid={authData.user.uid} />;
       default:
         return (
           <div className="animate-fade-in text-center mt-12">

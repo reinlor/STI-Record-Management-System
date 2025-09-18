@@ -1,7 +1,8 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useContext } from "react";
 import { Settings, LogOut, KeyRound, Menu, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import NotificationIcon from "../../../component/NotificationIcon.jsx";
+import { AuthContext } from "../../../AuthProvider.jsx";
 
 const modules = [
   { id: "dashboard", text: "Dashboard" },
@@ -22,6 +23,7 @@ const StudentTopBar = ({
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const containerRef = useRef(null);
+  const { authData, logout } = useContext(AuthContext);
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -69,7 +71,7 @@ const StudentTopBar = ({
 
       {/* Right Section */}
       <div className="flex items-center gap-2">
-        <NotificationIcon setSelected={setSelected}/>
+        <NotificationIcon setSelected={setSelected} uid={authData.user.uid}/>
         {/* Settings Dropdown (PC only) */}
         <div ref={containerRef} className="relative hidden sm:block">
           <button
