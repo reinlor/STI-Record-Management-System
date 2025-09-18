@@ -4,10 +4,14 @@ import { LoadingBarProvider, useLoadingBar } from "../component/LoadingBarProvid
 import SideBar from "../component/SideBar.jsx";
 import Header from "../component/Header.jsx";
 import styles from "./layout-css/AdminLayout.module.css";
+import GuidanceNotificationPage from "../component/GuidanceNotificationPage.jsx"
+
 
 function AdminLayoutContent() {
   const { start, complete } = useLoadingBar();
   const navigate = useNavigate();
+
+  const [selectedPage, setSelectedPage] = useState('home');
   
   // Patangal kung may maisip na magandang logic  -renlor
   const [visibility, setVisibility] = useState(false)
@@ -35,13 +39,17 @@ function AdminLayoutContent() {
 
       <div className={`${styles.headerArea} ${visibility ? 'visible' : 'hidden'}`}>
         <Header 
-            className={styles.mainHeader}
+          className={styles.mainHeader}
+          setSelectedPage={setSelectedPage} // <-- Pass the setter to Header
         />
 
         <div className={styles.adminContent}>
-          <Outlet />
+          {selectedPage === "guidanceNotifications" ? (
+            <GuidanceNotificationPage setSelectedPage={setSelectedPage} />
+          ) : (
+            <Outlet />
+          )}
         </div>
-        
       </div>
     </div>
   );
