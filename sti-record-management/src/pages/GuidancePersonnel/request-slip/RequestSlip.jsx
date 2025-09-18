@@ -594,7 +594,7 @@ function RequestSlip() {
 
   return (
     <div className="bg-gray-100 h-full p-3">
-      <div className="bg-white shadow-md p-4 rounded-lg overflow-y-auto">
+      <div className="bg-white shadow-md p-4 rounded-lg overflow-y-auto h-full">
         <ToastContainer
           position="top-right"
           autoClose={5000}
@@ -685,7 +685,7 @@ function RequestSlip() {
         </div>
 
         {/* Table */}
-        <div className="bg-white rounded-lg shadow-md overflow-x-auto custom-scrollbar h-[62vh] relative">
+        <div className="bg-white rounded-lg shadow-md overflow-x-auto custom-scrollbar relative h-auto">
           <table className="w-full text-left">
             <thead>
               <tr className=" text-white">

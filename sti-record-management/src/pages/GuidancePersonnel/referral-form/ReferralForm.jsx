@@ -174,7 +174,7 @@ function ReferralFormProcessing() {
         pauseOnHover
       />
 
-      <div className="bg-white shadow-md p-4 rounded-lg overflow-y-auto">
+      <div className="bg-white shadow-md p-4 rounded-lg overflow-y-auto h-full">
 
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-4 gap-3">
@@ -255,7 +255,7 @@ function ReferralFormProcessing() {
         </div>
 
         {/* Table Section */}
-        <div className="bg-white rounded-lg shadow-md overflow-x-auto custom-scrollbar h-[70vh] relative pb-12">
+        <div className="bg-white rounded-lg shadow-md overflow-x-auto custom-scrollbar h-auto relative">
           <table className="w-full text-left">
             <thead>
               <tr className="text-white">
