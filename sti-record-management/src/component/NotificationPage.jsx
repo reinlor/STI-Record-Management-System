@@ -82,15 +82,22 @@ const NotificationsPage = ({ uid = "02000288488" }) => {
     );
     await updateDoc(docRef, { [uid]: updated });
   };
-  
+
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
-  const totalPages = Math.ceil(notifications.length / pageSize);
+
+  const sortedNotifications = [...notifications].sort((a, b) => {
+    const da = parseToDate(a.date);
+    const db = parseToDate(b.date);
+    return db - da;
+  });
+
+  const totalPages = Math.ceil(sortedNotifications.length / pageSize);
 
   const startIndex = (currentPage - 1) * pageSize;
-  const paginatedNotifications = notifications.slice(startIndex, startIndex + pageSize);
+  const paginatedNotifications = sortedNotifications.slice(startIndex, startIndex + pageSize);
   const visiblePages = getVisiblePageNumbers(currentPage, totalPages);
 
   return (

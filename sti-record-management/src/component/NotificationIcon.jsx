@@ -114,53 +114,59 @@ const NotificationIcon = ({ setSelected, uid = "02000288488" }) => {
           </div>
 
           <ul className="max-h-60 overflow-y-auto custom-scrollbar">
-            {notifications.slice(0, 5).map((notif) => (
-              <li
-                key={notif.notifID}
-                className={`py-2 px-4 border-b last:border-b-0 cursor-pointer ${!notif.isRead
-                  ? "bg-blue-50 hover:bg-blue-100"
-                  : "hover:bg-gray-100"
-                  }`}
-                onClick={() => handleNotificationClick(notif.notifID)}
-              >
-                <div className="flex items-start gap-3">
-                  <div
-                    className={`p-2 rounded-full ${notif.status === "Approved"
-                      ? "bg-green-100"
-                      : notif.status === "Denied"
-                        ? "bg-red-100"
-                        : notif.status === "Resolved"
-                          ? "bg-green-100"
-                          : notif.status === "In Progress"
-                            ? "bg-yellow-100"
-                            : "bg-gray-100"
-                      }`}
-                  >
-                    {notif.status === "Approved" ? (
-                      <Check className="w-5 h-5 text-green-600" />
-                    ) : notif.status === "Denied" ? (
-                      <X className="w-5 h-5 text-red-600" />
-                    ) : notif.status === "Resolved" ? (
-                      <Check className="w-5 h-5 text-green-600" />
-                    ) : notif.status === "In Progress" ? (
-                      <Clock className="w-5 h-5 text-yellow-600" />
-                    ) : (
-                      <ClipboardList className="w-5 h-5 text-gray-600" />
+            {notifications.slice(0, 5).sort((a, b) => {
+              const da = parseToDate(a.date);
+              const db = parseToDate(b.date);
+              return db - da;
+            })
+              .slice(0, 5)
+              .map((notif) => (
+                <li
+                  key={notif.notifID}
+                  className={`py-2 px-4 border-b last:border-b-0 cursor-pointer ${!notif.isRead
+                    ? "bg-blue-50 hover:bg-blue-100"
+                    : "hover:bg-gray-100"
+                    }`}
+                  onClick={() => handleNotificationClick(notif.notifID)}
+                >
+                  <div className="flex items-start gap-3">
+                    <div
+                      className={`p-2 rounded-full ${notif.status === "Approved"
+                        ? "bg-green-100"
+                        : notif.status === "Denied"
+                          ? "bg-red-100"
+                          : notif.status === "Resolved"
+                            ? "bg-green-100"
+                            : notif.status === "In Progress"
+                              ? "bg-yellow-100"
+                              : "bg-gray-100"
+                        }`}
+                    >
+                      {notif.status === "Approved" ? (
+                        <Check className="w-5 h-5 text-green-600" />
+                      ) : notif.status === "Denied" ? (
+                        <X className="w-5 h-5 text-red-600" />
+                      ) : notif.status === "Resolved" ? (
+                        <Check className="w-5 h-5 text-green-600" />
+                      ) : notif.status === "In Progress" ? (
+                        <Clock className="w-5 h-5 text-yellow-600" />
+                      ) : (
+                        <ClipboardList className="w-5 h-5 text-gray-600" />
+                      )}
+                    </div>
+
+                    <div className="flex-1">
+                      <p className="font-semibold">{notif.subject}</p>
+                      <p className="text-sm text-gray-600">{notif.from}</p>
+                      <p className="text-xs text-gray-400">{formatDate(notif.date)}</p>
+                    </div>
+
+                    {!notif.isRead && (
+                      <span className="w-2 h-2 bg-[#F4D03F] rounded-full shrink-0 mt-2"></span>
                     )}
                   </div>
-
-                  <div className="flex-1">
-                    <p className="font-semibold">{notif.subject}</p>
-                    <p className="text-sm text-gray-600">{notif.from}</p>
-                    <p className="text-xs text-gray-400">{formatDate(notif.date)}</p>
-                  </div>
-
-                  {!notif.isRead && (
-                    <span className="w-2 h-2 bg-[#F4D03F] rounded-full shrink-0 mt-2"></span>
-                  )}
-                </div>
-              </li>
-            ))}
+                </li>
+              ))}
           </ul>
 
           <div className="px-4 py-2 mt-2">

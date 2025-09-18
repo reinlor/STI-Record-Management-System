@@ -72,8 +72,15 @@ const GuidanceNotificationPage = () => {
 
   // Pagination
   const totalPages = Math.ceil(notifications.length / pageSize);
+
+  const sortedNotifications = [...notifications].sort((a, b) => {
+    const da = a.date?.toDate ? a.date.toDate() : new Date(a.date);
+    const db = b.date?.toDate ? b.date.toDate() : new Date(b.date);
+    return db - da;
+  });
+
   const startIndex = (currentPage - 1) * pageSize;
-  const paginatedNotifications = notifications.slice(startIndex, startIndex + pageSize);
+  const paginatedNotifications = sortedNotifications.slice(startIndex, startIndex + pageSize);
   const visiblePages = getVisiblePageNumbers(currentPage, totalPages);
 
   return (
@@ -108,14 +115,14 @@ const GuidanceNotificationPage = () => {
                     <div className="flex items-center gap-3">
                       <div
                         className={`p-2 rounded-full ${notif.status === "Approved"
-                            ? "bg-green-100"
-                            : notif.status === "Denied"
-                              ? "bg-red-100"
-                              : notif.status === "Resolved"
-                                ? "bg-green-100"
-                                : notif.status === "In Progress"
-                                  ? "bg-yellow-100"
-                                  : "bg-gray-100"
+                          ? "bg-green-100"
+                          : notif.status === "Denied"
+                            ? "bg-red-100"
+                            : notif.status === "Resolved"
+                              ? "bg-green-100"
+                              : notif.status === "In Progress"
+                                ? "bg-yellow-100"
+                                : "bg-gray-100"
                           }`}
                       >
                         {notif.type === "Update" ? (
@@ -162,8 +169,8 @@ const GuidanceNotificationPage = () => {
                   <button
                     onClick={() => setCurrentPage(num)}
                     className={`px-3 py-1 rounded-md text-sm sm:text-base ${currentPage === num
-                        ? "bg-[#0B5793] text-white"
-                        : "bg-gray-200 hover:bg-gray-300"
+                      ? "bg-[#0B5793] text-white"
+                      : "bg-gray-200 hover:bg-gray-300"
                       }`}
                   >
                     {num}
