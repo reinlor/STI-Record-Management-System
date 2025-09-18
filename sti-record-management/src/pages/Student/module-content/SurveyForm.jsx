@@ -7,36 +7,70 @@ export default function SurveyForm() {
   const [survey, setSurvey] = useState(null);
   const [responses, setResponses] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [currentCategoryIndex, setCurrentCategoryIndex] = useState(0);
 
-  {/** **API Call & Data Fetching** */}
   useEffect(() => {
     const fetchSurvey = async () => {
       try {
         const res = await axios.get("/exam/get");
-        setSurvey(res.data);
+        if (res.data && Array.isArray(res.data.questions)) {
+          setSurvey({
+            title: res.data.title || "Wellness Survey",
+            description: res.data.description || "",
+            questions: res.data.questions,
+          });
+        } else {
+          setSurvey({
+            title: "Wellness Survey",
+            description: "",
+            questions: [],
+          });
+        }
       } catch (err) {
         console.error("Failed to load survey:", err);
-        // You might want to show an error toast here as well
         toast.error("Failed to load survey. Please try again later.");
       }
     };
     fetchSurvey();
   }, []);
 
-  {/** **Loading State** */}
+  // Group questions by category
+  const getGroupedQuestions = () => {
+    if (!survey?.questions) return {};
+    return survey.questions.reduce((groups, q, idx) => {
+      const cat = q.category || "General";
+      if (!groups[cat]) groups[cat] = [];
+      groups[cat].push({ ...q, _surveyIndex: idx });
+      return groups;
+    }, {});
+  };
+
+  // Loading state
   if (!survey)
     return (
       <div className="flex justify-center items-center h-screen bg-gray-100">
-        <Loader2 className="animate-spin text-blue-600 text-4xl" />
+        <Loader2 className="animate-spin text-[#0B5793] text-4xl" />
         <span className="ml-4 text-lg text-gray-700">Loading survey...</span>
       </div>
     );
 
-  {/** **Event Handlers** */}
-  const handleChange = (questionIndex, optionIndex) => {
+  // No questions state
+  if (!survey.questions || survey.questions.length === 0)
+    return (
+      <div className="flex flex-col justify-center items-center h-screen bg-gray-100">
+        <span className="text-2xl text-gray-700 mb-4">
+          No survey questions available.
+        </span>
+        <span className="text-gray-500">Please contact your administrator.</span>
+      </div>
+    );
+
+  // Event Handlers
+  const handleChange = (surveyIndex, optionIndex) => {
     setResponses((prev) => ({
       ...prev,
-      [questionIndex]: optionIndex,
+      [surveyIndex]: optionIndex,
     }));
   };
 
@@ -50,13 +84,20 @@ export default function SurveyForm() {
     try {
       const payload = survey.questions.map((q, idx) => ({
         question: q.question,
-        selectedAnswer: q.options[responses[idx]].answer,
-        score: q.options[responses[idx]].score,
+        selectedAnswer:
+          q.options && q.options[responses[idx]]
+            ? q.options[responses[idx]].answer || q.options[responses[idx]]
+            : "",
+        score:
+          q.options && q.options[responses[idx]]
+            ? q.options[responses[idx]].score !== undefined
+              ? q.options[responses[idx]].score
+              : null
+            : null,
       }));
 
       await axios.post("/exam/submit", { responses: payload });
-      toast.success("Survey submitted successfully!");
-      setResponses({});
+      setSubmitted(true);
     } catch (err) {
       console.error("Failed to submit survey:", err);
       toast.error("Error submitting survey. Please try again.");
@@ -65,79 +106,136 @@ export default function SurveyForm() {
     }
   };
 
-  {/** **Component JSX** */}
+  // Render grouped questions
+  const grouped = getGroupedQuestions();
+  const categories = Object.keys(grouped);
+
+  if (submitted) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#E8E9EF] p-6">
+        <h2 className="text-2xl font-bold text-gray-800 mb-2">
+          Thank you for completing the survey!
+        </h2>
+        <p className="text-gray-600">
+          Your responses have been submitted successfully.
+        </p>
+      </div>
+    );
+  }
+
+  const currentCategory = categories[currentCategoryIndex];
+  const questions = grouped[currentCategory];
+
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4 font-sans">
+    <div className="min-h-screen bg-[#E8E9EF] flex flex-col items-center p-4 font-sans">
       <ToastContainer />
-      <div className="max-w-2xl w-full bg-white p-6 rounded-lg shadow-xl my-8">
-        {/** **Header Section** */}
-        <div className="text-left mb-6">
-          <h2 className="text-3xl font-extrabold text-gray-800 mb-1">
-            {survey.title || "Wellness Survey"}
+
+      <div className="max-w-3xl w-full mx-auto space-y-6">
+        {/* Header Card */}
+        <div className="bg-white p-6 rounded-lg shadow-md border-t-8 border-[#0B5793]">
+          <h2 className="text-4xl font-bold text-gray-900 mb-2">
+            {survey.title}
           </h2>
-          <p className="text-gray-500 text-base">{survey.description}</p>
+          <p className="text-gray-600 text-lg">{survey.description}</p>
         </div>
 
-        {/** **Questions Section** */}
+        {/* Category Card */}
+        <div className="bg-white p-6 rounded-lg shadow-md border-t-8 border-[#0B5793]">
+          <h3 className="text-2xl font-semibold text-gray-800">
+            {currentCategory}
+          </h3>
+        </div>
+
+        {/* Questions */}
         <div className="space-y-6">
-          {survey.questions.map((q, qIndex) => (
+          {questions.map((q) => (
             <div
-              key={qIndex}
-              className={`border border-gray-200 rounded-md p-4 transition-colors duration-200 ${
-                responses[qIndex] !== undefined
-                  ? "bg-blue-50 border-blue-200"
-                  : "bg-white"
+              key={q._surveyIndex}
+              className={`bg-white rounded-lg shadow-md p-6 border transition-colors duration-200 ${
+                responses[q._surveyIndex] !== undefined
+                  ? "border-[#3473A4]"
+                  : "border-gray-200"
               }`}
             >
-              <p className="text-lg font-medium mb-3 text-gray-700">
+              <p className="text-lg font-bold mb-4 text-gray-800">
                 {q.question}
               </p>
               <div className="flex flex-col space-y-2">
-                {q.options.map((opt, oIndex) => (
+                {(q.options || []).map((opt, oIndex) => (
                   <label
                     key={oIndex}
-                    className={`flex items-center gap-3 p-3 border rounded-md hover:bg-gray-50 cursor-pointer transition-colors duration-200 ${
-                      responses[qIndex] === oIndex
-                        ? "bg-blue-200 border-blue-500 text-blue-900 shadow-sm"
-                        : "bg-white border-gray-200"
+                    className={`flex items-center gap-3 p-3 border rounded-md cursor-pointer transition-colors duration-200 ${
+                      responses[q._surveyIndex] === oIndex
+                        ? "bg-[#3473A4]/10 border-[#3473A4] text-gray-900 shadow-sm"
+                        : "bg-white border-gray-200 hover:bg-gray-50"
                     }`}
                   >
                     <input
                       type="radio"
-                      name={`question-${qIndex}`}
-                      checked={responses[qIndex] === oIndex}
-                      onChange={() => handleChange(qIndex, oIndex)}
-                      className="w-4 h-4 accent-blue-600 cursor-pointer"
+                      name={`question-${q._surveyIndex}`}
+                      checked={responses[q._surveyIndex] === oIndex}
+                      onChange={() => handleChange(q._surveyIndex, oIndex)}
+                      className="w-4 h-4 accent-[#0B5793] cursor-pointer"
                     />
-                    <span className="text-base">{opt.answer}</span>
+                    <span className="text-base">
+                      {typeof opt === "string" ? opt : opt.answer}
+                    </span>
                   </label>
                 ))}
               </div>
             </div>
           ))}
         </div>
-        
-        {/** **Submit Button** */}
-        <button
-          onClick={handleSubmit}
-          disabled={isSubmitting}
-          className={`mt-8 w-full py-3 rounded-lg font-bold text-lg flex items-center justify-center gap-2 transition-transform duration-200 transform-gpu
-            ${
-              isSubmitting
-                ? "bg-gray-400 text-gray-600 cursor-not-allowed"
-                : "bg-blue-600 text-white hover:bg-blue-700 active:scale-95"
-            }`}
-        >
-          {isSubmitting ? (
-            <>
-              <Loader2 className="animate-spin" /> Submitting...
-            </>
+
+        {/* Navigation Buttons */}
+        <div className="flex justify-between mt-8">
+          {currentCategoryIndex > 0 ? (
+            <button
+              onClick={() =>
+                setCurrentCategoryIndex((prev) => Math.max(0, prev - 1))
+              }
+              className="py-2.5 px-6 bg-gray-200 text-gray-700 font-semibold rounded-xl shadow-lg hover:bg-gray-300 transform transition-all duration-200"
+            >
+              Previous
+            </button>
           ) : (
-            <>
-              <Send /> Submit Survey
-            </>
+            <div></div>
           )}
-        </button>
+
+          {currentCategoryIndex < categories.length - 1 ? (
+            <button
+              onClick={() =>
+                setCurrentCategoryIndex((prev) =>
+                  Math.min(categories.length - 1, prev + 1)
+                )
+              }
+              className="py-2.5 px-6 bg-[#0B5793] text-white font-semibold rounded-xl shadow-lg hover:bg-[#3473A4] transform transition-all duration-200"
+            >
+              Next
+            </button>
+          ) : (
+            <button
+              onClick={handleSubmit}
+              disabled={isSubmitting}
+              className={`py-2.5 px-6 bg-yellow-400 text-black font-semibold rounded-xl shadow-lg hover:bg-yellow-500 transform transition-all duration-200
+                ${
+                  isSubmitting
+                    ? "bg-gray-400 text-gray-600 cursor-not-allowed"
+                    : ""
+                }`}
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="animate-spin" /> Submitting...
+                </>
+              ) : (
+                <>
+                  Submit
+                </>
+              )}
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
