@@ -10,7 +10,6 @@ const modules = [
   { id: "request", text: "Request Slips" },
   { id: "history", text: "View Request History" },
   { id: "wellness", text: "Wellness Check" },
-  { id: "survey", text: "Survey Form" },
 ];
 
 const StudentTopBar = ({

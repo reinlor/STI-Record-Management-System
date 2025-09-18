@@ -1,5 +1,3 @@
-// src/components/student/StudentHomepage.jsx
-
 import React, { useState, useContext } from "react";
 import StudentTopBar from "./components/StudentTopbar.jsx";
 import ChangePasswordModal from "../../component/ChangePasswordModal.jsx";
@@ -34,7 +32,7 @@ export default function StudentHomepage() {
       case "profile":
         return <ProfileView />;
       case "wellness":
-        return <WellnessCheck />;
+        return <WellnessCheck setSelected={setSelected} />;
       case "request":
         return <StudentRequestSlip />;
       case "history":

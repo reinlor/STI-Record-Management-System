@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 
-export default function WellnessCheck() {
+export default function WellnessCheck({ setSelected }) { // Accept setSelected
   const [wellnessLink, setWellnessLink] = useState("");
 
   useEffect(() => {
@@ -54,7 +54,10 @@ export default function WellnessCheck() {
               This is a placeholder description for the Personality Test.
               Explain why a user should take this test or what it is about.
             </p>
-            <button className="bg-green-600 hover:bg-green-700 text-white font-medium px-5 py-2 rounded-lg self-start mt-auto transition-colors duration-200">
+            <button
+              onClick={() => setSelected("survey")}
+              className="bg-green-600 hover:bg-green-700 text-white font-medium px-5 py-2 rounded-lg self-start mt-auto transition-colors duration-200"
+            >
               Start Test
             </button>
           </div>
