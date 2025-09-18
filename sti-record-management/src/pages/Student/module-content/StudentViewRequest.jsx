@@ -297,7 +297,7 @@ export default function StudentViewRequest() {
               {showStatusDropdown && (
                 <div className="absolute top-full left-0 mt-1 w-full bg-white border border-gray-300 rounded-lg p-2 shadow-lg z-20">
                   <div className="flex flex-col gap-1">
-                    {["Pending", "Approved", "Denied"].map((status) => (
+                    {["Pending", "Approved", "Denied", "Resolved", "In Progress"].map((status) => (
                       <label key={status} className="flex items-center gap-2 text-sm cursor-pointer select-none whitespace-nowrap">
                         <input
                           type="checkbox"

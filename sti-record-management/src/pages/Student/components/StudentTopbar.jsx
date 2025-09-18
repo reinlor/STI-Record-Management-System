@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Settings, LogOut, KeyRound, Menu, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import NotificationIcon from "./NotificationIcon";
 
 const modules = [
   { id: "dashboard", text: "Dashboard" },
@@ -68,6 +69,7 @@ const StudentTopBar = ({
 
       {/* Right Section */}
       <div className="flex items-center gap-2">
+        <NotificationIcon setSelected={setSelected}/>
         {/* Settings Dropdown (PC only) */}
         <div ref={containerRef} className="relative hidden sm:block">
           <button

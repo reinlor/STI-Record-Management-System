@@ -1,3 +1,5 @@
+// src/components/student/StudentHomepage.jsx
+
 import React, { useState, useContext } from "react";
 import StudentTopBar from "./components/StudentTopbar.jsx";
 import ChangePasswordModal from "../../component/ChangePasswordModal.jsx";
@@ -7,6 +9,7 @@ import StudentRequestSlip from "./module-content/StudentRequestSlip.jsx";
 import StudentViewRequest from "./module-content/StudentViewRequest.jsx";
 import WellnessCheck from "./module-content/WellnessCheck.jsx";
 import SurveyForm from "./module-content/SurveyForm.jsx";
+import NotificationsPage from "./components/NotificationPage.jsx"; // Import the new component
 import ConsentModal from "./ConsentModal.jsx";
 import { ToastContainer, toast } from "react-toastify";
 import { AuthContext } from "../../AuthProvider.jsx";
@@ -38,6 +41,8 @@ export default function StudentHomepage() {
         return <StudentViewRequest />;
       case "survey":
         return <SurveyForm />;
+      case "notifications": // Add a new case for notifications
+        return <NotificationsPage />;
       default:
         return (
           <div className="animate-fade-in text-center mt-12">
