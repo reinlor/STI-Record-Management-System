@@ -11,7 +11,7 @@ export default function UserTable({
   handleRestoreUser,
 }) {
   return (
-    <div className="bg-white rounded-lg shadow-md h-[75vh] overflow-x-auto overflow-y-auto custom-scrollbar">
+    <div className="bg-white rounded-lg shadow-md overflow-x-auto overflow-y-auto custom-scrollbar h-auto">
       <table className="min-w-full table-fixed divide-y divide-gray-200 text-[10px] sm:text-xs md:text-sm lg:text-base">
         <thead className="bg-gray-50">
           <tr>

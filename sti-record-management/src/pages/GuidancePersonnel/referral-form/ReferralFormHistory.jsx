@@ -144,8 +144,8 @@ function ReferralFormHistory() {
   };
 
   return (
-    <div className="bg-gray-100 h-220 p-3">
-          <div className="bg-white shadow-md p-4 rounded-lg">
+    <div className="bg-gray-100 h-full p-3">
+          <div className="bg-white shadow-md p-4 rounded-lg h-full">
             {/* Header */}
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-4 gap-3">
               <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
@@ -180,7 +180,7 @@ function ReferralFormHistory() {
               </div>
             </div>
 
-        <div className="bg-white rounded-lg shadow-md overflow-y-auto custom-scrollbar h-full">
+        <div className="bg-white rounded-lg shadow-md overflow-y-auto custom-scrollbar h-auto">
           <table className="w-full text-left">
             <thead>
               <tr className="bg-[#0172bd] text-white">

@@ -235,7 +235,7 @@ function RequestSlipHistory() {
 
   return (
     <div className="bg-gray-100 h-full p-3">
-      <div className="bg-white shadow-md p-4 rounded-lg">
+      <div className="bg-white shadow-md p-4 rounded-lg h-full">
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-4 gap-3">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
@@ -271,7 +271,7 @@ function RequestSlipHistory() {
         </div>
 
         {/* Table */}
-        <div className="bg-white rounded-lg shadow-md overflow-y-auto custom-scrollbar h-[65vh] relative">
+        <div className="bg-white rounded-lg shadow-md overflow-y-auto custom-scrollbar h-auto relative">
           <table className="w-full text-left">
             <thead>
               <tr className=" text-white">
