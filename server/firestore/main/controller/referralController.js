@@ -95,6 +95,32 @@ const addReferral = async (req, res) => {
       });
     }
 
+    // Notifications
+    const notifCollection = getNotificationCollection();
+    const adminDoc = notifCollection.doc('referral');
+    const adminDocData = await adminDoc.get();
+
+    let existingAdminNotification = [];
+    if (adminDocData.exists && adminDocData.data()['data']) {
+      existingAdminNotification = adminDocData.data()['data'];
+    }
+
+    const newAdminNotification = {
+      date: new Date(),
+      from: 'Teacher',
+      isRead: false,
+      notifID: `adminReferral-${existingAdminNotification.length + 1}`,
+      type: 'Submission',
+      subject: `${req.body.employeeID} has submitted a referral`
+    }
+
+    const updatedAdminNotifications = [...existingAdminNotification, newAdminNotification]
+    const updateAdminPayload = {
+      data: updatedAdminNotifications
+    }
+
+    await adminDoc.set(updateAdminPayload, { merge: true });
+
 
     res.status(201).json({
       message: `Referral form added successfully.`,
