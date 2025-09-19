@@ -495,7 +495,7 @@ function RequestSlip() {
                 */}
                 {[
                   { label: "Name: ", value: slip.name },
-                  { label: "Program & Section: ", value: `${slip.program} ${slip.yearSection}` },
+                  { label: "Program & Section: ", value: `${slip.program} ${slip.section}` },
                   { label: "Student ID: ", value: slip.sid },
                   {
                     label: "Status: ", value: slip.status, className:

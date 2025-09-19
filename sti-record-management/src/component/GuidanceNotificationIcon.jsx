@@ -29,7 +29,7 @@ const GuidanceNotificationIcon = () => {
       const referralSnap = await getDoc(referralRef);
       if (referralSnap.exists()) {
         const referralData = referralSnap.data().data || [];
-        const updatedReferrals = referralData.map((item) => ({ ...item, isRead: true }));
+        const updatedReferrals = referralData.map((item) => ({ ...item, isRead: true }));   
         await updateDoc(referralRef, { data: updatedReferrals });
       }
     } catch (error) {
@@ -146,7 +146,7 @@ const GuidanceNotificationIcon = () => {
             )}
           </div>
           <ul className="max-h-60 overflow-y-auto custom-scrollbar">
-            {notifications.slice(0, 5).sort((a, b) => {
+            {notifications.sort((a, b) => {
               const da = parseToDate(a.date);
               const db = parseToDate(b.date);
               return db - da;

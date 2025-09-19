@@ -114,7 +114,7 @@ const NotificationIcon = ({ setSelected, uid = "02000288488" }) => {
           </div>
 
           <ul className="max-h-60 overflow-y-auto custom-scrollbar">
-            {notifications.slice(0, 5).sort((a, b) => {
+            {notifications.sort((a, b) => {
               const da = parseToDate(a.date);
               const db = parseToDate(b.date);
               return db - da;
