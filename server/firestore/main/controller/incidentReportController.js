@@ -4,6 +4,7 @@ const {
   getIncidentReportCollection,
 } = require("../models/incidentReportModel");
 const { getChartDataCollection } = require("../models/chartDataModel");
+const { getNotificationCollection } = require("../models/notificationModel.js");
 const cloudinary = require("../../../config/cloudinary.js");
 
 // Incident Report Form Schema
@@ -90,19 +91,47 @@ const addIncident = async (req, res) => {
     // Pang Charts
     const chartDataDocRef = getChartDataCollection().doc("slip-n-pass");
     const docSnapshot = await chartDataDocRef.get();
-    
+
     const updatedData = docSnapshot.exists ? docSnapshot.data() : { id: "slip-n-pass", data: [] };
     const existingDataArray = updatedData.data || [];
-    
+
     existingDataArray.push({
       sid: newIncidentReport.sid,
       type: "Incident Report",
       date: new Date().toISOString()
     });
-    
+
     updatedData.data = existingDataArray;
     await chartDataDocRef.set(updatedData, { merge: true });
     // Pang Charts
+
+
+    // Admin Notification
+    const notifCollection = getNotificationCollection();
+    const adminDoc = notifCollection.doc('request');
+    const adminDocData = await adminDoc.get();
+
+    let existingAdminNotification = [];
+    if (adminDocData.exists && adminDocData.data()['data']) {
+      existingAdminNotification = adminDocData.data()['data'];
+    }
+
+    const newAdminNotification = {
+      date: new Date(),
+      from: 'Student',
+      isRead: false,
+      notifID: `adminRequest-${existingAdminNotification.length + 1}`,
+      type: 'Submission',
+      subject: `${req.body.sid} has submitted a request`
+    }
+
+    const updatedAdminNotifications = [...existingAdminNotification, newAdminNotification]
+    const updateAdminPayload = {
+      data: updatedAdminNotifications
+    }
+
+    await adminDoc.set(updateAdminPayload, { merge: true });
+
 
     res.status(201).json({ message: "Incident report added successfully" });
   } catch (error) {
@@ -169,34 +198,34 @@ const getIncidentByID = async (req, res) => {
 
 // Controller function for updating incident by document ID
 const updateIncident = async (req, res) => {
-    try {
-      const { _id } = req.params;
-      const updateData = req.body;
+  try {
+    const { _id } = req.params;
+    const updateData = req.body;
 
-      if (!updateData || Object.keys(updateData).length === 0){
-        return res.status(400).json({ error: "No update data provided" });
-      }
-
-      const { error, value: validatedData } = updateIncidentReportSchema.validate(updateData);
-      if (error) {
-        return res.status(400).json({ message: `Cannot update the incident report due to invalid data: ${error.details[0].message}` });
-      }
-
-      const incidentReportDocRef = getIncidentReportCollection().doc(_id);
-      const docSnapshot = await incidentReportDocRef.get();
-
-      if(!docSnapshot.exists){
-        return res.status(404).json({ message: `No incident report found with the ID ${_id}` });
-      }
-
-      await incidentReportDocRef.set(validatedData, {merge: true});
-
-      res.status(200).json({ message: `Incident report ${_id} successfully updated.` });
-
-    } catch (error) {
-      console.error(`Failed to update incident report: ${error}`);
-      res.status(500).json({ error: `Failed to update incident report: ${error.message}` });
+    if (!updateData || Object.keys(updateData).length === 0) {
+      return res.status(400).json({ error: "No update data provided" });
     }
+
+    const { error, value: validatedData } = updateIncidentReportSchema.validate(updateData);
+    if (error) {
+      return res.status(400).json({ message: `Cannot update the incident report due to invalid data: ${error.details[0].message}` });
+    }
+
+    const incidentReportDocRef = getIncidentReportCollection().doc(_id);
+    const docSnapshot = await incidentReportDocRef.get();
+
+    if (!docSnapshot.exists) {
+      return res.status(404).json({ message: `No incident report found with the ID ${_id}` });
+    }
+
+    await incidentReportDocRef.set(validatedData, { merge: true });
+
+    res.status(200).json({ message: `Incident report ${_id} successfully updated.` });
+
+  } catch (error) {
+    console.error(`Failed to update incident report: ${error}`);
+    res.status(500).json({ error: `Failed to update incident report: ${error.message}` });
+  }
 };
 
 module.exports = {

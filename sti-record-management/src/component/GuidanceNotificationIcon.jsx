@@ -176,7 +176,7 @@ const GuidanceNotificationIcon = () => {
                     >
                       {notif.type === "Update" ? (
                         <FilePen className="w-5 h-5 text-green-600" />
-                      ) : notif.status === "Submission" ? (
+                      ) : notif.type === "Submission" ? (
                         <FilePlus className="w-5 h-5 text-red-600" />
                       ) : (
                         <ClipboardList className="w-5 h-5 text-gray-600" />

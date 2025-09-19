@@ -120,6 +120,33 @@ const addAbsentSlip = async (req, res) => {
     await chartDataDocRef.set(updatedData, { merge: true });
     // Pang Charts
 
+
+    // Admin Notification
+    const notifCollection = getNotificationCollection();
+    const adminDoc = notifCollection.doc('request');
+    const adminDocData = await adminDoc.get();
+
+    let existingAdminNotification = [];
+    if (adminDocData.exists && adminDocData.data()['data']) {
+      existingAdminNotification = adminDocData.data()['data'];
+    }
+
+    const newAdminNotification = {
+      date: new Date(),
+      from: 'Student',
+      isRead: false,
+      notifID: `adminRequest-${existingAdminNotification.length + 1}`,
+      type: 'Submission',
+      subject: `${req.body.sid} has submitted a request`
+    }
+
+    const updatedAdminNotifications = [...existingAdminNotification, newAdminNotification]
+    const updateAdminPayload = {
+      data: updatedAdminNotifications
+    }
+
+    await adminDoc.set(updateAdminPayload, { merge: true });
+
     res
       .status(200)
       .send({ message: `Absent slip added to Student: ${newAbsentSlip.name}` });
