@@ -40,6 +40,12 @@ const violationCategoryUpdateSchema = Joi.object({
   violations: Joi.array().items(Joi.string().optional().empty("")).optional(),
 });
 
+const updateSchoolPeriodSchema = Joi.object({
+  schoolYear: Joi.string().required().empty(""),
+  seniorHigh: Joi.string().required().empty(""),
+  tertiary: Joi.string().required().empty(""),
+});
+
 // Controller function for adding announcement
 const addAnnouncement = async (req, res) => {
   try {
@@ -476,11 +482,9 @@ const addViolationCategory = async (req, res) => {
       );
     }
 
-    res
-      .status(200)
-      .json({
-        message: `Violation Category ${violationCategoryName} added successfully!`,
-      });
+    res.status(200).json({
+      message: `Violation Category ${violationCategoryName} added successfully!`,
+    });
   } catch (error) {
     console.error("Error adding violation category:", error);
     res.status(500).json({ error: "Internal server error" });
@@ -530,13 +534,41 @@ const updateViolationCategory = async (req, res) => {
       },
     });
 
-    res
-      .status(200)
-      .json({
-        message: `Violation Category ${violationCategoryName} updated successfully!`,
-      });
+    res.status(200).json({
+      message: `Violation Category ${violationCategoryName} updated successfully!`,
+    });
   } catch (error) {
     console.error("Error updating violation category:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+// Controller function for updating School Period
+const updateSchoolPeriod = async (req, res) => {
+  try {
+    const { error, value: newSchoolPeriod } = updateSchoolPeriodSchema.validate(
+      req.body
+    );
+
+    if (error) {
+      return res.status(400).json({ error: `Invalid school period data` });
+    }
+
+    const schoolPeriodDocRef =
+      getContentManagementCollection().doc("schoolPeriod");
+    const docSnapshot = await schoolPeriodDocRef.get();
+
+    if (!docSnapshot.exists) {
+      return res
+        .status(404)
+        .json({ error: `School Period Document doesn't exists.` });
+    }
+
+    await schoolPeriodDocRef.set(newSchoolPeriod, { merge: true });
+
+    res.status(200).json({ message: `School period updated successfully!` })
+  } catch (error) {
+    console.error("Error updating school period:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 };
@@ -557,5 +589,6 @@ module.exports = {
   getViolations,
   getSchoolPeriod,
   addViolationCategory,
-  updateViolationCategory
+  updateViolationCategory,
+  updateSchoolPeriod,
 };
