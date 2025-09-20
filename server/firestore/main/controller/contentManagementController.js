@@ -573,6 +573,21 @@ const updateSchoolPeriod = async (req, res) => {
   }
 };
 
+// Controller function for getting all content data
+const getAllContent = async (req, res) => {
+  try {
+    const contents = await getContentManagementCollection().get()
+    const contentData = contents.docs.map((doc) => ({
+      [doc.id]: doc.data(),
+    }));
+
+    res.status(200).json(contentData);
+  } catch (error) {
+    console.error("Error retrieving content management data:", error);
+    res.status(500).json({ error: "Failed to retrieve content management data." });
+  }
+}
+
 module.exports = {
   addAnnouncement,
   addProgram,
@@ -591,4 +606,5 @@ module.exports = {
   addViolationCategory,
   updateViolationCategory,
   updateSchoolPeriod,
+  getAllContent
 };

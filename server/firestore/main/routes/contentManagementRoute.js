@@ -18,7 +18,8 @@ const {
     getSchoolPeriod,
     addViolationCategory,
     updateViolationCategory,
-    updateSchoolPeriod
+    updateSchoolPeriod,
+    getAllContent
 } = require("../controller/contentManagementController.js");
 
 const upload = multer({ storage: multer.memoryStorage() });
@@ -45,5 +46,7 @@ router.get("/violations/get", getViolations);
 
 router.put('/schoolPeriod/update', updateSchoolPeriod);
 router.get("/schoolPeriod/get", getSchoolPeriod);
+
+router.get("/getAll", getAllContent)
 
 module.exports = router;
