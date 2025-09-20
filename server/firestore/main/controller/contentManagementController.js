@@ -26,6 +26,20 @@ const wellnessSchema = Joi.object({
   link: Joi.string().required().empty(""),
 });
 
+// Schema for Violations
+const violationCategorySchema = Joi.object({
+  violationCategory: Joi.string().required().empty(""),
+  priorityLevel: Joi.string().required().empty(""),
+  violations: Joi.array().items(Joi.string().required().empty("")).required(),
+});
+
+// Schema for Updating Violations
+const violationCategoryUpdateSchema = Joi.object({
+  violationCategory: Joi.string().optional().empty(""),
+  priorityLevel: Joi.string().optional().empty(""),
+  violations: Joi.array().items(Joi.string().optional().empty("")).optional(),
+});
+
 // Controller function for adding announcement
 const addAnnouncement = async (req, res) => {
   try {
@@ -249,7 +263,9 @@ const addCollegeStudentHandbook = async (req, res) => {
       return res.status(400).json({ error: "Only PDF files are allowed." });
     }
 
-    const collegeStudentHandbookDocRef = getContentManagementCollection().doc("collegeStudentHandbook");
+    const collegeStudentHandbookDocRef = getContentManagementCollection().doc(
+      "collegeStudentHandbook"
+    );
 
     const uploadStream = cloudinary.uploader.upload_stream(
       {
@@ -278,7 +294,7 @@ const addCollegeStudentHandbook = async (req, res) => {
         );
 
         res.json({
-          message: "College Student Handbook uploaded successfully"
+          message: "College Student Handbook uploaded successfully",
         });
       }
     );
@@ -286,18 +302,24 @@ const addCollegeStudentHandbook = async (req, res) => {
     streamifier.createReadStream(req.file.buffer).pipe(uploadStream);
   } catch (error) {
     console.error("Error updating college student handbook link:", error);
-    res.status(500).json({ error: "Failed to update college student handbook link." });
+    res
+      .status(500)
+      .json({ error: "Failed to update college student handbook link." });
   }
 };
 
 // Controller function for getting college student handbook PDF link
 const getCollegeStudentHandbook = async (req, res) => {
   try {
-    const collegeStudentHandbook = getContentManagementCollection().doc("collegeStudentHandbook");
+    const collegeStudentHandbook = getContentManagementCollection().doc(
+      "collegeStudentHandbook"
+    );
     const docSnapshot = await collegeStudentHandbook.get();
 
     if (!docSnapshot.exists) {
-      return res.status(404).json({ error: "College Student Handbook not found" });
+      return res
+        .status(404)
+        .json({ error: "College Student Handbook not found" });
     }
 
     const { link } = docSnapshot.data();
@@ -305,7 +327,9 @@ const getCollegeStudentHandbook = async (req, res) => {
     res.status(200).json({ link });
   } catch (error) {
     console.error("Error retrieving college student handbook:", error);
-    res.status(500).json({ error: "Failed to retrieve college student handbook." });
+    res
+      .status(500)
+      .json({ error: "Failed to retrieve college student handbook." });
   }
 };
 
@@ -320,7 +344,8 @@ const addShsStudentHandbook = async (req, res) => {
       return res.status(400).json({ error: "Only PDF files are allowed." });
     }
 
-    const shsStudentHandbookDocRef = getContentManagementCollection().doc("shsStudentHandbook");
+    const shsStudentHandbookDocRef =
+      getContentManagementCollection().doc("shsStudentHandbook");
 
     const uploadStream = cloudinary.uploader.upload_stream(
       {
@@ -349,7 +374,7 @@ const addShsStudentHandbook = async (req, res) => {
         );
 
         res.json({
-          message: "SHS Student Handbook uploaded successfully"
+          message: "SHS Student Handbook uploaded successfully",
         });
       }
     );
@@ -357,14 +382,17 @@ const addShsStudentHandbook = async (req, res) => {
     streamifier.createReadStream(req.file.buffer).pipe(uploadStream);
   } catch (error) {
     console.error("Error updating SHS student handbook link:", error);
-    res.status(500).json({ error: "Failed to update SHS student handbook link." });
+    res
+      .status(500)
+      .json({ error: "Failed to update SHS student handbook link." });
   }
 };
 
 // Controller function for getting SHS student handbook PDF link
 const getShsStudentHandbook = async (req, res) => {
   try {
-    const shsStudentHandbook = getContentManagementCollection().doc("shsStudentHandbook");
+    const shsStudentHandbook =
+      getContentManagementCollection().doc("shsStudentHandbook");
     const docSnapshot = await shsStudentHandbook.get();
 
     if (!docSnapshot.exists) {
@@ -414,6 +442,105 @@ const getSchoolPeriod = async (req, res) => {
   }
 };
 
+// Controller function for adding
+const addViolationCategory = async (req, res) => {
+  try {
+    const { violationCategoryName, priorityLevel, violations } = req.body;
+
+    const { error, value: newViolationCategory } =
+      violationCategorySchema.validate({
+        violationCategory: violationCategoryName,
+        priorityLevel,
+        violations,
+      });
+
+    if (error) {
+      return res.status(400).json({
+        error: "Invalid violation category data",
+        details: error.details,
+      });
+    }
+
+    const violationsDocRef = getContentManagementCollection().doc("violations");
+    const docSnapshot = await violationsDocRef.get();
+
+    if (docSnapshot.exists) {
+      await violationsDocRef.set(
+        {
+          [violationCategoryName]: {
+            priorityLevel,
+            violations,
+          },
+        },
+        { merge: true }
+      );
+    }
+
+    res
+      .status(200)
+      .json({
+        message: `Violation Category ${violationCategoryName} added successfully!`,
+      });
+  } catch (error) {
+    console.error("Error adding violation category:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+// Controller function for updating violation categories
+const updateViolationCategory = async (req, res) => {
+  try {
+    const { violationCategoryName, priorityLevel, violations } = req.body;
+
+    const { error, value: newViolationCategory } =
+      violationCategoryUpdateSchema.validate({
+        violationCategory: violationCategoryName,
+        priorityLevel,
+        violations,
+      });
+
+    if (error) {
+      return res.status(400).json({
+        error: "Invalid violation category data",
+        details: error.details,
+      });
+    }
+
+    const violationsDocRef = getContentManagementCollection().doc("violations");
+    const docSnapshot = await violationsDocRef.get();
+
+    if (!docSnapshot.exists) {
+      return res.status(404).json({
+        error: "Violations document is missing.",
+      });
+    }
+
+    const data = docSnapshot.data();
+
+    if (!data[violationCategoryName]) {
+      return res.status(404).json({
+        error: `Violation Category ${violationCategoryName} does not exists.`,
+      });
+    }
+
+    await violationsDocRef.update({
+      [violationCategoryName]: {
+        priorityLevel,
+        violations,
+      },
+    });
+
+    res
+      .status(200)
+      .json({
+        message: `Violation Category ${violationCategoryName} updated successfully!`,
+      });
+  } catch (error) {
+    console.error("Error updating violation category:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
 module.exports = {
   addAnnouncement,
   addProgram,
@@ -428,5 +555,7 @@ module.exports = {
   addShsStudentHandbook,
   getShsStudentHandbook,
   getViolations,
-  getSchoolPeriod
+  getSchoolPeriod,
+  addViolationCategory,
+  updateViolationCategory
 };
