@@ -3,6 +3,7 @@ import TeacherTopbar from "./modules/TeacherTopbar";
 import ChangePasswordModal from "../../component/ChangePasswordModal.jsx";
 import SubmitReferralForm from "./content/SubmitReferral";
 import ViewRequest from "./content/ViewRequest";
+import NotificationsPage from "../../component/NotificationPage.jsx";
 import axios from "axios";
 import { AuthContext } from "../../AuthProvider";
 import { toast, ToastContainer } from "react-toastify";
@@ -11,7 +12,6 @@ import "react-toastify/dist/ReactToastify.css";
 export default function TeacherHomepage() {
   const { authData, logout } = useContext(AuthContext);
   const [selected, setSelected] = useState("submit");
-  const [teacherData, setTeacherData] = useState(null);
   const [referralData, setReferralData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] = useState(false);
@@ -29,20 +29,15 @@ export default function TeacherHomepage() {
     }
   };
 
-
   useEffect(() => {
     if (!authData) return;
     const teacherID = authData.user?.uid;
     fetchReferral(teacherID);
-    console.log(authData)
   }, [authData]);
 
   const handlePasswordChange = (currentPassword, newPassword) => {
-    console.log("Current Password entered:", currentPassword);
-    console.log("Password changed successfully to:", newPassword);
     toast.success("Password change successfully!");
-    //NOTE: Palitan kung pano ihandle yung password change sa backend
-    //This is just a placeholder function
+    // NOTE: Replace with backend password change logic
   };
 
   const renderModule = () => {
@@ -54,13 +49,16 @@ export default function TeacherHomepage() {
             onSuccess={() => fetchReferral(authData.user?.uid)}
           />
         );
-
       case "view":
         return (
           <ViewRequest
             referralData={referralData}
             isLoading={isLoading}
           />
+        );
+      case "notifications":
+        return authData && (
+          <NotificationsPage uid={authData.user.uid} />
         );
       default:
         return (
