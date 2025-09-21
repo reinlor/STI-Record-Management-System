@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 
 import WellnessTableList from "./components/WellnessTableList";
 import WellnessContentManager from "./components/WellnessContentManager";
+import AddWellness from "./components/AddWellness.jsx"
 
 function WellnessForm() {
     const [isLoading, setIsLoading] = useState(false);
@@ -47,8 +48,11 @@ function WellnessForm() {
         );
     }
 
+    const yes = true
+
     return (
-        <div className="min-h-screen bg-white font-sans flex flex-col md:flex-row gap-6 p-2">
+        yes == true ? (<AddWellness/>) : 
+        (<div className="min-h-screen bg-white font-sans flex flex-col md:flex-row gap-6 p-2">
             {/* Left panel - Questions */}
             <div className="flex-1 md:w-2/3 bg-white rounded-2xl shadow-md p-6 overflow-y-auto">
                 <WellnessTableList
@@ -66,7 +70,7 @@ function WellnessForm() {
                     refreshData={fetchData}
                 />
             </div>
-        </div>
+        </div>)
     );
 }
 

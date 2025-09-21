@@ -9,8 +9,8 @@ export default function Header({ className, setSelectedPage }) {
   return (
     <header className={className}>
       <div className="h-full w-full flex flex-col bg-[#f3f4f6]">
-        <div className="flex items-center justify-between p-4 md:p-8 w-full h-17 gap-4 box-border bg-[#1a1a2e] shadow-md">
-          <h2 className="text-[1.2rem] font-bold m-0 text-white ">
+        <div className="flex items-center justify-between p-4 md:p-8 w-full h-19 gap-4 box-border bg-[#1a1a2e] shadow-md">
+          <h2 className="text-[1.3rem] font-bold m-0 text-white ">
             Welcome, <span className="text-[#fef201] font-bold">{authData.displayName}</span>
           </h2>
           <div className="flex items-center gap-4">
