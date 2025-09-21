@@ -5,7 +5,8 @@ import { ToastContainer, toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { AuthContext } from "../AuthProvider.jsx";
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff } from "lucide-react";
+import stiBg from "../assets/dasma-sti.jpg";
 
 function LoginBeta() {
     const [schoolId, setSchoolId] = useState("");
@@ -30,9 +31,9 @@ function LoginBeta() {
             const idToken = await user.getIdToken();
 
             const response = await axios.post(
-                "/user/authenticate", {
-                    idToken
-                }, {
+                "/user/authenticate",
+                { idToken },
+                {
                     headers: {
                         "Content-Type": "application/json",
                         Authorization: `Bearer ${idToken}`,
@@ -41,9 +42,7 @@ function LoginBeta() {
                 }
             );
 
-            const {
-                user: userData
-            } = response.data;
+            const { user: userData } = response.data;
             const userRole = userData.role;
             const userDisplayName = userData.displayName;
 
@@ -84,13 +83,13 @@ function LoginBeta() {
 
         try {
             const resetResponse = await axios.post(`/user/reset-password`, {
-                email: schoolId
+                email: schoolId,
             });
 
             const newEmailMessage = {
                 email: schoolId,
-                link: resetResponse.data
-            }
+                link: resetResponse.data,
+            };
 
             await axios.post(`/email/sendResetPassword`, newEmailMessage);
 
@@ -110,8 +109,16 @@ function LoginBeta() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-[url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTLroixxrcJgD8QAh00obWKREohcySQ_tJAIQ&s')] bg-no-repeat bg-white font-sans p-4 md:p-8">
-            <div className="flex flex-col md:flex-row w-full max-w-5xl rounded-3xl shadow-3xl bg-white overflow-hidden">
+        <div className="relative min-h-screen flex items-center justify-center font-sans p-4 md:p-8 overflow-hidden">
+            {/* Blurred background */}
+            <div
+                className="absolute inset-0 bg-cover bg-center filter blur-sm scale-105"
+                style={{ backgroundImage: `url(${stiBg})` }}
+            ></div>
+
+            {/* Main Card */}
+            <div className="relative z-10 flex flex-col md:flex-row w-full max-w-5xl rounded-3xl shadow-3xl bg-white/90 backdrop-blur-sm overflow-hidden">
+                {/* Left side branding */}
                 <div className="md:w-1/2 w-full bg-[#0172B9] flex items-center justify-center p-8 md:p-12 text-white">
                     <div className="text-center">
                         <h2 className="text-4xl md:text-5xl font-extrabold mb-4">STI GORMS</h2>
@@ -120,7 +127,9 @@ function LoginBeta() {
                         </p>
                     </div>
                 </div>
-                <div className="md:w-1/2 w-full flex flex-col justify-center items-center p-8 md:px-16 bg-white">
+
+                {/* Right side form */}
+                <div className="md:w-1/2 w-full flex flex-col justify-center items-center p-8 md:px-16 bg-white/80 backdrop-blur-sm">
                     <h2 className="text-3xl md:text-4xl font-bold mb-8 text-center text-gray-800 tracking-tight">
                         {isForgotPassword ? "Reset Your Password" : "Sign in to Your Account"}
                     </h2>
