@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import ConfirmModal from "./ConfirmModalModule"; // adjust path if needed
 
-function WellnessContentManager({ data, theme, refreshData }) {
+function WellnessContentManager({ data, theme, refreshData, surveyName }) {
     const [displayCategoryInput, setDisplayCategoryInput] = useState(false);
     const [question, setQuestion] = useState("");
     const [selectedCategory, setSelectedCategory] = useState("");
@@ -39,11 +39,9 @@ function WellnessContentManager({ data, theme, refreshData }) {
     const confirmToggleRelease = (newStatus) => {
         setModalAction(() => async () => {
             try {
-                await axios.put("/exam/release", { isReleased: newStatus });
+                await axios.put("/exam/survey/release", { surveyName, isReleased: newStatus });
                 setIsReleased(newStatus);
-                toast.success(
-                    `Exam ${newStatus ? "released" : "disabled"} successfully!`
-                );
+                toast.success(`Survey ${newStatus ? "released" : "disabled"} successfully!`);
                 refreshData();
             } catch {
                 toast.error("Failed to update release status");
@@ -122,7 +120,10 @@ function WellnessContentManager({ data, theme, refreshData }) {
         };
 
         try {
-            await axios.post("/exam/add", { questions: [newQuestion] });
+            await axios.post("/exam/add", {
+                surveyName,
+                questions: [newQuestion]
+            });
             toast.success("Question added successfully!");
             setQuestion("");
             setSelectedCategory("");
@@ -134,6 +135,7 @@ function WellnessContentManager({ data, theme, refreshData }) {
             toast.error("Failed to add question");
         }
     };
+
 
     const handleAddTheme = async () => {
         if (!newThemeName || newThemeScale.some((s) => !s)) {

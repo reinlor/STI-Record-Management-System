@@ -1,76 +1,37 @@
-import axios from "axios";
-import { useEffect, useState } from "react";
-
+// WellnessForm.jsx
 import WellnessTableList from "./components/WellnessTableList";
 import WellnessContentManager from "./components/WellnessContentManager";
-import AddWellness from "./components/AddWellness.jsx"
 
-function WellnessForm() {
-    const [isLoading, setIsLoading] = useState(false);
-    const [wellnessForm, setWellnessForm] = useState([]);
-    const [theme, setTheme] = useState([]);
-    const [error, setError] = useState(null);
-
-    const fetchData = async () => {
-        setIsLoading(true);
-        setError(null);
-        try {
-            const response = await axios.get("/exam/get");
-            setWellnessForm(response.data.questions || []);
-
-            const themeResponse = await axios.get("/exam/theme/get");
-            setTheme(themeResponse.data || []);
-        } catch (error) {
-            console.error("Failed to fetch data:", error);
-            setError("Failed to load data. Please try again later.");
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        fetchData();
-    }, []);
-
-    if (isLoading) {
+function WellnessForm({ surveyName, surveyData, themes, refreshData }) {
+    if (!surveyData) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50 font-sans">
-                Loading...
+            <div className="bg-white rounded-xl shadow-md p-6">
+                <p>No survey data available.</p>
             </div>
         );
     }
-
-    if (error) {
-        return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50 font-sans text-red-500">
-                {error}
-            </div>
-        );
-    }
-
-    const yes = true
 
     return (
-        yes == true ? (<AddWellness/>) : 
-        (<div className="min-h-screen bg-white font-sans flex flex-col md:flex-row gap-6 p-2">
-            {/* Left panel - Questions */}
-            <div className="flex-1 md:w-2/3 bg-white rounded-2xl shadow-md p-6 overflow-y-auto">
+        <div className="flex flex-col md:flex-row gap-6">
+            <div className="flex-1 bg-white rounded-2xl shadow-md p-6 overflow-y-auto">
+                <h2 className="text-xl font-bold mb-4 text-indigo-700">{surveyName}</h2>
                 <WellnessTableList
-                    data={wellnessForm}
-                    refreshData={fetchData}
-                    themes={theme.likert || []}
+                    data={surveyData.questions || []}
+                    refreshData={refreshData}
+                    themes={themes.likert || []}
+                    surveyName={surveyName}
                 />
             </div>
 
-            {/* Right panel - Add form */}
             <div className="w-full md:w-1/3 bg-white rounded-2xl shadow-md p-6">
                 <WellnessContentManager
-                    data={wellnessForm}
-                    theme={theme}
-                    refreshData={fetchData}
+                    data={surveyData.questions || []}
+                    theme={themes}
+                    refreshData={refreshData}
+                    surveyName={surveyName}
                 />
             </div>
-        </div>)
+        </div>
     );
 }
 

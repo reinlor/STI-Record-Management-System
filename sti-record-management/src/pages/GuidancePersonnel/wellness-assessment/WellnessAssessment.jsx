@@ -1,82 +1,69 @@
-import React, { useState, useContext } from "react";
-import { AuthContext } from '../../../AuthProvider.jsx';
-import WellnessGeneration from "./wellness-generation/WellnessGeneration";
-import WellnessForm from "./wellness-form/WellnessForm.jsx";
-import WellnessScoring from './wellness-scoring/WellnessScoring.jsx';
-import WellnessSummary from "./wellnessSummary/WellnessSummaryReport.jsx";
-import { Navigate } from "react-router-dom";
-import { HeartPulse } from "lucide-react";
+// WellnessAssessment.jsx
+import { useEffect, useState } from "react";
+import axios from "axios";
+import SurveyList from "./wellness-form/SurveyList";
+import WellnessForm from "./wellness-form/WellnessForm";
 
-function WelnessAssessment() {
-  const [activeView, setActiveView] = useState("form");
-  const { authData, logout } = useContext(AuthContext);
+function WellnessAssessment() {
+  const [isLoading, setIsLoading] = useState(false);
+  const [surveys, setSurveys] = useState({});
+  const [themes, setThemes] = useState([]);
+  const [error, setError] = useState(null);
+  const [activeSurvey, setActiveSurvey] = useState(null);
 
+  const fetchData = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const res = await axios.get("/exam/survey/getAll");
+      setSurveys(res.data.surveys || {});
 
-  const renderView = () => {
-    switch (activeView) {
-      case "form":
-        return <WellnessForm />;
-      case "grade":
-        return (
-          <WellnessScoring />
-        );
-      case "summary":
-        return (
-          <WellnessSummary />
-        );
-      default:
-        return (
-          <div className="p-4 bg-gray-100 rounded-md">
-            Select a view
-          </div>
-        );
+      const themeRes = await axios.get("/exam/theme/get");
+      setThemes(themeRes.data || []);
+    } catch (err) {
+      console.error("fetchData failed:", err);
+      setError("Failed to load data. Please try again later.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  // if (!authData?.user?.access?.wellness) {
-  //   return <Navigate to="/error401" replace />
-  // }
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        Loading...
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-red-500">
+        {error}
+      </div>
+    );
+  }
 
   return (
-    <div className="p-6 max-w-420 mx-auto w-full">
-      <div className="flex items-center gap-2 mb-4">
-            <HeartPulse className="h-10 w-10 text-[#0172bd]" />
-            <h1 className="text-4xl font-bold text-[#0172bd] mb-1">Wellness Assessment</h1>
-      </div>
-      <div className="flex gap-2 mb-6">
-        <button
-          onClick={() => setActiveView("form")}
-          className={`px-4 py-2 rounded-md ${activeView === "form"
-            ? "bg-[#0172bd] text-white hover:bg-blue-500"
-            : "bg-gray-200 hover:bg-gray-300"
-            }`}
-        >
-          Form
-        </button>
-        <button
-          onClick={() => setActiveView("grade")}
-          className={`px-4 py-2 rounded-md ${activeView === "grade"
-            ? "bg-[#fef201] text-black hover:bg-yellow-400"
-            : "bg-gray-200 hover:bg-gray-300"
-            }`}
-        >
-          Conditions
-        </button>
-        <button
-          onClick={() => setActiveView("summary")}
-          className={`px-4 py-2 rounded-md ${activeView === "summary"
-            ? "bg-[#28a745] text-white hover:bg-green-500"
-            : "bg-gray-200 hover:bg-gray-300"
-            }`}
-        >
-          Summary
-        </button>
-      </div>
+    <div className="min-h-screen bg-white font-sans flex flex-col gap-6 p-4">
+      {/* Always show SurveyList */}
+      <SurveyList surveys={surveys} refreshData={fetchData} onSelectSurvey={setActiveSurvey} />
 
-      {/* Render the active view */}
-      <div className="bg-white shadow-md rounded-lg p-6">{renderView()}</div>
+      {/* If user selects or creates a survey, show WellnessForm */}
+      {activeSurvey && surveys[activeSurvey] && (
+        <WellnessForm
+          surveyName={activeSurvey}
+          surveyData={surveys[activeSurvey]}
+          themes={themes}
+          refreshData={fetchData}
+        />
+      )}
     </div>
   );
 }
 
-export default WelnessAssessment;
+export default WellnessAssessment;

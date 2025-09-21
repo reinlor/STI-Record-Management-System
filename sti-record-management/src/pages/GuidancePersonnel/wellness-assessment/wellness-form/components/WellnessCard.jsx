@@ -1,36 +1,22 @@
-function Card({ name,
-    description, ranks, 
-    }) {
-    function cardColor() {
-        const rank = ranks;
+import { CirclePlus } from 'lucide-react';
 
-        if (rank === "addNew") {
-            return "hsl(51, 83%, 65%)"
-        }
-        else {
-            return "white"
-        }
-    }
-
-    const styles = {
-        border: "1px solid hsl(0, 0%, 80%)",
-        borderRadius: "10px",
-        boxShadow: "5px 5px 5px hsla(0, 0%, 0%, 0.1)",
-        padding: "20px",
-        margin: "10px",
-        textAlign: "center",
-        minHeight: "200px",
-        minWidth: "400px",
-        display: "inline-block",
-        backgroundColor: cardColor()
-    };
-
-    return (<>
-        <div className="card" style={styles}>
-            <h2 className="card-title">{name}</h2>
-            <p className="card-text">{description}</p>
+function Card({ name, description, type, plus = false, setDisplay }) {
+    return (
+        <div
+            onClick={setDisplay}
+            className={`cursor-pointer rounded-2xl shadow-md p-6 w-80 min-h-[200px] flex flex-col items-center justify-center text-center transition-transform duration-200 hover:scale-105
+        ${type === "addNew" ? "bg-yellow-300" : "bg-white border border-gray-200"}
+      `}
+        >
+            {!plus ? (
+                <>
+                    <h2 className="text-lg font-semibold text-gray-800">{name}</h2>
+                    <p className="text-sm text-gray-600 mt-2">{description}</p>
+                </>
+            ) : (
+                <CirclePlus size={64} className="text-gray-700" />
+            )}
         </div>
-    </>
     );
 }
 

@@ -1,30 +1,42 @@
+// AssessmentExamRoute.js
 const express = require("express");
-
-const {
-    addAssessmentExam,
-    addLikertTheme,
-    updateAssessmentExam,
-    updateLikertTheme,
-    updateAssessmentExamCategory,
-    editLikertTheme,
-    getAssessmentExamForm,
-    getLikertTheme,
-    deleteAssessmentExamQuestion,
-    deleteLikertTheme,
-    toggleReleaseExam } = require("../controller/assessmentExamController");
-
 const router = express.Router();
 
-router.post("/add", addAssessmentExam);                           // For adding an assessment exam forms
-router.post("/theme/add", addLikertTheme);                        // For creating an theme for assessment exam forms
-router.put("/update/", updateAssessmentExam);                     // For updating an assessment exam forms
-router.put("/theme/update/", updateLikertTheme);                  // For updating a theme for assessment exam forms
-router.put("/category/update", updateAssessmentExamCategory);     // For updating an assessment exam category
-router.put("/theme/edit", editLikertTheme);                       // For updating a theme
-router.get("/get", getAssessmentExamForm)                         // For retrieiving an assessment exam forms by examID
-router.get("/theme/get", getLikertTheme)                          // For retrieiving an assessment exam forms by examID
-router.delete("/question/delete", deleteAssessmentExamQuestion);  // For deleting a specific question
-router.delete("/theme/delete", deleteLikertTheme);                // For deleting a theme
-router.put("/release", toggleReleaseExam);                        // For toggling release status
+const {
+  createSurvey,
+  getAllSurveys,
+  getSurveyByName,
+  deleteSurvey,
+  toggleReleaseSurvey,
+  addAssessmentExam,
+  updateSurvey,
+  deleteAssessmentExamQuestion,
+  updateAssessmentExamCategory,
+  addLikertTheme,
+  getLikertTheme,
+  updateLikertTheme,
+  editLikertTheme,
+  deleteLikertTheme,
+} = require("../controller/assessmentExamController");
+
+// Survey-level routes
+router.post("/survey/create", createSurvey);         // create survey
+router.get("/survey/getAll", getAllSurveys);        // get all surveys
+router.get("/survey/get/:surveyName", getSurveyByName); // get survey by name
+router.delete("/survey/delete", deleteSurvey);      // delete survey
+router.put("/survey/release", toggleReleaseSurvey); // toggle release per survey
+router.put("/survey/update", updateSurvey);         // update survey (partial or full)
+
+// Question-level routes (survey-scoped)
+router.post("/add", addAssessmentExam);             // add questions to a survey (body: { surveyName, questions })
+router.delete("/question/delete", deleteAssessmentExamQuestion); // delete question in survey
+router.put("/category/update", updateAssessmentExamCategory);    // update category in a survey
+
+// Likert theme routes (keep as before)
+router.post("/theme/add", addLikertTheme);
+router.get("/theme/get", getLikertTheme);
+router.put("/theme/update", updateLikertTheme);  // append a theme
+router.put("/theme/edit", editLikertTheme);      // replace a theme by name
+router.delete("/theme/delete", deleteLikertTheme);
 
 module.exports = router;

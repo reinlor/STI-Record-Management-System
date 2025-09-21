@@ -25,7 +25,7 @@ function WellnessTableList({ data, refreshData, themes }) {
     // Delete a question
     const handleDeleteQuestion = async (question) => {
         try {
-            await axios.delete("/exam/question/delete", { data: { question } });
+            await axios.delete("/exam/question/delete", { data: { surveyName, question } });
             toast.success("Question deleted successfully!");
             refreshData();
         } catch (err) {
@@ -52,7 +52,7 @@ function WellnessTableList({ data, refreshData, themes }) {
                     : q
             );
 
-            await axios.put("/exam/update", { questions: updatedQuestions });
+            await axios.put("/exam/update", { surveyName, questions: updatedQuestions });
 
             toast.success("Question updated successfully!");
             setEditingQuestion(null);
