@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import toast, { Toaster } from "react-hot-toast";
+import { Loader2 } from "lucide-react"; // 🔹 Lucide loader
 
 // Debounce helper
 const useDebounce = (value, delay) => {
@@ -21,10 +22,25 @@ function SubmitReferralForm({ teacher = {}, onCancel, onSuccess }) {
     const [schoolPeriod, setSchoolPeriod] = useState({});
     const [categories, setCategories] = useState([]);
     const [allViolations, setAllViolations] = useState({});
+    const [isStudentLoading, setIsStudentLoading] = useState(false);
+    const [studentNotFound, setStudentNotFound] = useState(false);
+
+    // 🔹 Track recently auto-filled fields for highlight animation
+    const [highlightedFields, setHighlightedFields] = useState({});
+    const highlightField = (field) => {
+        setHighlightedFields((prev) => ({ ...prev, [field]: true }));
+        setTimeout(() => {
+            setHighlightedFields((prev) => {
+                const updated = { ...prev };
+                delete updated[field];
+                return updated;
+            });
+        }, 1500);
+    };
 
     const debouncedStudentID = useDebounce(referral.sid || "", 500);
 
-    // Fetch school period and violation categories from API
+    // Fetch school period and violation categories
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -46,7 +62,7 @@ function SubmitReferralForm({ teacher = {}, onCancel, onSuccess }) {
         fetchData();
     }, []);
 
-    // Update violations and priority level when category changes
+    // Update violations and priority
     useEffect(() => {
         if (!referral.counselingTypeCategory) return;
 
@@ -61,7 +77,7 @@ function SubmitReferralForm({ teacher = {}, onCancel, onSuccess }) {
         setReferral(prev => ({ ...prev, violation: "" }));
     }, [referral.counselingTypeCategory, allViolations]);
 
-    // Set quarter/semester based on grade level
+    // Quarter/semester auto-fill
     useEffect(() => {
         if (referral.gradeLevel === "Tertiary") {
             setReferral(prev => ({ ...prev, quarterSemester: schoolPeriod?.tertiary }));
@@ -70,7 +86,7 @@ function SubmitReferralForm({ teacher = {}, onCancel, onSuccess }) {
         }
     }, [referral.gradeLevel, schoolPeriod]);
 
-    // Set teacher info on mount
+    // Teacher info on mount
     useEffect(() => {
         if (!teacher || !teacher.user?.uid || !teacher.displayName) return;
 
@@ -99,23 +115,33 @@ function SubmitReferralForm({ teacher = {}, onCancel, onSuccess }) {
     useEffect(() => {
         const fetchStudentData = async () => {
             if (!debouncedStudentID) return;
+            setIsStudentLoading(true);
+            setStudentNotFound(false);
 
             try {
                 const { data } = await axios.get(`/student/get/${debouncedStudentID}`);
                 if (data?.studentProfile) {
-                    setReferral(prev => ({
-                        ...prev,
+                    const updates = {
                         studentName: data.studentProfile.name || "",
                         programSection: data.studentProfile.program && data.studentProfile.section
                             ? `${data.studentProfile.program} ${data.studentProfile.section}`
                             : "",
-                        age: data.studentProfile.age || "",
                         gender: data.studentProfile.gender || "",
                         gradeLevel: data.studentProfile.academicLevel || "",
-                    }));
+                    };
+
+                    setReferral((prev) => ({ ...prev, ...updates }));
+
+                    // 🔹 highlight each updated field
+                    Object.keys(updates).forEach((field) => highlightField(field));
+                } else {
+                    setStudentNotFound(true);
                 }
             } catch (error) {
                 console.error("Failed to auto-fill student data:", error.message);
+                setStudentNotFound(true);
+            } finally {
+                setIsStudentLoading(false);
             }
         };
 
@@ -188,7 +214,7 @@ function SubmitReferralForm({ teacher = {}, onCancel, onSuccess }) {
         });
     };
 
-    // Render violation input dynamically
+    // Violation input
     const handleViolationInput = () => {
         if (violations.length > 0) {
             return (
@@ -211,7 +237,7 @@ function SubmitReferralForm({ teacher = {}, onCancel, onSuccess }) {
         }
     };
 
-    // Render category dropdown
+    // Category dropdown
     const handleCategoryDropDown = () => (
         <div>
             <label htmlFor="counselingTypeCategory" className="block text-gray-700 font-medium mb-1">
@@ -232,18 +258,18 @@ function SubmitReferralForm({ teacher = {}, onCancel, onSuccess }) {
         </div>
     );
 
-    // Loading state
+    // Global loading
     if (isLoading) {
         return (
             <div className="flex justify-center items-center h-48">
-                <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
+                <Loader2 className="h-10 w-10 text-blue-500 animate-spin" />
             </div>
         );
     }
 
     return (
         <div className="min-h-screen flex flex-col items-center py-12 px-4 bg-gray-100 font-sans">
-            <Toaster position="top-center" reverseOrder={false} />
+            <Toaster position="top-right" reverseOrder={false} /> {/* 🔹 toasts in top-right */}
             <div className="bg-white rounded-2xl shadow-xl p-8 w-full container mx-auto border border-gray-200">
                 <div className="mb-8 pb-4 border-b border-gray-200">
                     <h2 className="text-3xl font-extrabold text-gray-800 mb-2">Student Referral Form</h2>
@@ -252,15 +278,36 @@ function SubmitReferralForm({ teacher = {}, onCancel, onSuccess }) {
 
                 <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-8">
                     <div className="space-y-6">
-                        {/* Left-side fields */}
+                        {/* School Year */}
                         <div>
                             <label className="block text-gray-700 font-medium mb-1">School Year:</label>
                             <input type="text" className="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-800" value={referral.schoolYear || ""} disabled />
                         </div>
 
+                        {/* Student Number with loader + not found */}
                         <div>
                             <label className="block text-gray-700 font-medium mb-1">Student Number:</label>
-                            <input type="text" className="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-800" value={referral.sid || ""} onChange={(e) => handleReferralForm(e, "sid")} placeholder="Enter student number to auto-fill details" />
+                            <div className="relative">
+                                <input
+                                    type="text"
+                                    className={`w-full p-3 border rounded-lg pr-10 ${
+                                        studentNotFound
+                                            ? "border-red-400 bg-red-50 text-red-700"
+                                            : "border-gray-300 bg-gray-50 text-gray-800"
+                                    }`}
+                                    value={referral.sid || ""}
+                                    onChange={(e) => handleReferralForm(e, "sid")}
+                                    placeholder="Enter student number and wait to auto-fill details"
+                                />
+                                {isStudentLoading && (
+                                    <div className="absolute inset-y-0 right-3 flex items-center">
+                                        <Loader2 className="h-5 w-5 text-blue-500 animate-spin" />
+                                    </div>
+                                )}
+                            </div>
+                            {studentNotFound && (
+                                <p className="mt-1 text-sm text-red-600">Student not found in records.</p>
+                            )}
                         </div>
 
                         {/* Grade Level */}
@@ -278,6 +325,7 @@ function SubmitReferralForm({ teacher = {}, onCancel, onSuccess }) {
                             </div>
                         </div>
 
+                        {/* Quarter/Semester */}
                         <div>
                             <label className="block text-gray-700 font-medium mb-1">Quarter/Semester:</label>
                             <input className="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-800" value={referral.quarterSemester || ""} disabled />
@@ -286,17 +334,31 @@ function SubmitReferralForm({ teacher = {}, onCancel, onSuccess }) {
                         {/* Student Name */}
                         <div>
                             <label className="block text-gray-700 font-medium mb-1">Student Name:</label>
-                            <input type="text" className="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-800" value={referral.studentName || ""} onChange={(e) => handleReferralForm(e, "studentName")} />
+                            <input
+                                type="text"
+                                className={`w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-800 transition-colors duration-500 ${
+                                    highlightedFields.studentName ? "bg-yellow-100 animate-pulse" : ""
+                                }`}
+                                value={referral.studentName || ""}
+                                onChange={(e) => handleReferralForm(e, "studentName")}
+                            />
                         </div>
 
                         {/* Program and Section */}
                         <div>
                             <label className="block text-gray-700 font-medium mb-1">Program and Section:</label>
-                            <input type="text" className="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-800" value={referral.programSection || ""} onChange={(e) => handleReferralForm(e, "programSection")} />
+                            <input
+                                type="text"
+                                className={`w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-800 transition-colors duration-500 ${
+                                    highlightedFields.programSection ? "bg-yellow-100 animate-pulse" : ""
+                                }`}
+                                value={referral.programSection || ""}
+                                onChange={(e) => handleReferralForm(e, "programSection")}
+                            />
                         </div>
 
                         {/* Gender */}
-                        <div>
+                        <div className={`transition-colors duration-500 ${highlightedFields.gender ? "bg-yellow-100 animate-pulse rounded-lg p-2" : ""}`}>
                             <label className="block text-gray-700 font-medium mb-1">Gender:</label>
                             <div className="flex items-center space-x-6 mt-2">
                                 <label className="flex items-center cursor-pointer">
@@ -313,7 +375,14 @@ function SubmitReferralForm({ teacher = {}, onCancel, onSuccess }) {
                         {/* Age */}
                         <div>
                             <label className="block text-gray-700 font-medium mb-1">Age:</label>
-                            <input type="number" className="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-800" value={referral.age || ""} onChange={(e) => handleReferralForm(e, "age")} />
+                            <input
+                                type="number"
+                                className={`w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-800 transition-colors duration-500 ${
+                                    highlightedFields.age ? "bg-yellow-100 animate-pulse" : ""
+                                }`}
+                                value={referral.age || ""}
+                                onChange={(e) => handleReferralForm(e, "age")}
+                            />
                         </div>
 
                         {/* Referred By */}
