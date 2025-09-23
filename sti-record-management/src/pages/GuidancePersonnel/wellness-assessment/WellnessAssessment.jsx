@@ -1,4 +1,3 @@
-// WellnessAssessment.jsx
 import { useEffect, useState } from "react";
 import axios from "axios";
 import SurveyList from "./wellness-form/SurveyList";
@@ -50,16 +49,19 @@ function WellnessAssessment() {
 
   return (
     <div className="min-h-screen bg-white font-sans flex flex-col gap-6 p-4">
-      {/* Always show SurveyList */}
-      <SurveyList surveys={surveys} refreshData={fetchData} onSelectSurvey={setActiveSurvey} />
-
-      {/* If user selects or creates a survey, show WellnessForm */}
-      {activeSurvey && surveys[activeSurvey] && (
+      {!activeSurvey ? (
+        <SurveyList
+          surveys={surveys}
+          refreshData={fetchData}
+          onSelectSurvey={setActiveSurvey}
+        />
+      ) : (
         <WellnessForm
           surveyName={activeSurvey}
           surveyData={surveys[activeSurvey]}
           themes={themes}
           refreshData={fetchData}
+          onBack={() => setActiveSurvey(null)} // 👈 back button
         />
       )}
     </div>
