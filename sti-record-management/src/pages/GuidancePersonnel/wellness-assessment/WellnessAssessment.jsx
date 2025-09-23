@@ -2,13 +2,16 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import SurveyList from "./wellness-form/SurveyList";
 import WellnessForm from "./wellness-form/WellnessForm";
+import WellnessSummary from "./wellnessSummary/WellnessSummaryReport";
 
 function WellnessAssessment() {
   const [isLoading, setIsLoading] = useState(false);
   const [surveys, setSurveys] = useState({});
   const [themes, setThemes] = useState([]);
   const [error, setError] = useState(null);
+
   const [activeSurvey, setActiveSurvey] = useState(null);
+  const [activeMode, setActiveMode] = useState("list");
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -31,39 +34,48 @@ function WellnessAssessment() {
     fetchData();
   }, []);
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        Loading...
-      </div>
-    );
-  }
+  const backToList = () => {
+    setActiveSurvey(null);
+    setActiveMode("list");
+  };
 
-  if (error) {
-    return (
-      <div className="min-h-screen flex items-center justify-center text-red-500">
-        {error}
-      </div>
-    );
-  }
+  if (isLoading) return <div className="p-6">Loading...</div>;
+  if (error) return <div className="p-6 text-red-500">{error}</div>;
 
   return (
     <div className="min-h-screen bg-white font-sans flex flex-col gap-6 p-4">
-      {!activeSurvey ? (
-        <SurveyList
-          surveys={surveys}
-          refreshData={fetchData}
-          onSelectSurvey={setActiveSurvey}
-        />
-      ) : (
+      {activeMode === "list" && (
+        <>
+          <div className="flex gap-4 mt-6">
+            <button
+              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+              onClick={() => setActiveMode("summary")}
+            >
+              Summary
+            </button>
+
+          </div>
+          <SurveyList
+            surveys={surveys}
+            refreshData={fetchData}
+            onSelectSurvey={(name) => {
+              setActiveSurvey(name);
+              setActiveMode("form");
+            }}
+          />
+        </>
+      )}
+
+      {activeMode === "form" && (
         <WellnessForm
           surveyName={activeSurvey}
           surveyData={surveys[activeSurvey]}
           themes={themes}
           refreshData={fetchData}
-          onBack={() => setActiveSurvey(null)} // 👈 back button
+          onBack={backToList}
         />
       )}
+      {activeMode === "summary" && <WellnessSummary onBack={backToList} />}
     </div>
   );
 }

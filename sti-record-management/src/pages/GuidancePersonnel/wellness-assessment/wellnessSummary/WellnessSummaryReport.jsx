@@ -1,8 +1,6 @@
 import { Bar } from "react-chartjs-2";
-import { useRef } from "react";
 
-function WellnessSummary(){
-    const focusRef = useRef();
+function WellnessSummary({onBack}){
 
     const chartOptions = {
         responsive: true,
@@ -14,6 +12,7 @@ function WellnessSummary(){
 
     return(
         <div>
+            <button onClick={onBack}>{'<'}</button>
             <Bar 
                 data={{
                     labels: ['1st Question', '2nd Question', '3rd Question', '4th Question', '5th Question', '6th Question', '7th Question', '8th Question'],

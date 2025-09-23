@@ -588,6 +588,23 @@ const getAllContent = async (req, res) => {
   }
 }
 
+const getAllOffenses = async (req, res) => {
+  try {
+    const offenses = getContentManagementCollection().doc('offenses');
+    const docSnapshot = await offenses.get()
+
+    if (!docSnapshot.exists) {
+      return res.status(404).json({ error: "Offenses not found" });
+    }
+
+    res.status(200).json(docSnapshot.data());
+  } catch (error) {
+    console.error("Error retrieving offenses data:", error);
+    res.status(500).json({ error: "Failed to retrieve offenses data." });
+  }
+}
+
+
 module.exports = {
   addAnnouncement,
   addProgram,
@@ -606,5 +623,6 @@ module.exports = {
   addViolationCategory,
   updateViolationCategory,
   updateSchoolPeriod,
-  getAllContent
+  getAllContent,
+  getAllOffenses
 };
