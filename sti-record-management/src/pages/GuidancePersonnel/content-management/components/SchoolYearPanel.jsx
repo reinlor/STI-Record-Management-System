@@ -74,13 +74,13 @@ export default function SchoolYearPanel({
             <div className="flex-1 p-4 bg-white rounded-lg shadow-sm">
               <h5 className="font-semibold text-gray-800">College</h5>
               <p className="text-xl font-bold text-[#0172bd]">
-                {schoolYearData.schoolYear} - {schoolYearData.tertiary}
+                {schoolYearData?.schoolYear} - {schoolYearData?.tertiary}
               </p>
             </div>
             <div className="flex-1 p-4 bg-white rounded-lg shadow-sm">
               <h5 className="font-semibold text-gray-800">SHS</h5>
               <p className="text-xl font-bold text-[#0172bd]">
-                {schoolYearData.schoolYear} - {schoolYearData.seniorHigh}
+                {schoolYearData?.schoolYear} - {schoolYearData?.seniorHigh}
               </p>
             </div>
           </div>

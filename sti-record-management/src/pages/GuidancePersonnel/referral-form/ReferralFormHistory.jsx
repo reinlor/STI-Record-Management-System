@@ -71,7 +71,7 @@ function ReferralFormHistory() {
   const displayReferralData = () => {
     if (!selectedReferral) return null;
     return (
-      <div className="fixed inset-0 p-2 backdrop-blur-sm flex items-center justify-center z-50 transition-opacity duration-300 ease-out opacity-100">
+      <div className="fixed inset-0 p-2 bg-black bg-opacity-40 flex items-center justify-center z-50 transition-opacity duration-300 ease-out opacity-100">
         <div className="bg-white w-full sm:max-w-350 lg:max-w-400 rounded-lg shadow-lg overflow-y-auto max-h-[92vh] p-6 sm:p-8 relative transform transition-all duration-300 ease-out scale-100 custom-scrollbar">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-2xl font-bold text-[#0172bd]">Referral Form</h2>

@@ -280,7 +280,7 @@ function RequestSlip() {
     const { proofUrl, excuseLetterUrl, guardianValidIDUrl, medicalCertificateUrl } = selectedSlip;
 
     return (
-      <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-[9999]">
+      <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-[9999]">
         <div className="bg-white w-full sm:max-w-350 lg:max-w-400 rounded-lg shadow-lg overflow-y-auto max-h-[92vh] p-6 sm:p-8 relative transform transition-all duration-300 ease-out scale-100 custom-scrollbar">
 
           {/* header */}
@@ -464,7 +464,7 @@ function RequestSlip() {
     const { attachmentUrl = [] } = slip;
 
     return (
-      <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-[9999]">
+      <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-[9999]">
         <div className="bg-white w-full sm:max-w-350 lg:max-w-400 rounded-lg shadow-lg overflow-y-auto max-h-[92vh] p-6 sm:p-8 relative transform transition-all duration-300 ease-out scale-100 custom-scrollbar">
           {/* Header */}
           <div className="flex items-center justify-between mb-2">

@@ -76,12 +76,12 @@ export default function ContentManagement() {
                 console.log(response.data)
 
                 setAnnouncements(response.data[0].announcement.messages);
-                setShsStrands(response.data[2].programStrand.strand);
-                setTertiaryPrograms(response.data[2].programStrand.program);
-                setSchoolYearData(response.data[3].schoolPeriod)
+                setShsStrands(response.data[3].programStrand.strand);
+                setTertiaryPrograms(response.data[3].programStrand.program);
+                setSchoolYearData(response.data[4].schoolPeriod)
                 setViolations([]);
                 setQuickLinks([]);
-                setTempWellnessLink(response.data[6].wellness.link);
+                setTempWellnessLink(response.data[7].wellness.link);
             } catch (error) {
                 console.error("Error fetching content management data:", error);
             }

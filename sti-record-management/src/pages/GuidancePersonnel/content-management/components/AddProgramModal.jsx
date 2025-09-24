@@ -12,7 +12,7 @@ export default function AddProgramModal({
   if (!isOpen) return null;
 
   return (
-    <div className="flex fixed inset-0 z-50 items-center justify-center bg-black bg-opacity-50">
+    <div className="flex fixed inset-0 z-50 items-center justify-center bg-black bg-opacity-40 bg-opacity-50">
       <div className="bg-white p-6 rounded-xl shadow-2xl w-full max-w-sm md:max-w-md transform transition-all scale-100 ease-out duration-300">
         {/* Header */}
         <div className="flex justify-between items-center mb-4">
