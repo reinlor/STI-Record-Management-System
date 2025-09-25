@@ -23,16 +23,16 @@ const getUserByID = async (req, res) => {
     const userRef = getUserCollection().doc(id);
     const doc = await userRef.get();
 
-    if(!doc.exists){
+    if (!doc.exists) {
       return res.status(404).json({
         error: "Teacher not found"
       });
     }
 
     res.status(200).json({
-        id:doc.id,
-        ...doc.data()
-      });
+      id: doc.id,
+      ...doc.data()
+    });
   } catch (error) {
     res.status(500).json({
       error: error.message
@@ -146,7 +146,7 @@ const deleteUser = async (req, res) => {
   }
 };
 
-// ✅ Authenticate User & Set Secure Cookie
+// Controller function used to authenticate user logins
 const authenticateUser = async (req, res) => {
   try {
     const idToken = req.body.idToken;
@@ -154,19 +154,24 @@ const authenticateUser = async (req, res) => {
       return res.status(401).json({ error: "No token provided" });
     }
 
+    const expiresIn = 1000 * 60 * 60 * 24; // 1 day
+
+    const sessionCookie = await admin.auth().createSessionCookie(idToken, { expiresIn });
+
     const decodedToken = await admin.auth().verifyIdToken(idToken);
     const uid = decodedToken.uid;
-
     const userDoc = await getUserCollection().doc(uid).get();
+
     if (!userDoc.exists) {
       return res.status(404).json({ error: "User not found in Firestore" });
     }
 
-    res.cookie("session", idToken, {
+    res.cookie("session", sessionCookie, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production", 
-      sameSite: "strict",
-      maxAge: 1000 * 60 * 60 * 24, 
+      sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+      maxAge: expiresIn,
     });
 
     return res.status(200).json({
@@ -175,26 +180,53 @@ const authenticateUser = async (req, res) => {
     });
 
   } catch (error) {
-    console.error("Token verification failed:", error);
+    console.error("Authentication error:", error);
     return res.status(401).json({ error: "Invalid token" });
   }
 };
 
-// ✅ Middleware to Protect Routes
+
+// Controller function to verify session cookies
 const requireAuth = async (req, res, next) => {
   try {
-    const token = req.cookies.session;
-    if (!token) {
-      return res.status(401).json({ error: "Unauthorized" });
-    }
-
-    const decodedToken = await admin.auth().verifyIdToken(token);
-    req.user = decodedToken;
+    const sessionCookie = req.cookies.session || "";
+    const decodedClaims = await admin.auth().verifySessionCookie(sessionCookie, true);
+    req.user = decodedClaims;
     next();
   } catch (error) {
+    console.error("Auth error:", error);
     return res.status(401).json({ error: "Unauthorized" });
   }
 };
+
+// Controller function to logout and clear user logins
+const logoutUser = (req, res) => {
+  res.clearCookie("session");
+  res.status(200).json({ message: "Logged out" });
+};
+
+// Controller function to get login sessions
+const getSessionUser = async (req, res) => {
+  try {
+    const sessionCookie = req.cookies.session || "";
+    if (!sessionCookie) {
+      return res.status(401).json({ error: "Unauthorized - No cookie" });
+    }
+
+    const decodedClaims = await admin.auth().verifySessionCookie(sessionCookie, true);
+    const userDoc = await getUserCollection().doc(decodedClaims.uid).get();
+
+    if (!userDoc.exists) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    return res.status(200).json({ user: userDoc.data() });
+  } catch (error) {
+    console.error("Session check error:", error);
+    return res.status(401).json({ error: "Unauthorized - Invalid/expired cookie" });
+  }
+};
+
 
 const resetPassword = async (req, res) => {
   const { email } = req.body;
@@ -211,13 +243,15 @@ const resetPassword = async (req, res) => {
   }
 };
 
-module.exports = { 
-  getUsers, 
-  addUser, 
-  deleteUser, 
-  updateUser, 
+module.exports = {
+  getUsers,
+  addUser,
+  deleteUser,
+  updateUser,
   authenticateUser,
   requireAuth,
   getUserByID,
   resetPassword,
+  logoutUser,
+  getSessionUser
 };

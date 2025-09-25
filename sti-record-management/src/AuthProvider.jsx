@@ -1,24 +1,9 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route, useNavigate, Navigate } from "react-router-dom";
-import { toast, ToastContainer } from "react-toastify";
+import React, { createContext, useState, useEffect } from "react";
 import "react-toastify/dist/ReactToastify.css";
-import axios from "axios";
-import { onAuthStateChanged, signOut, signInWithEmailAndPassword } from 'firebase/auth';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { auth, db } from "./firebaseClient";
+import axios from "axios";
 export const AuthContext = createContext(null);
-
-// axios.post = async (url, data) => {
-//   console.log(`Mock Axios POST to ${url} with data:`, data);
-//   await new Promise(resolve => setTimeout(resolve, 500));
-//   return {
-//     data: {
-//       user: {
-//         role: "Admin", // Mocking a successful response
-//         displayName: "Admin User" // Mocking the displayName from the backend
-//       }
-//     }
-//   };
-// };
 
 const AuthProvider = ({ children }) => {
   const [authData, setAuthData] = useState({
@@ -40,42 +25,55 @@ const AuthProvider = ({ children }) => {
     });
   };
 
-  const logout = () => {
-    console.log('logging out...')
-    signOut(auth);
+  const logout = async () => {
+    try {
+      console.log("logging out...");
+
+      await signOut(auth);
+
+      await axios.post("/user/logout", {}, { withCredentials: true });
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+
     setAuthData({
       user: null,
       role: null,
       uid: null,
-      displayName: null, 
+      displayName: null,
       isAuthenticated: false,
       loading: false,
     });
   };
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
+    const checkSession = async () => {
+      try {
+        const response = await axios.get("/user/me", { withCredentials: true });
+        const userData = response.data.user;
+
         setAuthData({
-          user: { uid: user.uid, email: user.email },
-          displayName: user.displayName,
-          role: null, 
+          user: userData,
+          role: userData.role,
+          displayName: userData.displayName,
           isAuthenticated: true,
-          loading: false
+          loading: false,
         });
-      } else {
+      } catch (error) {
+        console.error("Session check failed:", error);
         setAuthData({
           user: null,
           role: null,
           displayName: null,
           isAuthenticated: false,
-          loading: false
+          loading: false,
         });
       }
-    });
+    };
 
-    return () => unsubscribe();
+    checkSession();
   }, []);
+
 
   return (
     <AuthContext.Provider value={{ authData, login, logout }}>

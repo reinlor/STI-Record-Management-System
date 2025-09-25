@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const cookieParser = require("cookie-parser");
 require("dotenv").config();
 const userRoute = require("./firestore/main/routes/userRoute");
 const studentRoute = require("./firestore/main/routes/studentRoute");
@@ -27,8 +28,12 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: "http://localhost:5173",
+  credentials: true,
+}));
 app.use(express.json());
+app.use(cookieParser());
 
 // Routes
 app.use("/user", userRoute);
@@ -40,10 +45,10 @@ app.use("/slip", slipRoute);
 app.use("/teacher", teacherRoute);
 app.use("/referral", referralRouter);
 app.use("/exam", assessmentExam);
-app.use("/report", assessmentReport);     
-app.use("/backup", backupRoute); 
+app.use("/report", assessmentReport);
+app.use("/backup", backupRoute);
 app.use("/email", emailRoute);
-app.use("/bulk-upload", bulkUploadRoute);   
+app.use("/bulk-upload", bulkUploadRoute);
 app.use("/batch-update", batchUpdateRoute);
 app.use("/chartData", chartDataRoute);
 app.use("/wellnessVersion", assessmentVersionHistory)
@@ -51,7 +56,7 @@ app.use('/photo-to-text', demoOCRRoute);
 app.use("/content", contentManagementRoute)
 app.use("/incidentReport", incidentReportRoute);
 app.use("/notifications", notificationRoute);
- 
+
 // Start the server
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
