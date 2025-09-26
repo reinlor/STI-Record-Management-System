@@ -71,6 +71,16 @@ function StudentCases() {
         violation: ''
     });
 
+    const handleNewCaseChange = (eOrObj) => {
+        if (eOrObj?.target) {
+            const { name, value } = eOrObj.target;
+            setNewCaseForm(prev => ({ ...prev, [name]: value }));
+        } else if (eOrObj?.name) {
+            const { name, value } = eOrObj;
+            setNewCaseForm(prev => ({ ...prev, [name]: value }));
+        }
+    };
+
     // Pagination state
     const [currentPage, setCurrentPage] = useState(1);
     const rowsPerPage = 10;
@@ -297,113 +307,113 @@ function StudentCases() {
             {/* Header */}
             <div className={`bg-white rounded-xl shadow-lg mx-2 sm:mx-4 flex-1 flex flex-col p-2 sm:p-6`} style={{ maxWidth: "100vw" }}>
 
-            <div className="flex flex-col gap-2 pb-2">
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 w-full">
-                    <div className="text-3xl font-bold text-[#0172bd] flex items-center gap-2">
-                        <FileText className="w-8 h-8" />
-                        Student Cases
-                    </div>
-                    
-                    {/* Search bar aligned right */}
-                    <div className="flex gap-2 w-full md:w-auto md:justify-end md:items-center">
-                        <div className="relative flex-1 max-w-xs">
-                            <input
-                                type="text"
-                                placeholder="Search Name/ID"
-                                value={searchTerm}
-                                onChange={e => setSearchTerm(e.target.value)}
-                                className="w-full pr-10 pl-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#0172bd] focus:border-transparent text-sm"
-                                style={{ minWidth: 0 }}
-                            />
-                            <Search className="absolute right-3 top-2.5 text-gray-400 w-5 h-5" />
+                <div className="flex flex-col gap-2 pb-2">
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 w-full">
+                        <div className="text-3xl font-bold text-[#0172bd] flex items-center gap-2">
+                            <FileText className="w-8 h-8" />
+                            Student Cases
                         </div>
-                    <div className="flex gap-2 flex-wrap">
-                        {authData?.user?.access?.studentCases?.canEdit ? (
-                          <button
-                            onClick={() => setShowAddModal(true)}
-                            className="flex items-center bg-[#0172bd] hover:bg-blue-500 text-sm text-white font-bold py-2 px-4 rounded-lg transition duration-150 ease-in-out shadow-md"
-                          >
-                            Add Case
-                            <Plus className="w-4 h-4 ml-2" />
-                          </button>
-                            ) : null}  
-                      </div>                          
-                    </div>             
-                </div>
-                     
-                {/* Showing X results of Y total */}
-                <div className="text-sm text-gray-500 mt-1 ml-1">
-                    Showing {filteredCases.length} result{filteredCases.length !== 1 ? "s" : ""} of {cases.length} total
-                </div>
-            </div>
 
-            {/* Table */}
-            <div
-                className="mt-4 overflow-x-auto rounded-lg shadow bg-white "
-                style={{
-                    width: "100%",
-                    minWidth: 0,
-                    maxWidth: "100vw",
-                }}
-            >
-                <table className="w-full text-left">
-                    <thead>
-                        <tr>
-                            {columns.map(col => (
-                                <th
-                                    key={col.key}
-                                    className={
-                                        "bg-[#0172bd] text-white font-bold px-4 py-2" +
-                                        (col.show === "lg"
-                                            ? " hidden lg:table-cell"
-                                            : "")
-                                    }
-                                >
-                                    {col.label}
-                                </th>
-                            ))}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {pagedCases.length === 0 ? (
+                        {/* Search bar aligned right */}
+                        <div className="flex gap-2 w-full md:w-auto md:justify-end md:items-center">
+                            <div className="relative flex-1 max-w-xs">
+                                <input
+                                    type="text"
+                                    placeholder="Search Name/ID"
+                                    value={searchTerm}
+                                    onChange={e => setSearchTerm(e.target.value)}
+                                    className="w-full pr-10 pl-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#0172bd] focus:border-transparent text-sm"
+                                    style={{ minWidth: 0 }}
+                                />
+                                <Search className="absolute right-3 top-2.5 text-gray-400 w-5 h-5" />
+                            </div>
+                            <div className="flex gap-2 flex-wrap">
+                                {authData?.user?.access?.studentCases?.canEdit ? (
+                                    <button
+                                        onClick={() => setShowAddModal(true)}
+                                        className="flex items-center bg-[#0172bd] hover:bg-blue-500 text-sm text-white font-bold py-2 px-4 rounded-lg transition duration-150 ease-in-out shadow-md"
+                                    >
+                                        Add Case
+                                        <Plus className="w-4 h-4 ml-2" />
+                                    </button>
+                                ) : null}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Showing X results of Y total */}
+                    <div className="text-sm text-gray-500 mt-1 ml-1">
+                        Showing {filteredCases.length} result{filteredCases.length !== 1 ? "s" : ""} of {cases.length} total
+                    </div>
+                </div>
+
+                {/* Table */}
+                <div
+                    className="mt-4 overflow-x-auto rounded-lg shadow bg-white "
+                    style={{
+                        width: "100%",
+                        minWidth: 0,
+                        maxWidth: "100vw",
+                    }}
+                >
+                    <table className="w-full text-left">
+                        <thead>
                             <tr>
-                                <td colSpan={columns.length} className="text-center py-8 text-gray-400">
-                                    No cases found.
-                                </td>
+                                {columns.map(col => (
+                                    <th
+                                        key={col.key}
+                                        className={
+                                            "bg-[#0172bd] text-white font-bold px-4 py-2" +
+                                            (col.show === "lg"
+                                                ? " hidden lg:table-cell"
+                                                : "")
+                                        }
+                                    >
+                                        {col.label}
+                                    </th>
+                                ))}
                             </tr>
-                        ) : (
-                            pagedCases.map(aCase => (
-                                <tr
-                                    key={aCase.id}
-                                    className="hover:bg-gray-100 transition cursor-pointer"
-                                    onClick={() => openCaseModal(aCase.id)}
-                                >
-                                    <td className="px-4 py-3 whitespace-nowrap hidden lg:table-cell">{aCase.id}</td>
-                                    <td className="px-4 py-3 whitespace-nowrap">{aCase.studentName}</td>
-                                    <td className="px-4 py-3 whitespace-nowrap hidden lg:table-cell">{aCase.studentId}</td>
-                                    <td className="px-4 py-3 whitespace-nowrap hidden lg:table-cell">{aCase.programSection}</td>
-                                    {/* Priority column */}
-                                    <td className="px-4 py-3 whitespace-nowrap">
-                                        {caseDetailsMap[aCase.id]?.caseDetails?.priority ||
-                                         caseDetailsMap[aCase.id]?.priority ||
-                                         ""}
-                                    </td>
-                                    {/* Status column */}
-                                    <td className="px-4 py-3 whitespace-nowrap">
-                                        {aCase.status === "Resolved" ? (
-                                            <span className="bg-red-100 text-red-600 px-2 py-1 rounded text-xs font-semibold">Resolved</span>
-                                        ) : (
-                                            <span className="bg-green-100 text-green-600 px-2 py-1 rounded text-xs font-semibold">On-going</span>
-                                        )}
+                        </thead>
+                        <tbody>
+                            {pagedCases.length === 0 ? (
+                                <tr>
+                                    <td colSpan={columns.length} className="text-center py-8 text-gray-400">
+                                        No cases found.
                                     </td>
                                 </tr>
-                            ))
-                        )}
-                    </tbody>
-                </table>
+                            ) : (
+                                pagedCases.map(aCase => (
+                                    <tr
+                                        key={aCase.id}
+                                        className="hover:bg-gray-100 transition cursor-pointer"
+                                        onClick={() => openCaseModal(aCase.id)}
+                                    >
+                                        <td className="px-4 py-3 whitespace-nowrap hidden lg:table-cell">{aCase.id}</td>
+                                        <td className="px-4 py-3 whitespace-nowrap">{aCase.studentName}</td>
+                                        <td className="px-4 py-3 whitespace-nowrap hidden lg:table-cell">{aCase.studentId}</td>
+                                        <td className="px-4 py-3 whitespace-nowrap hidden lg:table-cell">{aCase.programSection}</td>
+                                        {/* Priority column */}
+                                        <td className="px-4 py-3 whitespace-nowrap">
+                                            {caseDetailsMap[aCase.id]?.caseDetails?.priority ||
+                                                caseDetailsMap[aCase.id]?.priority ||
+                                                ""}
+                                        </td>
+                                        {/* Status column */}
+                                        <td className="px-4 py-3 whitespace-nowrap">
+                                            {aCase.status === "Resolved" ? (
+                                                <span className="bg-red-100 text-red-600 px-2 py-1 rounded text-xs font-semibold">Resolved</span>
+                                            ) : (
+                                                <span className="bg-green-100 text-green-600 px-2 py-1 rounded text-xs font-semibold">On-going</span>
+                                            )}
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
 
-            </div>
-            {/* Pagination controls */}
+                </div>
+                {/* Pagination controls */}
                 <div className="w-full flex justify-center lg:justify-end items-center mt-2 pr-0 lg:pr-2">
                     <nav className="flex items-center space-x-1">
                         <button
@@ -431,7 +441,7 @@ function StudentCases() {
                         </button>
                     </nav>
                 </div>
-          </div>
+            </div>
 
             {/* Case Modal */}
             {selectedCaseId && (
@@ -544,7 +554,7 @@ function StudentCases() {
                 visible={showAddModal}
                 onClose={() => setShowAddModal(false)}
                 newCaseForm={newCaseForm}
-                onChange={setNewCaseForm}
+                onChange={handleNewCaseChange}
                 onSave={handleAddCase}
             />
         </div>

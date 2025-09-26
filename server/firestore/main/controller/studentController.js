@@ -335,7 +335,7 @@ const addStudent = async (req, res) => {
     console.error("Registration error:", error);
 
     if (req.body?.sid) {
-      await getStudentCollection().doc(req.body.sid).delete().catch(() => {});
+      await getStudentCollection().doc(req.body.sid).delete().catch(() => { });
     }
 
     res.status(500).json({ error: error.message });
@@ -449,4 +449,22 @@ const restoreStudent = async (req, res) => {
   }
 };
 
-module.exports = { addStudent, getStudents, updateStudent, getStudent, getActiveStudent, getArchivedStudent, archiveStudent, restoreStudent };
+const searchStudent = async (req, res) => {
+  try {
+    const { name } = req.query;
+    if (!name) return res.json([]);
+
+    const snapshot = await getStudentCollection()
+      .where("studentProfile.name", ">=", name)
+      .where("studentProfile.name", "<=", name + "\uf8ff")
+      .get();
+
+    const students = snapshot.docs.map(doc => doc.data());
+    res.json(students);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Search failed" });
+  }
+}
+
+module.exports = { addStudent, getStudents, updateStudent, getStudent, getActiveStudent, getArchivedStudent, archiveStudent, restoreStudent, searchStudent };

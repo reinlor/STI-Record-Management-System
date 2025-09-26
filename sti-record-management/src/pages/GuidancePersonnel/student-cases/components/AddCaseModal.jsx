@@ -1,16 +1,18 @@
-import React from 'react';
-import { X, Check, Calendar, Upload, Clock } from 'lucide-react';
-import upload from '../../../../assets/upload.png';
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { X, Check, Upload } from 'lucide-react';
+import axios from "axios";
 
 const AddCaseModal = ({ visible, onClose, newCaseForm, onChange, onSave }) => {
     if (!visible) return null;
-    const [violations, setViolations] = useState([])
+
+    const [violations, setViolations] = useState([]);
+    const [searchResults, setSearchResults] = useState([]);
+    const [isSearching, setIsSearching] = useState(false);
 
     const categories = [
         'Academic Misconduct', 'Disruptive Behavior', 'Property and Vandalism', 'Technology Misuse',
         'Substance Abuse', 'Safety and Security', 'Non-compliance with School Rules', 'Others'
-    ]
+    ];
 
     const allViolations = {
         'Academic Misconduct': ['Cheating', 'Plagiarism', 'Fabrication', 'Facilitating academic dishonesty'],
@@ -28,19 +30,55 @@ const AddCaseModal = ({ visible, onClose, newCaseForm, onChange, onSave }) => {
         setViolations(selectedViolations);
     }, [newCaseForm.counselingTypeCategory]);
 
+    const fetchStudents = async (query) => {
+        if (!query || query.length < 2) {
+            setSearchResults([]);
+            return;
+        }
+        setIsSearching(true);
+        try {
+            const res = await axios.get(`/student/search?name=${query}`);
+            setSearchResults(res.data || []);
+        } catch (error) {
+            console.error("Error fetching students:", error);
+        } finally {
+            setIsSearching(false);
+        }
+    };
+
+    const debounce = (func, delay) => {
+        let timer;
+        return (...args) => {
+            clearTimeout(timer);
+            timer = setTimeout(() => func(...args), delay);
+        };
+    };
+
+    const debouncedFetch = useCallback(debounce(fetchStudents, 500), []);
+
+    const handleStudentInput = (e) => {
+        onChange(e); 
+        debouncedFetch(e.target.value);
+    };
+
+    const handleSelectStudent = (student) => {
+        setSearchResults([]);
+        onChange({ name: "studentName", value: student.studentProfile.name });
+        onChange({ name: "studentId", value: student.sid });
+        onChange({ name: "programSection", value: `${student.studentProfile.program} ${student.studentProfile.section}` });
+    };
+
     const handleViolationInput = () => {
         const hasSpecificViolations = violations.length > 0;
-
         if (hasSpecificViolations) {
             return (
                 <div>
-                    <label htmlFor="violation" className="block text-sm font-medium text-gray-700">Violation:</label>
+                    <label className="block text-sm font-medium text-gray-700">Violation:</label>
                     <select
-                        id="violation"
                         name="violation"
                         value={newCaseForm.violation}
                         onChange={onChange}
-                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3"
                     >
                         <option value="">Select a Violation</option>
                         {violations.map((violation, index) => (
@@ -51,22 +89,28 @@ const AddCaseModal = ({ visible, onClose, newCaseForm, onChange, onSave }) => {
             );
         }
         return (
-            (newCaseForm.counselingTypeCategory != '' ? <div>
-                <label htmlFor="violation" className="block text-sm font-medium text-gray-700">Violation:</label>
-                <input type="text" id="violation" name="violation" value={newCaseForm.violation} onChange={onChange} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
-            </div>: null)
-        )
-    }
+            (newCaseForm.counselingTypeCategory !== '' ?
+                <div>
+                    <label className="block text-sm font-medium text-gray-700">Violation:</label>
+                    <input
+                        type="text"
+                        name="violation"
+                        value={newCaseForm.violation}
+                        onChange={onChange}
+                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3"
+                    />
+                </div> : null)
+        );
+    };
 
     const handleCategoryDropDown = () => (
         <div>
-            <label htmlFor="counselingTypeCategory" className="block text-sm font-medium text-gray-700">Counseling Type/Category:</label>
+            <label className="block text-sm font-medium text-gray-700">Counseling Type/Category:</label>
             <select
-                id="counselingTypeCategory"
                 name="counselingTypeCategory"
                 value={newCaseForm.counselingTypeCategory}
                 onChange={onChange}
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3"
             >
                 <option value="">Select a Category</option>
                 {categories.map((category, index) => (
@@ -88,17 +132,40 @@ const AddCaseModal = ({ visible, onClose, newCaseForm, onChange, onSave }) => {
 
                 <form className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
                     <div className="space-y-4">
+                        {/* Student Name with AutoComplete */}
+                        <div className="relative">
+                            <label className="block text-sm font-medium text-gray-700">Student Name:</label>
+                            <input
+                                type="text"
+                                name="studentName"
+                                value={newCaseForm.studentName}
+                                onChange={handleStudentInput}
+                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3"
+                                autoComplete="off"
+                            />
+                            {isSearching && <p className="text-xs text-gray-500">Searching...</p>}
+                            {searchResults.length > 0 && (
+                                <ul className="absolute bg-white border border-gray-300 rounded-md mt-1 w-full max-h-40 overflow-y-auto z-10 shadow-lg">
+                                    {searchResults.map((student, idx) => (
+                                        <li
+                                            key={idx}
+                                            onClick={() => handleSelectStudent(student)}
+                                            className="px-3 py-2 cursor-pointer hover:bg-blue-100"
+                                        >
+                                            {student.studentProfile.name}
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
+                        </div>
+
                         <div>
-                            <label htmlFor="studentName" className="block text-sm font-medium text-gray-700">Student Name:</label>
-                            <input type="text" id="studentName" name="studentName" value={newCaseForm.studentName} onChange={onChange} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
+                            <label className="block text-sm font-medium text-gray-700">Student ID:</label>
+                            <input type="text" name="studentId" value={newCaseForm.studentId} onChange={onChange} className="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3" />
                         </div>
                         <div>
-                            <label htmlFor="studentId" className="block text-sm font-medium text-gray-700">Student ID:</label>
-                            <input type="text" id="studentId" name="studentId" value={newCaseForm.studentId} onChange={onChange} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
-                        </div>
-                        <div>
-                            <label htmlFor="programSection" className="block text-sm font-medium text-gray-700">Program and Section:</label>
-                            <input type="text" id="programSection" name="programSection" value={newCaseForm.programSection} onChange={onChange} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
+                            <label className="block text-sm font-medium text-gray-700">Program and Section:</label>
+                            <input type="text" name="programSection" value={newCaseForm.programSection} onChange={onChange} className="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3" />
                         </div>
                         <div>
                             <label htmlFor="dateOfInitiation" className="block text-sm font-medium text-gray-700">Date of Initiation:</label>
@@ -108,10 +175,10 @@ const AddCaseModal = ({ visible, onClose, newCaseForm, onChange, onSave }) => {
                             <label htmlFor="timeOfInitiation" className="block text-sm font-medium text-gray-700">Time of Initiation:</label>
                             <input type="time" id="timeOfInitiation" name="timeOfInitiation" value={newCaseForm.timeOfInitiation} onChange={onChange} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
                         </div>
-                        {/* <div>
+                        <div>
                             <label htmlFor="counselingTypeCategory" className="block text-sm font-medium text-gray-700">Counseling Type/Category:</label>
                             <input type="text" id="counselingTypeCategory" name="counselingTypeCategory" value={newCaseForm.counselingTypeCategory} onChange={onChange} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
-                        </div> */}
+                        </div>
 
                         {handleCategoryDropDown()}
                         {handleViolationInput()}
@@ -129,8 +196,8 @@ const AddCaseModal = ({ visible, onClose, newCaseForm, onChange, onSave }) => {
                         </div>
                         <div>
                             <label htmlFor="dateOfAction" className="block text-sm font-medium text-gray-700">Date of Action:</label>
-                            <input type="date" id="dateOfAction" name="dateOfAction" 
-                            value={newCaseForm.dateOfAction} onChange={onChange} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+                            <input type="date" id="dateOfAction" name="dateOfAction"
+                                value={newCaseForm.dateOfAction} onChange={onChange} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
                         </div>
                         <div>
                             <label htmlFor="caseStatus" className="block text-sm font-medium text-gray-700">Case Status:</label>
