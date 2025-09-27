@@ -3,7 +3,7 @@ import axios from "axios";
 import { Send, Loader2 } from "lucide-react";
 import { ToastContainer, toast } from "react-toastify";
 
-export default function SurveyForm() {
+export default function SurveyForm({ surveyName }) {
   const [survey, setSurvey] = useState(null);
   const [responses, setResponses] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -11,18 +11,22 @@ export default function SurveyForm() {
   const [currentCategoryIndex, setCurrentCategoryIndex] = useState(0);
 
   useEffect(() => {
+    if (!surveyName) {
+      setSurvey(null);
+      return;
+    }
     const fetchSurvey = async () => {
       try {
-        const res = await axios.get("/exam/get");
+        const res = await axios.get(`/exam/survey/get/${encodeURIComponent(surveyName)}`);
         if (res.data && Array.isArray(res.data.questions)) {
           setSurvey({
-            title: res.data.title || "Wellness Survey",
+            title: surveyName,
             description: res.data.description || "",
             questions: res.data.questions,
           });
         } else {
           setSurvey({
-            title: "Wellness Survey",
+            title: surveyName,
             description: "",
             questions: [],
           });
@@ -33,7 +37,7 @@ export default function SurveyForm() {
       }
     };
     fetchSurvey();
-  }, []);
+  }, [surveyName]);
 
   // Group questions by category
   const getGroupedQuestions = () => {
@@ -62,7 +66,7 @@ export default function SurveyForm() {
         <span className="text-2xl text-gray-700 mb-4">
           No survey questions available.
         </span>
-        <span className="text-gray-500">Please contact your administrator.</span>
+        <span className="text-gray-500">Please wait for the Survey to be Released.</span>
       </div>
     );
 
@@ -96,7 +100,7 @@ export default function SurveyForm() {
             : null,
       }));
 
-      await axios.post("/exam/submit", { responses: payload });
+      await axios.post("/exam/submit", { surveyName, responses: payload });
       setSubmitted(true);
     } catch (err) {
       console.error("Failed to submit survey:", err);

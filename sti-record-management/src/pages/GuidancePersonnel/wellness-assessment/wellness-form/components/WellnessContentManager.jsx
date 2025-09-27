@@ -25,16 +25,18 @@ function WellnessContentManager({ data, theme, refreshData, surveyName }) {
     useEffect(() => {
         const fetchStatus = async () => {
             try {
-                const res = await axios.get("/exam/get");
-                if (res.data.isReleased !== undefined) {
-                    setIsReleased(res.data.isReleased);
+                if (surveyName) {
+                    const res = await axios.get(`/exam/survey/get/${encodeURIComponent(surveyName)}`);
+                    if (res.data && typeof res.data.isReleased === "boolean") {
+                        setIsReleased(res.data.isReleased);
+                    }
                 }
             } catch (err) {
                 console.error("Failed to fetch release status", err);
             }
         };
         fetchStatus();
-    }, []);
+    }, [surveyName]);
 
     const confirmToggleRelease = (newStatus) => {
         setModalAction(() => async () => {

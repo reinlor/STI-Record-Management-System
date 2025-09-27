@@ -14,6 +14,7 @@ import { AuthContext } from "../../AuthProvider.jsx";
 
 export default function StudentHomepage() {
   const [selected, setSelected] = useState("dashboard");
+  const [selectedSurveyName, setSelectedSurveyName] = useState(null);
   const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] = useState(false);
   const { authData, logout } = useContext(AuthContext);
 
@@ -21,8 +22,8 @@ export default function StudentHomepage() {
     console.log("Current Password entered:", currentPassword);
     console.log("Password changed successfully to:", newPassword);
     toast.success("Password changed successfully!");
-      //NOTE: Palitan kung pano ihandle yung password change sa backend
-      // //This is just a placeholder function
+    // NOTE: Palitan kung pano ihandle yung password change sa backend
+    // //This is just a placeholder function
   };
 
   const renderModule = () => {
@@ -32,14 +33,23 @@ export default function StudentHomepage() {
       case "profile":
         return <ProfileView />;
       case "wellness":
-        return <WellnessCheck setSelected={setSelected} />;
+        // Pass a callback to WellnessCheck to handle survey selection
+        return (
+          <WellnessCheck
+            setSelected={(surveyName) => {
+              setSelectedSurveyName(surveyName);
+              setSelected("survey");
+            }}
+          />
+        );
       case "request":
         return <StudentRequestSlip />;
       case "history":
         return <StudentViewRequest />;
       case "survey":
-        return <SurveyForm />;
-      case "notifications": // Add a new case for notifications
+        // Pass the selected survey name to SurveyForm
+        return <SurveyForm surveyName={selectedSurveyName} />;
+      case "notifications":
         return <NotificationsPage uid={authData.user.uid} />;
       default:
         return (

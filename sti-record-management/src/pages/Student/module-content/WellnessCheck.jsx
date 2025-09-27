@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 
-export default function WellnessCheck({ setSelected }) { // Accept setSelected
+export default function WellnessCheck({ setSelected }) {
   const [wellnessLink, setWellnessLink] = useState("");
+  const [releasedSurveys, setReleasedSurveys] = useState([]);
+  const [loadingSurveys, setLoadingSurveys] = useState(true);
 
   useEffect(() => {
+    // Fetch Mind Check survey link (Card 1)
     const fetchSurveyLink = async () => {
       try {
         const response = await axios.get("http://localhost:5000/content/wellness/get");
@@ -14,7 +17,28 @@ export default function WellnessCheck({ setSelected }) { // Accept setSelected
       }
     };
 
+    // Fetch released surveys for student
+    const fetchReleasedSurveys = async () => {
+      try {
+        const res = await axios.get("/exam/survey/getAll");
+        const surveys = res.data.surveys || {};
+        // Filter only released surveys
+        const released = Object.entries(surveys)
+          .filter(([_, meta]) => meta.isReleased)
+          .map(([name, meta]) => ({
+            name,
+            description: meta.description || "",
+          }));
+        setReleasedSurveys(released);
+      } catch (err) {
+        console.error("Error fetching released surveys:", err);
+      } finally {
+        setLoadingSurveys(false);
+      }
+    };
+
     fetchSurveyLink();
+    fetchReleasedSurveys();
   }, []);
 
   return (
@@ -26,8 +50,8 @@ export default function WellnessCheck({ setSelected }) { // Accept setSelected
         </h2>
 
         {/* Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Card 1: Online Survey */}
+        <div className={`grid grid-cols-1 md:grid-cols-2 gap-8`}>
+          {/* Card 1: Mind Check (Always visible) */}
           <div className="bg-gray-50 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200 p-6 flex flex-col">
             <h3 className="text-xl font-semibold text-gray-800 mb-3">Mind Check</h3>
             <p className="text-gray-600 text-sm mb-6 leading-relaxed">
@@ -47,20 +71,28 @@ export default function WellnessCheck({ setSelected }) { // Accept setSelected
             </button>
           </div>
 
-          {/* Card 2: On-Website Survey */}
-          <div className="bg-gray-50 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200 p-6 flex flex-col">
-            <h3 className="text-xl font-semibold text-gray-800 mb-3">Personality Test</h3>
-            <p className="text-gray-600 text-sm mb-6 leading-relaxed">
-              This is a placeholder description for the Personality Test.
-              Explain why a user should take this test or what it is about.
-            </p>
-            <button
-              onClick={() => setSelected("survey")}
-              className="bg-green-600 hover:bg-green-700 text-white font-medium px-5 py-2 rounded-lg self-start mt-auto transition-colors duration-200"
-            >
-              Start Test
-            </button>
-          </div>
+          {/* Dynamically render released surveys from admin */}
+          {loadingSurveys ? (
+            <div className="col-span-full text-center text-gray-500 py-8">Loading surveys...</div>
+          ) : (
+            releasedSurveys.map((survey, idx) => (
+              <div
+                key={survey.name}
+                className="bg-gray-50 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200 p-6 flex flex-col"
+              >
+                <h3 className="text-xl font-semibold text-gray-800 mb-3">{survey.name}</h3>
+                <p className="text-gray-600 text-sm mb-6 leading-relaxed">
+                  {survey.description || "No description provided."}
+                </p>
+                <button
+                  onClick={() => setSelected(survey.name)}
+                  className="bg-green-600 hover:bg-green-700 text-white font-medium px-5 py-2 rounded-lg self-start mt-auto transition-colors duration-200"
+                >
+                  Answer Survey
+                </button>
+              </div>
+            ))
+          )}
         </div>
       </div>
 
