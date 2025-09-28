@@ -313,6 +313,25 @@ function StudentList() {
         }
     };
 
+    // Restore
+    const handleRestore = async () => {
+        if (!modalStudent) return;
+        try {
+            await axios.put(`/student/restoreData/${modalStudent.id}`);
+            setStudents(students =>
+                students.map(s =>
+                    s.id === modalStudent.id ? { ...s, isArchived: false } : s
+                )
+            );
+            setShowArchiveModal(false);
+            closeStudentModal();
+            toast.success("Student restored successfully!");
+        } catch (err) {
+            toast.error("Failed to restore student.");
+        }
+    };
+
+
     // Case
     const handleCaseButton = () => {
         setShowCasesView(s => !s);
@@ -870,12 +889,17 @@ function StudentList() {
                                         {showCasesView ? "Go Back" : "Case"}
                                     </button>
                                     <button
-                                        className="flex items-center gap-1 px-3 sm:px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold text-sm sm:text-base shadow"
+                                        className={`flex items-center gap-1 px-3 sm:px-4 py-2 
+                                                    ${modalStudent.isArchived
+                                                ? "bg-green-600 hover:bg-green-700"
+                                                : "bg-red-600 hover:bg-red-700"} 
+                                                    text-white rounded-lg font-semibold text-sm sm:text-base shadow`}
                                         onClick={() => setShowArchiveModal(true)}
                                     >
                                         <FileArchive className="w-5 h-5" />
-                                        Archive
+                                        {modalStudent.isArchived ? "Restore" : "Archive"}
                                     </button>
+
                                 </div>
                             </div>
                             {/* Info type tabs under name and student number */}
@@ -937,8 +961,8 @@ function StudentList() {
                     <ArchiveConfirmModal
                         visible={showArchiveModal}
                         onCancel={() => setShowArchiveModal(false)}
-                        onConfirm={handleArchive}
-                        todo="archive"
+                        onConfirm={modalStudent?.isArchived ? handleRestore : handleArchive}
+                        todo={modalStudent?.isArchived ? "restore" : "archive"}
                     />
                 </div>
             )}

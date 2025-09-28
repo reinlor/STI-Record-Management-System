@@ -148,14 +148,18 @@ function LoginBeta() {
       }
     } catch (error) {
       setLoading(false);
-      console.error("Login Error:", error);
+      console.error("Login Error:", error.code);
 
       // Handle different errors
       if (error.code === "ECONNABORTED" || error.message.includes("Network Error")) {
         setErrorMsg("Server unreachable. Please try again later.");
       } else if (error.response) {
         setErrorMsg(error.response.data.error || "Authentication failed.");
-      } else {
+      } 
+      else if (error.code === 'auth/user-disabled'){
+        setErrorMsg('Account is Disabled')
+      }
+      else {
         setErrorMsg("The email or password might be incorrect");
       }
 

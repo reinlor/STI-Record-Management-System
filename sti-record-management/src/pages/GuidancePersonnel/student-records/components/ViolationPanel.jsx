@@ -50,9 +50,6 @@ export default function ViolationPanel({
                                 <div className="min-w-0">
                                     <div className="font-semibold text-[#0172bd] truncate">{k}</div>
                                     <div className="text-sm text-gray-600 mt-1">
-                                        {degree ? (
-                                            <span className="inline-block font-medium">Degree: </span>
-                                        ) : null}
                                         <span className="text-sm">{degree || "N/A"}</span>
                                     </div>
                                 </div>

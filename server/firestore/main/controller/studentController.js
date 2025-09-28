@@ -416,10 +416,14 @@ const archiveStudent = async (req, res) => {
     if (!doc.exists) {
       return res.status(404).json({ error: "Student not found" });
     }
+
     await studentRef.update({ isArchived: true });
 
+    // Disable Firebase Auth account
+    await admin.auth().updateUser(sid, { disabled: true });
+
     res.status(200).json({
-      message: "Student archived successfully",
+      message: "Student archived and account disabled successfully",
       id: sid,
     });
   } catch (error) {
@@ -428,6 +432,7 @@ const archiveStudent = async (req, res) => {
   }
 };
 
+// Controller Function for restoring student data
 const restoreStudent = async (req, res) => {
   try {
     const { sid } = req.params;
@@ -437,14 +442,18 @@ const restoreStudent = async (req, res) => {
     if (!doc.exists) {
       return res.status(404).json({ error: "Student not found" });
     }
+
     await studentRef.update({ isArchived: false });
 
+    // Re-enable Firebase Auth account
+    await admin.auth().updateUser(sid, { disabled: false });
+
     res.status(200).json({
-      message: "Student archived successfully",
+      message: "Student restored and account re-enabled successfully",
       id: sid,
     });
   } catch (error) {
-    console.error("Archive error:", error);
+    console.error("Restore error:", error);
     res.status(500).json({ error: error.message });
   }
 };
