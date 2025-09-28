@@ -168,186 +168,261 @@ const bulkUpload = async (req, res) => {
     const rows = [];
     worksheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
       if (rowNumber <= HEADER_ROW_INDEX) return;
-
       const student = {};
       Object.keys(headerIndexToField).forEach(col => {
         const field = headerIndexToField[col];
         const cell = row.getCell(Number(col));
         student[field] = cellValueToString(cell ? cell.value : '');
       });
-
-      if (!student.sid) return;
-      rows.push(student);
-    });
-
-    const validRows = rows.filter(r => {
-      const sid = formatSid(r.sid || '');
-      return sid && /^\d+$/.test(sid);
+      if (student.sid) rows.push(student);
     });
 
     let processed = 0;
-    let skipped = 0;
+    const added = [];
+    const updated = [];
+    const skipped = [];
 
-    for (const student of rows) {
-      const rawSid = student.sid || '';
-      const studentId = formatSid(rawSid);
-
-      if (!studentId) {
-        console.warn("Skipping student due to missing ID:", student);
-        continue;
+    const gradeLevel = (grade) => {
+      if (!grade) return '';
+      const collegeYears = ['1y1', '1y2', '2y2', '3y1', '3y2', '4y1', '4y2'];
+      const level = grade.toLowerCase();
+      if (!collegeYears.includes(level)) {
+        return grade;
+      } else {
+        return level.replaceAll('y', '.');
       }
+    };
 
-      const docRef = getStudentCollection().doc(studentId);
-      const existingDoc = await docRef.get();
+    const setAcademicLevel = (programRaw) => {
+      const program = (programRaw || '').toLowerCase();
+      const availablePrograms = ['bsit', 'bscs', 'bsba', 'bsais', 'bsa', 'bshm', 'bacomm', 'bmma', 'bstm'];
+      return availablePrograms.includes(program) ? "Tertiary" : "Senior High School";
+    };
 
-      if (existingDoc.exists) {
-        skipped++;
-        console.log(`Skipping existing student with SID: ${studentId}`);
-        continue;
-      }
-
-      const lastName = capitalizeName(student.lastName || '');
-      const firstName = capitalizeName(student.firstName || '');
-      const middleName = capitalizeName(student.middleName || '');
-
-      const formattedName = (() => {
-        if (!lastName && !firstName && !middleName) return '';
-        if (!lastName) return `${firstName}${middleName ? ' ' + middleName : ''}`.trim();
-        if (!firstName && !middleName) return lastName;
-        return `${lastName}, ${[firstName, middleName].filter(Boolean).join(' ')}`.trim();
-      })();
-
-      const birthdate = formatBirthdate(student.birthdate);
-      const email = `${lastName.replaceAll(' ', '').toLowerCase()}.${studentId.slice(5)}@dasmarinas.sti.edu.ph`
-      // For grade level value
-      const gradeLevel = (grade) => {
-        const collegeYears = ['1y1', '1y2', '2y2', '3y1', '3y2', '4y1', '4y2']
-        const level = grade.toLowerCase();
-
-        if (!collegeYears.includes(level)) {
-          return grade
-        }
-        else {
-          return level.replaceAll('y', '.')
-        }
-      }
-
-      // For status
-      const archive = () => {
-        const status = student.status.toLowerCase()
-        if (status != 'active') {
-          return true
-        }
-        else {
-          return false
-        }
-      }
-
-      // For academic Level
-      const setAcademicLevel = () => {
-        const program = student.program.toLowerCase()
-        const availablePrograms = ['bsit', 'bscs', 'bsba', 'bsais', 'bsa', 'bshm', 'bacomm', 'bmma', 'bstm']
-
-        if (availablePrograms.includes(program)) {
-          return "Tertiary"
-        } else {
-          return "Senior High School"
-        }
-      }
-
-
-      function capitalizeWords(sentence) {
-        const lowerSentence = sentence.toLowerCase();
-        const words = lowerSentence.split(' ');
-
-        const capitalizedWords = words.map(word => {
-          if (word.length === 0) {
-            return '';
-          }
-          return word.charAt(0).toUpperCase() + word.slice(1);
-        });
-
-        return capitalizedWords.join(' ');
-      }
-
-      // -- For contact info
-      // Variables for contact infos
-      let mobile = ''
-      let fatherContact = ''
-      let motherContact = ''
-      const splitContact = () => {
-        const contactTypes = student.contactType.split(/,\s*/);
-        const contactNumbers = student.contactNo.split(/,\s*/);
-
-        const contactMap = {};
-        for (let i = 0; i < contactTypes.length; i++) {
-          const type = contactTypes[i].toLowerCase();
-          const number = contactNumbers[i];
-          contactMap[type] = number;
-        }
-
-        mobile = contactMap.mobile || '';
-        fatherContact = contactMap.father || '';
-        motherContact = contactMap.mother || '';
-      };
-
-      splitContact();
-      // -- For contact Info
-
-      const doc = {
-        sid: studentId,
-        isArchived: archive(),
-        studentProfile: {
-          name: formattedName,
-          program: student.program || '',
-          gender: student.gender || '',
-          birthday: birthdate || '',
-          section: gradeLevel(student.level) || '',
-          academicLevel: setAcademicLevel(),
-        },
-        contactInfo: {
-          email: email,
-          address: {
-            currentAddress: capitalizeWords(student.address) || '',
-          },
-          contactNo: mobile
-        },
-        familyBackground: {
-          fatherInfo: {
-            contactNo: fatherContact
-          },
-          motherInfo: {
-            contactNo: motherContact
-          }
-        }
-      };
-
-      await docRef.set(doc);
-      processed++;
-
-      const userRecord = await admin.auth().createUser({
-        uid: studentId,
-        email: email,
-        password: "student1234",
-        displayName: formattedName,
+    function capitalizeWords(sentence) {
+      if (!sentence) return '';
+      const lowerSentence = sentence.toLowerCase();
+      const words = lowerSentence.split(' ');
+      const capitalizedWords = words.map(word => {
+        if (word.length === 0) return '';
+        return word.charAt(0).toUpperCase() + word.slice(1);
       });
-
-      await getUserCollection().doc(studentId).set({
-        uid: userRecord.uid,
-        displayName: formattedName,
-        email: email,
-        role: "Student",
-        isFirstLogin: true
-      });
+      return capitalizedWords.join(' ');
     }
 
+    for (const student of rows) {
+      try {
+        const rawSid = student.sid || '';
+        const studentId = formatSid(rawSid);
+        if (!studentId || !/^\d+$/.test(studentId)) {
+          skipped.push(`${rawSid || '(no sid)'} - invalid/missing SID`);
+          continue;
+        }
 
+        const docRef = getStudentCollection().doc(studentId);
+        const existingSnap = await docRef.get();
+        const existingData = existingSnap.exists ? existingSnap.data() : null;
 
-    res.json({ message: "Bulk upload processed", totalRows: validRows.length, processed, skipped });
+        const lastName = capitalizeName(student.lastName || '');
+        const firstName = capitalizeName(student.firstName || '');
+        const middleName = capitalizeName(student.middleName || '');
+        let formattedName = '';
+        if (lastName || firstName || middleName) {
+          if (!lastName) formattedName = `${firstName}${middleName ? ' ' + middleName : ''}`.trim();
+          else if (!firstName && !middleName) formattedName = lastName;
+          else formattedName = `${lastName}, ${[firstName, middleName].filter(Boolean).join(' ')}`.trim();
+        } else if (existingData && existingData.studentProfile && existingData.studentProfile.name) {
+          formattedName = existingData.studentProfile.name;
+        }
+
+        const birthdate = student.birthdate ? formatBirthdate(student.birthdate) : undefined;
+
+        const statusRaw = (student.status || '').toString().trim().toLowerCase();
+        const hasStatus = statusRaw !== '';
+        const disabledForCreateOrUpdate = hasStatus ? (statusRaw === 'inactive') : null;
+
+        const email = (lastName
+          ? `${lastName.replaceAll(' ', '').toLowerCase()}.${studentId.slice(5)}@dasmarinas.sti.edu.ph`
+          : (existingData && existingData.contactInfo && existingData.contactInfo.email) || `${studentId}@dasmarinas.sti.edu.ph`
+        );
+
+        let mobile = '';
+        let fatherContact = '';
+        let motherContact = '';
+        if (typeof student.contactType === 'string' && typeof student.contactNo === 'string') {
+          const contactTypes = student.contactType.split(/,\s*/);
+          const contactNumbers = student.contactNo.split(/,\s*/);
+          const contactMap = {};
+          for (let i = 0; i < contactTypes.length; i++) {
+            const type = (contactTypes[i] || '').toLowerCase();
+            const number = contactNumbers[i] || '';
+            contactMap[type] = number;
+          }
+          mobile = contactMap.mobile || '';
+          fatherContact = contactMap.father || '';
+          motherContact = contactMap.mother || '';
+        }
+
+        // new doc for creation
+        const newDoc = {
+          sid: studentId,
+          isArchived: hasStatus ? (statusRaw !== 'active') : false,
+          studentProfile: {
+            name: formattedName || '',
+            program: student.program || '',
+            gender: student.gender || '',
+            birthday: birthdate || '',
+            section: student.level ? gradeLevel(student.level) : '',
+            academicLevel: setAcademicLevel(student.program || ''),
+          },
+          contactInfo: {
+            email: email,
+            address: {
+              currentAddress: capitalizeWords(student.address) || '',
+            },
+            contactNo: mobile || '',
+          },
+          familyBackground: {
+            fatherInfo: { contactNo: fatherContact || '' },
+            motherInfo: { contactNo: motherContact || '' },
+          }
+        };
+
+        // For existing documents
+        const updateData = {};
+        let hadAnyChange = false;
+
+        if (lastName || firstName || middleName) {
+          updateData['studentProfile.name'] = formattedName;
+          hadAnyChange = true;
+        }
+        if (student.program) {
+          updateData['studentProfile.program'] = student.program;
+          updateData['studentProfile.academicLevel'] = setAcademicLevel(student.program);
+          hadAnyChange = true;
+        }
+        if (student.gender) {
+          updateData['studentProfile.gender'] = student.gender;
+          hadAnyChange = true;
+        }
+        if (birthdate) {
+          updateData['studentProfile.birthday'] = birthdate;
+          hadAnyChange = true;
+        }
+        if (student.level) {
+          updateData['studentProfile.section'] = gradeLevel(student.level);
+          hadAnyChange = true;
+        }
+        if (student.address) {
+          updateData['contactInfo.address.currentAddress'] = capitalizeWords(student.address);
+          hadAnyChange = true;
+        }
+        if (mobile) {
+          updateData['contactInfo.contactNo'] = mobile;
+          hadAnyChange = true;
+        }
+        if (lastName) { 
+          updateData['contactInfo.email'] = email;
+          hadAnyChange = true;
+        }
+        if (fatherContact) {
+          updateData['familyBackground.fatherInfo.contactNo'] = fatherContact;
+          hadAnyChange = true;
+        }
+        if (motherContact) {
+          updateData['familyBackground.motherInfo.contactNo'] = motherContact;
+          hadAnyChange = true;
+        }
+        if (hasStatus) {
+          updateData['isArchived'] = (statusRaw !== 'active');
+          hadAnyChange = true;
+        }
+
+        const ensureFirebaseUser = async () => {
+          let firebaseUserExists = false;
+          try {
+            await admin.auth().getUser(studentId);
+            firebaseUserExists = true;
+          } catch (e) {
+            if (e.code === 'auth/user-not-found' || e.code === 'auth/user-not-found') {
+              firebaseUserExists = false;
+            } else {
+              throw e;
+            }
+          }
+
+          if (firebaseUserExists) {
+            const userUpdate = {};
+            if (formattedName) userUpdate.displayName = formattedName;
+            if (lastName) userUpdate.email = email;
+            if (hasStatus && disabledForCreateOrUpdate !== null) userUpdate.disabled = disabledForCreateOrUpdate;
+            if (Object.keys(userUpdate).length > 0) {
+              await admin.auth().updateUser(studentId, userUpdate);
+            }
+            await getUserCollection().doc(studentId).set({
+              uid: studentId,
+              displayName: formattedName || (existingData && existingData.studentProfile && existingData.studentProfile.name) || '',
+              email: email,
+              role: "Student",
+            }, { merge: true });
+          } else {
+            const createDisabled = disabledForCreateOrUpdate === true;
+            await admin.auth().createUser({
+              uid: studentId,
+              email,
+              password: "student1234",
+              displayName: formattedName || '',
+              disabled: createDisabled,
+            });
+            await getUserCollection().doc(studentId).set({
+              uid: studentId,
+              displayName: formattedName || '',
+              email,
+              role: "Student",
+              isFirstLogin: true
+            }, { merge: true });
+          }
+        };
+
+        if (existingSnap.exists) {
+          if (Object.keys(updateData).length > 0) {
+            await docRef.update(updateData);
+          }
+          if (hasStatus) {
+            await ensureFirebaseUser();
+            updated.push(`${studentId} - ${formattedName || (existingData && existingData.studentProfile && existingData.studentProfile.name) || ''}`);
+          } else if (Object.keys(updateData).length > 0) {
+            // there were other field updates
+            updated.push(`${studentId} - ${formattedName || (existingData && existingData.studentProfile && existingData.studentProfile.name) || ''}`);
+          } else {
+          }
+        } else {
+          await docRef.set(newDoc);
+          await ensureFirebaseUser();
+          added.push(`${studentId} - ${formattedName || ''}`);
+        }
+
+        processed++;
+      } catch (rowErr) {
+        console.error(`Error processing row with sid=${student.sid}:`, rowErr);
+        skipped.push(`${student.sid || '(no sid)'} - error: ${rowErr.message || rowErr.toString()}`);
+      }
+    }
+
+    res.json({
+      message: "Bulk upload processed",
+      totalRows: rows.length,
+      processed,
+      added,
+      updated,
+      skipped
+    });
   } catch (err) {
     console.error("Bulk upload error:", err);
     res.status(500).json({ error: err.message });
   }
 };
+
+
 
 module.exports = { bulkUpload };
