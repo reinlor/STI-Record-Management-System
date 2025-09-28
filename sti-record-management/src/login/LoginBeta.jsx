@@ -20,6 +20,7 @@ function LoginBeta() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
+  const [checkingSession, setCheckingSession] = useState(true);
 
   const { login } = useContext(AuthContext);
 
@@ -60,9 +61,48 @@ function LoginBeta() {
     }
   }, [cooldown]);
 
+  // Check if a login cookie exist then proceeds to login
+  useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const response = await axios.get("/user/me", { withCredentials: true });
+        const userData = response.data.user;
+        const userRole = userData.role;
+        const userDisplayName = userData.displayName;
+
+        login(userData, userRole, userDisplayName);
+
+        if (userRole === "Admin" || userRole === "Disciplinary" || userRole === "Super Admin") {
+          navigate("/guidance", { replace: true });
+        } else if (userRole === "Teacher") {
+          navigate("/educator", { replace: true });
+        } else if (userRole === "Student") {
+          navigate("/pupil", { replace: true });
+        } else {
+          navigate("/", { replace: true });
+        }
+      } catch (error) {
+        console.log("No active session, stay on login.");
+      } finally {
+        setCheckingSession(false);
+      }
+    };
+
+    checkSession();
+  }, [login, navigate]);
+
+  if (checkingSession) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p>Loading...</p>
+      </div>
+    );
+  }
+
+
   const handleLogin = async (e) => {
     e.preventDefault();
-    if (cooldown > 0) return; // prevent login during cooldown
+    if (cooldown > 0) return;
 
     setErrorMsg("");
     setLoading(true);
