@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Send, Loader2 } from "lucide-react";
 import { ToastContainer, toast } from "react-toastify";
+import { auth } from "../../../firebaseClient";
 
 export default function SurveyForm({ surveyName }) {
   const [survey, setSurvey] = useState(null);
@@ -9,35 +10,71 @@ export default function SurveyForm({ surveyName }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [currentCategoryIndex, setCurrentCategoryIndex] = useState(0);
+  const [hasAnswered, setHasAnswered] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!surveyName) {
-      setSurvey(null);
-      return;
-    }
-    const fetchSurvey = async () => {
+    let mounted = true;
+
+    const fetchSurveyAndStatus = async () => {
       try {
-        const res = await axios.get(`/exam/survey/get/${encodeURIComponent(surveyName)}`);
-        if (res.data && Array.isArray(res.data.questions)) {
-          setSurvey({
-            title: surveyName,
-            description: res.data.description || "",
-            questions: res.data.questions,
-          });
-        } else {
-          setSurvey({
-            title: surveyName,
-            description: "",
-            questions: [],
-          });
+        // 1) Always fetch the survey definition from your existing backend route
+        //    (your server exposes: GET /exam/survey/get/:surveyName)
+        const surveyRes = await axios.get(`/exam/survey/get/${encodeURIComponent(surveyName)}`);
+        if (!mounted) return;
+        setSurvey(surveyRes.data);
+
+        // optional: if you want students to only see released surveys
+        // (your survey object has isReleased boolean)
+        if (surveyRes.data.isReleased === false) {
+          // survey exists but not released — stop here
+          setLoading(false);
+          return;
         }
+
+        // 2) If user is logged in, check whether they already answered
+        const uid = auth.currentUser?.uid;
+        if (uid) {
+          const checkRes = await axios.get(
+            `/exam/check/${encodeURIComponent(surveyName)}/${uid}`
+          );
+          if (!mounted) return;
+          setHasAnswered(Boolean(checkRes.data.hasAnswered));
+          if (checkRes.data.hasAnswered) {
+            // they've already answered — we can bail out early
+            setLoading(false);
+            return;
+          }
+        }
+
       } catch (err) {
-        console.error("Failed to load survey:", err);
-        toast.error("Failed to load survey. Please try again later.");
+        console.error("Error loading survey:", err);
+        toast.error("Failed to load survey. Please try again.");
+      } finally {
+        if (mounted) setLoading(false);
       }
     };
-    fetchSurvey();
+
+    fetchSurveyAndStatus();
+
+    return () => {
+      mounted = false;
+    };
   }, [surveyName]);
+
+
+  if (loading) return <p>Loading...</p>;
+
+  if (hasAnswered) {
+    return (
+      <div className="p-6 bg-white rounded-xl shadow text-center">
+        <h2 className="text-xl font-semibold text-green-600">✅ Survey Completed</h2>
+        <p className="text-gray-600 mt-2">
+          You’ve already submitted this survey. Thank you!
+        </p>
+      </div>
+    );
+  }
 
   // Group questions by category
   const getGroupedQuestions = () => {
@@ -100,7 +137,11 @@ export default function SurveyForm({ surveyName }) {
             : null,
       }));
 
-      await axios.post("/exam/submit", { surveyName, responses: payload });
+      await axios.post("/exam/submit", {
+        surveyName,
+        responses: payload,
+        studentId: auth.currentUser?.uid,
+      });
       setSubmitted(true);
     } catch (err) {
       console.error("Failed to submit survey:", err);
@@ -138,9 +179,9 @@ export default function SurveyForm({ surveyName }) {
         {/* Header Card */}
         <div className="bg-white p-6 rounded-lg shadow-md border-t-8 border-[#0B5793]">
           <h2 className="text-4xl font-bold text-gray-900 mb-2">
-            {survey.title}
+            {survey.title || survey.surveyName || surveyName}
           </h2>
-          <p className="text-gray-600 text-lg">{survey.description}</p>
+          <p className="text-gray-600 text-lg">{survey.description || ""}</p>
         </div>
 
         {/* Category Card */}
@@ -155,11 +196,10 @@ export default function SurveyForm({ surveyName }) {
           {questions.map((q) => (
             <div
               key={q._surveyIndex}
-              className={`bg-white rounded-lg shadow-md p-6 border transition-colors duration-200 ${
-                responses[q._surveyIndex] !== undefined
-                  ? "border-[#3473A4]"
-                  : "border-gray-200"
-              }`}
+              className={`bg-white rounded-lg shadow-md p-6 border transition-colors duration-200 ${responses[q._surveyIndex] !== undefined
+                ? "border-[#3473A4]"
+                : "border-gray-200"
+                }`}
             >
               <p className="text-lg font-bold mb-4 text-gray-800">
                 {q.question}
@@ -168,11 +208,10 @@ export default function SurveyForm({ surveyName }) {
                 {(q.options || []).map((opt, oIndex) => (
                   <label
                     key={oIndex}
-                    className={`flex items-center gap-3 p-3 border rounded-md cursor-pointer transition-colors duration-200 ${
-                      responses[q._surveyIndex] === oIndex
-                        ? "bg-[#3473A4]/10 border-[#3473A4] text-gray-900 shadow-sm"
-                        : "bg-white border-gray-200 hover:bg-gray-50"
-                    }`}
+                    className={`flex items-center gap-3 p-3 border rounded-md cursor-pointer transition-colors duration-200 ${responses[q._surveyIndex] === oIndex
+                      ? "bg-[#3473A4]/10 border-[#3473A4] text-gray-900 shadow-sm"
+                      : "bg-white border-gray-200 hover:bg-gray-50"
+                      }`}
                   >
                     <input
                       type="radio"
@@ -222,10 +261,9 @@ export default function SurveyForm({ surveyName }) {
               onClick={handleSubmit}
               disabled={isSubmitting}
               className={`py-2.5 px-6 bg-yellow-400 text-black font-semibold rounded-xl shadow-lg hover:bg-yellow-500 transform transition-all duration-200
-                ${
-                  isSubmitting
-                    ? "bg-gray-400 text-gray-600 cursor-not-allowed"
-                    : ""
+                ${isSubmitting
+                  ? "bg-gray-400 text-gray-600 cursor-not-allowed"
+                  : ""
                 }`}
             >
               {isSubmitting ? (

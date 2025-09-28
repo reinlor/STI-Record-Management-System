@@ -22,6 +22,7 @@ const demoOCRRoute = require("./modules/photo-to-text/routes/demoHTRRoute")
 const contentManagementRoute = require("./firestore/main/routes/contentManagementRoute");
 const incidentReportRoute = require("./firestore/main/routes/incidentReportRoute");
 const notificationRoute = require("./firestore/main/routes/notificationRoute")
+const surveyResponsesRoute = require("./firestore/main/routes/surveyResponseRoute")
 
 
 const app = express();
@@ -45,6 +46,7 @@ app.use("/slip", slipRoute);
 app.use("/teacher", teacherRoute);
 app.use("/referral", referralRouter);
 app.use("/exam", assessmentExam);
+app.use('/exam', surveyResponsesRoute);
 app.use("/report", assessmentReport);
 app.use("/backup", backupRoute);
 app.use("/email", emailRoute);

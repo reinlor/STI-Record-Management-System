@@ -1,34 +1,208 @@
+// client/src/wellnessSummary/WellnessSummaryReport.jsx
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 import { Bar } from "react-chartjs-2";
+import {
+    Chart as ChartJS,
+    CategoryScale,
+    LinearScale,
+    BarElement,
+    Title,
+    Tooltip,
+    Legend,
+} from "chart.js";
+import { ArrowLeft, RefreshCw, BarChart2 } from "lucide-react";
 
-function WellnessSummary({onBack}){
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
-    const chartOptions = {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: { display: false },
-        },
+export default function WellnessSummary({ onBack }) {
+    const [summaries, setSummaries] = useState([]);
+    const [selected, setSelected] = useState(null); // surveyName
+    const [detail, setDetail] = useState(null);
+    const [loading, setLoading] = useState(false);
+    const [loadingDetail, setLoadingDetail] = useState(false);
+    const [error, setError] = useState(null);
+
+    const fetchSummaries = async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            const res = await axios.get("/exam/summary/getAll");
+            setSummaries(res.data.summaries || []);
+        } catch (err) {
+            console.error(err);
+            setError("⚠️ Failed to load summaries");
+        } finally {
+            setLoading(false);
+        }
     };
 
-    return(
-        <div>
-            <button onClick={onBack}>{'<'}</button>
-            <Bar 
-                data={{
-                    labels: ['1st Question', '2nd Question', '3rd Question', '4th Question', '5th Question', '6th Question', '7th Question', '8th Question'],
-                    datasets: [{
-                        label: "Revenue",
-                        data: [100, 200, 100, 200,100, 200,100, 200]
-                    },{
-                        label: "Loss",
-                        data: [122, 31, 31, 41, 52, 32, 78, 21]
-                    }]
-                }}
-                options={chartOptions}/>
+    const fetchDetail = async (surveyName) => {
+        setLoadingDetail(true);
+        setError(null);
+        try {
+            const res = await axios.get(`/exam/summary/get/${encodeURIComponent(surveyName)}`);
+            setDetail(res.data);
+            setSelected(surveyName);
+        } catch (err) {
+            console.error(err);
+            setError("⚠️ Failed to load survey details");
+        } finally {
+            setLoadingDetail(false);
+        }
+    };
 
-            
+    useEffect(() => {
+        fetchSummaries();
+    }, []);
+
+    return (
+        <div className="p-4 md:p-8 bg-gray-50 min-h-screen">
+            {/* Header */}
+            <div className="flex items-center gap-3 mb-6">
+                <button
+                    onClick={onBack}
+                    className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white shadow hover:bg-gray-100 transition"
+                >
+                    <ArrowLeft className="w-4 h-4" /> Back
+                </button>
+                <h2 className="text-2xl md:text-3xl font-bold text-gray-800">
+                    Wellness Survey Summaries
+                </h2>
+            </div>
+
+            {/* Loading + Error */}
+            {loading && <p className="text-gray-600">Loading surveys...</p>}
+            {error && <p className="text-red-600">{error}</p>}
+
+            {/* List of surveys */}
+            {!selected && !loading && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {summaries.length === 0 && (
+                        <p className="text-gray-500">No survey submissions yet.</p>
+                    )}
+                    {summaries.map((s) => (
+                        <div
+                            key={s.surveyName}
+                            className="p-6 bg-white rounded-2xl shadow hover:shadow-lg transition cursor-pointer flex flex-col justify-between"
+                        >
+                            <div className="flex items-start gap-3">
+                                <BarChart2 className="text-indigo-600 w-6 h-6" />
+                                <div>
+                                    <h3 className="font-semibold text-lg text-gray-800">
+                                        {s.surveyName}
+                                    </h3>
+                                    <p className="text-sm text-gray-500">
+                                        Total submissions:{" "}
+                                        <span className="font-medium">{s.totalSubmissions}</span>
+                                    </p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => fetchDetail(s.surveyName)}
+                                className="mt-6 px-4 py-2 rounded-lg bg-indigo-600 text-white font-medium hover:bg-indigo-700 transition w-full"
+                            >
+                                View Details
+                            </button>
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            {/* Detailed survey view */}
+            {selected && (
+                <div>
+                    {/* Header for detail view */}
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 my-6">
+                        <div>
+                            <h3 className="text-xl md:text-2xl font-bold text-gray-800">
+                                {detail?.surveyName}
+                            </h3>
+                            <p className="text-sm text-gray-600">
+                                Total submissions:{" "}
+                                <span className="font-medium">{detail?.totalSubmissions}</span>
+                            </p>
+                        </div>
+                        <div className="flex gap-3">
+                            <button
+                                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 transition"
+                                onClick={() => {
+                                    setSelected(null);
+                                    setDetail(null);
+                                }}
+                            >
+                                <ArrowLeft className="w-4 h-4" /> Back to List
+                            </button>
+                            <button
+                                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 transition disabled:opacity-50"
+                                onClick={() => fetchDetail(selected)}
+                                disabled={loadingDetail}
+                            >
+                                <RefreshCw className="w-4 h-4" />
+                                {loadingDetail ? "Refreshing..." : "Refresh"}
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Charts */}
+                    {(detail?.questions || []).map((q, idx) => {
+                        const labels = Object.keys(q.counts || {});
+                        const data = labels.map((l) => q.counts[l]);
+                        const chartData = {
+                            labels,
+                            datasets: [
+                                {
+                                    label: `${q.totalResponses} responses`,
+                                    data,
+                                    backgroundColor: [
+                                        "#6366F1",
+                                        "#10B981",
+                                        "#F59E0B",
+                                        "#EF4444",
+                                        "#3B82F6",
+                                        "#8B5CF6",
+                                    ],
+                                    borderRadius: 6,
+                                },
+                            ],
+                        };
+                        const options = {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: false },
+                                title: { display: true, text: q.question, font: { size: 16 } },
+                            },
+                        };
+                        return (
+                            <div
+                                key={idx}
+                                className="bg-white p-6 rounded-2xl shadow mb-8"
+                            >
+                                <div className="h-72">
+                                    <Bar data={chartData} options={options} />
+                                </div>
+                                <div className="mt-4 text-sm text-gray-700">
+                                    {q.averageScore !== null ? (
+                                        <p>
+                                            <span className="font-medium">Average score:</span>{" "}
+                                            {q.averageScore}
+                                        </p>
+                                    ) : (
+                                        <p className="text-gray-500">
+                                            No numeric scores available for this question.
+                                        </p>
+                                    )}
+                                </div>
+                            </div>
+                        );
+                    })}
+
+                    {detail?.questions?.length === 0 && (
+                        <p className="text-gray-500">No question stats available.</p>
+                    )}
+                </div>
+            )}
         </div>
-    )
+    );
 }
-
-export default WellnessSummary
