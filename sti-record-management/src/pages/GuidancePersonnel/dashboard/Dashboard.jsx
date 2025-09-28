@@ -1,25 +1,30 @@
-import { useState, useEffect } from 'react';
-import axios from 'axios';
+// Dashboard.jsx
+import { useEffect, useMemo, useState } from "react";
+import axios from "axios";
 
+import StatCard from "./blocks/StatCard";
 import ViolationFrequency from "./blocks/ViolationFrequency";
-import RequestTypeFrequency from './blocks/RequestTypeFrequency';
-import Leaderboard from './blocks/Leaderboard';
+import RequestTypeFrequency from "./blocks/RequestTypeFrequency";
+import Leaderboard from "./blocks/Leaderboard";
 
-const tailwindScript = document.createElement('script');
-tailwindScript.src = 'https://cdn.tailwindcss.com';
+const tailwindScript = document.createElement("script");
+tailwindScript.src = "https://cdn.tailwindcss.com";
 document.head.appendChild(tailwindScript);
 
 const mockData = [
-  { id: 'studentCase', '2023-2024': [
-    { sid: '02000288488', name: 'Juan Dela Cruz', violation: 'Uniform Violation', section: '4A', date: '2023-10-26' },
-    { sid: 'sid2', name: 'Maria Clara', violation: 'Tardiness', section: '3B', date: '2023-10-25' },
-    { sid: '02000288488', name: 'Juan Dela Cruz', violation: 'Haircut Violation', section: '4A', date: '2023-10-24' },
-    { sid: 'sid3', name: 'Crisostomo Ibarra', violation: 'Disrespect', section: '4A', date: '2023-10-23' },
-    { sid: 'sid2', name: 'Maria Clara', violation: 'Tardiness', section: '3B', date: '2023-10-22' },
-    { sid: '02000288488', name: 'Juan Dela Cruz', violation: 'Uniform Violation', section: '4A', date: '2023-10-21' },
-    { sid: 'sid2', name: 'Maria Clara', violation: 'Tardiness', section: '3B', date: '2023-10-20' },
-  ]},
-  { id: 'slip-n-pass', '2023-2024': [] }
+    {
+        id: "studentCase",
+        "2023-2024": [
+            { sid: "02000288488", name: "Juan Dela Cruz", violation: "Uniform Violation", section: "4A", date: "2023-10-26" },
+            { sid: "sid2", name: "Maria Clara", violation: "Tardiness", section: "3B", date: "2023-10-25" },
+            { sid: "02000288488", name: "Juan Dela Cruz", violation: "Haircut Violation", section: "4A", date: "2023-10-24" },
+            { sid: "sid3", name: "Crisostomo Ibarra", violation: "Disrespect", section: "4A", date: "2023-10-23" },
+            { sid: "sid2", name: "Maria Clara", violation: "Tardiness", section: "3B", date: "2023-10-22" },
+            { sid: "02000288488", name: "Juan Dela Cruz", violation: "Uniform Violation", section: "4A", date: "2023-10-21" },
+            { sid: "sid2", name: "Maria Clara", violation: "Tardiness", section: "3B", date: "2023-10-20" },
+        ],
+    },
+    { id: "slip-n-pass", "2023-2024": [] },
 ];
 
 const App = () => {
@@ -27,67 +32,59 @@ const App = () => {
     const [allData, setAllData] = useState([]);
     const [slipData, setSlipData] = useState([]);
     const [leaderboardData, setLeaderboardData] = useState([]);
-    const [schoolYear, setSchoolYear] = useState('');
+    const [schoolYear, setSchoolYear] = useState("");
+    const [counters, setCounters] = useState({
+        students: 0,
+        cases: 0,
+        pendingSlips: 0,
+        pendingForms: 0,
+    });
+
 
     useEffect(() => {
         const fetchData = async () => {
             setIsLoading(true);
             try {
-                const response = await axios.get('/chartData/retrieve');
-                const studentDataContainer = response.data.find(item => item.id === 'studentCase');
-                const studentYearKey = Object.keys(studentDataContainer).find(key => key !== 'id');
-                const fetchedStudentData = studentDataContainer[studentYearKey] || [];
-                setAllData(fetchedStudentData);
+                const response = await axios.get("/chartData/retrieve");
+                const studentDataContainer = response.data.find((item) => item.id === "studentCase");
+                const studentYearKey = studentDataContainer && Object.keys(studentDataContainer).find((k) => k !== "id");
+                const fetchedStudentData = (studentDataContainer && studentDataContainer[studentYearKey]) || [];
+                setAllData(fetchedStudentData || []);
 
-                const slipDataContainer = response.data.find(item => item.id === 'slip-n-pass');
-                const slipYearKey = Object.keys(slipDataContainer).find(key => key !== 'id');
-                const fetchedSlipData = slipDataContainer[slipYearKey] || [];
-                setSlipData(fetchedSlipData);
+                const slipDataContainer = response.data.find((item) => item.id === "slip-n-pass");
+                const slipYearKey = slipDataContainer && Object.keys(slipDataContainer).find((k) => k !== "id");
+                const fetchedSlipData = (slipDataContainer && slipDataContainer[slipYearKey]) || [];
+                setSlipData(fetchedSlipData || []);
 
-                const schoolyear = await axios.get('/content/schoolPeriod/get')
+                const countersRes = await axios.get("/chartData/counters");
+                setCounters(countersRes.data);
+
+                const schoolyear = await axios.get("/content/schoolPeriod/get");
                 setSchoolYear(schoolyear.data.schoolYear);
 
-                console.log("Data fetched successfully from API.");
             } catch (error) {
                 console.error("Error fetching data:", error);
-                console.log("Using mock data as a fallback.");
-
-                const studentDataContainer = mockData.find(item => item.id === 'studentCase');
-                const studentYearKey = Object.keys(studentDataContainer).find(key => key !== 'id');
-                const fetchedStudentData = studentDataContainer[studentYearKey] || [];
-                setAllData(fetchedStudentData);
-
-                const slipDataContainer = mockData.find(item => item.id === 'slip-n-pass');
-                const slipYearKey = Object.keys(slipDataContainer).find(key => key !== 'id');
-                const fetchedSlipData = slipDataContainer[slipYearKey] || [];
-                setSlipData(fetchedSlipData);
             } finally {
                 setIsLoading(false);
             }
         };
+
         fetchData();
     }, []);
+
 
     useEffect(() => {
         if (allData.length > 0) {
             const violationCounts = {};
-
-            allData.forEach(entry => {
+            allData.forEach((entry) => {
                 const year = new Date(entry.date).getFullYear();
                 const currentYear = new Date().getFullYear();
 
-                // Only process violations from the current year
                 if (year !== currentYear) return;
 
                 const { sid, name, section } = entry;
-
                 if (!violationCounts[sid]) {
-                    violationCounts[sid] = {
-                        sid,
-                        name,
-                        section,
-                        violations: 0
-                    };
+                    violationCounts[sid] = { sid, name, section, violations: 0 };
                 }
                 violationCounts[sid].violations += 1;
             });
@@ -102,6 +99,41 @@ const App = () => {
         }
     }, [allData, schoolYear]);
 
+    const { uniqueStudentsCount, casesCount, pendingSlipsCount, pendingFormsCount } = useMemo(() => {
+        const today = new Date();
+        const currentYear = today.getFullYear();
+        const currentYearEntries = allData.filter((d) => {
+            try {
+                return new Date(d.date).getFullYear() === currentYear;
+            } catch {
+                return false;
+            }
+        });
+
+        const uniqueStudents = new Set(currentYearEntries.map((e) => e.sid).filter(Boolean));
+        const studentsCount = uniqueStudents.size;
+        const cases = currentYearEntries.length;
+
+        const pendingSlips = slipData && Array.isArray(slipData)
+            ? (slipData.filter((s) => s?.status === "pending").length || slipData.length)
+            : 0;
+
+        let pendingForms = 0;
+        if (Array.isArray(allData) && allData.length > 0) {
+            pendingForms =
+                allData.filter((d) => d?.formStatus === "pending").length ||
+                allData.filter((d) => d?.status === "pending").length ||
+                0;
+        }
+
+        return {
+            uniqueStudentsCount: studentsCount,
+            casesCount: cases,
+            pendingSlipsCount: pendingSlips,
+            pendingFormsCount: pendingForms,
+        };
+    }, [allData, slipData]);
+
     if (isLoading) {
         return (
             <div className="flex justify-center items-center h-screen bg-gray-100">
@@ -111,13 +143,46 @@ const App = () => {
     }
 
     return (
-        <div className="bg-[#f3f4f6] p-4 h-full">
-            <div className="grid grid-cols-1 md:grid-cols-3 md:grid-rows-2 gap-4">
-                <ViolationFrequency allData={allData} />
-                <Leaderboard leaderboardData={leaderboardData} schoolYear={schoolYear} />
-                <RequestTypeFrequency slipData={slipData} />
-                <div className="col-span-1 md:col-span-2 row-span-1 bg-white rounded-lg border border-gray-200 p-4 shadow-sm min-h-[300px]">
-                    <h2 className="text-lg font-bold mb-2 text-[#0172bd]">Other Data</h2>
+        <div className="bg-[#f3f4f6] p-4 min-h-screen">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                <StatCard
+                    title="No of student"
+                    value={counters.students}
+                    note="(New)"
+                    to="/guidance/student-records"
+                />
+                <StatCard
+                    title="No of cases"
+                    value={counters.cases}
+                    note="(New)"
+                    to="/guidance/student-cases"
+                />
+                <StatCard
+                    title="Pending Slips"
+                    value={counters.pendingSlips}
+                    note="(New)"
+                    to="/guidance/request-slip"
+                />
+                <StatCard
+                    title="Pending form"
+                    value={counters.pendingForms}
+                    note="(New)"
+                    to="/guidance/referral-form"
+                />
+            </div>
+
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="md:col-span-2">
+                    <ViolationFrequency allData={allData} />
+                </div>
+
+                <div className="md:col-span-1 md:row-span-2">
+                    <Leaderboard leaderboardData={leaderboardData} schoolYear={schoolYear} />
+                </div>
+
+                <div className="md:col-span-2">
+                    <RequestTypeFrequency slipData={slipData} />
                 </div>
             </div>
         </div>

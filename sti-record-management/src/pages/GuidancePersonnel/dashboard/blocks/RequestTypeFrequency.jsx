@@ -1,12 +1,9 @@
 import { useState, useEffect } from "react";
-import { Doughnut } from "react-chartjs-2";
-import { useNavigate } from "react-router-dom"; // <-- Import useNavigate
-
+import { Bar } from "react-chartjs-2";
+import { useNavigate } from "react-router-dom";
 
 function RequestTypeFrequency({ slipData }) {
-    const [pieChartData, setPieChartData] = useState(null);
-    const [pieTimePeriod, setPieTimePeriod] = useState('monthly');
-    const navigate = useNavigate(); // <-- Initialize navigate
+    const navigate = useNavigate();
 
     const getColor = (label) => {
         const colors = {
@@ -16,24 +13,42 @@ function RequestTypeFrequency({ slipData }) {
         return colors[label] || `hsl(${Math.random() * 360}, 70%, 50%)`;
     };
 
-    const processPieChartData = (data, period) => {
-        if (!data || data.length === 0) return null;
+    const defaultChartData = {
+        labels: ["Absent Slip", "Incident Report"],
+        datasets: [
+            {
+                label: "Request Count",
+                data: [0, 0],
+                backgroundColor: [
+                    getColor("Absent Slip"),
+                    getColor("Incident Report"),
+                ],
+                borderRadius: 6,
+            },
+        ],
+    };
+
+    const [barChartData, setBarChartData] = useState(defaultChartData);
+    const [barTimePeriod, setBarTimePeriod] = useState("monthly");
+
+    const processBarChartData = (data, period) => {
+        if (!data || data.length === 0) {
+            return defaultChartData;
+        }
 
         let filteredByDate = data;
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
-        if (period === 'daily') {
+        if (period === "daily") {
             filteredByDate = data.filter(item => {
                 const itemDate = new Date(item.date);
                 itemDate.setHours(0, 0, 0, 0);
                 return itemDate.getTime() === today.getTime();
             });
-        } else if (period === 'weekly') {
+        } else if (period === "weekly") {
             const oneWeekAgo = new Date(today);
-            oneWeekAgo.setDate(today.getDate() - 6); // include today + last 6 days
-
-            // Normalize to midnight
+            oneWeekAgo.setDate(today.getDate() - 6);
             oneWeekAgo.setHours(0, 0, 0, 0);
 
             const endOfToday = new Date(today);
@@ -43,61 +58,59 @@ function RequestTypeFrequency({ slipData }) {
                 const itemDate = new Date(item.date);
                 return itemDate >= oneWeekAgo && itemDate <= endOfToday;
             });
-        } else if (period === 'monthly') {
+        } else if (period === "monthly") {
             filteredByDate = data.filter(item => {
                 const itemDate = new Date(item.date);
-                return itemDate.getFullYear() === today.getFullYear() &&
-                    itemDate.getMonth() === today.getMonth();
+                return (
+                    itemDate.getFullYear() === today.getFullYear() &&
+                    itemDate.getMonth() === today.getMonth()
+                );
             });
-        } else if (period === 'yearly') {
+        } else if (period === "yearly") {
             filteredByDate = data.filter(item => {
                 const itemDate = new Date(item.date);
                 return itemDate.getFullYear() === today.getFullYear();
             });
-        } else { // 'total'
-            filteredByDate = data;
         }
 
-        const filteredByType = filteredByDate.filter(item =>
-            ['Absent Slip', 'Incident Report'].includes(item.type)
-        );
-
-        const counts = {};
-        filteredByType.forEach(item => {
-            counts[item.type] = (counts[item.type] || 0) + 1;
+        const counts = { "Absent Slip": 0, "Incident Report": 0 };
+        filteredByDate.forEach(item => {
+            if (counts[item.type] !== undefined) {
+                counts[item.type] += 1;
+            }
         });
 
-        const labels = Object.keys(counts);
-        const chartData = Object.values(counts);
-        const backgroundColors = labels.map(label => getColor(label));
-
         return {
-            labels: labels,
-            datasets: [{
-                data: chartData,
-                backgroundColor: backgroundColors,
-                hoverOffset: 4
-            }]
+            labels: Object.keys(counts),
+            datasets: [
+                {
+                    label: "Request Count",
+                    data: Object.values(counts),
+                    backgroundColor: Object.keys(counts).map(label => getColor(label)),
+                    borderRadius: 6,
+                },
+            ],
         };
     };
 
-    const pieChartOptions = {
+    const barChartOptions = {
         responsive: true,
         maintainAspectRatio: false,
+        indexAxis: "y",
         plugins: {
             legend: { display: false },
+        },
+        scales: {
+            x: {
+                beginAtZero: true,
+                ticks: { stepSize: 1 },
+            },
         },
     };
 
     useEffect(() => {
-        if (slipData.length > 0) {
-            setPieChartData(processPieChartData(slipData, pieTimePeriod));
-        }
-    }, [pieTimePeriod]);
-
-    const handlePieTimePeriodChange = (event) => {
-        setPieTimePeriod(event.target.value);
-    };
+        setBarChartData(processBarChartData(slipData, barTimePeriod));
+    }, [barTimePeriod, slipData]);
 
     return (
         <div className="col-span-1 md:col-span-1 row-span-1 bg-white rounded-lg border border-gray-300 p-4 shadow-sm flex flex-col min-h-[300px]">
@@ -106,8 +119,8 @@ function RequestTypeFrequency({ slipData }) {
                 <div className="relative">
                     <select
                         className="block appearance-none w-full bg-white text-[#0172bd] border border-gray-300 hover:border-gray-500 px-4 py-2 pr-8 rounded-lg shadow leading-tight focus:outline-none focus:shadow-outline text-sm cursor-pointer"
-                        value={pieTimePeriod}
-                        onChange={handlePieTimePeriodChange}
+                        value={barTimePeriod}
+                        onChange={(e) => setBarTimePeriod(e.target.value)}
                     >
                         <option value="total">Total</option>
                         <option value="yearly">This Year</option>
@@ -116,32 +129,41 @@ function RequestTypeFrequency({ slipData }) {
                         <option value="daily">This Day</option>
                     </select>
                     <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                        <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" /></svg>
+                        <svg
+                            className="fill-current h-4 w-4"
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 20 20"
+                        >
+                            <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+                        </svg>
                     </div>
                 </div>
             </div>
-            {/* Make chart area clickable */}
+
+            {/* Chart area */}
             <div
                 className="flex-1 flex items-center justify-center h-[200px] cursor-pointer hover:bg-gray-50 transition"
                 onClick={() => navigate("/guidance/request-slip")}
                 title="View Request Slips"
             >
-                {pieChartData ? (
-                    <Doughnut data={pieChartData} options={pieChartOptions} />
-                ) : (
-                    <span className="text-gray-400">No slip data available for this period.</span>
-                )}
+                <Bar data={barChartData} options={barChartOptions} />
             </div>
+
             <div className="flex flex-col gap-1 mt-4 text-xs">
-                {pieChartData && pieChartData.labels.map((label, index) => (
+                {barChartData.labels.map((label, index) => (
                     <div key={index} className="flex items-center gap-2">
-                        <span className="w-4 h-3 rounded-sm" style={{ backgroundColor: pieChartData.datasets[0].backgroundColor[index] }}></span>
+                        <span
+                            className="w-4 h-3 rounded-sm"
+                            style={{
+                                backgroundColor: barChartData.datasets[0].backgroundColor[index],
+                            }}
+                        ></span>
                         {label}
                     </div>
                 ))}
             </div>
         </div>
-    )
+    );
 }
 
 export default RequestTypeFrequency;
