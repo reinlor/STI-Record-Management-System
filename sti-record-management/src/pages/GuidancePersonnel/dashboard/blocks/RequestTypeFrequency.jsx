@@ -7,8 +7,8 @@ function RequestTypeFrequency({ slipData }) {
 
     const getColor = (label) => {
         const colors = {
-            'Absent Slip': 'rgb(75, 100, 192)',
-            'Incident Report': 'rgba(17, 240, 29, 1)',
+            'Absent Slip': 'rgba(228, 222, 6, 1)',
+            'Incident Report': 'rgb(26, 26, 46)',
         };
         return colors[label] || `hsl(${Math.random() * 360}, 70%, 50%)`;
     };
