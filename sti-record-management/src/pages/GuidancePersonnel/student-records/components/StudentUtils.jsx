@@ -108,6 +108,10 @@ export const fieldDefinitions = {
         { key: 'recentLoss', label: 'Recent Loss', type: 'text' },
         { key: 'currentConcern', label: 'Current Concern', type: 'textarea' },
     ],
+    violation: [
+        // we'll handle rendering via a custom panel, but keep a placeholder so other code doesn't break
+        { key: "violations", label: "Violations", type: "custom" }
+    ]
 };
 
 export const normalizeForUI = (raw) => {

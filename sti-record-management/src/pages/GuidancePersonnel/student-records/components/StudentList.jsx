@@ -28,6 +28,8 @@ import PhotoToTextModal from "./PhotoToTextModal";
 import ArchiveConfirmModal from "./ArchiveConfirmModal";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import ViolationPanel from "./ViolationPanel";
+import CasesTable from "./CasesTable";
 
 const STATUS_OPTIONS = [
     { value: "all", label: "All Status" },
@@ -51,15 +53,19 @@ const INFO_TYPES = [
     { key: "interests", label: "Interests" },
     { key: "health", label: "Health" },
     { key: "life", label: "Life" },
+    { key: "violation", label: "Violation" }
 ];
 
-function StudentList({ onBack }) {
+function StudentList() {
     const [students, setStudents] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
+    // Student Cases
+    const [showCasesView, setShowCasesView] = useState(false);
+
     // UI state
-    const [activeLevel, setActiveLevel] = useState("shs"); // "shs" or "college"
+    const [activeLevel, setActiveLevel] = useState("shs");
     const [search, setSearch] = useState("");
     const [selectedProgram, setSelectedProgram] = useState("all");
     const [selectedSection, setSelectedSection] = useState("all");
@@ -255,6 +261,7 @@ function StudentList({ onBack }) {
         setModalOpen(false);
         setModalStudent(null);
         setIsEditing(false);
+        setShowCasesView(false);
     };
 
     // Add Student Button Handlers
@@ -308,7 +315,9 @@ function StudentList({ onBack }) {
 
     // Case
     const handleCaseButton = () => {
-        window.location.href = `/guidance/student-cases?idSearch=${modalStudent.sid || modalStudent._id}`;
+        setShowCasesView(s => !s);
+
+        if (isEditing) setIsEditing(false);
     };
 
     // Info field change
@@ -320,6 +329,27 @@ function StudentList({ onBack }) {
             updated[category][field] = value;
             return updated;
         });
+    };
+
+    // Helper function for Violation Panel
+    const updateEditedStudent = (path, value) => {
+        setEditedStudentData((prev) => {
+            const next = JSON.parse(JSON.stringify(prev || {}));
+            const parts = path.split('.');
+            let cur = next;
+            for (let i = 0; i < parts.length - 1; i++) {
+                const p = parts[i];
+                if (cur[p] === undefined || cur[p] === null) cur[p] = {};
+                cur = cur[p];
+            }
+            cur[parts[parts.length - 1]] = value;
+            return next;
+        });
+    };
+
+    // helper to replace entire violations object on editedStudentData
+    const replaceEditedStudentViolations = (newViolations) => {
+        setEditedStudentData((prev) => ({ ...(prev || {}), violations: newViolations }));
     };
 
     // Transfer
@@ -455,6 +485,7 @@ function StudentList({ onBack }) {
                 // Life
                 "Recent Loss": info.life?.recentLoss,
                 "Current Concerns": info.life?.currentConcern,
+                // Violations
             };
         });
         const ws = XLSX.utils.json_to_sheet(excelData);
@@ -463,10 +494,6 @@ function StudentList({ onBack }) {
         XLSX.writeFile(wb, "student_list.xlsx");
         setShowDownloadForm(false);
     };
-
-    // Responsive filter layout
-    // 2x2 grid for filters on mobile/tablet, row on desktop
-    const filterGridClass = "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-2";
 
     return (
         <div className={`${grayBg} h-full flex flex-col pb-3`}>
@@ -840,7 +867,7 @@ function StudentList({ onBack }) {
                                         onClick={handleCaseButton}
                                     >
                                         <FileText className="w-5 h-5" />
-                                        Case
+                                        {showCasesView ? "Go Back" : "Case"}
                                     </button>
                                     <button
                                         className="flex items-center gap-1 px-3 sm:px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold text-sm sm:text-base shadow"
@@ -869,13 +896,25 @@ function StudentList({ onBack }) {
                         </div>
                         {/* Info Section */}
                         <div className="flex-1 overflow-y-auto custom-scrollbar w-full">
-                            <InfoSection
-                                infoType={infoType}
-                                student={normalizeForUI(isEditing ? editedStudentData : modalStudent)[infoType]}
-                                isEditing={isEditing}
-                                onFieldChange={handleFieldChange}
-                            />
-                            {isEditing && (
+                            {showCasesView ? (
+                                <CasesTable studentId={modalStudent._id || modalStudent.id || modalStudent.sid} />
+                            ) : infoType === "violation" ? (
+                                <ViolationPanel
+                                    rawStudent={isEditing ? editedStudentData : modalStudent}
+                                    isEditing={isEditing}
+                                    updateEditedStudent={updateEditedStudent}
+                                    replaceEditedStudentViolations={replaceEditedStudentViolations}
+                                />
+                            ) : (
+                                <InfoSection
+                                    infoType={infoType}
+                                    student={normalizeForUI(isEditing ? editedStudentData : modalStudent)[infoType]}
+                                    isEditing={isEditing}
+                                    onFieldChange={handleFieldChange}
+                                />
+                            )}
+
+                            {isEditing && !showCasesView && (
                                 <div className="flex gap-2 mt-6">
                                     <button
                                         className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-lg"
@@ -892,6 +931,7 @@ function StudentList({ onBack }) {
                                 </div>
                             )}
                         </div>
+
                     </div>
                     {/* Archive Confirm Modal */}
                     <ArchiveConfirmModal
