@@ -72,7 +72,7 @@ function WellnessTableList({ data, refreshData, themes }) {
             {Object.keys(groupedData).map((category) => (
                 <div
                     key={category}
-                    className="bg-white rounded-xl shadow-sm border border-gray-200 p-6"
+                    className="bg-white rounded-xl shadow-lg border border-gray-200 p-6"
                 >
                     <h2 className="text-lg font-bold text-indigo-700 border-b pb-2 mb-4">
                         {category}

@@ -17,18 +17,19 @@ function WellnessForm({ surveyName, surveyData, themes, refreshData, onBack }) {
     }
 
     return (
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-6 bg-gray-100 min-h-screen sm:px-4 md:px-8 py-4">
             {/* Back button */}
             <button
                 onClick={onBack}
-                className="self-start px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+                className="self-start px-4 py-2 rounded hover:bg-gray-300 rounded-lg shadow-md hover:bg-blue-500 bg-[#0172bd] text-white font-semibold"
             >
                 ← Back to Surveys
             </button>
 
             <div className="flex flex-col md:flex-row gap-6">
-                <div className="flex-1 bg-white rounded-2xl shadow-md p-6 overflow-y-auto">
-                    <h2 className="text-xl font-bold mb-4 text-indigo-700">{surveyName}</h2>
+                {/* Main Table List */}
+                <div className="w-full md:w-2/3 bg-white rounded-2xl shadow-md p-4 sm:p-6 overflow-y-auto border border-gray-200 shadow-lg max-h-[70vh] md:max-h-[80vh]">
+                    <h2 className="text-lg sm:text-xl font-bold mb-4 text-indigo-700">{surveyName}</h2>
                     <WellnessTableList
                         data={surveyData.questions || []}
                         refreshData={refreshData}
@@ -37,7 +38,8 @@ function WellnessForm({ surveyName, surveyData, themes, refreshData, onBack }) {
                     />
                 </div>
 
-                <div className="w-full md:w-1/3 bg-white rounded-2xl shadow-md p-6">
+                {/* Content Manager */}
+                <div className="w-full md:w-1/3 bg-white rounded-2xl shadow-md p-4 sm:p-6 mt-4 md:mt-0">
                     <WellnessContentManager
                         data={surveyData.questions || []}
                         theme={themes}

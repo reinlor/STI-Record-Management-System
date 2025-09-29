@@ -212,7 +212,6 @@ function WellnessContentManager({ data, theme, refreshData, surveyName }) {
         (selectedCategory !== "Others" || otherCategory);
 
     return (
-        <div className="min-h-screen bg-gray-50 p-6 font-sans">
             <div className="max-w-4xl mx-auto space-y-8">
                 {/* Add question card */}
                 <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
@@ -368,7 +367,6 @@ function WellnessContentManager({ data, theme, refreshData, surveyName }) {
                     onCancel={() => setModalOpen(false)}
                 />
             </div>
-        </div>
     );
 }
 

@@ -43,10 +43,10 @@ function WellnessAssessment() {
   if (error) return <div className="p-6 text-red-500">{error}</div>;
 
   return (
-    <div className="min-h-screen bg-white font-sans flex flex-col gap-6 p-4">
+    <div className="h-full font-sans flex flex-col gap-6 p-4 bg-gray-100">
       {activeMode === "list" && (
         <>
-          <div className="flex gap-4 mt-6">
+          <div className="flex gap-4">
             <button
               className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
               onClick={() => setActiveMode("summary")}

@@ -57,14 +57,15 @@ export default function WellnessSummary({ onBack }) {
     }, []);
 
     return (
-        <div className="p-4 md:p-8 bg-gray-50 min-h-screen">
+        <div className=" bg-gray-100 h-full">
+            <div className="bg-white rounded-lg shadow-lg p-4 h-full">
             {/* Header */}
             <div className="flex items-center gap-3 mb-6">
                 <button
                     onClick={onBack}
-                    className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white shadow hover:bg-gray-100 transition"
+                    className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#0172bd] shadow hover:bg-blue-500 transition text-white font-semibold text-base mr-3"
                 >
-                    <ArrowLeft className="w-4 h-4" /> Back
+                    <ArrowLeft className="w-5 h-5" /> Back
                 </button>
                 <h2 className="text-2xl md:text-3xl font-bold text-gray-800">
                     Wellness Survey Summaries
@@ -203,6 +204,7 @@ export default function WellnessSummary({ onBack }) {
                     )}
                 </div>
             )}
+        </div>
         </div>
     );
 }

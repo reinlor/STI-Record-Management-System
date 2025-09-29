@@ -78,7 +78,7 @@ function SurveyList({ surveys = {}, refreshData, onSelectSurvey }) {
     };
 
     return (
-        <div className="flex flex-wrap gap-6 p-6">
+        <div className="flex flex-wrap gap-6 p-6 bg-white h-full rounded-lg shadow-lg">
             <WellnessCard plus={true} type="addNew" setDisplay={openAddModal} />
 
             {surveyEntries.map(([name, meta]) => (
