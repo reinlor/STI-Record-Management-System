@@ -7,17 +7,17 @@ import closeB from "../../../assets/closeblack.png";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import {
-    Search,
-    User,
-    Clipboard,
-    Plus,
-    Check,
-    X,
-    Clock,
-    ChevronLeft,
-    ChevronRight,
-    FileEdit
-  } from 'lucide-react';
+  Search,
+  User,
+  Clipboard,
+  Plus,
+  Check,
+  X,
+  Clock,
+  ChevronLeft,
+  ChevronRight,
+  FileEdit
+} from 'lucide-react';
 
 const PRIORITY_LEVELS = [
   { value: "", label: "No Priority" },
@@ -34,8 +34,8 @@ const STATUS_OPTIONS = [
 
 // Add sort options
 const SORT_OPTIONS = [
-  { value: "newest", label: "Newest First" },
   { value: "oldest", label: "Oldest First" },
+  { value: "newest", label: "Newest First" },
 ];
 
 function ReferralFormProcessing() {
@@ -64,7 +64,23 @@ function ReferralFormProcessing() {
   // FILTER STATE
   const [filterStatus, setFilterStatus] = useState("");
   const [filterPriority, setFilterPriority] = useState("");
-  const [sortBy, setSortBy] = useState("newest"); // <-- Add sort state
+  const [sortBy, setSortBy] = useState("oldest"); // <-- Add sort state
+
+  // For Color Indicator
+  const getDateDifference = (dateString) => {
+    if (!dateString) return 0;
+    const refDate = new Date(dateString);
+    const today = new Date();
+    const diffTime = today - refDate;
+    return Math.floor(diffTime / (1000 * 60 * 60 * 24)); // convert ms → days
+  };
+
+  const getRowColor = (days) => {
+    if (days >= 7) return "bg-red-100";       // + 7 days
+    if (days >= 4 && days <= 6) return "bg-yellow-100"; // 4–6 days
+    if (days >= 2 && days <= 3) return "bg-blue-100";   // 1–3 days
+    return "bg-white"; // today
+  };
 
   useEffect(() => {
     const fetchReferrals = async () => {
@@ -159,8 +175,8 @@ function ReferralFormProcessing() {
   );
 
   if (!authData?.user?.access?.referralForm) {
-        return <Navigate to="/error401" replace />
-    }
+    return <Navigate to="/error401" replace />
+  }
 
   return (
     <div className="bg-gray-100 h-full p-3">
@@ -182,13 +198,34 @@ function ReferralFormProcessing() {
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-4 gap-3">
           <div className="text-left">
             <div className="flex items-center gap-2">
-            <FileEdit className="h-10 w-10 text-[#0172bd]" />
-            <p className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[#0172bd] mb-2">Referral Form Processing</p>
+              <FileEdit className="h-10 w-10 text-[#0172bd]" />
+              <p className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[#0172bd] mb-2">Referral Form Processing</p>
             </div>
-            
+
             <p className="text-gray-500 text-sm sm:text-base">View pending Referral Forms</p>
           </div>
-          
+
+          {/* Legend */}
+          {/* Color Legend */}
+          <div className="flex gap-4 items-center mb-3">
+            <div className="flex items-center gap-1">
+              <div className="w-4 h-4 bg-red-100 border border-gray-400"></div>
+              <span className="text-sm text-gray-600">More than 7 days</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-4 h-4 bg-yellow-100 border border-gray-400"></div>
+              <span className="text-sm text-gray-600">4 - 6 days</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-4 h-4 bg-blue-100 border border-gray-400"></div>
+              <span className="text-sm text-gray-600">1 - 3 days</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-4 h-4 bg-white border border-gray-400"></div>
+              <span className="text-sm text-gray-600">Today</span>
+            </div>
+          </div>
+
           <div className="flex flex-col sm:flex-row gap-2 w-full lg:w-auto">
             {/* History Button */}
             {authData?.user?.access?.referralForm && (
@@ -209,7 +246,7 @@ function ReferralFormProcessing() {
                 className="w-full border border-gray-300 rounded-lg px-4 py-2 pr-10 focus:outline-none focus:ring-1 focus:ring-[#0172bd]"
               />
               <span className="absolute right-3 top-3 text-gray-400">
-                <Search className="w-4 h-4 object-cover rounded "/>
+                <Search className="w-4 h-4 object-cover rounded " />
               </span>
             </div>
           </div>
@@ -217,7 +254,7 @@ function ReferralFormProcessing() {
 
         {/* --- FILTER ROW --- */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-auto-fit gap-4 mb-4"
-             style={{ gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))" }}>
+          style={{ gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))" }}>
           <div>
             <label className="block text-xs font-semibold text-gray-500 mb-1">Status</label>
             <select
@@ -272,16 +309,22 @@ function ReferralFormProcessing() {
             </thead>
             <tbody>
               {pagedReferrals.length > 0 ? (
-                pagedReferrals.map((ref) => (
-                    <tr key={ref.id} className="hover:bg-gray-100 transition">
-                      <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 lg:whitespace-nowrap font-semibold w-1/4">{ref.referredBy}</td>
+                pagedReferrals.map((ref) => {
+                  const days = getDateDifference(ref.preparedDate || ref.createdAt);
+                  return (
+                    <tr
+                      key={ref.id}
+                      className={`hover:bg-gray-100 transition ${getRowColor(days)}`}
+                    >
+                      <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 lg:whitespace-nowrap font-semibold w-1/4">
+                        {ref.referredBy}
+                      </td>
                       <td className="px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">{ref.employeeID}</td>
                       <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 break-words max-w-[120px] truncate align-middle">{ref.reasonForReferral}</td>
                       <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 lg:whitespace-nowrap">{ref.studentName}</td>
                       <td className="px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">{ref.preparedDate}</td>
-                      <td className={`px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto font-semibold ${
-                        ref.status === 'Resolved' ? 'text-green-600' : 'text-gray-600'
-                      }`}>
+                      <td className={`px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto font-semibold ${ref.status === 'Resolved' ? 'text-green-600' : 'text-gray-600'
+                        }`}>
                         {ref.status}
                       </td>
                       {authData?.user?.access?.referralForm && (
@@ -295,7 +338,8 @@ function ReferralFormProcessing() {
                         </td>
                       )}
                     </tr>
-                  ))
+                  );
+                })
               ) : (
                 <tr>
                   <td colSpan="7" className="text-center py-4 text-gray-500">
@@ -306,36 +350,36 @@ function ReferralFormProcessing() {
             </tbody>
           </table>
 
-          
+
         </div>
         {/* Pagination controls - OUTSIDE the scrollable table */}
-          <div className="w-full flex justify-center lg:justify-end items-center mt-2 pr-0 lg:pr-2">
-            <nav className="flex items-center space-x-1">
+        <div className="w-full flex justify-center lg:justify-end items-center mt-2 pr-0 lg:pr-2">
+          <nav className="flex items-center space-x-1">
+            <button
+              className="px-2 py-1 rounded hover:bg-gray-200 text-[#0172bd] font-bold"
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+            >
+              <ChevronLeft className="w-5 h-5 object-cover rounded" />
+            </button>
+            {Array.from({ length: totalPages }, (_, i) => (
               <button
-                className="px-2 py-1 rounded hover:bg-gray-200 text-[#0172bd] font-bold"
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
+                key={i + 1}
+                className={`px-2 py-1 rounded ${currentPage === i + 1 ? 'bg-[#0172bd] text-white' : 'hover:bg-gray-200 text-[#0172bd]'}`}
+                onClick={() => setCurrentPage(i + 1)}
               >
-                <ChevronLeft className="w-5 h-5 object-cover rounded" />
+                {i + 1}
               </button>
-              {Array.from({ length: totalPages }, (_, i) => (
-                <button
-                  key={i + 1}
-                  className={`px-2 py-1 rounded ${currentPage === i + 1 ? 'bg-[#0172bd] text-white' : 'hover:bg-gray-200 text-[#0172bd]'}`}
-                  onClick={() => setCurrentPage(i + 1)}
-                >
-                  {i + 1}
-                </button>
-              ))}
-              <button
-                className="px-2 py-1 rounded hover:bg-gray-200 text-[#0172bd] font-bold"
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages}
-              >
-                <ChevronRight className="w-5 h-5 object-cover rounded" />
-              </button>
-            </nav>
-          </div>
+            ))}
+            <button
+              className="px-2 py-1 rounded hover:bg-gray-200 text-[#0172bd] font-bold"
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+            >
+              <ChevronRight className="w-5 h-5 object-cover rounded" />
+            </button>
+          </nav>
+        </div>
       </div>
 
       {/* Modal - Responsive */}
@@ -345,9 +389,9 @@ function ReferralFormProcessing() {
             {/* Modal Header */}
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-2xl font-bold text-[#0172bd]">Referral Form</h2>
-              
+
               <div className="flex items-center gap-4">
-                
+
                 {/* --- PRIORITY DROPDOWN LEFT OF STATUS --- */}
                 <select
                   className="px-3 py-1 rounded-lg font-semibold text-xs sm:text-sm bg-gray-100 text-[#0172bd] hover:bg-blue-100"

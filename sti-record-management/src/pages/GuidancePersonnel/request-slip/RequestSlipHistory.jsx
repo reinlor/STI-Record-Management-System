@@ -82,7 +82,7 @@ function RequestSlipHistory() {
 
         // Only Approved or Rejected
         const filtered = allSlips.filter(
-          (s) => s.status === "Approved" || s.status === "Rejected"
+          (s) => s.status === "Approved" || s.status === "Denied"
         );
 
         // Sort latest → oldest

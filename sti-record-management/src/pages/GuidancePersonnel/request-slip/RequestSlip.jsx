@@ -125,7 +125,7 @@ function RequestSlip() {
   const [filterSlipType, setFilterSlipType] = useState("");
   const [filterDate, setFilterDate] = useState("");
   const [body, setBody] = useState("Please proceed to the Guidance and Counseling Office");
-  const [sortBy, setSortBy] = useState("newest");
+  const [sortBy, setSortBy] = useState("oldest");
 
   // Add state for editable remarks
   const [remarks, setRemarks] = useState("");
@@ -667,6 +667,62 @@ function RequestSlip() {
     return null;
   };
 
+  // Date Color Indication
+  const toMillisSafe = (input) => {
+    if (input == null) return null;
+
+    // if you already computed timeCreatedMs on slips, return that number
+    if (typeof input === "number") {
+      // assume it's milliseconds if large, otherwise seconds -> convert to ms
+      return input > 1e12 ? input : input * 1000;
+    }
+
+    // Date instance
+    if (input instanceof Date) return input.getTime();
+
+    // Firestore Timestamp object with toDate()
+    if (typeof input === "object" && typeof input.toDate === "function") {
+      try { return input.toDate().getTime(); } catch {  }
+    }
+
+    if (typeof input === "object" && (input.seconds !== undefined || input._seconds !== undefined)) {
+      const seconds = Number(input.seconds ?? input._seconds ?? 0);
+      const nanos = Number(input.nanoseconds ?? input._nanoseconds ?? 0);
+      return seconds * 1000 + Math.floor(nanos / 1e6);
+    }
+
+    if (typeof input === "string") {
+      const parsed = Date.parse(input);
+      if (!isNaN(parsed)) return parsed;
+
+      const cleaned = input.replace(/\s+at\s+/i, " ").replace(/\s*UTC.*$/i, "").trim();
+      const parsed2 = Date.parse(cleaned);
+      if (!isNaN(parsed2)) return parsed2;
+
+      return null;
+    }
+
+    return null;
+  };
+
+  const getDateDifference = (dateInput) => {
+    const ms = typeof dateInput === 'object' && dateInput?.timeCreatedMs
+      ? dateInput.timeCreatedMs
+      : toMillisSafe(dateInput);
+
+    if (!ms) return 0;
+    const diff = Date.now() - Number(ms);
+    if (diff < 0) return 0;
+    return Math.floor(diff / (1000 * 60 * 60 * 24));
+  };
+
+  const getRowColor = (days) => {
+    if (days >= 7) return "bg-red-100";
+    if (days >= 4 && days <= 6) return "bg-yellow-100";
+    if (days >= 2 && days <= 3) return "bg-blue-100";
+    return "bg-white";
+  };
+
   return (
     <div className="bg-gray-100 h-full p-3">
       <div className="bg-white shadow-md p-4 rounded-lg overflow-y-auto">
@@ -691,6 +747,27 @@ function RequestSlip() {
             </div>
             <p className="text-gray-500 text-sm sm:text-base">Approve/ Deny Request Slips.</p>
           </div>
+
+          {/* Color Legend */}
+          <div className="flex gap-4 items-center mb-3">
+            <div className="flex items-center gap-1">
+              <div className="w-4 h-4 bg-red-100 border border-gray-400"></div>
+              <span className="text-sm text-gray-600">More than 7 days</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-4 h-4 bg-yellow-100 border border-gray-400"></div>
+              <span className="text-sm text-gray-600">4 - 6 days</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-4 h-4 bg-blue-100 border border-gray-400"></div>
+              <span className="text-sm text-gray-600">1 - 3 days</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-4 h-4 bg-white border border-gray-400"></div>
+              <span className="text-sm text-gray-600">Today</span>
+            </div>
+          </div>
+
 
           <div className="flex flex-col sm:flex-row gap-2 w-full lg:w-auto">
             {/* History button */}
@@ -753,8 +830,8 @@ function RequestSlip() {
               value={sortBy}
               onChange={e => setSortBy(e.target.value)}
             >
-              <option value="newest">Newest First</option>
               <option value="oldest">Oldest First</option>
+              <option value="newest">Newest First</option>
             </select>
           </div>
         </div>
@@ -775,44 +852,52 @@ function RequestSlip() {
               </tr>
             </thead>
             <tbody>
-              {pagedSlipData.map((slips) => (
-                <tr key={slips._id} className="hover:bg-gray-100 transition">
-                  <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 lg:whitespace-nowrap font-semibold w-1/4">{slips.name}</td>
-                  <td className="px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">{slips.sid}</td>
-                  <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 lg:whitespace-nowrap">{slips.typeOfSlip}</td>
-                  <td className="px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">
-                    {slips.timeCreatedFormatted || formatDate(slips.timeCreated)}
-                  </td>
-                  <td
-                    className={`px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto font-semibold ${slips.status === "Approved"
+              {pagedSlipData.map((slips) => {
+                // prefer precomputed ms if available; otherwise pass original value to the parser
+                const days = getDateDifference(slips.timeCreatedMs ?? slips.timeCreated);
+
+                return (
+                  <tr
+                    key={slips._id}
+                    className={`hover:bg-gray-50 transition border-b ${getRowColor(days)}`}
+                  >
+                    <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 lg:whitespace-nowrap font-semibold w-1/4">{slips.name}</td>
+                    <td className="px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">{slips.sid}</td>
+                    <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 lg:whitespace-nowrap">{slips.typeOfSlip}</td>
+                    <td className="px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">
+                      {slips.timeCreatedFormatted || formatDate(slips.timeCreated)}
+                    </td>
+
+                    {/* STATUS badge unchanged */}
+                    <td className={`px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto font-semibold ${slips.status === "Approved"
                       ? "text-green-600"
                       : slips.status === "Rejected"
                         ? "text-red-600"
                         : "text-gray-600"
                       }`}
-                  >
-                    {slips.status}
-                  </td>
-                  {/* <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 break-words max-w-[120px] truncate align-middle" title={slips.reason}>
-                    <span className="block overflow-hidden text-ellipsis whitespace-nowrap max-w-[140px]">
-                      {slips.reason}
-                    </span>
-                  </td> */}
-                  <td className="px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">{slips.attachmentCount}</td>
-
-                  {authData?.user?.access?.requestSlip && (
-                    <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3">
-                      <button
-                        className="bg-[#0172bd] text-white font-bold px-3 sm:px-4 py-1 rounded-lg hover:bg-blue-500 transition w-full sm:w-auto"
-                        onClick={() => openSlip(slips._id)}
-                      >
-                        Open
-                      </button>
+                    >
+                      {slips.status}
                     </td>
-                  )}
-                </tr>
-              ))}
+
+                    <td className="px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">{slips.attachmentCount}</td>
+
+                    {authData?.user?.access?.requestSlip && (
+                      <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3">
+                        <button
+                          className="bg-[#0172bd] text-white font-bold px-3 sm:px-4 py-1 rounded-lg hover:bg-blue-500 transition w-full sm:w-auto"
+                          onClick={() => openSlip(slips._id)}
+                        >
+                          Open
+                        </button>
+                      </td>
+                    )}
+                  </tr>
+                );
+              })}
             </tbody>
+
+
+
           </table>
         </div>
         {/* Pagination controls - OUTSIDE the scrollable table */}
