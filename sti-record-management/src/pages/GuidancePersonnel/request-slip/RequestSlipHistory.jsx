@@ -3,18 +3,19 @@ import { useNavigate } from 'react-router-dom';
 import axios from "axios";
 import back from '../../../assets/back.png'
 import closeB from '../../../assets/closeblack.png';
+import LoadingDots from '../../../component/Loading';
 
 import {
-    Search,
-    User,
-    Clipboard,
-    Plus,
-    Check,
-    X,
-    Clock,
-    ChevronLeft,
-    ChevronRight
-  } from 'lucide-react';
+  Search,
+  User,
+  Clipboard,
+  Plus,
+  Check,
+  X,
+  Clock,
+  ChevronLeft,
+  ChevronRight
+} from 'lucide-react';
 
 // --- Reuse date helpers from RequestSlip ---
 function parseToMillis(dateInput) {
@@ -62,6 +63,7 @@ function RequestSlipHistory() {
   const [selectedSlip, setSelectedSlip] = useState(null);
   const [search, setSearch] = useState("");
   const [slipData, setSlipData] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   // PAGINATION STATE
   const [currentPage, setCurrentPage] = useState(1);
@@ -69,6 +71,7 @@ function RequestSlipHistory() {
 
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true)
       try {
         const res = await axios.get("/slip/allSlips");
         const allSlips = (res.data || []).map((slip) => {
@@ -91,6 +94,9 @@ function RequestSlipHistory() {
         setSlipData(filtered);
       } catch (error) {
         console.error("Error fetching slip history:", error.message);
+      }
+      finally {
+        setLoading(false)
       }
     };
     fetchData();
@@ -233,6 +239,10 @@ function RequestSlipHistory() {
     </tr>
   ));
 
+  if (loading) {
+    return <LoadingDots />
+  }
+
   return (
     <div className="bg-gray-100 h-full p-3">
       <div className="bg-white shadow-md p-4 rounded-lg h-full">
@@ -287,37 +297,37 @@ function RequestSlipHistory() {
             </thead>
             <tbody>{displaySlipHistoryTable}</tbody>
           </table>
-          
+
         </div>
-          {/* Pagination controls - OUTSIDE the scrollable table */}
-          <div className="w-full flex justify-center lg:justify-end items-center mt-2 pr-0 lg:pr-2">
-            <nav className="flex items-center space-x-1">
+        {/* Pagination controls - OUTSIDE the scrollable table */}
+        <div className="w-full flex justify-center lg:justify-end items-center mt-2 pr-0 lg:pr-2">
+          <nav className="flex items-center space-x-1">
+            <button
+              className="px-2 py-1 rounded hover:bg-gray-200 text-[#0172bd] font-bold"
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+            >
+              <ChevronLeft className="w-5 h-5 object-cover rounded" />
+            </button>
+            {Array.from({ length: totalPages }, (_, i) => (
               <button
-                className="px-2 py-1 rounded hover:bg-gray-200 text-[#0172bd] font-bold"
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
+                key={i + 1}
+                className={`px-2 py-1 rounded ${currentPage === i + 1 ? 'bg-[#0172bd] text-white' : 'hover:bg-gray-200 text-[#0172bd]'}`}
+                onClick={() => setCurrentPage(i + 1)}
               >
-                <ChevronLeft className="w-5 h-5 object-cover rounded" />
+                {i + 1}
               </button>
-              {Array.from({ length: totalPages }, (_, i) => (
-                <button
-                  key={i + 1}
-                  className={`px-2 py-1 rounded ${currentPage === i + 1 ? 'bg-[#0172bd] text-white' : 'hover:bg-gray-200 text-[#0172bd]'}`}
-                  onClick={() => setCurrentPage(i + 1)}
-                >
-                  {i + 1}
-                </button>
-              ))}
-              <button
-                className="px-2 py-1 rounded hover:bg-gray-200 text-[#0172bd] font-bold"
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages}
-              >
-                <ChevronRight className="w-5 h-5 object-cover rounded" />
-              </button>
-            </nav>
-          </div>
-        
+            ))}
+            <button
+              className="px-2 py-1 rounded hover:bg-gray-200 text-[#0172bd] font-bold"
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+            >
+              <ChevronRight className="w-5 h-5 object-cover rounded" />
+            </button>
+          </nav>
+        </div>
+
 
         <div>{displayRequestSlipForm()}</div>
       </div>

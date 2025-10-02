@@ -30,6 +30,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import ViolationPanel from "./ViolationPanel";
 import CasesTable from "./CasesTable";
+import LoadingDots from "../../../../component/Loading";
 
 const STATUS_OPTIONS = [
     { value: "all", label: "All Status" },
@@ -123,6 +124,7 @@ function StudentList() {
     const [currentPage, setCurrentPage] = useState(1);
     const rowsPerPage = 10;
 
+    
     // Fetch students and filter options
     useEffect(() => {
         const fetchData = async () => {
@@ -150,6 +152,10 @@ function StudentList() {
         };
         fetchData();
     }, []);
+    
+    if (loading) {
+        return <LoadingDots />
+    }
 
     // Filtering logic
     const filtered = students.filter(student => {

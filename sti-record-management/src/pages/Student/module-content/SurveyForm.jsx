@@ -3,6 +3,7 @@ import axios from "axios";
 import { Send, Loader2 } from "lucide-react";
 import { ToastContainer, toast } from "react-toastify";
 import { auth } from "../../../firebaseClient";
+import LoadingDots from "../../../component/Loading";
 
 export default function SurveyForm({ surveyName }) {
   const [survey, setSurvey] = useState(null);
@@ -63,7 +64,7 @@ export default function SurveyForm({ surveyName }) {
   }, [surveyName]);
 
 
-  if (loading) return <p>Loading...</p>;
+  if (loading) return <LoadingDots />;
 
   if (hasAnswered) {
     return (

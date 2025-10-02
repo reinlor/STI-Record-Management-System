@@ -2,6 +2,7 @@ import React, { useState, useMemo, useRef, useEffect } from "react";
 import DisplayInfo from "./DisplayInfo";
 import { Search, Loader2, X, ChevronDown, Filter, ChevronUp } from "lucide-react";
 import { getStatusClasses } from "../../Student/components/statusClasses";
+import LoadingDots from "../../../component/Loading";
 
 export default function ViewRequest({ referralData = [], isLoading = false }) {
   // UI state
@@ -341,7 +342,7 @@ export default function ViewRequest({ referralData = [], isLoading = false }) {
                   onClick={() => setFilters((p) => ({ ...p, dateRange: "All", customStart: "", customEnd: "" }))}
                   className="ml-1 text-blue-700 font-bold"
                 >
-                  <X size={12}/>
+                  <X size={12} />
                 </button>
               </span>
             )}
@@ -349,9 +350,7 @@ export default function ViewRequest({ referralData = [], isLoading = false }) {
           {/* Table */}
           <div className="overflow-x-auto rounded-lg border border-gray-200 bg-gray-50">
             {isLoading ? (
-              <div className="flex items-center justify-center h-48">
-                <Loader2 className="w-8 h-8 text-gray-400 animate-spin" />
-              </div>
+              <LoadingDots />
             ) : (
               <table className="min-w-full text-left table-auto divide-y divide-gray-200">
                 <thead className="bg-white sticky top-0 z-10">

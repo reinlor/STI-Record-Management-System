@@ -16,6 +16,19 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Pang loading animation */
+@keyframes pulseDot {
+  0%, 100% {
+    transform: scale(0.6);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+}
+
+
 a {
   font-weight: 500;
   color: #646cff;

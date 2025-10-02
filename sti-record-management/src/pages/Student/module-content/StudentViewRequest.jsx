@@ -4,6 +4,7 @@ import ViewRequestModal from "./ViewRequestModal";
 import { getStatusClasses } from "../components/statusClasses";
 import { Search, Loader2, X, ChevronDown, Filter } from "lucide-react";
 import { AuthContext } from "../../../AuthProvider.jsx";
+import LoadingDots from "../../../component/Loading.jsx";
 
 export default function StudentViewRequest() {
   const { authData } = useContext(AuthContext);
@@ -15,7 +16,7 @@ export default function StudentViewRequest() {
   const [search, setSearch] = useState("");
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
-  
+
   // State for window width to handle responsive text truncation
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 
@@ -48,7 +49,7 @@ export default function StudentViewRequest() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [showStatusDropdown]);
-  
+
   // Effect to update window width on resize for responsive logic
   useEffect(() => {
     const handleResize = () => setWindowWidth(window.innerWidth);
@@ -58,6 +59,7 @@ export default function StudentViewRequest() {
 
   // fetch slips
   useEffect(() => {
+    setLoading(true)
     const fetchData = async () => {
       if (!authData || !authData.user?.uid) {
         setRequestData([]);
@@ -94,7 +96,7 @@ export default function StudentViewRequest() {
     const d = parseToDate(val);
     return d ? d.toLocaleString() : "-";
   };
-  
+
   // Helper for text truncation
   const truncateText = (text, limit) => {
     if (!text) return "-";
@@ -254,7 +256,7 @@ export default function StudentViewRequest() {
                 <Filter size={16} />
                 Filters
               </button>
-              
+
               <button
                 onClick={() => clearFilters()}
                 className="px-3 py-2 bg-red-50 text-red-700 border border-red-100 rounded-lg text-sm hover:bg-red-100 whitespace-nowrap"
@@ -264,7 +266,7 @@ export default function StudentViewRequest() {
               </button>
             </div>
           </div>
-          
+
           {/* Filters section - conditionally rendered */}
           {/* Hidden on mobile until the button is clicked, always visible on larger screens */}
           <div className={`flex-wrap items-end gap-3 mb-4 ${showFilters ? 'flex' : 'hidden'} sm:flex`}>
@@ -345,7 +347,7 @@ export default function StudentViewRequest() {
               </select>
             </div>
           </div>
-          
+
           {/* Custom date range inputs (visible only when Custom selected) */}
           {filters.dateRange === "Custom" && showFilters && (
             <div className="flex flex-col md:flex-row gap-4 mb-4">
@@ -374,7 +376,7 @@ export default function StudentViewRequest() {
                   className="ml-1 text-yellow-700 font-bold"
                   aria-label="remove form type filter"
                 >
-                  <X size={12}/>
+                  <X size={12} />
                 </button>
               </span>
             )}
@@ -401,7 +403,7 @@ export default function StudentViewRequest() {
                   onClick={() => setFilters((p) => ({ ...p, dateRange: "All", customStart: "", customEnd: "" }))}
                   className="ml-1 text-blue-700 font-bold"
                 >
-                  <X size={12}/>
+                  <X size={12} />
                 </button>
               </span>
             )}
@@ -410,9 +412,7 @@ export default function StudentViewRequest() {
           {/* Table */}
           <div className="overflow-x-auto rounded-lg border border-gray-200 bg-gray-50">
             {loading ? (
-              <div className="flex items-center justify-center h-48">
-                <Loader2 className="w-8 h-8 text-gray-400 animate-spin" />
-              </div>
+              <LoadingDots />
             ) : (
               <table className="min-w-full text-left table-auto divide-y divide-gray-200">
                 <thead className="bg-white sticky top-0 z-10">

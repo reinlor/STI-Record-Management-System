@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Bell, Check, X, ClipboardList, Clock, ChevronLeft, ChevronRight, FilePen, FilePlus } from "lucide-react";
 import { doc, onSnapshot, updateDoc, getDoc } from "firebase/firestore";
 import { db } from "../firebaseClient";
+import LoadingDots from "./Loading";
 
 const getVisiblePageNumbers = (currentPage, totalPages, maxVisible = 5) => {
   const visiblePages = [];
@@ -23,10 +24,12 @@ const getVisiblePageNumbers = (currentPage, totalPages, maxVisible = 5) => {
 const GuidanceNotificationPage = () => {
   const [notifications, setNotifications] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [isLoading, setIsLoading] = useState(true);
   const pageSize = 10;
 
   // Load notifications from Firestore
   useEffect(() => {
+    setIsLoading(true);
     const requestRef = doc(db, "notification", "request");
     const referralRef = doc(db, "notification", "referral");
 
@@ -45,6 +48,8 @@ const GuidanceNotificationPage = () => {
         return [...requests, ...data.map((n) => ({ ...n, collectionType: "referral" }))];
       });
     });
+
+    setIsLoading(false);
 
     return () => {
       unsubscribeRequest();
@@ -82,6 +87,10 @@ const GuidanceNotificationPage = () => {
   const startIndex = (currentPage - 1) * pageSize;
   const paginatedNotifications = sortedNotifications.slice(startIndex, startIndex + pageSize);
   const visiblePages = getVisiblePageNumbers(currentPage, totalPages);
+
+  if (isLoading) {
+    return <LoadingDots />
+  }
 
   return (
     <div className="bg-gray-100 min-h-screen p-4 sm:p-6 lg:p-8">

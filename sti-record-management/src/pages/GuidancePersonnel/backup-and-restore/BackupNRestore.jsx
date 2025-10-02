@@ -5,6 +5,7 @@ import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { RefreshCcw, Clock, Database, Play } from "lucide-react";
+import LoadingDots from "../../../component/Loading";
 
 const AuthContext = React.createContext({
     authData: { user: { access: { backupRestore: { canView: true } } } },
@@ -18,17 +19,19 @@ function BackNRestore() {
     const [nextBackup, setNextBackup] = useState(null);
     const [logs, setLogs] = useState([]);
     const [isExporting, setIsExporting] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
 
     // Fetch schedule & logs from server
     useEffect(() => {
+        setIsLoading(true)
         axios.get("/backup/schedule").then((res) => {
             if (res.data?.schedule) setSchedule(res.data.schedule);
             if (res.data?.nextBackup) setNextBackup(res.data.nextBackup);
-        });
+        }).finally(() => setIsLoading(false));
 
         axios.get("/backup/logs").then((res) => {
             if (Array.isArray(res.data)) setLogs(res.data);
-        });
+        }).finally(() => setIsLoading(false));
     }, []);
 
     const handleScheduleChange = async (e) => {
@@ -64,6 +67,10 @@ function BackNRestore() {
 
     if (!authData?.user?.access?.backupRestore) {
         return <Navigate to="/error401" replace />;
+    }
+
+    if (isLoading) {
+        return <LoadingDots />
     }
 
     return (
@@ -156,8 +163,8 @@ function BackNRestore() {
                                                 <td className="p-3">
                                                     <span
                                                         className={`px-2 py-1 rounded-md text-xs font-semibold ${log.status === "success"
-                                                                ? "bg-green-100 text-green-700"
-                                                                : "bg-red-100 text-red-700"
+                                                            ? "bg-green-100 text-green-700"
+                                                            : "bg-red-100 text-red-700"
                                                             }`}
                                                     >
                                                         {log.status}
@@ -186,4 +193,3 @@ function BackNRestore() {
 }
 
 export default BackNRestore;
-    

@@ -17,6 +17,7 @@ import {
   BookOpen,
 } from "lucide-react";
 import { AuthContext } from "../../../AuthProvider.jsx";
+import LoadingDots from "../../../component/Loading.jsx";
 
 export default function ProfileView() {
   const [studentId, setStudentId] = useState(null);
@@ -822,13 +823,12 @@ export default function ProfileView() {
           />
         ) : (
           <p
-            className={`font-semibold text-gray-900 text-base whitespace-pre-wrap ${
-              isLocked ? "text-gray-500" : ""
-            }`}
+            className={`font-semibold text-gray-900 text-base whitespace-pre-wrap ${isLocked ? "text-gray-500" : ""
+              }`}
           >
             {item.value !== undefined &&
-            item.value !== null &&
-            item.value !== ""
+              item.value !== null &&
+              item.value !== ""
               ? item.value
               : "N/A"}
           </p>
@@ -897,7 +897,7 @@ export default function ProfileView() {
   let content;
   if (loading) {
     content = (
-      <div className="p-8 text-center text-gray-700 text-lg">Loading...</div>
+      <LoadingDots />
     );
   } else if (error) {
     content = (
@@ -965,18 +965,16 @@ export default function ProfileView() {
                     setSelectedCategory(categoryName);
                     setIsEditing(false);
                   }}
-                  className={`w-full text-left py-3 px-4 rounded-xl font-medium flex items-center text-sm shadow-sm hover:shadow-lg hover:-translate-y-0.5 transform transition-all duration-200 ${
-                    selectedCategory === categoryName
+                  className={`w-full text-left py-3 px-4 rounded-xl font-medium flex items-center text-sm shadow-sm hover:shadow-lg hover:-translate-y-0.5 transform transition-all duration-200 ${selectedCategory === categoryName
                       ? "bg-yellow-400 text-black shadow-lg"
                       : "text-gray-700 hover:bg-gray-200 hover:text-black"
-                  }`}
+                    }`}
                 >
                   {React.cloneElement(categories[categoryName].icon, {
-                    className: `w-5 h-5 mr-3 transition-colors duration-200 ${
-                      selectedCategory === categoryName
+                    className: `w-5 h-5 mr-3 transition-colors duration-200 ${selectedCategory === categoryName
                         ? "text-black"
                         : "text-gray-600"
-                    }`,
+                      }`,
                   })}
                   {categoryName}
                 </button>

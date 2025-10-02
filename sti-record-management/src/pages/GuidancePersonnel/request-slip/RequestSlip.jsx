@@ -7,6 +7,7 @@ import closeB from "../../../assets/closeblack.png";
 import closeW from "../../../assets/close.png";
 import checkW from "../../../assets/check.png";
 import { AuthContext } from '../../../AuthProvider.jsx';
+import LoadingDots from "../../../component/Loading.jsx";
 
 import {
   Search,
@@ -126,6 +127,7 @@ function RequestSlip() {
   const [filterDate, setFilterDate] = useState("");
   const [body, setBody] = useState("Please proceed to the Guidance and Counseling Office");
   const [sortBy, setSortBy] = useState("oldest");
+  const [loading, setLoading] = useState(true);
 
   // Add state for editable remarks
   const [remarks, setRemarks] = useState("");
@@ -183,6 +185,7 @@ function RequestSlip() {
 
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
       try {
         const res = await axios.get("/slip/allSlips");
         const allSlips = (res.data || []).map((slip) => {
@@ -198,9 +201,13 @@ function RequestSlip() {
       } catch (error) {
         console.error("Error fetching slip data:", error.message);
       }
+      finally {
+        setLoading(false)
+      }
     };
     fetchData();
   }, []);
+
 
   // --- Add sortBy state and logic ---
   const filteredSlipData = allSlipData
@@ -278,6 +285,9 @@ function RequestSlip() {
 
     // Destructure URLs here, where selectedSlip is guaranteed to exist
     const { proofUrl, excuseLetterUrl, guardianValidIDUrl, medicalCertificateUrl } = selectedSlip;
+
+
+
 
     return (
       <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-[9999]">
@@ -682,7 +692,7 @@ function RequestSlip() {
 
     // Firestore Timestamp object with toDate()
     if (typeof input === "object" && typeof input.toDate === "function") {
-      try { return input.toDate().getTime(); } catch {  }
+      try { return input.toDate().getTime(); } catch { }
     }
 
     if (typeof input === "object" && (input.seconds !== undefined || input._seconds !== undefined)) {
@@ -722,6 +732,10 @@ function RequestSlip() {
     if (days >= 2 && days <= 3) return "bg-blue-100";
     return "bg-white";
   };
+
+  if (loading) {
+    return <LoadingDots />
+  }
 
   return (
     <div className="bg-gray-100 h-full p-3">

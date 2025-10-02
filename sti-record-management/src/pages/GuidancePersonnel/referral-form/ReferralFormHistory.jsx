@@ -7,22 +7,26 @@ import {
   ChevronRight,
   X,
 } from 'lucide-react';
+import LoadingDots from '../../../component/Loading';
 
 function ReferralFormHistory() {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [selectedReferral, setSelectedReferral] = useState(null);
   const [referralData, setReferralData] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 10;
 
   useEffect(() => {
+    setLoading(true)
     axios
       .get("/referral/getAll")
       .then((res) => setReferralData(res.data))
-      .catch((err) => console.error("Error fetching list:", err.message));
+      .catch((err) => console.error("Error fetching list:", err.message))
+      .finally(() => setLoading(false));
   }, []);
 
   // Filter and pagination logic
@@ -50,9 +54,8 @@ function ReferralFormHistory() {
         <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 break-words max-w-[150px] truncate align-middle">{referrals.reasonForReferral}</td>
         <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3">{referrals.studentName}</td>
         <td className="px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">{referrals.preparedDate}</td>
-        <td className={`px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto font-semibold ${
-          referrals.status === 'Resolved' ? 'text-green-600' : 'text-red-600'
-        }`}>
+        <td className={`px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto font-semibold ${referrals.status === 'Resolved' ? 'text-green-600' : 'text-red-600'
+          }`}>
           {referrals.status}
         </td>
         <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3">
@@ -75,20 +78,20 @@ function ReferralFormHistory() {
         <div className="bg-white w-full sm:max-w-350 lg:max-w-400 rounded-lg shadow-lg overflow-y-auto max-h-[92vh] p-6 sm:p-8 relative transform transition-all duration-300 ease-out scale-100 custom-scrollbar">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-2xl font-bold text-[#0172bd]">Referral Form</h2>
-            
+
             <div className="flex items-center gap-4">
-                <span
-                    className={`font-semibold text-lg ${selectedReferral.status === 'Resolved' ? 'text-[#28a745]' : 'text-gray-500'}`}
-                  >
-                    Status: {selectedReferral.status}
-                  </span>
-              
-            <button
-              onClick={() => setSelectedReferral(null)}
-              className="text-[#0172bd] hover:text-blue-500 transition-transform hover:scale-110"
-            >
-              <X className="w-10 h-10 object-cover rounded" />
-            </button>
+              <span
+                className={`font-semibold text-lg ${selectedReferral.status === 'Resolved' ? 'text-[#28a745]' : 'text-gray-500'}`}
+              >
+                Status: {selectedReferral.status}
+              </span>
+
+              <button
+                onClick={() => setSelectedReferral(null)}
+                className="text-[#0172bd] hover:text-blue-500 transition-transform hover:scale-110"
+              >
+                <X className="w-10 h-10 object-cover rounded" />
+              </button>
             </div>
           </div>
           <hr className="mb-4" />
@@ -135,7 +138,7 @@ function ReferralFormHistory() {
                 className="w-full border border-gray-300 rounded p-2 resize-none bg-gray-50"
                 rows={10}
               />
-              
+
             </div>
           </div>
         </div>
@@ -143,42 +146,46 @@ function ReferralFormHistory() {
     );
   };
 
+  if (loading) {
+    return <LoadingDots />
+  }
+
   return (
     <div className="bg-gray-100 h-full p-3">
-          <div className="bg-white shadow-md p-4 rounded-lg h-full">
-            {/* Header */}
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-4 gap-3">
-              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
-                <div className="text-left">
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => navigate(-1)}
-                      style={{ cursor: 'pointer' }}
-                      className='flex items-top justify-top hover:bg-gray-300 transition duration-200 rounded'
-                    >
-                      <ChevronLeft className="w-10 h-10 object-cover rounded text-[#0172bd] " />
-                    </button>
-                    <p className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[#0172bd] mb-2">Referral Forms History</p>
-                  </div>
-                  <p className="text-gray-500 text-sm sm:text-base ">View Resolved Referral Forms</p>
-                </div>
+      <div className="bg-white shadow-md p-4 rounded-lg h-full">
+        {/* Header */}
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-4 gap-3">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+            <div className="text-left">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => navigate(-1)}
+                  style={{ cursor: 'pointer' }}
+                  className='flex items-top justify-top hover:bg-gray-300 transition duration-200 rounded'
+                >
+                  <ChevronLeft className="w-10 h-10 object-cover rounded text-[#0172bd] " />
+                </button>
+                <p className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[#0172bd] mb-2">Referral Forms History</p>
               </div>
-              {/* Search Bar */}
-              <div className="flex flex-col sm:flex-row gap-2 w-full lg:w-auto">
-                <div className="relative w-full sm:w-64">
-                  <input
-                    type="text"
-                    placeholder="Name/ ID"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg px-4 py-2 pr-10 focus:outline-none focus:ring-1 focus:ring-[#0172bd]"
-                  />
-                  <span className="absolute right-3 top-3 text-gray-400">
-                    <Search className="w-4 h-4" />
-                  </span>
-                </div>
-              </div>
+              <p className="text-gray-500 text-sm sm:text-base ">View Resolved Referral Forms</p>
             </div>
+          </div>
+          {/* Search Bar */}
+          <div className="flex flex-col sm:flex-row gap-2 w-full lg:w-auto">
+            <div className="relative w-full sm:w-64">
+              <input
+                type="text"
+                placeholder="Name/ ID"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full border border-gray-300 rounded-lg px-4 py-2 pr-10 focus:outline-none focus:ring-1 focus:ring-[#0172bd]"
+              />
+              <span className="absolute right-3 top-3 text-gray-400">
+                <Search className="w-4 h-4" />
+              </span>
+            </div>
+          </div>
+        </div>
 
         <div className="bg-white rounded-lg shadow-md overflow-y-auto custom-scrollbar h-auto">
           <table className="w-full text-left">
@@ -198,38 +205,38 @@ function ReferralFormHistory() {
             </tbody>
 
           </table>
-          
+
           <div>{displayReferralData()}</div>
-          
+
         </div>
         {/* Pagination controls */}
-          <div className="w-full flex justify-center lg:justify-end items-center mt-2 pr-0 lg:pr-2">
-            <nav className="flex items-center space-x-1">
+        <div className="w-full flex justify-center lg:justify-end items-center mt-2 pr-0 lg:pr-2">
+          <nav className="flex items-center space-x-1">
+            <button
+              className="px-2 py-1 rounded hover:bg-gray-200 text-[#0172bd] font-bold"
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+            >
+              <ChevronLeft className="w-5 h-5 object-cover rounded" />
+            </button>
+            {Array.from({ length: totalPages }, (_, i) => (
               <button
-                className="px-2 py-1 rounded hover:bg-gray-200 text-[#0172bd] font-bold"
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
+                key={i + 1}
+                className={`px-2 py-1 rounded ${currentPage === i + 1 ? 'bg-[#0172bd] text-white' : 'hover:bg-gray-200 text-[#0172bd]'}`}
+                onClick={() => setCurrentPage(i + 1)}
               >
-                <ChevronLeft className="w-5 h-5 object-cover rounded" />
+                {i + 1}
               </button>
-              {Array.from({ length: totalPages }, (_, i) => (
-                <button
-                  key={i + 1}
-                  className={`px-2 py-1 rounded ${currentPage === i + 1 ? 'bg-[#0172bd] text-white' : 'hover:bg-gray-200 text-[#0172bd]'}`}
-                  onClick={() => setCurrentPage(i + 1)}
-                >
-                  {i + 1}
-                </button>
-              ))}
-              <button
-                className="px-2 py-1 rounded hover:bg-gray-200 text-[#0172bd] font-bold"
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages}
-              >
-                <ChevronRight className="w-5 h-5 object-cover rounded" />
-              </button>
-            </nav>
-          </div>
+            ))}
+            <button
+              className="px-2 py-1 rounded hover:bg-gray-200 text-[#0172bd] font-bold"
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+            >
+              <ChevronRight className="w-5 h-5 object-cover rounded" />
+            </button>
+          </nav>
+        </div>
       </div>
     </div>
   );

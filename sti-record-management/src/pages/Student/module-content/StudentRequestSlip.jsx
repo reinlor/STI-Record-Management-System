@@ -15,6 +15,7 @@ import {
 import { AuthContext } from "../../../AuthProvider.jsx";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import LoadingDots from "../../../component/Loading.jsx";
 
 export default function StudentRequestSlip() {
   const [activeSlip, setActiveSlip] = useState("Absent");
@@ -227,9 +228,7 @@ export default function StudentRequestSlip() {
 
   if (!student) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-100">
-        <span className="text-gray-500 text-lg">Loading student info...</span>
-      </div>
+      <LoadingDots />
     );
   }
   return (

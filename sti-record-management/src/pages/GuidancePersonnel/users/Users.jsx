@@ -17,6 +17,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 import { Search, Plus, Archive, Users as UserIcon } from 'lucide-react';
+import LoadingDots from '../../../component/Loading';
 
 export default function Users() {
   const [mockUsers, setMockUsers] = useState([]);
@@ -25,6 +26,7 @@ export default function Users() {
   const [showUserEditModal, setShowUserEditModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [showArchived, setShowArchived] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const [newUser, setNewUser] = useState({
     name: '',
@@ -39,6 +41,7 @@ export default function Users() {
 
   // Fetch users from server and transform to UI model
   const fetchUsers = async () => {
+    setLoading(true);
     try {
       const res = await axios.get('/user/');
       const users = (Array.isArray(res.data) ? res.data : []).map((u) => {
@@ -61,11 +64,18 @@ export default function Users() {
     } catch (err) {
       console.error('Failed to fetch users', err);
     }
+    finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
     fetchUsers();
   }, []);
+
+  if (loading) {
+    return <LoadingDots />
+  }
 
   const filteredUsers = mockUsers.filter(
     (user) =>

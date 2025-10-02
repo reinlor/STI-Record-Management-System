@@ -6,6 +6,7 @@ import StatCard from "./blocks/StatCard";
 import ViolationFrequency from "./blocks/ViolationFrequency";
 import RequestTypeFrequency from "./blocks/RequestTypeFrequency";
 import Leaderboard from "./blocks/Leaderboard";
+import Loading from "../../../component/Loading";
 
 const tailwindScript = document.createElement("script");
 tailwindScript.src = "https://cdn.tailwindcss.com";
@@ -135,11 +136,7 @@ const App = () => {
     }, [allData, slipData]);
 
     if (isLoading) {
-        return (
-            <div className="flex justify-center items-center h-screen bg-gray-100">
-                <div className="text-gray-500 text-lg font-medium">Loading dashboard data...</div>
-            </div>
-        );
+        return <Loading/>
     }
 
     return (

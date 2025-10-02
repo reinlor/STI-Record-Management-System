@@ -24,6 +24,7 @@ import QuickLinksPanel from "./components/QuickLinksPanel";
 import AddProgramModal from "./components/AddProgramModal";
 import AddQuickLinkModal from "./components/AddQuickLinkModal";
 import AddViolationModal from "./components/AddViolationModal";
+import LoadingDots from "../../../component/Loading";
 
 const PANEL = {
     ANNOUNCEMENT: "announcement",
@@ -57,6 +58,7 @@ export default function ContentManagement() {
     const [tempSchoolYearData, setTempSchoolYearData] = useState({ ...schoolYearData });
     const [isQuickLinkModalOpen, setIsQuickLinkModalOpen] = useState(false);
     const [isViolationModalOpen, setIsViolationModalOpen] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
 
     // Mock API endpoint
     const API = "/content";
@@ -70,6 +72,7 @@ export default function ContentManagement() {
     // Fetch mock data
     useEffect(() => {
         const fetchData = async () => {
+            setIsLoading(true)
             try {
                 const response = await axios.get(`${API}/getAll`)
 
@@ -84,6 +87,9 @@ export default function ContentManagement() {
                 setTempWellnessLink(response.data[7].wellness.link);
             } catch (error) {
                 console.error("Error fetching content management data:", error);
+            }
+            finally {
+                setIsLoading(false)
             }
         };
         fetchData();
@@ -227,6 +233,10 @@ export default function ContentManagement() {
         { key: PANEL.QUICKLINKS, label: "Quick Links & Resources", icon: <FileText className="w-5 h-5" /> },
         { key: PANEL.WELLNESS, label: "Wellness Link", icon: <Link2 className="w-5 h-5" /> },
     ];
+
+    if (isLoading) {
+        return <LoadingDots />
+    }
 
     return (
         <div className="flex flex-col h-full bg-gray-100 p-2 md:p-4 gap-4 font-sans">

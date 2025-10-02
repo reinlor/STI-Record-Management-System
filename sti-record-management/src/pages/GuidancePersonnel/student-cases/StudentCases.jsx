@@ -25,6 +25,7 @@ import {
     serverViolationToUIDetails,
     uiDetailsToServerPayload,
 } from "./components/CaseUtils.jsx";
+import LoadingDots from "../../../component/Loading.jsx";
 
 const TABS = [
     { value: "On-going", label: "On-going", icon: <Clock className="w-5 h-5 ml-1" /> },
@@ -52,6 +53,7 @@ function StudentCases() {
     const [infoType, setInfoType] = useState("caseDetails");
     const [editedCaseData, setEditedCaseData] = useState(null);
     const [activeLevel, setActiveLevel] = useState("shs"); // <-- Add this line
+    const [loading, setLoading] = useState(true);
 
     // Add Case Form
     const [newCaseForm, setNewCaseForm] = useState({
@@ -110,6 +112,8 @@ function StudentCases() {
                 setCases([]);
                 setCaseDetailsMap({});
             }
+            finally {
+            }
         };
         fetchCases();
     }, []);
@@ -143,8 +147,14 @@ function StudentCases() {
 
     // Reset to page 1 if filter/search changes and currentPage is out of bounds
     useEffect(() => {
+        setLoading(true)
         if (currentPage > totalPages) setCurrentPage(1);
+        setLoading(false)
     }, [totalPages, currentPage]);
+
+    if (loading) {
+        return <LoadingDots />
+    }
 
     // Modal handlers
     const openCaseModal = (caseId) => {

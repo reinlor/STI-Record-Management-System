@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Bell, Check, X, ClipboardList, Clock, ChevronLeft, ChevronRight } from "lucide-react";
 import { doc, onSnapshot, updateDoc } from "firebase/firestore";
 import { db } from "../firebaseClient";
+import LoadingDots from './Loading';
 
 // function for smart pagination
 const getVisiblePageNumbers = (currentPage, totalPages, maxVisible = 5) => {
@@ -33,10 +34,12 @@ const getVisiblePageNumbers = (currentPage, totalPages, maxVisible = 5) => {
   return visiblePages;
 };
 
-const NotificationsPage = ({ uid = "02000288488" }) => {
+const NotificationsPage = ({ uid }) => {
   const [notifications, setNotifications] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    setIsLoading(true);
     if (!uid) return;
     const docRef = doc(db, "notification", "student");
 
@@ -48,6 +51,7 @@ const NotificationsPage = ({ uid = "02000288488" }) => {
       }
     });
 
+    setIsLoading(false)
     return () => unsubscribe();
   }, [uid]);
 
@@ -99,6 +103,10 @@ const NotificationsPage = ({ uid = "02000288488" }) => {
   const startIndex = (currentPage - 1) * pageSize;
   const paginatedNotifications = sortedNotifications.slice(startIndex, startIndex + pageSize);
   const visiblePages = getVisiblePageNumbers(currentPage, totalPages);
+
+  if (isLoading) {
+    return <LoadingDots />
+  }
 
   return (
     <div className="bg-gray-100 min-h-screen p-4 sm:p-6 lg:p-8">

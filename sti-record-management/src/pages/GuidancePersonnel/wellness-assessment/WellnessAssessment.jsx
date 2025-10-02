@@ -3,6 +3,7 @@ import axios from "axios";
 import SurveyList from "./wellness-form/SurveyList";
 import WellnessForm from "./wellness-form/WellnessForm";
 import WellnessSummary from "./wellnessSummary/WellnessSummaryReport";
+import LoadingDots from "../../../component/Loading";
 
 function WellnessAssessment() {
   const [isLoading, setIsLoading] = useState(false);
@@ -39,7 +40,7 @@ function WellnessAssessment() {
     setActiveMode("list");
   };
 
-  if (isLoading) return <div className="p-6">Loading...</div>;
+  if (isLoading) return <LoadingDots />;
   if (error) return <div className="p-6 text-red-500">{error}</div>;
 
   return (

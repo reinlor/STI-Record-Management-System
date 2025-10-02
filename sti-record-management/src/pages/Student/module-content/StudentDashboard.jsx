@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Megaphone, BookOpen, Heart } from "lucide-react";
 import axios from "axios";
+import LoadingDots from '../../../component/Loading'
 
 export default function StudentDashboard() {
   const [announcements, setAnnouncements] = useState([]);
@@ -13,6 +14,7 @@ export default function StudentDashboard() {
 
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true)
       try {
         const announcementsRes = await axios.get(
           "http://localhost:5000/content/announcement/get"
@@ -73,13 +75,7 @@ export default function StudentDashboard() {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-yellow-100 to-gray-100 font-sans">
-        <p className="text-gray-600 text-lg animate-pulse">
-          Loading dashboard...
-        </p>
-      </div>
-    );
+    return <LoadingDots />
   }
 
   if (error) {

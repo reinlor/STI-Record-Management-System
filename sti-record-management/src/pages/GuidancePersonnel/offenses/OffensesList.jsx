@@ -3,6 +3,7 @@ import axios from "axios";
 import OffensesTab from "./OffensesTab";
 import OffenseDisplay from "./OffenseDisplay";
 import { toast } from "react-toastify";
+import LoadingDots from "../../../component/Loading";
 
 function OffensesList() {
     const [offenses, setOffenses] = useState([]);
@@ -43,7 +44,7 @@ function OffensesList() {
 
     return (
         <div className="w-full min-h-screen bg-gray-50 px-4 sm:px-6 lg:px-8 py-6">
-            {loading && <p className="text-gray-500">Loading offenses...</p>}
+            {loading && <LoadingDots />}
             {error && <p className="text-red-500">{error}</p>}
 
             {!selectedOffense && (

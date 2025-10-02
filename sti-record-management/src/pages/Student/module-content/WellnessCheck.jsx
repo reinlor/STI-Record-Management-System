@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import LoadingDots from "../../../component/Loading";
 
 export default function WellnessCheck({ setSelected }) {
   const [wellnessLink, setWellnessLink] = useState("");
@@ -19,6 +20,7 @@ export default function WellnessCheck({ setSelected }) {
 
     // Fetch released surveys for student
     const fetchReleasedSurveys = async () => {
+      setLoadingSurveys(true)
       try {
         const res = await axios.get("/exam/survey/getAll");
         const surveys = res.data.surveys || {};
@@ -61,11 +63,10 @@ export default function WellnessCheck({ setSelected }) {
             <button
               disabled={!wellnessLink}
               onClick={() => window.open(wellnessLink, "_blank")}
-              className={`${
-                wellnessLink
-                  ? "bg-blue-600 hover:bg-blue-700"
-                  : "bg-gray-400 cursor-not-allowed"
-              } text-white font-medium px-5 py-2 rounded-lg self-start mt-auto transition-colors duration-200`}
+              className={`${wellnessLink
+                ? "bg-blue-600 hover:bg-blue-700"
+                : "bg-gray-400 cursor-not-allowed"
+                } text-white font-medium px-5 py-2 rounded-lg self-start mt-auto transition-colors duration-200`}
             >
               {wellnessLink ? "Go to Survey" : "Loading..."}
             </button>
@@ -73,7 +74,7 @@ export default function WellnessCheck({ setSelected }) {
 
           {/* Dynamically render released surveys from admin */}
           {loadingSurveys ? (
-            <div className="col-span-full text-center text-gray-500 py-8">Loading surveys...</div>
+            <LoadingDots />
           ) : (
             releasedSurveys.map((survey, idx) => (
               <div

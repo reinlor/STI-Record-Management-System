@@ -12,6 +12,7 @@ import {
     Legend,
 } from "chart.js";
 import { ArrowLeft, RefreshCw, BarChart2 } from "lucide-react";
+import LoadingDots from "../../../../component/Loading";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
@@ -59,152 +60,152 @@ export default function WellnessSummary({ onBack }) {
     return (
         <div className=" bg-gray-100 h-full">
             <div className="bg-white rounded-lg shadow-lg p-4 h-full">
-            {/* Header */}
-            <div className="flex items-center gap-3 mb-6">
-                <button
-                    onClick={onBack}
-                    className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#0172bd] shadow hover:bg-blue-500 transition text-white font-semibold text-base mr-3"
-                >
-                    <ArrowLeft className="w-5 h-5" /> Back
-                </button>
-                <h2 className="text-2xl md:text-3xl font-bold text-gray-800">
-                    Wellness Survey Summaries
-                </h2>
-            </div>
-
-            {/* Loading + Error */}
-            {loading && <p className="text-gray-600">Loading surveys...</p>}
-            {error && <p className="text-red-600">{error}</p>}
-
-            {/* List of surveys */}
-            {!selected && !loading && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {summaries.length === 0 && (
-                        <p className="text-gray-500">No survey submissions yet.</p>
-                    )}
-                    {summaries.map((s) => (
-                        <div
-                            key={s.surveyName}
-                            className="p-6 bg-white rounded-2xl shadow hover:shadow-lg transition cursor-pointer flex flex-col justify-between"
-                        >
-                            <div className="flex items-start gap-3">
-                                <BarChart2 className="text-indigo-600 w-6 h-6" />
-                                <div>
-                                    <h3 className="font-semibold text-lg text-gray-800">
-                                        {s.surveyName}
-                                    </h3>
-                                    <p className="text-sm text-gray-500">
-                                        Total submissions:{" "}
-                                        <span className="font-medium">{s.totalSubmissions}</span>
-                                    </p>
-                                </div>
-                            </div>
-                            <button
-                                onClick={() => fetchDetail(s.surveyName)}
-                                className="mt-6 px-4 py-2 rounded-lg bg-indigo-600 text-white font-medium hover:bg-indigo-700 transition w-full"
-                            >
-                                View Details
-                            </button>
-                        </div>
-                    ))}
+                {/* Header */}
+                <div className="flex items-center gap-3 mb-6">
+                    <button
+                        onClick={onBack}
+                        className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#0172bd] shadow hover:bg-blue-500 transition text-white font-semibold text-base mr-3"
+                    >
+                        <ArrowLeft className="w-5 h-5" /> Back
+                    </button>
+                    <h2 className="text-2xl md:text-3xl font-bold text-gray-800">
+                        Wellness Survey Summaries
+                    </h2>
                 </div>
-            )}
 
-            {/* Detailed survey view */}
-            {selected && (
-                <div>
-                    {/* Header for detail view */}
-                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 my-6">
-                        <div>
-                            <h3 className="text-xl md:text-2xl font-bold text-gray-800">
-                                {detail?.surveyName}
-                            </h3>
-                            <p className="text-sm text-gray-600">
-                                Total submissions:{" "}
-                                <span className="font-medium">{detail?.totalSubmissions}</span>
-                            </p>
-                        </div>
-                        <div className="flex gap-3">
-                            <button
-                                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 transition"
-                                onClick={() => {
-                                    setSelected(null);
-                                    setDetail(null);
-                                }}
-                            >
-                                <ArrowLeft className="w-4 h-4" /> Back to List
-                            </button>
-                            <button
-                                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 transition disabled:opacity-50"
-                                onClick={() => fetchDetail(selected)}
-                                disabled={loadingDetail}
-                            >
-                                <RefreshCw className="w-4 h-4" />
-                                {loadingDetail ? "Refreshing..." : "Refresh"}
-                            </button>
-                        </div>
-                    </div>
+                {/* Loading + Error */}
+                {loading && <LoadingDots />}
+                {error && <p className="text-red-600">{error}</p>}
 
-                    {/* Charts */}
-                    {(detail?.questions || []).map((q, idx) => {
-                        const labels = Object.keys(q.counts || {});
-                        const data = labels.map((l) => q.counts[l]);
-                        const chartData = {
-                            labels,
-                            datasets: [
-                                {
-                                    label: `${q.totalResponses} responses`,
-                                    data,
-                                    backgroundColor: [
-                                        "#6366F1",
-                                        "#10B981",
-                                        "#F59E0B",
-                                        "#EF4444",
-                                        "#3B82F6",
-                                        "#8B5CF6",
-                                    ],
-                                    borderRadius: 6,
-                                },
-                            ],
-                        };
-                        const options = {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                                legend: { display: false },
-                                title: { display: true, text: q.question, font: { size: 16 } },
-                            },
-                        };
-                        return (
+                {/* List of surveys */}
+                {!selected && !loading && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {summaries.length === 0 && (
+                            <p className="text-gray-500">No survey submissions yet.</p>
+                        )}
+                        {summaries.map((s) => (
                             <div
-                                key={idx}
-                                className="bg-white p-6 rounded-2xl shadow mb-8"
+                                key={s.surveyName}
+                                className="p-6 bg-white rounded-2xl shadow hover:shadow-lg transition cursor-pointer flex flex-col justify-between"
                             >
-                                <div className="h-72">
-                                    <Bar data={chartData} options={options} />
-                                </div>
-                                <div className="mt-4 text-sm text-gray-700">
-                                    {q.averageScore !== null ? (
-                                        <p>
-                                            <span className="font-medium">Average score:</span>{" "}
-                                            {q.averageScore}
+                                <div className="flex items-start gap-3">
+                                    <BarChart2 className="text-indigo-600 w-6 h-6" />
+                                    <div>
+                                        <h3 className="font-semibold text-lg text-gray-800">
+                                            {s.surveyName}
+                                        </h3>
+                                        <p className="text-sm text-gray-500">
+                                            Total submissions:{" "}
+                                            <span className="font-medium">{s.totalSubmissions}</span>
                                         </p>
-                                    ) : (
-                                        <p className="text-gray-500">
-                                            No numeric scores available for this question.
-                                        </p>
-                                    )}
+                                    </div>
                                 </div>
+                                <button
+                                    onClick={() => fetchDetail(s.surveyName)}
+                                    className="mt-6 px-4 py-2 rounded-lg bg-indigo-600 text-white font-medium hover:bg-indigo-700 transition w-full"
+                                >
+                                    View Details
+                                </button>
                             </div>
-                        );
-                    })}
+                        ))}
+                    </div>
+                )}
 
-                    {detail?.questions?.length === 0 && (
-                        <p className="text-gray-500">No question stats available.</p>
-                    )}
-                </div>
-            )}
-        </div>
+                {/* Detailed survey view */}
+                {selected && (
+                    <div>
+                        {/* Header for detail view */}
+                        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 my-6">
+                            <div>
+                                <h3 className="text-xl md:text-2xl font-bold text-gray-800">
+                                    {detail?.surveyName}
+                                </h3>
+                                <p className="text-sm text-gray-600">
+                                    Total submissions:{" "}
+                                    <span className="font-medium">{detail?.totalSubmissions}</span>
+                                </p>
+                            </div>
+                            <div className="flex gap-3">
+                                <button
+                                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 transition"
+                                    onClick={() => {
+                                        setSelected(null);
+                                        setDetail(null);
+                                    }}
+                                >
+                                    <ArrowLeft className="w-4 h-4" /> Back to List
+                                </button>
+                                <button
+                                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 transition disabled:opacity-50"
+                                    onClick={() => fetchDetail(selected)}
+                                    disabled={loadingDetail}
+                                >
+                                    <RefreshCw className="w-4 h-4" />
+                                    {loadingDetail ? "Refreshing..." : "Refresh"}
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Charts */}
+                        {(detail?.questions || []).map((q, idx) => {
+                            const labels = Object.keys(q.counts || {});
+                            const data = labels.map((l) => q.counts[l]);
+                            const chartData = {
+                                labels,
+                                datasets: [
+                                    {
+                                        label: `${q.totalResponses} responses`,
+                                        data,
+                                        backgroundColor: [
+                                            "#6366F1",
+                                            "#10B981",
+                                            "#F59E0B",
+                                            "#EF4444",
+                                            "#3B82F6",
+                                            "#8B5CF6",
+                                        ],
+                                        borderRadius: 6,
+                                    },
+                                ],
+                            };
+                            const options = {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    legend: { display: false },
+                                    title: { display: true, text: q.question, font: { size: 16 } },
+                                },
+                            };
+                            return (
+                                <div
+                                    key={idx}
+                                    className="bg-white p-6 rounded-2xl shadow mb-8"
+                                >
+                                    <div className="h-72">
+                                        <Bar data={chartData} options={options} />
+                                    </div>
+                                    <div className="mt-4 text-sm text-gray-700">
+                                        {q.averageScore !== null ? (
+                                            <p>
+                                                <span className="font-medium">Average score:</span>{" "}
+                                                {q.averageScore}
+                                            </p>
+                                        ) : (
+                                            <p className="text-gray-500">
+                                                No numeric scores available for this question.
+                                            </p>
+                                        )}
+                                    </div>
+                                </div>
+                            );
+                        })}
+
+                        {detail?.questions?.length === 0 && (
+                            <p className="text-gray-500">No question stats available.</p>
+                        )}
+                    </div>
+                )}
+            </div>
         </div>
     );
 }

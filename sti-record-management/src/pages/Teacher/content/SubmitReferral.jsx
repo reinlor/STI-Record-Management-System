@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import toast, { Toaster } from "react-hot-toast";
 import { Loader2 } from "lucide-react"; // 🔹 Lucide loader
+import LoadingDots from '../../../component/Loading'
 
 // Debounce helper
 const useDebounce = (value, delay) => {
@@ -230,7 +231,7 @@ function SubmitReferralForm({ teacher = {}, onCancel, onSuccess }) {
                         <option value="">Select a Violation</option>
                         {referral.counselingTypeCategory !== "" ? violations.map((violation, index) => (
                             <option key={index} value={violation}>{violation}</option>
-                        )): null}
+                        )) : null}
                     </select>
                 </div>
             );
@@ -260,11 +261,7 @@ function SubmitReferralForm({ teacher = {}, onCancel, onSuccess }) {
 
     // Global loading
     if (isLoading) {
-        return (
-            <div className="flex justify-center items-center h-48">
-                <Loader2 className="h-10 w-10 text-blue-500 animate-spin" />
-            </div>
-        );
+        return <LoadingDots />
     }
 
     return (
@@ -290,11 +287,10 @@ function SubmitReferralForm({ teacher = {}, onCancel, onSuccess }) {
                             <div className="relative">
                                 <input
                                     type="text"
-                                    className={`w-full p-3 border rounded-lg pr-10 ${
-                                        studentNotFound
+                                    className={`w-full p-3 border rounded-lg pr-10 ${studentNotFound
                                             ? "border-red-400 bg-red-50 text-red-700"
                                             : "border-gray-300 bg-gray-50 text-gray-800"
-                                    }`}
+                                        }`}
                                     value={referral.sid || ""}
                                     onChange={(e) => handleReferralForm(e, "sid")}
                                     placeholder="Enter student number and wait to auto-fill details"
@@ -336,9 +332,8 @@ function SubmitReferralForm({ teacher = {}, onCancel, onSuccess }) {
                             <label className="block text-gray-700 font-medium mb-1">Student Name:</label>
                             <input
                                 type="text"
-                                className={`w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-800 transition-colors duration-500 ${
-                                    highlightedFields.studentName ? "bg-yellow-100 animate-pulse" : ""
-                                }`}
+                                className={`w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-800 transition-colors duration-500 ${highlightedFields.studentName ? "bg-yellow-100 animate-pulse" : ""
+                                    }`}
                                 value={referral.studentName || ""}
                                 onChange={(e) => handleReferralForm(e, "studentName")}
                             />
@@ -349,9 +344,8 @@ function SubmitReferralForm({ teacher = {}, onCancel, onSuccess }) {
                             <label className="block text-gray-700 font-medium mb-1">Program and Section:</label>
                             <input
                                 type="text"
-                                className={`w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-800 transition-colors duration-500 ${
-                                    highlightedFields.programSection ? "bg-yellow-100 animate-pulse" : ""
-                                }`}
+                                className={`w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-800 transition-colors duration-500 ${highlightedFields.programSection ? "bg-yellow-100 animate-pulse" : ""
+                                    }`}
                                 value={referral.programSection || ""}
                                 onChange={(e) => handleReferralForm(e, "programSection")}
                             />
@@ -377,9 +371,8 @@ function SubmitReferralForm({ teacher = {}, onCancel, onSuccess }) {
                             <label className="block text-gray-700 font-medium mb-1">Age:</label>
                             <input
                                 type="number"
-                                className={`w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-800 transition-colors duration-500 ${
-                                    highlightedFields.age ? "bg-yellow-100 animate-pulse" : ""
-                                }`}
+                                className={`w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-800 transition-colors duration-500 ${highlightedFields.age ? "bg-yellow-100 animate-pulse" : ""
+                                    }`}
                                 value={referral.age || ""}
                                 onChange={(e) => handleReferralForm(e, "age")}
                             />

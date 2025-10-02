@@ -5,6 +5,7 @@ import axios from "axios";
 import historyW from "../../../assets/history.png";
 import closeB from "../../../assets/closeblack.png";
 import { ToastContainer, toast } from 'react-toastify';
+import LoadingDots from "../../../component/Loading.jsx";
 import 'react-toastify/dist/ReactToastify.css';
 import {
   Search,
@@ -176,6 +177,10 @@ function ReferralFormProcessing() {
 
   if (!authData?.user?.access?.referralForm) {
     return <Navigate to="/error401" replace />
+  }
+
+  if (isLoading) {
+    return <LoadingDots />
   }
 
   return (
