@@ -216,7 +216,29 @@ const updateReferral = async (req, res) => {
   }
 };
 
-// Controller Function to retrieve all referral submission
+// Controller function for cancelling referral
+const cancelReferral = async (req, res) => {
+  const {referralId} = req.params;
+
+  try {
+    const docRef = getReferralFormCollection().doc(referralId);
+    const doc = await docRef.get();
+
+    if (!doc.exists) {
+      return res.status(404).json({ error: "Slip not found." });
+    }
+
+    await docRef.update({
+      status: "Cancelled"
+    });
+
+    res.status(200).send({ message: `Referral ${referralId} has been successfully cancelled.` });
+  } catch (error) {
+    res.status(500).send({ error: error.message });
+  }
+}
+
+// Controller function to retrieve all referral submission
 const getAllReferral = async (req, res) => {
   try {
     const snapshot = await getReferralFormCollection().get();
@@ -291,4 +313,4 @@ const getReferralById = async (req, res) => {
   }
 }
 
-module.exports = { addReferral, updateReferral, getAllReferral, getReferral, getReferralById };
+module.exports = { addReferral, updateReferral, getAllReferral, getReferral, getReferralById, cancelReferral };
