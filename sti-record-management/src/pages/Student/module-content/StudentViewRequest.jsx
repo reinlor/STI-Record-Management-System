@@ -433,7 +433,7 @@ export default function StudentViewRequest() {
                         <td className="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">{formatDate(row.timeCreated)}</td>
                         <td className="px-6 py-4 text-sm text-gray-600 max-w-xs truncate">
                           {row.typeOfSlip === "Absent Slip" ? (
-                            `${formatDate(row.dateAbsent)} - ${formatDate(row.dateAbsentEnd)}`
+                            row.reason || "-"
                           ) : row.typeOfSlip === "Incident Report" ? (
                             truncateText(row.narrativeReport, windowWidth < 640 ? 50 : 100)
                           ) : (

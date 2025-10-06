@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import toast, { Toaster } from "react-hot-toast";
-import { Loader2 } from "lucide-react"; // 🔹 Lucide loader
+import { Loader2 } from "lucide-react";
 import LoadingDots from '../../../component/Loading'
 
 // Debounce helper
@@ -26,7 +26,7 @@ function SubmitReferralForm({ teacher = {}, onCancel, onSuccess }) {
     const [isStudentLoading, setIsStudentLoading] = useState(false);
     const [studentNotFound, setStudentNotFound] = useState(false);
 
-    // 🔹 Track recently auto-filled fields for highlight animation
+    // Track recently auto-filled fields for highlight animation
     const [highlightedFields, setHighlightedFields] = useState({});
     const highlightField = (field) => {
         setHighlightedFields((prev) => ({ ...prev, [field]: true }));
@@ -133,7 +133,7 @@ function SubmitReferralForm({ teacher = {}, onCancel, onSuccess }) {
 
                     setReferral((prev) => ({ ...prev, ...updates }));
 
-                    // 🔹 highlight each updated field
+                    // highlight each updated field
                     Object.keys(updates).forEach((field) => highlightField(field));
                 } else {
                     setStudentNotFound(true);
@@ -220,13 +220,16 @@ function SubmitReferralForm({ teacher = {}, onCancel, onSuccess }) {
         if (violations.length > 0) {
             return (
                 <div>
-                    <label htmlFor="violation" className="block text-gray-700 font-medium mb-1">Violation:</label>
+                    <label htmlFor="violation" className="block text-gray-700 font-medium mb-1">
+                        Violation: <span className="text-red-500">*</span>
+                    </label>
                     <select
                         id="violation"
                         name="violation"
                         value={referral.violation || ""}
                         onChange={(e) => handleReferralForm(e, "violation")}
                         className="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-800 focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition-all duration-200"
+                        required
                     >
                         <option value="">Select a Violation</option>
                         {referral.counselingTypeCategory !== "" ? violations.map((violation, index) => (
@@ -242,7 +245,7 @@ function SubmitReferralForm({ teacher = {}, onCancel, onSuccess }) {
     const handleCategoryDropDown = () => (
         <div>
             <label htmlFor="counselingTypeCategory" className="block text-gray-700 font-medium mb-1">
-                Counseling Type/Category:
+                Counseling Type/Category: <span className="text-red-500">*</span>
             </label>
             <select
                 id="counselingTypeCategory"
@@ -250,6 +253,7 @@ function SubmitReferralForm({ teacher = {}, onCancel, onSuccess }) {
                 value={referral.counselingTypeCategory || ""}
                 onChange={(e) => handleReferralForm(e, "counselingTypeCategory")}
                 className="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-800 focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition-all duration-200"
+                required
             >
                 <option value="">Select a Category</option>
                 {categories.map((category, index) => (
@@ -266,7 +270,7 @@ function SubmitReferralForm({ teacher = {}, onCancel, onSuccess }) {
 
     return (
         <div className="min-h-screen flex flex-col items-center py-12 px-4 bg-gray-100 font-sans">
-            <Toaster position="top-right" reverseOrder={false} /> {/* 🔹 toasts in top-right */}
+            <Toaster position="top-right" reverseOrder={false} />
             <div className="bg-white rounded-2xl shadow-xl p-8 w-full container mx-auto border border-gray-200">
                 <div className="mb-8 pb-4 border-b border-gray-200">
                     <h2 className="text-3xl font-extrabold text-gray-800 mb-2">Student Referral Form</h2>
@@ -277,13 +281,17 @@ function SubmitReferralForm({ teacher = {}, onCancel, onSuccess }) {
                     <div className="space-y-6">
                         {/* School Year */}
                         <div>
-                            <label className="block text-gray-700 font-medium mb-1">School Year:</label>
+                            <label className="block text-gray-700 font-medium mb-1">
+                                School Year: <span className="text-red-500">*</span>
+                            </label>
                             <input type="text" className="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-800" value={referral.schoolYear || ""} disabled />
                         </div>
 
                         {/* Student Number with loader + not found */}
                         <div>
-                            <label className="block text-gray-700 font-medium mb-1">Student Number:</label>
+                            <label className="block text-gray-700 font-medium mb-1">
+                                Student Number: <span className="text-red-500">*</span>
+                            </label>
                             <div className="relative">
                                 <input
                                     type="text"
@@ -294,6 +302,7 @@ function SubmitReferralForm({ teacher = {}, onCancel, onSuccess }) {
                                     value={referral.sid || ""}
                                     onChange={(e) => handleReferralForm(e, "sid")}
                                     placeholder="Enter student number and wait to auto-fill details"
+                                    required
                                 />
                                 {isStudentLoading && (
                                     <div className="absolute inset-y-0 right-3 flex items-center">
@@ -308,14 +317,16 @@ function SubmitReferralForm({ teacher = {}, onCancel, onSuccess }) {
 
                         {/* Grade Level */}
                         <div>
-                            <label className="block text-gray-700 font-medium mb-1">Level:</label>
+                            <label className="block text-gray-700 font-medium mb-1">
+                                Level: <span className="text-red-500">*</span>
+                            </label>
                             <div className="flex items-center space-x-6 mt-2">
                                 <label className="flex items-center cursor-pointer">
-                                    <input type="radio" name="gradeLevel" value="Senior High School" checked={referral.gradeLevel === "Senior High School"} onChange={(e) => handleReferralForm(e, "gradeLevel")} className="form-radio h-5 w-5 text-blue-600 rounded-full border-gray-300" />
+                                    <input type="radio" name="gradeLevel" value="Senior High School" checked={referral.gradeLevel === "Senior High School"} onChange={(e) => handleReferralForm(e, "gradeLevel")} className="form-radio h-5 w-5 text-blue-600 rounded-full border-gray-300" required />
                                     <span className="ml-2 text-gray-800">Senior High</span>
                                 </label>
                                 <label className="flex items-center cursor-pointer">
-                                    <input type="radio" name="gradeLevel" value="Tertiary" checked={referral.gradeLevel === "Tertiary"} onChange={(e) => handleReferralForm(e, "gradeLevel")} className="form-radio h-5 w-5 text-blue-600 rounded-full border-gray-300" />
+                                    <input type="radio" name="gradeLevel" value="Tertiary" checked={referral.gradeLevel === "Tertiary"} onChange={(e) => handleReferralForm(e, "gradeLevel")} className="form-radio h-5 w-5 text-blue-600 rounded-full border-gray-300" required />
                                     <span className="ml-2 text-gray-800">Tertiary</span>
                                 </label>
                             </div>
@@ -323,44 +334,54 @@ function SubmitReferralForm({ teacher = {}, onCancel, onSuccess }) {
 
                         {/* Quarter/Semester */}
                         <div>
-                            <label className="block text-gray-700 font-medium mb-1">Quarter/Semester:</label>
+                            <label className="block text-gray-700 font-medium mb-1">
+                                Quarter/Semester: <span className="text-red-500">*</span>
+                            </label>
                             <input className="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-800" value={referral.quarterSemester || ""} disabled />
                         </div>
 
                         {/* Student Name */}
                         <div>
-                            <label className="block text-gray-700 font-medium mb-1">Student Name:</label>
+                            <label className="block text-gray-700 font-medium mb-1">
+                                Student Name: <span className="text-red-500">*</span>
+                            </label>
                             <input
                                 type="text"
                                 className={`w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-800 transition-colors duration-500 ${highlightedFields.studentName ? "bg-yellow-100 animate-pulse" : ""
                                     }`}
                                 value={referral.studentName || ""}
                                 onChange={(e) => handleReferralForm(e, "studentName")}
+                                required
                             />
                         </div>
 
                         {/* Program and Section */}
                         <div>
-                            <label className="block text-gray-700 font-medium mb-1">Program and Section:</label>
+                            <label className="block text-gray-700 font-medium mb-1">
+                                Program and Section: <span className="text-red-500">*</span>
+                            </label>
                             <input
                                 type="text"
                                 className={`w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-800 transition-colors duration-500 ${highlightedFields.programSection ? "bg-yellow-100 animate-pulse" : ""
                                     }`}
                                 value={referral.programSection || ""}
                                 onChange={(e) => handleReferralForm(e, "programSection")}
+                                required
                             />
                         </div>
 
                         {/* Gender */}
                         <div className={`transition-colors duration-500 ${highlightedFields.gender ? "bg-yellow-100 animate-pulse rounded-lg p-2" : ""}`}>
-                            <label className="block text-gray-700 font-medium mb-1">Gender:</label>
+                            <label className="block text-gray-700 font-medium mb-1">
+                                Gender: <span className="text-red-500">*</span>
+                            </label>
                             <div className="flex items-center space-x-6 mt-2">
                                 <label className="flex items-center cursor-pointer">
-                                    <input type="radio" name="gender" value="Male" checked={referral.gender === "Male"} onChange={(e) => handleReferralForm(e, "gender")} className="form-radio h-5 w-5 text-blue-600 rounded-full border-gray-300" />
+                                    <input type="radio" name="gender" value="Male" checked={referral.gender === "Male"} onChange={(e) => handleReferralForm(e, "gender")} className="form-radio h-5 w-5 text-blue-600 rounded-full border-gray-300" required />
                                     <span className="ml-2 text-gray-800">Male</span>
                                 </label>
                                 <label className="flex items-center cursor-pointer">
-                                    <input type="radio" name="gender" value="Female" checked={referral.gender === "Female"} onChange={(e) => handleReferralForm(e, "gender")} className="form-radio h-5 w-5 text-blue-600 rounded-full border-gray-300" />
+                                    <input type="radio" name="gender" value="Female" checked={referral.gender === "Female"} onChange={(e) => handleReferralForm(e, "gender")} className="form-radio h-5 w-5 text-blue-600 rounded-full border-gray-300" required />
                                     <span className="ml-2 text-gray-800">Female</span>
                                 </label>
                             </div>
@@ -380,7 +401,9 @@ function SubmitReferralForm({ teacher = {}, onCancel, onSuccess }) {
 
                         {/* Referred By */}
                         <div>
-                            <label className="block text-gray-700 font-medium mb-1">Referred by:</label>
+                            <label className="block text-gray-700 font-medium mb-1">
+                                Referred by: <span className="text-red-500">*</span>
+                            </label>
                             <input type="text" className="w-full p-3 border border-gray-300 rounded-lg bg-gray-200 text-gray-800 cursor-not-allowed" value={referral.referredBy || ""} disabled />
                         </div>
                     </div>
@@ -389,16 +412,20 @@ function SubmitReferralForm({ teacher = {}, onCancel, onSuccess }) {
                         {handleCategoryDropDown()}
                         {handleViolationInput()}
 
-                        {/* Actions Taken Before Referral */}
+                        {/* Reasons for Referral / Comments */}
                         <div>
-                            <label className="block text-gray-700 font-medium mb-1">Actions Taken Before Referral:</label>
-                            <textarea className="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-800 resize-none h-40" value={referral.actionsBefore || ""} onChange={(e) => handleReferralForm(e, "actionsBefore")} />
+                            <label className="block text-gray-700 font-medium mb-1">
+                                Reasons for Referral / Comments: <span className="text-red-500">*</span>
+                            </label>
+                            <textarea className="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-800 resize-none h-40" value={referral.reasons || ""} onChange={(e) => handleReferralForm(e, "reasons")} required />
                         </div>
 
-                        {/* Reasons for Referral */}
+                        {/* Actions Taken Before Referral */}
                         <div>
-                            <label className="block text-gray-700 font-medium mb-1">Reasons for Referral / Comments:</label>
-                            <textarea className="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-800 resize-none h-40" value={referral.reasons || ""} onChange={(e) => handleReferralForm(e, "reasons")} />
+                            <label className="block text-gray-700 font-medium mb-1">
+                                Actions Taken Before Referral: <span className="text-red-500">*</span>
+                            </label>
+                            <textarea className="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-800 resize-none h-40" value={referral.actionsBefore || ""} onChange={(e) => handleReferralForm(e, "actionsBefore")} required />
                         </div>
                     </div>
 
