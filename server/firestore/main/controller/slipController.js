@@ -379,11 +379,48 @@ const updateSlipStatus = async (req, res) => {
   }
 };
 
+const cancelRequestSlip = async (req, res) => {
+  const {slipType, slipId} = req.params;
+
+  let collectionRef;
+  let typeOfSlip;
+  switch (slipType) {
+    case "Absent Slip":
+      typeOfSlip = 'Absent Slip';
+      collectionRef = getAbsentSlipsCollection();
+      break;
+    case "Incident Report":
+      typeOfSlip = 'Incident Report';
+      collectionRef = getIncidentReportCollection();
+      break;
+    default:
+      return res.status(400).json({ error: "Invalid slip type provided." });
+  }
+
+  try {
+    const docRef = collectionRef.doc(slipId);
+    const doc = await docRef.get();
+
+    if (!doc.exists) {
+      return res.status(404).json({ error: "Slip not found." });
+    }
+
+    await docRef.update({
+      status: "Cancelled"
+    });
+
+    res.status(200).send({ message: `Slip ${slipId} has been successfully cancelled.` });
+  } catch (error) {
+    res.status(500).send({ error: error.message });
+  }
+}
+
 module.exports = {
   addAbsentSlip,
   getAllAbsentSlip,
   getAbsentSlip,
   getAllSlips,
   getAllSlipsById,
-  updateSlipStatus
+  updateSlipStatus,
+  cancelRequestSlip
 };
