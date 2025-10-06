@@ -120,14 +120,14 @@ const studentSchema = Joi.object({
   }).empty({}).optional(),
 
   health: Joi.object({
-    hospitalized: Joi.string().empty('').optional(),
-    reason: Joi.string().empty('').optional(),
-    operation: Joi.string().empty('').optional(),
-    illness: Joi.string().empty('').optional(),
-    medicalCert: Joi.string().empty('').optional(),
-    prescribedDrug: Joi.string().empty('').optional(),
-    hereditary: Joi.string().empty('').optional(),
-    doctorLastSeen: Joi.string().empty('').optional(),
+    hospitalized: Joi.array().items(Joi.string()).empty('').optional().default([]),
+    reason: Joi.array().items(Joi.string()).empty('').optional().default([]),
+    operation: Joi.array().items(Joi.string()).empty('').optional().default([]),
+    illness: Joi.array().items(Joi.string()).empty('').optional().default([]),
+    medicalCert: Joi.array().items(Joi.string()).empty('').optional().default([]),
+    prescribedDrug: Joi.array().items(Joi.string()).empty('').optional().default([]),
+    hereditary: Joi.array().items(Joi.string()).empty('').optional().default([]),
+    doctorLastSeen: Joi.array().items(Joi.string()).empty('').optional().default([]),
   }).empty({}).optional(),
 
   lifeCircumstances: Joi.object({
@@ -248,14 +248,14 @@ const updateSchema = Joi.object({
   }).empty({}).optional(),
 
   health: Joi.object({
-    hospitalized: Joi.string().empty('').optional(),
-    reason: Joi.string().empty('').optional(),
-    operation: Joi.string().empty('').optional(),
-    illness: Joi.string().empty('').optional(),
-    medicalCert: Joi.string().empty('').optional(),
-    prescribedDrug: Joi.string().empty('').optional(),
-    hereditary: Joi.string().empty('').optional(),
-    doctorLastSeen: Joi.string().empty('').optional(),
+    hospitalized: Joi.array().items(Joi.string()).empty('').optional().default([]),
+    reason: Joi.array().items(Joi.string()).empty('').optional().default([]),
+    operation: Joi.array().items(Joi.string()).empty('').optional().default([]),
+    illness: Joi.array().items(Joi.string()).empty('').optional().default([]),
+    medicalCert: Joi.array().items(Joi.string()).empty('').optional().default([]),
+    prescribedDrug: Joi.array().items(Joi.string()).empty('').optional().default([]),
+    hereditary: Joi.array().items(Joi.string()).empty('').optional().default([]),
+    doctorLastSeen: Joi.array().items(Joi.string()).empty('').optional().default([]),
   }).empty({}).optional(),
 
   lifeCircumstances: Joi.object({
