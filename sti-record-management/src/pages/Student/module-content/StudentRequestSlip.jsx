@@ -1,16 +1,12 @@
 import React, { useState, useEffect, useContext, useRef } from "react";
-import { createRoot } from "react-dom/client";
 import axios from "axios";
 import {
   FileText,
   Upload,
   Trash2,
-  CalendarDays,
   CircleCheck,
   IdCard,
   AlertTriangle,
-  Clock,
-  MapPin,
 } from "lucide-react";
 import { AuthContext } from "../../../AuthProvider.jsx";
 import { ToastContainer, toast } from "react-toastify";
@@ -26,10 +22,14 @@ export default function StudentRequestSlip() {
   const startDateRef = useRef(null);
   const endDateRef = useRef(null);
 
+  // Reason Combo Box
+  const [absentReason, setAbsentReason] = useState(""); // "Health-Related" or "Non-Health-Related"
+
+  // File states with preview
   const [excuseLetter, setExcuseLetter] = useState(null);
   const [parentID, setParentID] = useState(null);
   const [medicalCertificate, setMedicalCertificate] = useState(null);
-  const [incidentEvidence, setIncidentEvidence] = useState([]); // NEW: evidence state
+  const [incidentEvidence, setIncidentEvidence] = useState([]);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -75,6 +75,15 @@ export default function StudentRequestSlip() {
     setFormData((prevData) => ({ ...prevData, [name]: value }));
   };
 
+  // Helper to compute absent days
+  const getAbsentDays = () => {
+    if (!formData.dateAbsent || !formData.dateAbsentEnd) return 0;
+    const start = new Date(formData.dateAbsent);
+    const end = new Date(formData.dateAbsentEnd);
+    return Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+  };
+
+  // File upload with preview
   const handleFileChange = (e, setFile) => {
     const file = e.target.files[0];
     if (file) {
@@ -85,12 +94,20 @@ export default function StudentRequestSlip() {
         e.target.value = null;
         return;
       }
-      setFile({ id: crypto.randomUUID(), file: file, name: file.name });
+      setFile({
+        id: crypto.randomUUID(),
+        file: file,
+        name: file.name,
+        preview: URL.createObjectURL(file),
+      });
     }
     e.target.value = null;
   };
 
-  const handleRemoveFile = (setFile) => {
+  const handleRemoveFile = (fileObj, setFile) => {
+    if (fileObj?.preview) {
+      URL.revokeObjectURL(fileObj.preview);
+    }
     setFile(null);
   };
 
@@ -111,9 +128,41 @@ export default function StudentRequestSlip() {
       form.append("typeOfSlip", "Absent Slip");
       form.append("dateAbsentEnd", formData.dateAbsentEnd);
       form.append("dateAbsent", formData.dateAbsent);
-      if (excuseLetter) form.append("attachments", excuseLetter.file);
-      if (medicalCertificate) form.append("attachments", medicalCertificate.file);
-      if (parentID) form.append("attachments", parentID.file);
+      form.append("reason", absentReason); //Reason of Absence nilagay ko nalang reason para gumana to sa backend 
+
+      const absentDays = getAbsentDays();
+
+      // Health-Related: require medical certificate only if 3 or more days
+      if (absentReason === "Health-Related") {
+        if (!excuseLetter || !parentID) {
+          toast.error("Excuse Letter and Parent's/Guardian's ID are required.");
+          setIsLoading(false);
+          return;
+        }
+        form.append("attachments", excuseLetter.file);
+        if (absentDays >= 3) {
+          if (!medicalCertificate) {
+            toast.error("Medical Certificate is required for 3 or more days of Health-Related absence.");
+            setIsLoading(false);
+            return;
+          }
+          form.append("attachments", medicalCertificate.file);
+        }
+        form.append("attachments", parentID.file);
+      } else if (absentReason === "Non-Health-Related") {
+        if (!excuseLetter || !parentID) {
+          toast.error("Excuse Letter and Parent's/Guardian's ID are required.");
+          setIsLoading(false);
+          return;
+        }
+        form.append("attachments", excuseLetter.file);
+        form.append("attachments", parentID.file);
+      } else {
+        toast.error("Please select a Reason for Absence.");
+        setIsLoading(false);
+        return;
+      }
+
       endpoint = "/slip/absentSlip/add";
     } else if (activeSlip === "Report") {
       form.append("typeOfSlip", "Incident Report");
@@ -127,7 +176,6 @@ export default function StudentRequestSlip() {
       form.append("actionTaken", formData.actionsTaken);
       form.append("remarks", "");
 
-      // NEW: append evidence images if any
       incidentEvidence.forEach((evidence) => {
         form.append("attachments", evidence.file);
       });
@@ -153,10 +201,16 @@ export default function StudentRequestSlip() {
         narrative: "",
         actionsTaken: "",
       }));
+      if (excuseLetter?.preview) URL.revokeObjectURL(excuseLetter.preview);
+      if (parentID?.preview) URL.revokeObjectURL(parentID.preview);
+      if (medicalCertificate?.preview) URL.revokeObjectURL(medicalCertificate.preview);
+      incidentEvidence.forEach(f => f.preview && URL.revokeObjectURL(f.preview));
+
       setExcuseLetter(null);
       setParentID(null);
       setMedicalCertificate(null);
-      setIncidentEvidence([]); // reset evidence
+      setIncidentEvidence([]);
+      setAbsentReason("");
     } catch (error) {
       console.error(error);
       toast.error(
@@ -165,7 +219,7 @@ export default function StudentRequestSlip() {
         "Failed to submit form. Please try again."
       );
     } finally {
-      setIsLoading(false); 
+      setIsLoading(false);
     }
   };
 
@@ -173,13 +227,14 @@ export default function StudentRequestSlip() {
     return label.toLowerCase().replace(/\s/g, "-").replace(/['/]/g, '');
   };
 
-  const renderFileUpload = (file, setFile, label, guidelines = null) => {
+  // File upload with preview
+  const renderFileUpload = (fileObj, setFile, label, guidelines = null) => {
     const fileId = getFileId(label);
     return (
       <div className="space-y-2">
         <label className="block text-sm font-medium text-gray-700">{label}</label>
         {guidelines && <p className="text-xs text-gray-500 mb-1">{guidelines}</p>}
-        {!file ? (
+        {!fileObj ? (
           <label className="inline-block cursor-pointer">
             <button
               type="button"
@@ -200,14 +255,21 @@ export default function StudentRequestSlip() {
             />
           </label>
         ) : (
-          <div className="flex items-center p-3 bg-white border border-gray-200 rounded-lg shadow-sm hover:border-yellow-400 transition-colors duration-200">
-            <span className="text-sm font-medium text-gray-800 flex-grow">
-              {file.name}
+          <div className="flex flex-col items-center p-3 bg-white border border-gray-200 rounded-lg shadow-sm hover:border-yellow-400 transition-colors duration-200 relative">
+            <div className="w-40 h-40 flex justify-center items-center overflow-hidden rounded-md border border-gray-300 mb-2 bg-gray-50">
+              <img
+                src={fileObj.preview}
+                alt="Preview"
+                className="w-full h-full object-contain"
+              />
+            </div>
+            <span className="text-sm font-medium text-gray-800 text-center break-all mb-2">
+              {fileObj.name}
             </span>
             <button
               type="button"
-              onClick={() => handleRemoveFile(setFile)}
-              className="ml-4 p-1 rounded-full bg-red-600 text-white hover:bg-red-700 transition-colors"
+              onClick={() => handleRemoveFile(fileObj, setFile)}
+              className="absolute top-2 right-2 p-1 rounded-full bg-red-600 text-white hover:bg-red-700 transition-colors"
               aria-label="Remove file"
             >
               <Trash2 className="w-4 h-4" />
@@ -227,9 +289,7 @@ export default function StudentRequestSlip() {
     "w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-800 focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition-all duration-200";
 
   if (!student) {
-    return (
-      <LoadingDots />
-    );
+    return <LoadingDots />;
   }
   return (
     <div className="min-h-screen flex flex-col items-center py-12 px-4 bg-gray-100 font-sans">
@@ -245,11 +305,18 @@ export default function StudentRequestSlip() {
             <button
               key={slip.id}
               type="button"
-              onClick={() => setActiveSlip(slip.id)}
-              className={`flex items-center gap-2 py-3 px-4 rounded-xl text-sm font-semibold transition-all duration-300 ${activeSlip === slip.id
+              onClick={() => {
+                setActiveSlip(slip.id);
+                setAbsentReason("");
+                setExcuseLetter(null);
+                setParentID(null);
+                setMedicalCertificate(null);
+              }}
+              className={`flex items-center gap-2 py-3 px-4 rounded-xl text-sm font-semibold transition-all duration-300 ${
+                activeSlip === slip.id
                   ? "bg-yellow-400 text-black shadow-lg"
                   : "bg-gray-200 text-gray-700 hover:bg-gray-300 hover:text-black"
-                }`}
+              }`}
             >
               <slip.icon className="w-5 h-5" />
               {slip.label}
@@ -310,6 +377,22 @@ export default function StudentRequestSlip() {
                       required
                     />
                   </div>
+                </div>
+                {/* Reason Combo Box */}
+                <div className="mt-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Reason for Absence
+                  </label>
+                  <select
+                    value={absentReason}
+                    onChange={(e) => setAbsentReason(e.target.value)}
+                    className="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-800 focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition-all duration-200"
+                    required
+                  >
+                    <option value="">Select Reason</option>
+                    <option value="Health-Related">Health-Related</option>
+                    <option value="Non-Health-Related">Non-Health-Related</option>
+                  </select>
                 </div>
               </div>
             )}
@@ -475,6 +558,7 @@ export default function StudentRequestSlip() {
                             id: crypto.randomUUID(),
                             file,
                             name: file.name,
+                            preview: URL.createObjectURL(file),
                           }))
                         );
                         e.target.value = null;
@@ -493,23 +577,31 @@ export default function StudentRequestSlip() {
 
                     {/* Preview uploaded files */}
                     {incidentEvidence.length > 0 && (
-                      <div className="space-y-2">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-4">
                         {incidentEvidence.map((fileObj) => (
                           <div
                             key={fileObj.id}
-                            className="flex items-center p-3 bg-white border border-gray-200 rounded-lg shadow-sm hover:border-yellow-400 transition-colors duration-200"
+                            className="flex flex-col items-center p-3 bg-white border border-gray-200 rounded-lg shadow-sm hover:border-yellow-400 transition-colors duration-200 relative"
                           >
-                            <span className="text-sm font-medium text-gray-800 flex-grow">
+                            <div className="w-32 h-32 flex justify-center items-center overflow-hidden rounded-md border border-gray-300 mb-2 bg-gray-50">
+                              <img
+                                src={fileObj.preview}
+                                alt="Preview"
+                                className="w-full h-full object-contain"
+                              />
+                            </div>
+                            <span className="text-xs font-medium text-gray-800 text-center break-all mb-2">
                               {fileObj.name}
                             </span>
                             <button
                               type="button"
-                              onClick={() =>
+                              onClick={() => {
+                                URL.revokeObjectURL(fileObj.preview);
                                 setIncidentEvidence((prev) =>
                                   prev.filter((f) => f.id !== fileObj.id)
-                                )
-                              }
-                              className="ml-4 p-1 rounded-full bg-red-600 text-white hover:bg-red-700 transition-colors"
+                                );
+                              }}
+                              className="absolute top-2 right-2 p-1 rounded-full bg-red-600 text-white hover:bg-red-700 transition-colors"
                               aria-label="Remove file"
                             >
                               <Trash2 className="w-4 h-4" />
@@ -525,7 +617,7 @@ export default function StudentRequestSlip() {
           </div>
 
           {/* Attachments for Absent Slip */}
-          {activeSlip === "Absent" && (
+          {activeSlip === "Absent" && absentReason && (
             <div className="bg-gray-50 p-6 rounded-xl shadow-inner border border-gray-200">
               <h2 className="text-xl font-bold text-gray-700 mb-4 flex items-center gap-2">
                 <Upload className="w-6 h-6 text-gray-500" />
@@ -536,19 +628,24 @@ export default function StudentRequestSlip() {
                   excuseLetter,
                   setExcuseLetter,
                   "Excuse Letter",
-                  "Upload a signed excuse letter from your parent/guardian. Required if you are absent for 1–2 days."
+                  "Upload a signed excuse letter from your parent/guardian. Required for all absences."
                 )}
-                {renderFileUpload(
-                  medicalCertificate,
-                  setMedicalCertificate,
-                  "Medical Certificate",
-                  "Upload a medical certificate from a licensed doctor. Required if you are absent for 3 or more consecutive days due to illness."
+                {absentReason === "Health-Related" && (
+                  renderFileUpload(
+                    medicalCertificate,
+                    setMedicalCertificate,
+                    "Medical Certificate",
+                    "Upload a medical certificate from a licensed doctor. Required if you are absent for 3 or more consecutive days due to illness."
+                  )
                 )}
                 {renderFileUpload(
                   parentID,
                   setParentID,
                   "Parent's/Guardian's ID",
                   "Upload a clear photo of your parent’s/guardian’s valid ID with visible signature. Required to verify the excuse letter."
+                )}
+                {absentReason === "Non-Health-Related" && (
+                  <div className="hidden md:block"></div>
                 )}
               </div>
             </div>
@@ -558,6 +655,11 @@ export default function StudentRequestSlip() {
             <button
               type="button"
               onClick={() => {
+                if (excuseLetter?.preview) URL.revokeObjectURL(excuseLetter.preview);
+                if (parentID?.preview) URL.revokeObjectURL(parentID.preview);
+                if (medicalCertificate?.preview) URL.revokeObjectURL(medicalCertificate.preview);
+                incidentEvidence.forEach(f => f.preview && URL.revokeObjectURL(f.preview));
+
                 setFormData({
                   name: student?.studentProfile?.name || "",
                   sid: student?.sid || "",
@@ -578,7 +680,8 @@ export default function StudentRequestSlip() {
                 setExcuseLetter(null);
                 setParentID(null);
                 setMedicalCertificate(null);
-                setIncidentEvidence([]); // reset on cancel
+                setIncidentEvidence([]);
+                setAbsentReason("");
               }}
               className="py-2.5 px-6 bg-gray-200 rounded-xl text-gray-800 font-semibold shadow-sm hover:bg-gray-300"
             >
