@@ -379,6 +379,7 @@ const updateSlipStatus = async (req, res) => {
   }
 };
 
+// Controller function for cancelling slip request
 const cancelRequestSlip = async (req, res) => {
   const {slipType, slipId} = req.params;
 
