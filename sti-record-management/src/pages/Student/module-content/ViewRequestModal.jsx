@@ -128,6 +128,7 @@ export default function ViewRequestModal({ data, onClose }) {
                     <>
                       {renderField("Start Date of Absence", data.dateAbsent, true)}
                       {renderField("End Date of Absence", data.dateAbsentEnd, true)}
+                      {renderField("Reason for Absence", data.reason)}
                     </>
                   )}
                   {isIncidentReport && (
@@ -164,17 +165,6 @@ export default function ViewRequestModal({ data, onClose }) {
                           {data.actionTaken || "No actions listed."}
                         </p>
                       </div>
-                    </div>
-                  </div>
-                )}
-
-                {isAbsentSlip && (
-                  <div className="space-y-3 mt-6">
-                    <p className="text-gray-500 text-sm font-medium">Reason</p>
-                    <div className="bg-white p-4 rounded-xl border border-gray-200 whitespace-pre-wrap break-words min-h-[100px]">
-                      <p className="font-semibold text-gray-900 text-base">
-                        {data.reason || "No reason provided."}
-                      </p>
                     </div>
                   </div>
                 )}
