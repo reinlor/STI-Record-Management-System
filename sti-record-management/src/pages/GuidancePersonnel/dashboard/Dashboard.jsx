@@ -7,6 +7,7 @@ import ViolationFrequency from "./blocks/ViolationFrequency";
 import RequestTypeFrequency from "./blocks/RequestTypeFrequency";
 import Leaderboard from "./blocks/Leaderboard";
 import Loading from "../../../component/Loading";
+import SummaryReport from "./blocks/SummaryReport";
 
 const tailwindScript = document.createElement("script");
 tailwindScript.src = "https://cdn.tailwindcss.com";
@@ -136,7 +137,7 @@ const App = () => {
     }, [allData, slipData]);
 
     if (isLoading) {
-        return <Loading/>
+        return <Loading />
     }
 
     return (
@@ -145,25 +146,25 @@ const App = () => {
                 <StatCard
                     title="No of student"
                     value={counters.students}
-                    note="(New)"
+                    note="Student Records"
                     to="/guidance/student-records"
                 />
                 <StatCard
                     title="No of cases"
                     value={counters.cases}
-                    note="(New)"
+                    note="Student Cases"
                     to="/guidance/student-cases"
                 />
                 <StatCard
                     title="Pending Slips"
                     value={counters.pendingSlips}
-                    note="(New)"
+                    note={`+${counters?.today?.pendingSlips ?? 0}`}
                     to="/guidance/request-slip"
                 />
                 <StatCard
                     title="Pending form"
                     value={counters.pendingForms}
-                    note="(New)"
+                    note={`+${counters?.today?.pendingForms ?? 0}`}
                     to="/guidance/referral-form"
                 />
             </div>
@@ -174,12 +175,16 @@ const App = () => {
                     <ViolationFrequency allData={allData} />
                 </div>
 
-                <div className="md:col-span-1 md:row-span-2">
+                <div className="md:col-span-1 md:row-span-1">
                     <Leaderboard leaderboardData={leaderboardData} schoolYear={schoolYear} />
                 </div>
 
                 <div className="md:col-span-2">
                     <RequestTypeFrequency slipData={slipData} />
+                </div>
+
+                <div className="md:col-span-1">
+                    <SummaryReport allData={allData} slipData={slipData} />
                 </div>
             </div>
         </div>

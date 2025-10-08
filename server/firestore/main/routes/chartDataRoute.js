@@ -29,6 +29,9 @@ const getAllChartData = async (req, res) => {
 // Retrieve chart count data
 const getDataCount = async (req, res) => {
   try {
+    const now = new Date();
+    const todayStr = now.toISOString().split("T")[0];
+
     const studentSnap = await getStudentCollection().get();
     const studentCount = studentSnap.size;
 
@@ -39,20 +42,67 @@ const getDataCount = async (req, res) => {
     const incidentSnap = await getIncidentReportCollection().where("status", "==", "Pending").get();
     const pendingSlips = absentSnap.size + incidentSnap.size;
 
+    const parseDateSafe = (value) => {
+      if (!value) return null;
+
+      try {
+        if (typeof value === "object" && value._seconds) {
+          return new Date(value._seconds * 1000);
+        }
+
+        if (value.toDate && typeof value.toDate === "function") {
+          return value.toDate();
+        }
+
+        const cleaned = String(value).replace(/\u202F/g, " ").trim();
+        const parsed = new Date(cleaned);
+        return isNaN(parsed.getTime()) ? null : parsed;
+      } catch {
+        return null;
+      }
+    };
+
+    const todaySlips =
+      absentSnap.docs.filter((doc) => {
+        const data = doc.data();
+        const createdAt = parseDateSafe(data.timeCreated);
+        if (!createdAt) return false;
+        const createdStr = createdAt.toISOString().split("T")[0];
+        return createdStr === todayStr;
+      }).length +
+      incidentSnap.docs.filter((doc) => {
+        const data = doc.data();
+        const createdAt = parseDateSafe(data.timeCreated);
+        if (!createdAt) return false;
+        const createdStr = createdAt.toISOString().split("T")[0];
+        return createdStr === todayStr;
+      }).length;
+
     const referralSnap = await getReferralFormCollection().where("status", "==", "Pending").get();
     const pendingForms = referralSnap.size;
+
+    const todayForms = referralSnap.docs.filter((doc) => {
+      const data = doc.data();
+      if (!data.preparedDate) return false;
+      return data.preparedDate === todayStr;
+    }).length;
 
     res.status(200).json({
       students: studentCount,
       cases: caseCount,
       pendingSlips,
       pendingForms,
+      today: {
+        pendingSlips: todaySlips,
+        pendingForms: todayForms,
+      },
     });
   } catch (error) {
     console.error("Error fetching dashboard counters:", error);
     res.status(500).send({ error: "Failed to fetch dashboard counters" });
   }
 };
+
 
 router.get("/retrieve", getAllChartData);
 router.get("/counters", getDataCount);

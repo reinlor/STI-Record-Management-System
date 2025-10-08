@@ -23,6 +23,7 @@ const contentManagementRoute = require("./firestore/main/routes/contentManagemen
 const incidentReportRoute = require("./firestore/main/routes/incidentReportRoute");
 const notificationRoute = require("./firestore/main/routes/notificationRoute")
 const surveyResponsesRoute = require("./firestore/main/routes/surveyResponseRoute")
+const summaryRoute = require("./modules/summary-generation/SummaryRoute")
 
 
 const app = express();
@@ -58,6 +59,7 @@ app.use('/photo-to-text', demoOCRRoute);
 app.use("/content", contentManagementRoute)
 app.use("/incidentReport", incidentReportRoute);
 app.use("/notifications", notificationRoute);
+app.use("/generate", summaryRoute)
 
 // Start the server
 app.listen(PORT, () => {
