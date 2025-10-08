@@ -5,6 +5,7 @@ import NotificationIcon from "../../../component/NotificationIcon.jsx";
 import { AuthContext } from "../../../AuthProvider.jsx";
 
 const modules = [
+  { id: "dashboard", text: "Dashboard" },
   { id: "submit", text: "Submit Referral Form" },
   { id: "view", text: "View Request History" },
 ];
