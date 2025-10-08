@@ -43,13 +43,14 @@ function OffensesList() {
     };
 
     return (
-        <div className="w-full min-h-screen bg-gray-50 px-4 sm:px-6 lg:px-8 py-6">
+        <div className="w-full h-full bg-gray-200 p-3 sm:px-6 lg:px-3 ">
             {loading && <LoadingDots />}
             {error && <p className="text-red-500">{error}</p>}
 
             {!selectedOffense && (
                 <>
-                    <h1 className="text-2xl sm:text-3xl font-bold mb-6 text-center text-gray-900">
+                    <div className="w-full h-full bg-white p-3 rounded-lg shadow-lg">
+                    <h1 className="text-2xl sm:text-3xl font-bold mb-6 text-center text-[#0172bd]">
                         Student Offenses
                     </h1>
                     <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
@@ -60,6 +61,7 @@ function OffensesList() {
                                 onClick={() => handleSelectOffense(name, details)}
                             />
                         ))}
+                    </div>
                     </div>
                 </>
             )}

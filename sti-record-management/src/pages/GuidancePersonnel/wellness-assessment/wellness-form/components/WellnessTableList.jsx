@@ -74,7 +74,7 @@ function WellnessTableList({ data, refreshData, themes }) {
                     key={category}
                     className="bg-white rounded-xl shadow-lg border border-gray-200 p-6"
                 >
-                    <h2 className="text-lg font-bold text-indigo-700 border-b pb-2 mb-4">
+                    <h2 className="text-lg font-bold text-[#0172bd] border-b pb-2 mb-4">
                         {category}
                     </h2>
                     <div className="space-y-4">

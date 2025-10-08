@@ -78,21 +78,35 @@ function SurveyList({ surveys = {}, refreshData, onSelectSurvey }) {
     };
 
     return (
-        <div className="flex flex-wrap gap-6 p-6 bg-white h-full rounded-lg shadow-lg">
-            <WellnessCard plus={true} type="addNew" setDisplay={openAddModal} />
+        <div className="bg-white h-full px-4 py-6 rounded-lg shadow-md overflow-auto custom-scrollbar">
+            <div className="flex items-center gap-2 mb-6">
+                <h1 className="text-2xl font-bold text-[#0172bd]">Wellness Assessment Surveys</h1>
+            </div>
+            <div
+                className="
+      grid
+      grid-cols-1
+      sm:grid-cols-2
+      md:grid-cols-3
+      xl:grid-cols-5
+      gap-6
+      mt-2
+    "
+            >
+                <WellnessCard plus={true} type="addNew" setDisplay={openAddModal} />
 
-            {surveyEntries.map(([name, meta]) => (
-                <WellnessCard
-                    key={name}
-                    name={name}
-                    description={meta.description || ""}
-                    setDisplay={() => {
-                        openViewModal(name, meta.description || "");
-                        onSelectSurvey && onSelectSurvey(name);
-                    }}
-                />
-            ))}
-
+                {surveyEntries.map(([name, meta]) => (
+                    <WellnessCard
+                        key={name}
+                        name={name}
+                        description={meta.description || ""}
+                        setDisplay={() => {
+                            openViewModal(name, meta.description || "");
+                            onSelectSurvey && onSelectSurvey(name);
+                        }}
+                    />
+                ))}
+            </div>
             <WellnessCardModal
                 display={displayModal}
                 onClose={() => setDisplayModal(false)}

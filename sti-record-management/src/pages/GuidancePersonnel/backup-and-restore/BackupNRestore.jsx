@@ -81,8 +81,8 @@ function BackNRestore() {
             <div className="bg-white w-full max-w-4xl rounded-2xl shadow-lg p-6 sm:p-10 flex flex-col gap-6">
                 {/* Header */}
                 <div className="flex items-center gap-3 border-b pb-4">
-                    <RefreshCcw className="h-8 w-8 text-blue-600" />
-                    <h1 className="text-2xl sm:text-3xl font-bold text-blue-700">
+                    <RefreshCcw className="h-8 w-8 text-[#0172bd]" />
+                    <h1 className="text-2xl sm:text-3xl font-bold text-[#0172bd]">
                         Backup & Restore
                     </h1>
                 </div>
@@ -119,14 +119,14 @@ function BackNRestore() {
                     <button
                         disabled={isExporting}
                         onClick={backupNow}
-                        className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl shadow-md transition flex items-center justify-center gap-2 disabled:opacity-50"
+                        className="flex-1 bg-[#0172bd] hover:bg-blue-500 text-white font-semibold py-3 rounded-xl shadow-md transition flex items-center justify-center gap-2 disabled:opacity-50"
                     >
                         <Play className="w-5 h-5" />
                         {isExporting ? "Backing up..." : "Backup Now"}
                     </button>
                     <button
                         onClick={() => setShowModal(true)}
-                        className="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-semibold py-3 rounded-xl shadow-md transition flex items-center justify-center gap-2"
+                        className="flex-1 bg-[#fef201] hover:bg-green-500 text-black     font-semibold py-3 rounded-xl shadow-md transition flex items-center justify-center gap-2"
                     >
                         <Database className="w-5 h-5" />
                         Restore Backup
@@ -135,10 +135,10 @@ function BackNRestore() {
 
                 {/* Logs */}
                 <div>
-                    <h2 className="text-lg font-bold text-gray-800 mb-3">Backup Logs</h2>
+                    <h2 className="text-lg font-bold text-[#0172bd] mb-3">Backup Logs</h2>
                     <div className="overflow-x-auto border rounded-xl">
                         <table className="w-full text-sm">
-                            <thead className="bg-gray-100 text-gray-600">
+                            <thead className="bg-[#0172bd] text-white">
                                 <tr>
                                     <th className="p-3 text-left">Date</th>
                                     <th className="p-3 text-left">Time</th>

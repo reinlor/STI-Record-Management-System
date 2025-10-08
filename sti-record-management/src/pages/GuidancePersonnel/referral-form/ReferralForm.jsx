@@ -436,53 +436,57 @@ function ReferralFormProcessing() {
             <hr className="mb-4" />
 
             {selectedReferral ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 text-sm">
                 {/* Left Column */}
                 <div className="space-y-4">
-                  <p>
-                    <strong className="text-[#0172bd]">School Year:</strong>{" "}
-                    <span className="text-black">{selectedReferral.schoolYear || "-"}</span>
-                  </p>
-                  <p>
-                    <strong className="text-[#0172bd]">Grade Level:</strong>{" "}
-                    <span className="text-black">{selectedReferral.gradeLevel || "-"}</span>
-                  </p>
-                  <p>
-                    <strong className="text-[#0172bd]">Student Number:</strong>{" "}
-                    <span className="text-black">{selectedReferral.sid || "-"}</span>
-                  </p>
-                  <p>
-                    <strong className="text-[#0172bd]">Student’s Name:</strong>{" "}
-                    <span className="text-black">{selectedReferral.studentName || "-"}</span>
-                  </p>
-                  <p>
-                    <strong className="text-[#0172bd]">Program and Section:</strong>{" "}
-                    <span className="text-black">{selectedReferral.program || "-"}</span>
-                  </p>
-                  <p>
-                    <strong className="text-[#0172bd]">Gender:</strong>{" "}
-                    <span className="text-black">{selectedReferral.gender || "-"}</span>
-                  </p>
-                  <p>
-                    <strong className="text-[#0172bd]">Age:</strong>{" "}
-                    <span className="text-black">{selectedReferral.age || "-"}</span>
-                  </p>
-                  <p>
-                    <strong className="text-[#0172bd]">Referred By:</strong>{" "}
-                    <span className="text-black">{selectedReferral.referredBy || "-"}</span>
-                  </p>
-                  <p>
-                    <strong className="text-[#0172bd]">Areas of Concern:</strong>{" "}
-                    <span className="text-black">{selectedReferral.areasOfConcern || "-"}</span>
-                  </p>
-                  <p>
-                    <strong className="text-[#0172bd]">Action Required:</strong>{" "}
-                    <span className="text-black">{selectedReferral.actionRequired || "-"}</span>
-                  </p>
-                  <p>
-                    <strong className="text-[#0172bd]">Level of Priority:</strong>{" "}
-                    <span className="text-black">{selectedReferral.levelOfPriority || "-"}</span>
-                  </p>
+                  {/* Info fields in two-column grid, keeping order */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 border border-gray-300 p-2 rounded-md">
+
+                    <p>
+                      <strong className="text-[#0172bd]">School Year:</strong>{" "}
+                      <span className="text-black">{selectedReferral.schoolYear || "-"}</span>
+                    </p>
+                    <p>
+                      <strong className="text-[#0172bd]">Gender:</strong>{" "}
+                      <span className="text-black">{selectedReferral.gender || "-"}</span>
+                    </p>
+
+                    <p>
+                      <strong className="text-[#0172bd]">Grade Level:</strong>{" "}
+                      <span className="text-black">{selectedReferral.gradeLevel || "-"}</span>
+                    </p>
+                    <p>
+                      <strong className="text-[#0172bd]">Referred By:</strong>{" "}
+                      <span className="text-black">{selectedReferral.referredBy || "-"}</span>
+                    </p>
+
+                    <p>
+                      <strong className="text-[#0172bd]">Student Number:</strong>{" "}
+                      <span className="text-black">{selectedReferral.sid || "-"}</span>
+                    </p>
+                    <p>
+                      <strong className="text-[#0172bd]">Areas of Concern:</strong>{" "}
+                      <span className="text-black">{selectedReferral.areasOfConcern || "-"}</span>
+                    </p>
+
+                    <p>
+                      <strong className="text-[#0172bd]">Student’s Name:</strong>{" "}
+                      <span className="text-black">{selectedReferral.studentName || "-"}</span>
+                    </p>
+                    <p>
+                      <strong className="text-[#0172bd]">Action Required:</strong>{" "}
+                      <span className="text-black">{selectedReferral.actionRequired || "-"}</span>
+                    </p>
+
+                    <p>
+                      <strong className="text-[#0172bd]">Program and Section:</strong>{" "}
+                      <span className="text-black">{selectedReferral.program || "-"}</span>
+                    </p>
+                    <p>
+                      <strong className="text-[#0172bd]">Level of Priority:</strong>{" "}
+                      <span className="text-black">{selectedReferral.levelOfPriority || "-"}</span>
+                    </p>
+                  </div>
 
                   <div>
                     <p className="font-bold text-[#0172bd]">Actions Taken before Referral:</p>
@@ -503,9 +507,7 @@ function ReferralFormProcessing() {
                       rows={2}
                     />
                   </div>
-                </div>
-                {/* Right Column */}
-                <div className="space-y-4">
+
                   <p className="font-bold text-[#0172bd]">Counselor’s Initial Action:</p>
                   <textarea
                     readOnly
@@ -514,8 +516,12 @@ function ReferralFormProcessing() {
                     rows={5}
                   />
 
+                </div>
+
+                {/* Right Column */}
+                <div className="space-y-4">
                   {/* Email / Update Section */}
-                  <div className="mt-6 space-y-4">
+                  <div className="space-y-4">
                     <p className="font-bold text-[#0172bd]">Counselor's Note:</p>
                     <textarea
                       className="w-full border border-gray-300 rounded-md p-3 mt-1 resize-y bg-[#f3f4f6] text-black focus:outline-none focus:ring-1 focus:ring-[#0172bd]"

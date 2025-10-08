@@ -286,9 +286,6 @@ function RequestSlip() {
     // Destructure URLs here, where selectedSlip is guaranteed to exist
     const { proofUrl, excuseLetterUrl, guardianValidIDUrl, medicalCertificateUrl } = selectedSlip;
 
-
-
-
     return (
       <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-[9999]">
         <div className="bg-white w-full sm:max-w-350 lg:max-w-400 rounded-lg shadow-lg overflow-y-auto max-h-[92vh] p-6 sm:p-8 relative transform transition-all duration-300 ease-out scale-100 custom-scrollbar">
@@ -494,50 +491,95 @@ function RequestSlip() {
           <hr className="mb-4" />
 
           {/* Responsive grid: stack on mobile, side-by-side on desktop */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 text-sm">
             {/* LEFT PANEL */}
             <div className="space-y-6">
               <div className="space-y-2">
                 {/* Info Section */}
-                {/*
-                  - Combined "Program" and "Section" into one line for better space utilization.
-                  - Used template literals for consistent spacing.
-                */}
-                {[
-                  { label: "Name: ", value: slip.name },
-                  { label: "Program & Section: ", value: `${slip.program} ${slip.section}` },
-                  { label: "Student ID: ", value: slip.sid },
-                  {
-                    label: "Status: ", value: slip.status, className:
-                      slip.status === "Approved"
-                        ? "text-green-600 font-bold"
-                        : slip.status === "Rejected"
-                          ? "text-red-600 font-bold"
-                          : "text-gray-600 font-bold",
-                  },
-                  { label: "Date: ", value: slip.timeCreatedFormatted || formatDate(slip.timeCreated) },
-                  { label: "Type of Slip: ", value: slip.typeOfSlip },
-                  { label: "Email: ", value: slip.email },
-                  { label: "Witness Name: ", value: slip.witnessName },
-                  { label: "Witness Contact: ", value: slip.witnessContact },
-                  { label: "Narrative Report: ", value: slip.narrativeReport },
-                  { label: "Person Involved: ", value: slip.personInvolved },
-                  { label: "Location Of Incident: ", value: slip.locationOfIncident },
-                  { label: "Incident Time: ", value: slip.incidentTime },
-                  { label: "Date Of Incident: ", value: slip.dateOfIncident },
-                  { label: "Action Taken: ", value: slip.actionsTaken },
-                ].map((item, i) => (
-                  <div key={i} className="flex items-center flex-wrap">
-                    <p className="font-bold text-[#0172bd] mr-5">{item.label}</p>
-                    <p className={`font-semibold ${item.className || "text-black"} break-all`}>
-                      {item.value}
-                    </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 border border-gray-300 p-2 rounded-md text-sm">
+                  {/* Row 1 */}
+                  <div>
+                    <p className="font-bold text-[#0172bd]">Name:</p>
+                    <p className="font-semibold text-black break-all">{slip.name}</p>
                   </div>
-                ))}
+                  <div>
+                    <p className="font-bold text-[#0172bd]">Program & Section:</p>
+                    <p className="font-semibold text-black break-all">{`${slip.program} ${slip.section}`}</p>
+                  </div>
+                  {/* Row 2 */}
+                  <div>
+                    <p className="font-bold text-[#0172bd]">Student ID:</p>
+                    <p className="font-semibold text-black break-all">{slip.sid}</p>
+                  </div>
+                  <div>
+                    <p className="font-bold text-[#0172bd]">Status:</p>
+                    <p className={`font-semibold break-all ${
+                      slip.status === "Approved"
+                        ? "text-green-600"
+                        : slip.status === "Rejected"
+                          ? "text-red-600"
+                          : "text-gray-600"
+                    }`}>{slip.status}</p>
+                  </div>
+                  {/* Row 3 */}
+                  <div>
+                    <p className="font-bold text-[#0172bd]">Date:</p>
+                    <p className="font-semibold text-black break-all">{slip.timeCreatedFormatted || formatDate(slip.timeCreated)}</p>
+                  </div>
+                  <div>
+                    <p className="font-bold text-[#0172bd]">Type of Slip:</p>
+                    <p className="font-semibold text-black break-all">{slip.typeOfSlip}</p>
+                  </div>
+                  {/* Row 4 */}
+                  <div>
+                    <p className="font-bold text-[#0172bd]">Email:</p>
+                    <p className="font-semibold text-black break-all">{slip.email}</p>
+                  </div>
+                  <div>
+                    <p className="font-bold text-[#0172bd]">Witness Name:</p>
+                    <p className="font-semibold text-black break-all">{slip.witnessName}</p>
+                  </div>
+                  {/* Row 5 */}
+                  <div>
+                    <p className="font-bold text-[#0172bd]">Witness Contact:</p>
+                    <p className="font-semibold text-black break-all">{slip.witnessContact}</p>
+                  </div>
+                  <div>
+                    <p className="font-bold text-[#0172bd]">Person Involved:</p>
+                    <p className="font-semibold text-black break-all">{slip.personInvolved}</p>
+                  </div>
+                  {/* Row 6 */}
+                  <div>
+                    <p className="font-bold text-[#0172bd]">Location Of Incident:</p>
+                    <p className="font-semibold text-black break-all">{slip.locationOfIncident}</p>
+                  </div>
+                  <div>
+                    <p className="font-bold text-[#0172bd]">Incident Time:</p>
+                    <p className="font-semibold text-black break-all">{slip.incidentTime}</p>
+                  </div>
+                  {/* Row 7 */}
+                  <div>
+                    <p className="font-bold text-[#0172bd]">Date Of Incident:</p>
+                    <p className="font-semibold text-black break-all">{slip.dateOfIncident}</p>
+                  </div>
+                  <div></div>
+                  
+                </div>
+
+                  {/* Row 8: Narrative Report (full width) */}
+                  <div className="md:col-span-2">
+                    <p className="font-bold text-[#0172bd]">Narrative Report:</p>
+                    <p className="font-semibold text-black break-all">{slip.narrativeReport}</p>
+                  </div>
+                  {/* Row 9: Action Taken (full width) */}
+                  <div className="md:col-span-2">
+                    <p className="font-bold text-[#0172bd]">Action Taken:</p>
+                    <p className="font-semibold text-black break-all">{slip.actionsTaken}</p>
+                  </div>
               </div>
 
               {/* Attachments Section */}
-              <div className="grid grid-cols-2 gap-6">
+              <div className="md:col-span-2 grid grid-cols-2 gap-6 mt-2">
                 {attachmentUrl.length === 0 && (
                   <span className="text-gray-400">No attachments.</span>
                 )}
@@ -547,7 +589,7 @@ function RequestSlip() {
                       <img
                         src={url}
                         alt={`Attachment ${idx + 1}`}
-                        className="w-24 h-24 object-cover rounded"
+                        className="w-30 h-30 object-cover rounded"
                       />
                     </a>
                     <span className="text-xs text-[#0172bd] mt-2 text-center">

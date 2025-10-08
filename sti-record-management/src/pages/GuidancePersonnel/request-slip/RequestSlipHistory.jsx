@@ -58,12 +58,180 @@ function formatDate(dateInput) {
   return `${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getDate().toString().padStart(2, '0')}/${d.getFullYear()}`;
 }
 
+function IncidentReportHistoryModal({ slip, onClose }) {
+  if (!slip) return null;
+  const { attachmentUrl = [] } = slip;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-[9999]">
+        <div className="relative bg-white w-full max-w-[95vw] sm:max-w-xl lg:max-w-7xl rounded-lg shadow-xl p-4 sm:p-6 overflow-y-auto max-h-[90vh] animate-fadeIn custom-scrollbar outline-solid outline-2 outline-gray-300">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-4">
+            <h2 className="text-2xl font-bold text-[#0172bd]">Incident Report</h2>
+            <span className="px-3 py-2 bg-gray-100 text-gray-800 text-md font-medium rounded">
+              {slip.typeOfSlip}
+            </span>
+          </div>
+          <button
+            onClick={onClose}
+            className="text-2xl text-[#0172bd] hover:scale-110 hover:text-blue-500"
+          >
+            <X className="w-10 h-10 object-cover rounded " />
+          </button>
+        </div>
+        <hr className="mb-4" />
+
+        {/* Responsive grid: stack on mobile, side-by-side on desktop */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 text-sm">
+          {/* LEFT PANEL */}
+          <div className="space-y-6">
+            <div className="space-y-2">
+              {/* Info Section */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 border border-gray-300 p-2 rounded-md text-sm">
+                <div>
+                  <p className="font-bold text-[#0172bd]">Name:</p>
+                  <p className="font-semibold text-black break-all">{slip.name}</p>
+                </div>
+                <div>
+                  <p className="font-bold text-[#0172bd]">Program & Section:</p>
+                  <p className="font-semibold text-black break-all">{`${slip.program} ${slip.section}`}</p>
+                </div>
+                <div>
+                  <p className="font-bold text-[#0172bd]">Student ID:</p>
+                  <p className="font-semibold text-black break-all">{slip.sid}</p>
+                </div>
+                <div>
+                  <p className="font-bold text-[#0172bd]">Status:</p>
+                  <p className={`font-semibold break-all ${
+                    slip.status === "Approved"
+                      ? "text-green-600"
+                      : slip.status === "Denied"
+                        ? "text-red-600"
+                        : "text-gray-600"
+                  }`}>{slip.status}</p>
+                </div>
+                <div>
+                  <p className="font-bold text-[#0172bd]">Date:</p>
+                  <p className="font-semibold text-black break-all">{slip.timeCreatedFormatted || formatDate(slip.timeCreated)}</p>
+                </div>
+                <div>
+                  <p className="font-bold text-[#0172bd]">Type of Slip:</p>
+                  <p className="font-semibold text-black break-all">{slip.typeOfSlip}</p>
+                </div>
+                <div>
+                  <p className="font-bold text-[#0172bd]">Email:</p>
+                  <p className="font-semibold text-black break-all">{slip.email}</p>
+                </div>
+                <div>
+                  <p className="font-bold text-[#0172bd]">Witness Name:</p>
+                  <p className="font-semibold text-black break-all">{slip.witnessName}</p>
+                </div>
+                <div>
+                  <p className="font-bold text-[#0172bd]">Witness Contact:</p>
+                  <p className="font-semibold text-black break-all">{slip.witnessContact}</p>
+                </div>
+                <div>
+                  <p className="font-bold text-[#0172bd]">Person Involved:</p>
+                  <p className="font-semibold text-black break-all">{slip.personInvolved}</p>
+                </div>
+                <div>
+                  <p className="font-bold text-[#0172bd]">Location Of Incident:</p>
+                  <p className="font-semibold text-black break-all">{slip.locationOfIncident}</p>
+                </div>
+                <div>
+                  <p className="font-bold text-[#0172bd]">Incident Time:</p>
+                  <p className="font-semibold text-black break-all">{slip.incidentTime}</p>
+                </div>
+                <div>
+                  <p className="font-bold text-[#0172bd]">Date Of Incident:</p>
+                  <p className="font-semibold text-black break-all">{slip.dateOfIncident}</p>
+                </div>
+                <div></div>
+              </div>
+              {/* Narrative Report (full width) */}
+              <div className="md:col-span-2">
+                <p className="font-bold text-[#0172bd]">Narrative Report:</p>
+                <p className="font-semibold text-black break-all">{slip.narrativeReport}</p>
+              </div>
+              {/* Action Taken (full width) */}
+              <div className="md:col-span-2">
+                <p className="font-bold text-[#0172bd]">Action Taken:</p>
+                <p className="font-semibold text-black break-all">{slip.actionsTaken}</p>
+              </div>
+            </div>
+            {/* Attachments Section */}
+            <div className="md:col-span-2 grid grid-cols-2 gap-6 mt-2">
+              {attachmentUrl.length === 0 && (
+                <span className="text-gray-400">No attachments.</span>
+              )}
+              {attachmentUrl.map((url, idx) => (
+                <div key={idx} className="flex flex-col items-center">
+                  <a href={url} target="_blank" rel="noopener noreferrer">
+                    <img
+                      src={url}
+                      alt={`Attachment ${idx + 1}`}
+                      className="w-24 h-24 object-cover rounded"
+                    />
+                  </a>
+                  <span className="text-xs text-[#0172bd] mt-2 text-center">
+                    Attachment {idx + 1}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+          {/* RIGHT PANEL */}
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-bold mb-1 text-[#0172bd]">Remarks</label>
+              <textarea
+                className="border rounded px-3 py-2 w-full h-16 sm:h-20 resize-none text-xs sm:text-sm"
+                value={slip.remarks || ""}
+                readOnly
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-bold mb-1 text-[#0172bd]">Send Email To</label>
+              <input
+                type="text"
+                value={slip.email}
+                className="border rounded px-3 py-2 w-full text-xs sm:text-sm"
+                readOnly
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-bold mb-1 text-[#0172bd]">Subject</label>
+              <input
+                type="text"
+                value="Incident Report Status"
+                className="border rounded px-3 py-2 w-full text-xs sm:text-sm"
+                readOnly
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-bold mb-1 text-[#0172bd]">Email Body</label>
+              <textarea
+                className="border rounded px-3 py-2 w-full h-20 sm:h-24 resize-none text-xs sm:text-sm"
+                value={`Your Incident Report submitted on ${slip.timeCreatedFormatted} has been ${slip.status}.`}
+                readOnly
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function RequestSlipHistory() {
   const navigate = useNavigate()
   const [selectedSlip, setSelectedSlip] = useState(null);
   const [search, setSearch] = useState("");
   const [slipData, setSlipData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showIncidentReportModal, setShowIncidentReportModal] = useState(false);
+  const [incidentReportSlip, setIncidentReportSlip] = useState(null);
 
   // PAGINATION STATE
   const [currentPage, setCurrentPage] = useState(1);
@@ -214,6 +382,7 @@ function RequestSlipHistory() {
     );
   }
 
+  // Update table row open logic:
   const displaySlipHistoryTable = pagedSlipData.map((slips, idx) => (
     <tr key={idx} className="hover:bg-gray-100 transition">
       {console.log(slips.status)}
@@ -230,7 +399,14 @@ function RequestSlipHistory() {
       <td className="px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">{slips.attachmentCount}</td>
       <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3">
         <button
-          onClick={() => setSelectedSlip(slips)}
+          onClick={() => {
+            if (slips.typeOfSlip === "Incident Report") {
+              setIncidentReportSlip(slips);
+              setShowIncidentReportModal(true);
+            } else {
+              setSelectedSlip(slips);
+            }
+          }}
           className="bg-[#0172bd] text-white font-semibold px-3 sm:px-4 py-1 rounded-lg hover:bg-blue-500 transition w-full sm:w-auto"
         >
           Open
@@ -330,6 +506,15 @@ function RequestSlipHistory() {
 
 
         <div>{displayRequestSlipForm()}</div>
+        {showIncidentReportModal && (
+          <IncidentReportHistoryModal
+            slip={incidentReportSlip}
+            onClose={() => {
+              setShowIncidentReportModal(false);
+              setIncidentReportSlip(null);
+            }}
+          />
+        )}
       </div>
     </div>
   );

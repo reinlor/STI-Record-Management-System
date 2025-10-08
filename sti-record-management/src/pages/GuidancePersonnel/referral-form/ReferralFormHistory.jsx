@@ -110,6 +110,11 @@ function ReferralFormHistory() {
               <p><span className="font-bold text-[#0172bd]">Areas of Concern:</span> {selectedReferral.areasOfConcern || "-"}</p>
               <p><span className="font-bold text-[#0172bd]">Action Required:</span> {selectedReferral.actionRequired || "-"}</p>
               <p><span className="font-bold text-[#0172bd]">Level of Priority:</span> {selectedReferral.levelPriority || "-"}</p>
+              
+            </div>
+            {/* Right Column */}
+            <div className="space-y-3">
+              
               <div>
                 <p className="font-bold text-[#0172bd]">Actions Taken before Referral:</p>
                 <textarea
@@ -128,9 +133,7 @@ function ReferralFormHistory() {
                   rows={3}
                 />
               </div>
-            </div>
-            {/* Right Column */}
-            <div className="space-y-3">
+
               <p className="font-bold text-[#0172bd]">Counselor’s Initial Action:</p>
               <textarea
                 readOnly

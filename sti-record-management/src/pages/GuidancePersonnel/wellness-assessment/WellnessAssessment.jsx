@@ -5,6 +5,8 @@ import WellnessForm from "./wellness-form/WellnessForm";
 import WellnessSummary from "./wellnessSummary/WellnessSummaryReport";
 import LoadingDots from "../../../component/Loading";
 
+import { FileChartLine } from 'lucide-react';
+
 function WellnessAssessment() {
   const [isLoading, setIsLoading] = useState(false);
   const [surveys, setSurveys] = useState({});
@@ -44,16 +46,17 @@ function WellnessAssessment() {
   if (error) return <div className="p-6 text-red-500">{error}</div>;
 
   return (
-    <div className="h-full font-sans flex flex-col gap-6 p-4 bg-gray-100">
+    <div className="h-full font-sans flex flex-col gap-2 p-4 bg-gray-100">
       {activeMode === "list" && (
         <>
-          <div className="flex gap-4">
-            <button
-              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-              onClick={() => setActiveMode("summary")}
-            >
-              Summary
-            </button>
+          <div className="flex gap-2">
+          <button
+            className="px-4 py-2 bg-[#0172bd] text-white hover:bg-blue-500 flex items-center justify-center gap-2 rounded-lg"
+            onClick={() => setActiveMode("summary")}
+          >
+            Summary
+            <FileChartLine className="text-white" />
+          </button>
 
           </div>
           <SurveyList

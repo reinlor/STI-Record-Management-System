@@ -89,7 +89,7 @@ export default function WellnessSummary({ onBack }) {
                                 className="p-6 bg-white rounded-2xl shadow hover:shadow-lg transition cursor-pointer flex flex-col justify-between"
                             >
                                 <div className="flex items-start gap-3">
-                                    <BarChart2 className="text-indigo-600 w-6 h-6" />
+                                    <BarChart2 className="text-[#0172bd] w-6 h-6" />
                                     <div>
                                         <h3 className="font-semibold text-lg text-gray-800">
                                             {s.surveyName}
@@ -102,7 +102,7 @@ export default function WellnessSummary({ onBack }) {
                                 </div>
                                 <button
                                     onClick={() => fetchDetail(s.surveyName)}
-                                    className="mt-6 px-4 py-2 rounded-lg bg-indigo-600 text-white font-medium hover:bg-indigo-700 transition w-full"
+                                    className="mt-6 px-4 py-2 rounded-lg bg-[#0172bd] text-white font-medium hover:bg-blue-500 transition w-full"
                                 >
                                     View Details
                                 </button>

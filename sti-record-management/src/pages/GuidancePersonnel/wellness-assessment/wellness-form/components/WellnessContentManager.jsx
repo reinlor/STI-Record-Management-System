@@ -225,8 +225,8 @@ function WellnessContentManager({ data, theme, refreshData, surveyName }) {
     return (
         <div className="max-w-4xl mx-auto space-y-8">
             {/* Add question card */}
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                <h1 className="text-xl font-bold mb-6 text-indigo-700">
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <h1 className="text-xl font-bold mb-6 text-[#0172bd]">
                     Add a New Question
                 </h1>
                 <div className="space-y-5">
@@ -304,7 +304,7 @@ function WellnessContentManager({ data, theme, refreshData, surveyName }) {
 
             {/* Themes section */}
             <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                <h2 className="text-lg font-bold mb-4 text-indigo-700">
+                <h2 className="text-lg font-bold mb-4 text-[#0172bd]">
                     {editingTheme ? "Edit Theme" : "Create New Theme"}
                 </h2>
                 <label className="block mb-2">
@@ -340,7 +340,7 @@ function WellnessContentManager({ data, theme, refreshData, surveyName }) {
                     {editingTheme ? "Save Changes" : "Save Theme"}
                 </button>
 
-                <h2 className="text-lg font-bold mt-6 mb-2 text-indigo-700">
+                <h2 className="text-lg font-bold mt-6 mb-2 text-[#0172bd]">
                     Existing Themes
                 </h2>
                 {displayExistingTheme()}
@@ -348,7 +348,7 @@ function WellnessContentManager({ data, theme, refreshData, surveyName }) {
 
             {/* Release Section */}
             <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                <h2 className="text-lg font-bold mb-4 text-indigo-700">Release Exam</h2>
+                <h2 className="text-lg font-bold mb-4 text-[#0172bd]">Release Exam</h2>
                 {isReleased ? (
                     <button
                         onClick={() => confirmToggleRelease(false)}
