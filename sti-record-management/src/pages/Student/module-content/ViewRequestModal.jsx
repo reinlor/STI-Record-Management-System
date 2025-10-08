@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { X, User, FileText, MessageSquare, Info, Paperclip, AlertTriangle } from "lucide-react";
+import { X, User, FileText, MessageSquare, Info, Paperclip, AlertTriangle, } from "lucide-react";
 import { getStatusClasses } from "../components/statusClasses";
 import axios from "axios";
 import { toast, Toaster } from "react-hot-toast";
@@ -36,11 +36,13 @@ export default function ViewRequestModal({ data, onClose }) {
     return d ? d.toLocaleString() : "N/A";
   };
 
+  // Updated cancel request
   const handleCancelRequest = async () => {
     setIsCancelling(true);
     try {
       const slipId = data._id || data.id;
-      await axios.post(`/slip/cancel/${slipId}`);
+      const slipType = data.typeOfSlip;
+      await axios.put(`/slip/cancel/${encodeURIComponent(slipType)}/${slipId}`);
       setCancelSuccess(true);
       toast.success("Request successfully cancelled!");
       setTimeout(() => {
@@ -75,6 +77,7 @@ export default function ViewRequestModal({ data, onClose }) {
           <p className="text-gray-500 mt-2 text-sm md:text-base">
             Detailed information about the student's request.
           </p>
+
           {/* Status Badge */}
           <div className="flex justify-center mt-5">
             <div
@@ -250,7 +253,7 @@ export default function ViewRequestModal({ data, onClose }) {
         </div>
 
         {/* Footer / Cancel Button */}
-        {data.status === "Pending" && (
+        {(data.status === "Pending" || data.status === "In Progress") && (
           <div className="sticky bottom-0 bg-white border-t border-gray-100 rounded-b-3xl p-4 flex justify-end z-30">
             <button
               onClick={handleCancelRequest}
