@@ -44,10 +44,12 @@ export default function ContentManagement() {
     const [newAnnouncement, setNewAnnouncement] = useState({ title: "", body: "" });
     const [tertiaryPrograms, setTertiaryPrograms] = useState([]);
     const [shsStrands, setShsStrands] = useState([]);
-    const [tempWellnessLink, setTempWellnessLink] = useState("");
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-    const [modalType, setModalType] = useState(null); // "SHS" or "Tertiary"
+    const [modalType, setModalType] = useState(null);
     const [newItem, setNewItem] = useState({ name: "", acronym: "" });
+    const [isEditingProgram, setIsEditingProgram] = useState(false);
+    const [tempWellnessLink, setTempWellnessLink] = useState("");
+    const [programModalType, setProgramModalType] = useState(null);
     const [toast, setToast] = useState({ isVisible: false, message: "", type: "success" });
 
     // Violations states
@@ -264,7 +266,126 @@ export default function ContentManagement() {
 
     const handleAddProgram = (type) => {
         setModalType(type);
+        setNewItem({ name: "", acronym: "" });
+        setIsEditingProgram(false);
         setIsAddModalOpen(true);
+    };
+
+    const handleEditProgram = (item, type) => {
+        setModalType(type);
+        setNewItem({
+            name: item.name,
+            acronym: item.acronym,
+            oldAcronym: item.acronym,
+        });
+        setIsEditingProgram(true);
+        setIsAddModalOpen(true);
+    };
+
+    const handleProgramSubmit = async (e) => {
+        e.preventDefault();
+
+        try {
+            if (isEditingProgram) {
+                if (modalType === "Tertiary") {
+                    await axios.put(`${API}/program/update`, {
+                        oldAcronym: newItem.oldAcronym,
+                        name: newItem.name,
+                        acronym: newItem.acronym,
+                    });
+                    setTertiaryPrograms((prev) =>
+                        prev.map((p) =>
+                            p.acronym === newItem.oldAcronym
+                                ? { name: newItem.name, acronym: newItem.acronym }
+                                : p
+                        )
+                    );
+                    showToast("Program updated successfully!", "success");
+                } else {
+                    await axios.put(`${API}/strand/update`, {
+                        oldAcronym: newItem.oldAcronym,
+                        name: newItem.name,
+                        acronym: newItem.acronym,
+                    });
+                    setShsStrands((prev) =>
+                        prev.map((s) =>
+                            s.acronym === newItem.oldAcronym
+                                ? { name: newItem.name, acronym: newItem.acronym }
+                                : s
+                        )
+                    );
+                    showToast("Strand updated successfully!", "success");
+                }
+            } else {
+                if (modalType === "Tertiary") {
+                    await axios.post(`${API}/program/add`, {
+                        name: newItem.name,
+                        acronym: newItem.acronym,
+                    });
+                    setTertiaryPrograms((prev) => [
+                        ...prev,
+                        { name: newItem.name, acronym: newItem.acronym },
+                    ]);
+                    showToast("Program added successfully!", "success");
+                } else {
+                    await axios.post(`${API}/strand/add`, {
+                        name: newItem.name,
+                        acronym: newItem.acronym,
+                    });
+                    setShsStrands((prev) => [
+                        ...prev,
+                        { name: newItem.name, acronym: newItem.acronym },
+                    ]);
+                    showToast("Strand added successfully!", "success");
+                }
+            }
+        } catch (error) {
+            console.error("Error saving:", error);
+            showToast("Error saving program/strand.", "error");
+        } finally {
+            setIsAddModalOpen(false);
+            setIsEditingProgram(false);
+            setNewItem({ name: "", acronym: "" });
+        }
+    };
+
+    const handleDeleteProgram = (item, type) => {
+        setConfirmModal({
+            isOpen: true,
+            title: `Delete ${type === "Tertiary" ? "Program" : "Strand"}`,
+            message: `Are you sure you want to delete "${item.name}" (${item.acronym})? This action cannot be undone.`,
+            onConfirm: async () => {
+                try {
+                    if (type === "Tertiary") {
+                        await axios.delete(`${API}/program/delete`, {
+                            data: { acronym: item.acronym },
+                        });
+                        setTertiaryPrograms((prev) =>
+                            prev.filter((p) => p.acronym !== item.acronym)
+                        );
+                        showToast("Program deleted.", "success");
+                    } else {
+                        await axios.delete(`${API}/strand/delete`, {
+                            data: { acronym: item.acronym },
+                        });
+                        setShsStrands((prev) =>
+                            prev.filter((s) => s.acronym !== item.acronym)
+                        );
+                        showToast("Strand deleted.", "success");
+                    }
+                } catch (error) {
+                    console.error("Error deleting:", error);
+                    showToast("Failed to delete.", "error");
+                } finally {
+                    setConfirmModal({
+                        isOpen: false,
+                        title: "",
+                        message: "",
+                        onConfirm: null,
+                    });
+                }
+            },
+        });
     };
 
     // === School year handler ===
@@ -393,6 +514,8 @@ export default function ContentManagement() {
                         tertiaryPrograms={tertiaryPrograms}
                         shsStrands={shsStrands}
                         handleAddProgram={handleAddProgram}
+                        onEditProgram={handleEditProgram}
+                        onDeleteProgram={handleDeleteProgram}
                     />
                 )}
                 {activePanel === PANEL.WELLNESS && (
@@ -457,6 +580,24 @@ export default function ContentManagement() {
                     </div>
                 </div>
             )}
+
+            {/* Program Modal */}
+            <AddProgramModal
+                isOpen={isAddModalOpen}
+                setIsOpen={(val) => {
+                    setIsAddModalOpen(val);
+                    if (!val) {
+                        setIsEditingProgram(false);
+                        setNewItem({ name: "", acronym: "" });
+                    }
+                }}
+                modalType={modalType}
+                newItem={newItem}
+                setNewItem={setNewItem}
+                handleModalSubmit={handleProgramSubmit}
+                isEditing={isEditingProgram}
+            ></AddProgramModal>
+
 
             {/* Toast */}
             <Toast message={toast.message} type={toast.type} isVisible={toast.isVisible} onClose={() => setToast({ ...toast, isVisible: false })} />

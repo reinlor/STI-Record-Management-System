@@ -151,6 +151,62 @@ const addProgram = async (req, res) => {
   }
 };
 
+// Controller function for updating a program
+const updateProgram = async (req, res) => {
+  try {
+    const { oldAcronym, name, acronym } = req.body;
+    const { error } = programStrandSchema.validate({ name, acronym });
+    if (error) {
+      return res.status(400).json({ error: "Invalid program data", details: error.details });
+    }
+
+    const programDocRef = getContentManagementCollection().doc("programStrand");
+    const docSnapshot = await programDocRef.get();
+    if (!docSnapshot.exists) return res.status(404).json({ error: "ProgramStrand doc missing." });
+
+    const data = docSnapshot.data();
+    const programs = data.program || [];
+    const idx = programs.findIndex((p) => p.acronym === oldAcronym);
+    if (idx === -1) return res.status(404).json({ error: "Program not found." });
+
+    const duplicate = programs.some((p) => p.acronym === acronym && p.acronym !== oldAcronym);
+    if (duplicate) return res.status(409).json({ error: "A program with that acronym already exists." });
+
+    programs[idx] = { name, acronym };
+    await programDocRef.set({ program: programs }, { merge: true });
+
+    res.status(200).json({ message: "Program updated successfully." });
+  } catch (error) {
+    console.error("Error updating program:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+// Controller function for deleting a program
+const deleteProgram = async (req, res) => {
+  try {
+    const { acronym } = req.body || req.query || {};
+    if (!acronym) return res.status(400).json({ error: "acronym required" });
+
+    const programDocRef = getContentManagementCollection().doc("programStrand");
+    const docSnapshot = await programDocRef.get();
+    if (!docSnapshot.exists) return res.status(404).json({ error: "ProgramStrand doc missing." });
+
+    const data = docSnapshot.data();
+    const programs = data.program || [];
+    const exists = programs.some((p) => p.acronym === acronym);
+    if (!exists) return res.status(404).json({ error: "Program not found." });
+
+    const updated = programs.filter((p) => p.acronym !== acronym);
+    await programDocRef.set({ program: updated }, { merge: true });
+
+    res.status(200).json({ message: "Program deleted successfully." });
+  } catch (error) {
+    console.error("Error deleting program:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
 // Controller function for getting programs
 const getProgram = async (req, res) => {
   try {
@@ -166,6 +222,60 @@ const getProgram = async (req, res) => {
   } catch (error) {
     console.error("Error fetching programs:", error);
     res.status(500).json({ error: "Failed to fetch programs." });
+  }
+};
+
+// Controller function for updating a Strand
+const updateStrand = async (req, res) => {
+  try {
+    const { oldAcronym, name, acronym } = req.body;
+    const { error } = programStrandSchema.validate({ name, acronym });
+    if (error) return res.status(400).json({ error: "Invalid strand data", details: error.details });
+
+    const strandDocRef = getContentManagementCollection().doc("programStrand");
+    const docSnapshot = await strandDocRef.get();
+    if (!docSnapshot.exists) return res.status(404).json({ error: "ProgramStrand doc missing." });
+
+    const data = docSnapshot.data();
+    const strands = data.strand || [];
+    const idx = strands.findIndex((s) => s.acronym === oldAcronym);
+    if (idx === -1) return res.status(404).json({ error: "Strand not found." });
+
+    const duplicate = strands.some((s) => s.acronym === acronym && s.acronym !== oldAcronym);
+    if (duplicate) return res.status(409).json({ error: "A strand with that acronym already exists." });
+
+    strands[idx] = { name, acronym };
+    await strandDocRef.set({ strand: strands }, { merge: true });
+
+    res.status(200).json({ message: "Strand updated successfully." });
+  } catch (error) {
+    console.error("Error updating strand:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+// Controller function for deleting a Strand
+const deleteStrand = async (req, res) => {
+  try {
+    const { acronym } = req.body || req.query || {};
+    if (!acronym) return res.status(400).json({ error: "acronym required" });
+
+    const strandDocRef = getContentManagementCollection().doc("programStrand");
+    const docSnapshot = await strandDocRef.get();
+    if (!docSnapshot.exists) return res.status(404).json({ error: "ProgramStrand doc missing." });
+
+    const data = docSnapshot.data();
+    const strands = data.strand || [];
+    const exists = strands.some((s) => s.acronym === acronym);
+    if (!exists) return res.status(404).json({ error: "Strand not found." });
+
+    const updated = strands.filter((s) => s.acronym !== acronym);
+    await strandDocRef.set({ strand: updated }, { merge: true });
+
+    res.status(200).json({ message: "Strand deleted successfully." });
+  } catch (error) {
+    console.error("Error deleting strand:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 };
 
@@ -664,6 +774,10 @@ module.exports = {
   addAnnouncement,
   addProgram,
   addStrand,
+  updateProgram,
+  deleteProgram,
+  updateStrand,
+  deleteStrand,
   changeWellnessLink,
   getProgram,
   getStrand,

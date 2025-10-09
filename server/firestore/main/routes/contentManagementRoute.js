@@ -21,7 +21,11 @@ const {
     updateSchoolPeriod,
     getAllContent,
     getAllOffenses,
-    deleteViolationCategory
+    deleteViolationCategory,
+    updateProgram,
+    deleteProgram,
+    updateStrand,
+    deleteStrand
 } = require("../controller/contentManagementController.js");
 
 const upload = multer({ storage: multer.memoryStorage() });
@@ -31,6 +35,11 @@ const router = express.Router();
 router.post("/announcement/add", addAnnouncement);
 router.post("/program/add", addProgram);
 router.post("/strand/add", addStrand);
+router.put("/program/update", updateProgram);
+router.delete("/program/delete", deleteProgram);
+router.put("/strand/update", updateStrand);
+router.delete("/strand/delete", deleteStrand);
+
 router.put("/wellness/change", changeWellnessLink);
 router.put("/studentHandbook/add", upload.single("file"), addCollegeStudentHandbook);
 router.put("/shsStudentHandbook/add", upload.single("file"), addShsStudentHandbook);
