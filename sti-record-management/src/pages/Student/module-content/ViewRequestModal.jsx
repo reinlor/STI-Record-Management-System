@@ -1,8 +1,17 @@
 import React, { useState } from "react";
-import { X, User, FileText, MessageSquare, Info, Paperclip, AlertTriangle } from "lucide-react";
+import {
+  X,
+  User,
+  FileText,
+  MessageSquare,
+  Info,
+  Paperclip,
+  AlertTriangle,
+} from "lucide-react";
 import { getStatusClasses } from "../components/statusClasses";
 import axios from "axios";
-import { toast, Toaster } from "react-hot-toast";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function ViewRequestModal({ data, onClose }) {
   const [isCancelling, setIsCancelling] = useState(false);
@@ -20,7 +29,9 @@ export default function ViewRequestModal({ data, onClose }) {
   const isAbsentSlip = data.typeOfSlip === "Absent Slip";
   const isIncidentReport = data.typeOfSlip === "Incident Report";
   const hasAbsentAttachments =
-    data.excuseLetterUrl || data.guardianValidIDUrl || data.medicalCertificateUrl;
+    data.excuseLetterUrl ||
+    data.guardianValidIDUrl ||
+    data.medicalCertificateUrl;
 
   const parseToDate = (val) => {
     if (!val) return null;
@@ -36,18 +47,34 @@ export default function ViewRequestModal({ data, onClose }) {
     return d ? d.toLocaleString() : "N/A";
   };
 
+  // Updated cancel request (using react-toastify)
   const handleCancelRequest = async () => {
     setIsCancelling(true);
     try {
       const slipId = data._id || data.id;
-      await axios.post(`/slip/cancel/${slipId}`);
+      const slipType = data.typeOfSlip;
+      await axios.put(`/slip/cancel/${encodeURIComponent(slipType)}/${slipId}`);
       setCancelSuccess(true);
-      toast.success("Request successfully cancelled!");
+      toast.success("Request successfully cancelled!", {
+        position: "top-right",
+        autoClose: 1500,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
       setTimeout(() => {
         onClose();
-      }, 1200);
+      }, 1500);
     } catch (err) {
-      toast.error("Failed to cancel request. Please try again.");
+      toast.error("Failed to cancel request. Please try again.", {
+        position: "top-right",
+        autoClose: 2500,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
     } finally {
       setIsCancelling(false);
     }
@@ -55,7 +82,8 @@ export default function ViewRequestModal({ data, onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm bg-black/40 animate-fade-in-backdrop">
-      <Toaster position="top-right" />
+      <ToastContainer theme="light" />
+
       <div className="relative flex flex-col bg-white rounded-3xl shadow-2xl w-full max-w-full md:max-w-3xl lg:max-w-5xl xl:max-w-6xl animate-fade-in border border-gray-200">
         {/* Close Button */}
         <button
@@ -75,6 +103,7 @@ export default function ViewRequestModal({ data, onClose }) {
           <p className="text-gray-500 mt-2 text-sm md:text-base">
             Detailed information about the student's request.
           </p>
+
           {/* Status Badge */}
           <div className="flex justify-center mt-5">
             <div
@@ -250,7 +279,7 @@ export default function ViewRequestModal({ data, onClose }) {
         </div>
 
         {/* Footer / Cancel Button */}
-        {data.status === "Pending" && (
+        {(data.status === "Pending" || data.status === "In Progress") && (
           <div className="sticky bottom-0 bg-white border-t border-gray-100 rounded-b-3xl p-4 flex justify-end z-30">
             <button
               onClick={handleCancelRequest}

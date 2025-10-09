@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from "react";
 import TeacherTopbar from "./modules/TeacherTopbar";
 import ChangePasswordModal from "../../component/ChangePasswordModal.jsx";
+import TeacherDashboard from "./content/TeacherDashboard.jsx";
 import SubmitReferralForm from "./content/SubmitReferral";
 import ViewRequest from "./content/ViewRequest";
 import NotificationsPage from "../../component/NotificationPage.jsx";
@@ -42,6 +43,8 @@ export default function TeacherHomepage() {
 
   const renderModule = () => {
     switch (selected) {
+      case "dashboard":
+        return <TeacherDashboard />;
       case "submit":
         return authData && (
           <SubmitReferralForm

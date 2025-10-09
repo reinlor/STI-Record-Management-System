@@ -8,7 +8,8 @@ const {
   getAbsentSlip,
   getAllSlips,
   getAllSlipsById,
-  updateSlipStatus
+  updateSlipStatus,
+  cancelRequestSlip
 } = require("../controller/slipController");
 
 const router = express.Router();
@@ -24,5 +25,6 @@ router.get("/absentSlip/:sid", getAbsentSlip);
 router.get('/allSlips', getAllSlips);
 router.get('/allSlips/:sid', getAllSlipsById);
 router.put('/update/:slipType/:slipId', updateSlipStatus)   // For updating slips
+router.put('/cancel/:slipType/:slipId', cancelRequestSlip)   // For cancelling slips
 
 module.exports = router;
