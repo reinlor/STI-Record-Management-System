@@ -22,7 +22,7 @@ export default function ViewRequest({ referralData = [], isLoading = false }) {
   const [sortOption, setSortOption] = useState("Newest First");
 
   // Status options for teachers
-  const statusOptions = ["Pending", "In Progress", "Resolved", "Denied"];
+  const statusOptions = ["Pending", "In Progress", "Resolved", "Denied", "Cancelled"];
 
   // REF for the status dropdown to detect outside clicks
   const dropdownRef = useRef(null);
@@ -359,7 +359,7 @@ export default function ViewRequest({ referralData = [], isLoading = false }) {
                     <th scope="col" className="px-6 py-3 text-sm font-semibold text-gray-700 whitespace-nowrap">Employee No.</th>
                     <th scope="col" className="px-6 py-3 text-sm font-semibold text-gray-700 whitespace-nowrap">Student</th>
                     <th scope="col" className="px-6 py-3 text-sm font-semibold text-gray-700">Reason</th>
-                    <th scope="col" className="px-6 py-3 text-sm font-semibold text-gray-700 whitespace-nowrap">Date</th>
+                    <th scope="col" className="px-6 py-3 text-sm font-semibold text-gray-700 whitespace-nowrap">Date Submitted</th>
                     <th scope="col" className="px-6 py-3 text-sm font-semibold text-gray-700">Status</th>
                     <th scope="col" className="px-6 py-3 text-sm font-semibold text-gray-700">Actions</th>
                   </tr>
