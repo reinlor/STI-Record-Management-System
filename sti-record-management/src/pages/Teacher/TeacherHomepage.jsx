@@ -12,7 +12,7 @@ import "react-toastify/dist/ReactToastify.css";
 
 export default function TeacherHomepage() {
   const { authData, logout } = useContext(AuthContext);
-  const [selected, setSelected] = useState("submit");
+  const [selected, setSelected] = useState("dashboard");
   const [referralData, setReferralData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] = useState(false);
