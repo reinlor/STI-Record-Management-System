@@ -18,15 +18,31 @@ const AuthProvider = ({ children }) => {
   });
 
   const [showTimeoutModal, setShowTimeoutModal] = useState(false);
-  const logoutTimer = useRef(null);
+  const activityTimer = useRef(null);
 
-  const startLogoutTimer = () => {
-    clearTimeout(logoutTimer.current);
-    logoutTimer.current = setTimeout(() => {
-      console.warn("Session expired. Logging out...");
+  const resetInactivityTimer = () => {
+    clearTimeout(activityTimer.current);
+    activityTimer.current = setTimeout(() => {
+      console.warn("User inactive for too long — logging out.");
       setShowTimeoutModal(true);
       logout();
     }, SESSION_TIMEOUT);
+  };
+
+  const setupActivityListeners = () => {
+    const events = ["mousemove", "keydown", "click", "scroll"];
+    events.forEach((event) => {
+      window.addEventListener(event, resetInactivityTimer);
+    });
+    resetInactivityTimer();
+  };
+
+  const cleanupActivityListeners = () => {
+    const events = ["mousemove", "keydown", "click", "scroll"];
+    events.forEach((event) => {
+      window.removeEventListener(event, resetInactivityTimer);
+    });
+    clearTimeout(activityTimer.current);
   };
 
   const login = (userData, userRole, displayName) => {
@@ -37,7 +53,7 @@ const AuthProvider = ({ children }) => {
       isAuthenticated: true,
       loading: false,
     });
-    startLogoutTimer();
+    setupActivityListeners();
   };
 
   const logout = async () => {
@@ -48,7 +64,7 @@ const AuthProvider = ({ children }) => {
       console.error("Logout error:", error);
     }
 
-    clearTimeout(logoutTimer.current);
+    cleanupActivityListeners();
     setAuthData({
       user: null,
       role: null,
@@ -72,7 +88,7 @@ const AuthProvider = ({ children }) => {
           isAuthenticated: true,
           loading: false,
         });
-        startLogoutTimer();
+        setupActivityListeners();
       } catch (error) {
         console.error("Session check failed:", error);
         setAuthData({
@@ -86,24 +102,26 @@ const AuthProvider = ({ children }) => {
     };
 
     checkSession();
-
-    return () => clearTimeout(logoutTimer.current);
+    return cleanupActivityListeners;
   }, []);
 
   return (
     <AuthContext.Provider value={{ authData, login, logout }}>
       {children}
 
+      {/* Timeout Modal */}
       {showTimeoutModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-2xl shadow-lg w-[90%] max-w-sm text-center">
-            <h2 className="text-xl font-semibold mb-4">Login Timeout</h2>
+          <div className="bg-white p-6 rounded-2xl shadow-lg w-[90%] max-w-sm text-center animate-fadeIn">
+            <h2 className="text-xl font-semibold mb-4 text-gray-900">
+              Login Timeout
+            </h2>
             <p className="text-gray-600 mb-6">
-              Your session has expired. Please log in again.
+              Your session has expired due to inactivity. Please log in again.
             </p>
             <button
               onClick={() => setShowTimeoutModal(false)}
-              className="bg-[#0172B9] text-white px-4 py-2 rounded-lg hover:bg-red-600 transition"
+              className="bg-[#0172b9] text-white px-4 py-2 rounded-lg hover:bg-[#025f98] transition"
             >
               OK
             </button>
@@ -115,3 +133,4 @@ const AuthProvider = ({ children }) => {
 };
 
 export default AuthProvider;
+ 
