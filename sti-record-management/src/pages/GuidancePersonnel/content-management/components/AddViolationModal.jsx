@@ -1,4 +1,3 @@
-// AddViolationModal.jsx
 import React, { useState, useEffect } from "react";
 import { X, Check, Plus } from "lucide-react";
 
@@ -7,7 +6,7 @@ export default function AddViolationModal({
   setIsOpen,
   newViolation,
   setNewViolation,
-  onSave, // (violation) => Promise or sync
+  onSave, 
   isEditing = false,
   offenses = [],
 }) {
@@ -38,12 +37,10 @@ export default function AddViolationModal({
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // basic validation
     if (!newViolation.category || !newViolation.priority) {
       alert("Please provide category name and priority.");
       return;
     }
-    // ensure violations array has at least one entry
     if (!newViolation.violations || newViolation.violations.length === 0) {
       const ok = window.confirm("No violation items added. Do you want to continue?");
       if (!ok) return;

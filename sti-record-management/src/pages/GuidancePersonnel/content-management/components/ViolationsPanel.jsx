@@ -1,4 +1,3 @@
-// ViolationsPanel.jsx
 import React from "react";
 import { ShieldAlert, Plus, Edit2, Trash2, ChevronDown, ChevronUp } from "lucide-react";
 

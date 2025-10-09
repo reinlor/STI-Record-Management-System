@@ -471,7 +471,6 @@ const addViolationCategory = async (req, res) => {
     }
 
     const violationsDocRef = getContentManagementCollection().doc("violations");
-    // always set or merge to ensure doc exists
     await violationsDocRef.set(
       {
         [violationCategoryName]: {
