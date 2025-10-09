@@ -1,3 +1,4 @@
+// ContentManagement.jsx (relevant portions / complete file replacement recommended)
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import {
@@ -49,53 +50,87 @@ export default function ContentManagement() {
     const [newItem, setNewItem] = useState({ name: "", acronym: "" });
     const [toast, setToast] = useState({ isVisible: false, message: "", type: "success" });
 
-    // New states for other panels
+    // Violations states
     const [violations, setViolations] = useState([]);
-    const [newViolation, setNewViolation] = useState({ category: "", priority: "1" });
+    const [newViolation, setNewViolation] = useState({ category: "", priority: "1", violations: [], offense: "" });
+    const [offenses, setOffenses] = useState([]);
+    const [isQuickLinkModalOpen, setIsQuickLinkModalOpen] = useState(false);
+    const [isViolationModalOpen, setIsViolationModalOpen] = useState(false);
+    const [isEditingViolation, setIsEditingViolation] = useState(false);
+    const [confirmModal, setConfirmModal] = useState({ isOpen: false, title: "", message: "", onConfirm: null });
+
     const [quickLinks, setQuickLinks] = useState([]);
     const [newQuickLink, setNewQuickLink] = useState({ title: "", file: null });
     const [schoolYearData, setSchoolYearData] = useState();
     const [tempSchoolYearData, setTempSchoolYearData] = useState({ ...schoolYearData });
-    const [isQuickLinkModalOpen, setIsQuickLinkModalOpen] = useState(false);
-    const [isViolationModalOpen, setIsViolationModalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
 
     // Mock API endpoint
     const API = "/content";
 
-    // Toast
+    // Toast helper
     const showToast = (message, type) => {
         setToast({ isVisible: true, message, type });
         setTimeout(() => setToast((prev) => ({ ...prev, isVisible: false })), 3000);
     };
 
-    // Fetch mock data
+    // Fetch data on load
     useEffect(() => {
         const fetchData = async () => {
-            setIsLoading(true)
+            setIsLoading(true);
             try {
-                const response = await axios.get(`${API}/getAll`)
-
-                console.log(response.data)
-
+                const response = await axios.get(`${API}/getAll`);
+                // keep previous behavior for announcement/programs/etc
+                console.log(response.data);
                 setAnnouncements(response.data[0].announcement.messages);
                 setShsStrands(response.data[3].programStrand.strand);
                 setTertiaryPrograms(response.data[3].programStrand.program);
-                setSchoolYearData(response.data[4].schoolPeriod)
-                setViolations([]);
-                setQuickLinks([]);
+                setSchoolYearData(response.data[4].schoolPeriod);
                 setTempWellnessLink(response.data[7].wellness.link);
             } catch (error) {
                 console.error("Error fetching content management data:", error);
-            }
-            finally {
-                setIsLoading(false)
+            } finally {
+                setIsLoading(false);
             }
         };
+
+        const fetchViolationsAndOffenses = async () => {
+            try {
+                // Fetch violations
+                const vResp = await axios.get(`${API}/violations/get`);
+                const vData = vResp.data || {};
+                const vList = Object.keys(vData).map((key) => {
+                    const payload = vData[key] || {};
+                    return {
+                        category: key,
+                        priority: payload.priorityLevel || payload.priority || "1",
+                        violations: payload.violations || [],
+                        offense: payload.offense || payload.offence || "",
+                    };
+                });
+                setViolations(vList);
+            } catch (err) {
+                console.warn("No violations found or failed to fetch:", err?.response?.data || err.message);
+                setViolations([]);
+            }
+
+            try {
+                const oResp = await axios.get(`${API}/offenses/get`);
+                const oData = oResp.data || {};
+                const offenseKeys = Object.keys(oData);
+                setOffenses(offenseKeys);
+            } catch (err) {
+                console.warn("No offenses found or failed to fetch:", err?.response?.data || err.message);
+                setOffenses([]);
+            }
+        };
+
         fetchData();
+        fetchViolationsAndOffenses();
     }, []);
 
-    // === Handlers (kept same as original) ===
+    // === Announcement handlers ===
+
     const handlePostAnnouncement = async () => {
         if (newAnnouncement.title && newAnnouncement.body) {
             try {
@@ -122,65 +157,117 @@ export default function ContentManagement() {
         }
     };
 
-    const handleSetWellnessLink = async () => {
-        if (tempWellnessLink) {
-            try {
-                await axios.put(`${API}/wellness/change`, { link: tempWellnessLink });
-                showToast("Wellness Program link successfully updated!", "success");
-            } catch (error) {
-                console.error("Error updating wellness link:", error);
-                showToast("Failed to update wellness link.", "error");
-            }
-        } else {
-            showToast("Please provide a valid link.", "error");
+
+    // === Violations handlers ===
+
+    const openAddViolationModal = () => {
+        setNewViolation({ category: "", priority: "1", violations: [], offense: "" });
+        setIsEditingViolation(false);
+        setIsViolationModalOpen(true);
+    };
+
+    const handleAddViolation = async (violationObj) => {
+        try {
+            await axios.post(`${API}/violations/add`, {
+                violationCategoryName: violationObj.category,
+                priorityLevel: violationObj.priority,
+                violations: violationObj.violations || [],
+                offense: violationObj.offense || "",
+            });
+            // optimistic update
+            setViolations((prev) => [
+                ...prev,
+                {
+                    category: violationObj.category,
+                    priority: violationObj.priority,
+                    violations: violationObj.violations || [],
+                    offense: violationObj.offense || "",
+                },
+            ]);
+            setIsViolationModalOpen(false);
+            showToast("New violation successfully added!", "success");
+        } catch (error) {
+            console.error("Error adding violation:", error);
+            showToast("Failed to add violation.", "error");
+        } finally {
+            setNewViolation({ category: "", priority: "1", violations: [], offense: "" });
         }
     };
+
+    const handleEditCategory = (v) => {
+        // prepare editing object, keep track of original name for rename actions
+        setNewViolation({
+            category: v.category,
+            priority: v.priority,
+            violations: [...(v.violations || [])],
+            offense: v.offense || "",
+            oldCategoryName: v.category,
+        });
+        setIsEditingViolation(true);
+        setIsViolationModalOpen(true);
+    };
+
+    const handleUpdateViolation = async (violationObj) => {
+        try {
+            await axios.put(`${API}/violations/update`, {
+                oldCategoryName: violationObj.oldCategoryName, // optional
+                violationCategoryName: violationObj.category,
+                priorityLevel: violationObj.priority,
+                violations: violationObj.violations || [],
+                offense: violationObj.offense || "",
+            });
+
+            // Update local state: handle rename if happened
+            setViolations((prev) => {
+                const filtered = prev.filter((p) => p.category !== violationObj.oldCategoryName);
+                const updated = {
+                    category: violationObj.category,
+                    priority: violationObj.priority,
+                    violations: violationObj.violations || [],
+                    offense: violationObj.offense || "",
+                };
+                // ensure no duplicate entries
+                const exists = prev.some((p) => p.category === violationObj.category && violationObj.oldCategoryName !== violationObj.category);
+                return exists ? prev.map((p) => (p.category === violationObj.category ? updated : p)) : [updated, ...filtered];
+            });
+
+            setIsViolationModalOpen(false);
+            setIsEditingViolation(false);
+            showToast("Violation category updated!", "success");
+        } catch (error) {
+            console.error("Error updating violation:", error);
+            showToast("Failed to update violation.", "error");
+        }
+    };
+
+    const handleDeleteCategory = (v) => {
+        setConfirmModal({
+            isOpen: true,
+            title: "Delete Violation Category",
+            message: `Are you sure you want to delete the entire category "${v.category}"? This action cannot be undone.`,
+            onConfirm: async () => {
+                try {
+                    await axios.delete(`${API}/violations/delete`, { data: { violationCategoryName: v.category } });
+                    setViolations((prev) => prev.filter((p) => p.category !== v.category));
+                    showToast("Violation category deleted.", "success");
+                } catch (err) {
+                    console.error("Error deleting violation category:", err);
+                    showToast("Failed to delete category.", "error");
+                } finally {
+                    setConfirmModal({ isOpen: false, title: "", message: "", onConfirm: null });
+                }
+            },
+        });
+    };
+
+    // === Program/strands handler ===
 
     const handleAddProgram = (type) => {
         setModalType(type);
         setIsAddModalOpen(true);
     };
 
-    const handleModalSubmit = async (e) => {
-        e.preventDefault();
-        if (newItem.name && newItem.acronym) {
-            try {
-                if (modalType === "Tertiary") {
-                    await axios.post(`${API}/program/add`, newItem);
-                    setTertiaryPrograms([...tertiaryPrograms, newItem]);
-                    showToast("New Program successfully added!", "success");
-                } else if (modalType === "SHS") {
-                    await axios.post(`${API}/strand/add`, newItem);
-                    setShsStrands([...shsStrands, newItem]);
-                    showToast("New Strand successfully added!", "success");
-                }
-                setIsAddModalOpen(false);
-                setNewItem({ name: "", acronym: "" });
-            } catch (error) {
-                console.error("Error adding item:", error);
-                showToast("Failed to add item.", "error");
-            }
-        } else {
-            showToast("Please fill out both fields.", "error");
-        }
-    };
-
-    const handleViolationModalSubmit = async (e) => {
-        e.preventDefault();
-        if (newViolation.category && newViolation.priority) {
-            try {
-                setViolations([...violations, { ...newViolation, id: Date.now() }]);
-                setNewViolation({ category: "", priority: "1" });
-                showToast("New violation successfully added!", "success");
-                setIsViolationModalOpen(false);
-            } catch (error) {
-                console.error("Error adding violation:", error);
-                showToast("Failed to add violation.", "error");
-            }
-        } else {
-            showToast("Please fill out all fields.", "error");
-        }
-    };
+    // === School year handler ===
 
     const handleSetSchoolYear = async () => {
         try {
@@ -193,6 +280,8 @@ export default function ContentManagement() {
             showToast("Failed to update school year.", "error");
         }
     };
+
+    // === Quick link handler ===
 
     const handleQuickLinkUpload = async (e) => {
         e.preventDefault();
@@ -215,7 +304,23 @@ export default function ContentManagement() {
         }
     };
 
-    // Top buttons
+    // === Wellness link handler ===
+
+    const handleSetWellnessLink = async () => {
+        if (tempWellnessLink) {
+            try {
+                await axios.put(`${API}/wellness/change`, { link: tempWellnessLink });
+                showToast("Wellness Program link successfully updated!", "success");
+            } catch (error) {
+                console.error("Error updating wellness link:", error);
+                showToast("Failed to update wellness link.", "error");
+            }
+        } else {
+            showToast("Please provide a valid link.", "error");
+        }
+    };
+
+    // Top buttons left as you had them...
     const topButtons = [
         { key: PANEL.ANNOUNCEMENT, label: "Announcement", icon: <Bell className="w-5 h-5" /> },
         {
@@ -235,7 +340,7 @@ export default function ContentManagement() {
     ];
 
     if (isLoading) {
-        return <LoadingDots />
+        return <LoadingDots />;
     }
 
     return (
@@ -254,9 +359,8 @@ export default function ContentManagement() {
                     <button
                         key={btn.key}
                         onClick={() => setActivePanel(btn.key)}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition 
-              ${activePanel === btn.key ? "bg-[#0172bd] text-white shadow" : "bg-white text-black hover:bg-gray-200"} 
-              flex-1 min-w-[150px] justify-center`}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition  ${activePanel === btn.key ? "bg-[#0172bd] text-white shadow" : "bg-white text-black hover:bg-gray-200"
+                            }  flex-1 min-w-[150px] justify-center`}
                     >
                         {btn.icon}
                         <span className="whitespace-nowrap">{btn.label}</span>
@@ -274,6 +378,16 @@ export default function ContentManagement() {
                         handlePostAnnouncement={handlePostAnnouncement}
                     />
                 )}
+
+                {activePanel === PANEL.VIOLATIONS && (
+                    <ViolationsPanel
+                        violations={violations}
+                        onOpenAddModal={openAddViolationModal}
+                        onEditCategory={handleEditCategory}
+                        onDeleteCategory={handleDeleteCategory}
+                    />
+                )}
+
                 {activePanel === PANEL.PROGRAMS && (
                     <ProgramsPanel
                         tertiaryPrograms={tertiaryPrograms}
@@ -291,9 +405,6 @@ export default function ContentManagement() {
                 {activePanel === PANEL.QUICKLINKS && (
                     <QuickLinksPanel quickLinks={quickLinks} setIsQuickLinkModalOpen={setIsQuickLinkModalOpen} />
                 )}
-                {activePanel === PANEL.VIOLATIONS && (
-                    <ViolationsPanel violations={violations} setIsViolationModalOpen={setIsViolationModalOpen} />
-                )}
                 {activePanel === PANEL.SCHOOL_YEAR && (
                     <SchoolYearPanel
                         tempSchoolYearData={tempSchoolYearData}
@@ -304,37 +415,51 @@ export default function ContentManagement() {
                 )}
             </div>
 
-            {/* Modals */}
-            <AddProgramModal
-                isOpen={isAddModalOpen}
-                modalType={modalType}
-                setIsOpen={setIsAddModalOpen}
-                newItem={newItem}
-                setNewItem={setNewItem}
-                handleModalSubmit={handleModalSubmit}
-            />
-            <AddQuickLinkModal
-                isOpen={isQuickLinkModalOpen}
-                setIsOpen={setIsQuickLinkModalOpen}
-                newQuickLink={newQuickLink}
-                setNewQuickLink={setNewQuickLink}
-                handleQuickLinkUpload={handleQuickLinkUpload}
-            />
+            {/* Add/Edit Violation modal */}
             <AddViolationModal
                 isOpen={isViolationModalOpen}
-                setIsOpen={setIsViolationModalOpen}
+                setIsOpen={(val) => {
+                    setIsViolationModalOpen(val);
+                    if (!val) {
+                        setIsEditingViolation(false);
+                        setNewViolation({ category: "", priority: "1", violations: [], offense: "" });
+                    }
+                }}
                 newViolation={newViolation}
                 setNewViolation={setNewViolation}
-                handleViolationModalSubmit={handleViolationModalSubmit}
+                onSave={isEditingViolation ? handleUpdateViolation : handleAddViolation}
+                isEditing={isEditingViolation}
+                offenses={offenses}
             />
 
+            {/* Confirm modal (simple inline modal) */}
+            {confirmModal.isOpen && (
+                <div className="fixed inset-0 z-60 flex items-center justify-center bg-black bg-opacity-40">
+                    <div className="bg-white p-5 rounded-lg max-w-md w-full">
+                        <h3 className="text-lg font-bold mb-2">{confirmModal.title}</h3>
+                        <p className="text-sm text-gray-700 mb-4">{confirmModal.message}</p>
+                        <div className="flex justify-end gap-2">
+                            <button
+                                onClick={() => setConfirmModal({ isOpen: false, title: "", message: "", onConfirm: null })}
+                                className="px-4 py-2 rounded-lg bg-gray-200"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={() => {
+                                    if (confirmModal.onConfirm) confirmModal.onConfirm();
+                                }}
+                                className="px-4 py-2 rounded-lg bg-red-600 text-white"
+                            >
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Toast */}
-            <Toast
-                message={toast.message}
-                type={toast.type}
-                isVisible={toast.isVisible}
-                onClose={() => setToast({ ...toast, isVisible: false })}
-            />
+            <Toast message={toast.message} type={toast.type} isVisible={toast.isVisible} onClose={() => setToast({ ...toast, isVisible: false })} />
         </div>
     );
 }

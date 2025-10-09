@@ -31,13 +31,16 @@ const violationCategorySchema = Joi.object({
   violationCategory: Joi.string().required().empty(""),
   priorityLevel: Joi.string().required().empty(""),
   violations: Joi.array().items(Joi.string().required().empty("")).required(),
-});
+  offense: Joi.string().required().empty(""),
+}).required();
 
 // Schema for Updating Violations
 const violationCategoryUpdateSchema = Joi.object({
+  oldCategoryName: Joi.string().optional().empty(""),
   violationCategory: Joi.string().optional().empty(""),
   priorityLevel: Joi.string().optional().empty(""),
   violations: Joi.array().items(Joi.string().optional().empty("")).optional(),
+  offense: Joi.string().optional().empty(""),
 });
 
 const updateSchoolPeriodSchema = Joi.object({
@@ -451,14 +454,14 @@ const getSchoolPeriod = async (req, res) => {
 // Controller function for adding
 const addViolationCategory = async (req, res) => {
   try {
-    const { violationCategoryName, priorityLevel, violations } = req.body;
+    const { violationCategoryName, priorityLevel, violations, offense } = req.body;
 
-    const { error, value: newViolationCategory } =
-      violationCategorySchema.validate({
-        violationCategory: violationCategoryName,
-        priorityLevel,
-        violations,
-      });
+    const { error } = violationCategorySchema.validate({
+      violationCategory: violationCategoryName,
+      priorityLevel,
+      violations,
+      offense,
+    });
 
     if (error) {
       return res.status(400).json({
@@ -468,19 +471,17 @@ const addViolationCategory = async (req, res) => {
     }
 
     const violationsDocRef = getContentManagementCollection().doc("violations");
-    const docSnapshot = await violationsDocRef.get();
-
-    if (docSnapshot.exists) {
-      await violationsDocRef.set(
-        {
-          [violationCategoryName]: {
-            priorityLevel,
-            violations,
-          },
+    // always set or merge to ensure doc exists
+    await violationsDocRef.set(
+      {
+        [violationCategoryName]: {
+          priorityLevel,
+          violations,
+          offense,
         },
-        { merge: true }
-      );
-    }
+      },
+      { merge: true }
+    );
 
     res.status(200).json({
       message: `Violation Category ${violationCategoryName} added successfully!`,
@@ -494,14 +495,15 @@ const addViolationCategory = async (req, res) => {
 // Controller function for updating violation categories
 const updateViolationCategory = async (req, res) => {
   try {
-    const { violationCategoryName, priorityLevel, violations } = req.body;
+    const { oldCategoryName, violationCategoryName, priorityLevel, violations, offense } = req.body;
 
-    const { error, value: newViolationCategory } =
-      violationCategoryUpdateSchema.validate({
-        violationCategory: violationCategoryName,
-        priorityLevel,
-        violations,
-      });
+    const { error } = violationCategoryUpdateSchema.validate({
+      oldCategoryName,
+      violationCategory: violationCategoryName,
+      priorityLevel,
+      violations,
+      offense,
+    });
 
     if (error) {
       return res.status(400).json({
@@ -521,6 +523,26 @@ const updateViolationCategory = async (req, res) => {
 
     const data = docSnapshot.data();
 
+    if (oldCategoryName && oldCategoryName !== violationCategoryName) {
+      if (!data[oldCategoryName]) {
+        return res.status(404).json({
+          error: `Violation Category ${oldCategoryName} does not exist.`,
+        });
+      }
+      await violationsDocRef.update({
+        [violationCategoryName]: {
+          priorityLevel,
+          violations,
+          offense,
+        },
+        [oldCategoryName]: admin.firestore.FieldValue.delete(),
+      });
+
+      return res.status(200).json({
+        message: `Violation Category ${oldCategoryName} renamed to ${violationCategoryName} and updated successfully!`,
+      });
+    }
+
     if (!data[violationCategoryName]) {
       return res.status(404).json({
         error: `Violation Category ${violationCategoryName} does not exists.`,
@@ -531,6 +553,7 @@ const updateViolationCategory = async (req, res) => {
       [violationCategoryName]: {
         priorityLevel,
         violations,
+        offense,
       },
     });
 
@@ -542,6 +565,39 @@ const updateViolationCategory = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
+
+// Controller function for deleting a violation category
+const deleteViolationCategory = async (req, res) => {
+  try {
+    const { violationCategoryName } = req.body || req.query || {};
+
+    if (!violationCategoryName) {
+      return res.status(400).json({ error: "violationCategoryName required" });
+    }
+
+    const violationsDocRef = getContentManagementCollection().doc("violations");
+    const docSnapshot = await violationsDocRef.get();
+
+    if (!docSnapshot.exists) {
+      return res.status(404).json({ error: "Violations document is missing." });
+    }
+
+    const data = docSnapshot.data();
+    if (!data[violationCategoryName]) {
+      return res.status(404).json({ error: `Violation Category ${violationCategoryName} does not exists.` });
+    }
+
+    await violationsDocRef.update({
+      [violationCategoryName]: admin.firestore.FieldValue.delete(),
+    });
+
+    res.status(200).json({ message: `Violation Category ${violationCategoryName} deleted successfully.` });
+  } catch (error) {
+    console.error("Error deleting violation category:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
 
 // Controller function for updating School Period
 const updateSchoolPeriod = async (req, res) => {
@@ -622,6 +678,7 @@ module.exports = {
   getSchoolPeriod,
   addViolationCategory,
   updateViolationCategory,
+  deleteViolationCategory,
   updateSchoolPeriod,
   getAllContent,
   getAllOffenses

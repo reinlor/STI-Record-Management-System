@@ -20,7 +20,8 @@ const {
     updateViolationCategory,
     updateSchoolPeriod,
     getAllContent,
-    getAllOffenses
+    getAllOffenses,
+    deleteViolationCategory
 } = require("../controller/contentManagementController.js");
 
 const upload = multer({ storage: multer.memoryStorage() });
@@ -44,6 +45,7 @@ router.get("/shsStudentHandbook/get", getShsStudentHandbook);
 router.post("/violations/add", addViolationCategory)
 router.put("/violations/update", updateViolationCategory)
 router.get("/violations/get", getViolations);
+router.delete("/violations/delete", deleteViolationCategory);
 
 router.put('/schoolPeriod/update', updateSchoolPeriod);
 router.get("/schoolPeriod/get", getSchoolPeriod);
