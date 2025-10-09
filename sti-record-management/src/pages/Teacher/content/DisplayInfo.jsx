@@ -1,8 +1,14 @@
-import React from "react";
+import React, { useState } from "react";
 import { X, User, Info, MessageSquare } from "lucide-react";
 import { getStatusClasses } from "../../Student/components/statusClasses";
+import axios from "axios";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function DisplayInfo({ data, onClose }) {
+  const [isCancelling, setIsCancelling] = useState(false);
+  const [cancelSuccess, setCancelSuccess] = useState(false);
+
   const renderField = (label, value) => (
     <div className="space-y-1">
       <p className="text-gray-500 text-sm font-medium">{label}</p>
@@ -10,8 +16,41 @@ export default function DisplayInfo({ data, onClose }) {
     </div>
   );
 
+  // Cancel referral request handler
+  const handleCancelReferral = async () => {
+    setIsCancelling(true);
+    try {
+      const referralId = data.id || data._id;
+      await axios.put(`/referral/cancel/${referralId}`);
+      setCancelSuccess(true);
+      toast.success("Referral successfully cancelled!", {
+        position: "top-right",
+        autoClose: 1500,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+      setTimeout(() => {
+        onClose();
+      }, 1500);
+    } catch (err) {
+      toast.error("Failed to cancel referral. Please try again.", {
+        position: "top-right",
+        autoClose: 2500,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+    } finally {
+      setIsCancelling(false);
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm bg-black/30 animate-fade-in-backdrop">
+      <ToastContainer theme="light" />
       <div className="bg-white rounded-3xl shadow-2xl p-6 md:p-10 w-full max-w-7xl relative animate-fade-in border border-gray-200">
         {/* Close Button */}
         <button
@@ -101,6 +140,29 @@ export default function DisplayInfo({ data, onClose }) {
             </div>
           </div>
         </div>
+
+        {/* Footer / Cancel Button */}
+        {(data.status === "Pending" || data.status === "In Progress") && (
+          <div className="sticky bottom-0 bg-white border-t border-gray-100 rounded-b-3xl p-4 flex justify-end z-30">
+            <button
+              onClick={handleCancelReferral}
+              disabled={isCancelling || cancelSuccess}
+              className={`px-8 py-3 rounded-lg font-semibold shadow transition-colors text-white ${
+                cancelSuccess
+                  ? "bg-green-500"
+                  : isCancelling
+                  ? "bg-gray-400"
+                  : "bg-red-500 hover:bg-red-600"
+              }`}
+            >
+              {isCancelling
+                ? "Cancelling..."
+                : cancelSuccess
+                ? "Cancelled!"
+                : "Cancel Referral"}
+            </button>
+          </div>
+        )}
       </div>
 
       <style>{`

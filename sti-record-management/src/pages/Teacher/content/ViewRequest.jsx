@@ -22,7 +22,7 @@ export default function ViewRequest({ referralData = [], isLoading = false }) {
   const [sortOption, setSortOption] = useState("Newest First");
 
   // Status options for teachers
-  const statusOptions = ["Pending", "In Progress", "Resolved", "Denied"];
+  const statusOptions = ["Pending", "In Progress", "Resolved", "Denied", "Cancelled"];
 
   // REF for the status dropdown to detect outside clicks
   const dropdownRef = useRef(null);
