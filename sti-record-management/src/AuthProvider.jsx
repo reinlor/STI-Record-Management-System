@@ -5,7 +5,7 @@ import axios from "axios";
 
 export const AuthContext = createContext(null);
 
-const SESSION_TIMEOUT = 5 * 60 * 1000;
+const SESSION_TIMEOUT = 100 * 60 * 1000;
 
 const AuthProvider = ({ children }) => {
   const [authData, setAuthData] = useState({

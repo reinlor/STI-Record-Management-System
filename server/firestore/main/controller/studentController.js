@@ -10,16 +10,16 @@ const studentSchema = Joi.object({
 
   studentProfile: Joi.object({
     name: Joi.string().required(),
-    nickname: Joi.string().optional(),
+    nickname: Joi.string().empty('').optional(),
     section: Joi.string().required(),
     academicLevel: Joi.string().required(),
     age: Joi.number().required(),
-    nationality: Joi.string().optional(),
+    nationality: Joi.string().empty('').optional(),
     gender: Joi.string().required(),
-    status: Joi.string().optional(),
-    birthPlace: Joi.string().optional(),
+    status: Joi.string().empty('').optional(),
+    birthPlace: Joi.string().empty('').optional(),
     birthday: Joi.string().required(),
-    religion: Joi.string().optional(),
+    religion: Joi.string().empty('').optional(),
     program: Joi.string().required()
   }).required(),
 
@@ -308,11 +308,13 @@ const addStudent = async (req, res) => {
     }
 
     const sid = newStudent.sid;
+    const archived = newStudent.isArchived ?? false;
 
     await getStudentCollection().doc(sid).set(newStudent);
 
     const userRecord = await admin.auth().createUser({
-      uid: sid, // use sid as UID
+      disabled: archived,
+      uid: sid,
       email: newStudent.contactInfo.email,
       password: "student1234",
       displayName: newStudent.studentProfile.name,

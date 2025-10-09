@@ -8,6 +8,7 @@
     "dev": "nodemon index.js"
   },
   "dependencies": {
+    "@aws-sdk/client-textract": "^3.906.0",
     "axios": "^1.11.0",
     "cloudinary": "^2.7.0",
     "cookie-parser": "^1.4.7",
