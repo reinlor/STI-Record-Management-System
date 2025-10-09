@@ -70,7 +70,7 @@ const studentSchema = Joi.object({
     address: Joi.string().empty('').optional(),
     monthlyFamilyIncome: Joi.number().optional(),
     statusOfParent: Joi.string().empty('').optional(),
-    siblings: Joi.array().items(Joi.any()).optional(),
+    siblings: Joi.array().items(Joi.string()).optional().default([]),
     birthOrder: Joi.string().empty('').optional(),
 
     emergency: Joi.object({
@@ -97,8 +97,8 @@ const studentSchema = Joi.object({
       schoolName: Joi.string().empty('').optional(),
       dateEnrolled: Joi.string().empty('').optional()
     }).empty({}).optional(),
-    extraCurricular: Joi.string().empty('').optional(),
-    awards: Joi.string().empty('').optional(),
+    extraCurricular: Joi.array().items(Joi.string()).empty('').optional().default([]),
+    awards: Joi.array().items(Joi.string()).empty('').optional().default([]),
     likedSubject: Joi.string().empty('').optional(),
     leastSubject: Joi.string().empty('').optional()
   }).empty({}).optional(),
@@ -112,11 +112,11 @@ const studentSchema = Joi.object({
   }).empty({}).optional(),
 
   interests: Joi.object({
-    sports: Joi.string().empty('').optional(),
-    hobbies: Joi.string().empty('').optional(),
-    talents: Joi.string().empty('').optional(),
-    socioCivic: Joi.string().empty('').optional(),
-    organization: Joi.string().empty('').optional(),
+    sports: Joi.array().items(Joi.string()).empty('').optional().default([]),
+    hobbies: Joi.array().items(Joi.string()).empty('').optional().default([]),
+    talents: Joi.array().items(Joi.string()).empty('').optional().default([]),
+    socioCivic: Joi.array().items(Joi.string()).empty('').optional().default([]),
+    organization: Joi.array().items(Joi.string()).empty('').optional().default([]),
   }).empty({}).optional(),
 
   health: Joi.object({
@@ -199,7 +199,7 @@ const updateSchema = Joi.object({
     address: Joi.string().empty('').optional(),
     monthlyFamilyIncome: Joi.number().optional(),
     statusOfParent: Joi.string().empty('').optional(),
-    siblings: Joi.array().items(Joi.any()).optional(),
+    siblings: Joi.array().items(Joi.string()).optional(),
     birthOrder: Joi.string().empty('').optional(),
     emergency: Joi.object({
       name: Joi.string().empty('').optional(),
@@ -225,8 +225,8 @@ const updateSchema = Joi.object({
       schoolName: Joi.string().empty('').optional(),
       dateEnrolled: Joi.string().empty('').optional()
     }).empty({}).optional(),
-    extraCurricular: Joi.string().empty('').optional(),
-    awards: Joi.string().empty('').optional(),
+    extraCurricular: Joi.array().items(Joi.string()).empty('').optional(),
+    awards: Joi.array().items(Joi.string()).empty('').optional(),
     likedSubject: Joi.string().empty('').optional(),
     leastSubject: Joi.string().empty('').optional()
   }).empty({}).optional(),
@@ -240,11 +240,11 @@ const updateSchema = Joi.object({
   }).empty({}).optional(),
 
   interests: Joi.object({
-    sports: Joi.string().empty('').optional(),
-    hobbies: Joi.string().empty('').optional(),
-    talents: Joi.string().empty('').optional(),
-    socioCivic: Joi.string().empty('').optional(),
-    organization: Joi.string().empty('').optional(),
+    sports: Joi.array().items(Joi.string()).empty('').optional(),
+    hobbies: Joi.array().items(Joi.string()).empty('').optional(),
+    talents: Joi.array().items(Joi.string()).empty('').optional(),
+    socioCivic: Joi.array().items(Joi.string()).empty('').optional(),
+    organization: Joi.array().items(Joi.string()).empty('').optional(),
   }).empty({}).optional(),
 
   health: Joi.object({
