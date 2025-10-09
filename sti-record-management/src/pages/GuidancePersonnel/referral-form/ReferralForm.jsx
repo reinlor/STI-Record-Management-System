@@ -79,7 +79,7 @@ function ReferralFormProcessing() {
   const getRowColor = (days) => {
     if (days >= 7) return "bg-red-100";       // + 7 days
     if (days >= 4 && days <= 6) return "bg-yellow-100"; // 4–6 days
-    if (days >= 2 && days <= 3) return "bg-blue-100";   // 1–3 days
+    if (days >= 1 && days <= 3) return "bg-blue-100";   // 1–3 days
     return "bg-white"; // today
   };
 

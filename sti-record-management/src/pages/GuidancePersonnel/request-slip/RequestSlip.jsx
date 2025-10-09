@@ -1,9 +1,6 @@
 import React, { useState, useEffect, useContext } from "react";
 import { useNavigate } from "react-router";
-import RequestSlipHistory from "./RequestSlipHistory.jsx";
 import axios from "axios";
-import historyW from "../../../assets/history.png";
-import closeB from "../../../assets/closeblack.png";
 import closeW from "../../../assets/close.png";
 import checkW from "../../../assets/check.png";
 import { AuthContext } from '../../../AuthProvider.jsx';
@@ -241,35 +238,6 @@ function RequestSlip() {
     currentPage * rowsPerPage
   );
 
-  // data na iloload sa table
-  const requestTable = pagedSlipData.map((slips) => (
-    <tr key={slips._id} className="hover:bg-gray-100 transition bg-[#0172bd]">
-      <td className="px-4 py-3">{slips.name}</td>
-      <td className="px-4 py-3">{slips.sid}</td>
-      <td className="px-4 py-3">{slips.typeOfSlip}</td>
-      <td className="px-4 py-3">{slips.timeCreatedFormatted || formatDate(slips.timeCreated)}</td>
-      {/* STATUS with conditional styling */}
-      <td
-        className={`px-4 py-3 font-semibold ${slips.status === "Approved"
-          ? "text-green-600 bg-green-300"
-          : slips.status === "Rejected"
-            ? "text-red-600 bg-red-300"
-            : "text-gray-600 bg-gray-300"
-          }`}
-      >
-        {slips.status}
-      </td>
-      {/* <td className="px-4 py-3">{slips.reason}</td> */}
-      <td className="px-4 py-3">{slips.attachmentCount}</td>
-      {authData?.user?.access?.requestSlip ? <td className="px-4 py-3">
-        <button
-          className="bg-gray-900 text-white px-6 py-1 rounded-full hover:bg-gray-700 transition"
-          onClick={() => openSlip(slips._id)}>
-          Open
-        </button>
-      </td> : null}
-    </tr>
-  ));
 
   // --- Modal logic ---
   const [showStudentReportModal, setShowStudentReportModal] = useState(false);
@@ -771,7 +739,7 @@ function RequestSlip() {
   const getRowColor = (days) => {
     if (days >= 7) return "bg-red-100";
     if (days >= 4 && days <= 6) return "bg-yellow-100";
-    if (days >= 2 && days <= 3) return "bg-blue-100";
+    if (days >= 1 && days <= 3) return "bg-blue-100";
     return "bg-white";
   };
 
