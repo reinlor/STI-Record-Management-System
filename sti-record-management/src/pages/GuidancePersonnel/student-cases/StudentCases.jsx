@@ -1,21 +1,15 @@
-import React, { useState, useEffect, useContext } from "react";
+import { useState, useEffect, useContext } from "react";
 import { AuthContext } from '../../../AuthProvider.jsx';
 import axios from "axios";
 import {
-    Users,
     Search,
-    SlidersHorizontal,
     Plus,
     FileText,
-    FileCheck,
-    Clock,
     X,
     Edit as Pencil,
     Archive,
     ChevronLeft,
     ChevronRight,
-    Building,
-    GraduationCap
 } from 'lucide-react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -26,11 +20,6 @@ import {
     uiDetailsToServerPayload,
 } from "./components/CaseUtils.jsx";
 import LoadingDots from "../../../component/Loading.jsx";
-
-const TABS = [
-    { value: "On-going", label: "On-going", icon: <Clock className="w-5 h-5 ml-1" /> },
-    { value: "Resolved", label: "Resolved", icon: <FileCheck className="w-5 h-5 ml-1" /> },
-];
 
 const PRIORITY_LEVELS = [
     { value: "", label: "No Priority" },
@@ -52,7 +41,7 @@ function StudentCases() {
     const [isEditing, setIsEditing] = useState(false);
     const [infoType, setInfoType] = useState("caseDetails");
     const [editedCaseData, setEditedCaseData] = useState(null);
-    const [activeLevel, setActiveLevel] = useState("shs"); // <-- Add this line
+    const [activeLevel, setActiveLevel] = useState("shs"); 
     const [loading, setLoading] = useState(true);
 
     // Add Case Form
@@ -132,39 +121,6 @@ function StudentCases() {
         fetchCases();
     }, []);
 
-    // helper: convert various priority formats into a numeric rank (0..3)
-    const getPriorityRank = (priority) => {
-        if (priority == null) return 0;
-
-        // number (1,2,3)
-        if (typeof priority === "number") return priority;
-
-        // string: "3", "Level 3", "Level 3 Safety and Security", "Level 1", etc.
-        if (typeof priority === "string") {
-            const numMatch = priority.match(/\b([1-3])\b/i);
-            if (numMatch) return parseInt(numMatch[1], 10);
-
-            const levelMatch = priority.match(/level\s*([1-3])/i);
-            if (levelMatch) return parseInt(levelMatch[1], 10);
-
-            return 0;
-        }
-
-        // object: maybe { value: "3" } or { label: "Level 3" }
-        if (typeof priority === "object") {
-            if (priority.value) {
-                const v = parseInt(priority.value, 10);
-                if (!isNaN(v)) return v;
-            }
-            if (priority.label) {
-                const m = priority.label.match(/\b([1-3])\b/);
-                if (m) return parseInt(m[1], 10);
-            }
-        }
-
-        return 0;
-    };
-
     const getPriorityInfo = (priority) => {
         if (!priority) return { rank: 0, label: "No Priority" };
 
@@ -237,7 +193,7 @@ function StudentCases() {
         });
 
 
-    // Pagination logic
+    // Pagination
     const totalRows = filteredCases.length;
     const totalPages = Math.ceil(totalRows / rowsPerPage);
     const pagedCases = filteredCases.slice(
@@ -245,7 +201,7 @@ function StudentCases() {
         currentPage * rowsPerPage
     );
 
-    // Reset to page 1 if filter/search changes and currentPage is out of bounds
+    // Reset to page 1 
     useEffect(() => {
         setLoading(true)
         if (currentPage > totalPages) setCurrentPage(1);
@@ -412,9 +368,6 @@ function StudentCases() {
         { label: "Priority", key: "priority", show: "all" }, // Priority column
         { label: "Status", key: "status", show: "all" },
     ];
-
-    // Responsive filter layout
-    const filterGridClass = "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-2";
 
     return (
         <div className="bg-gray-100 h-full flex flex-col pb-3">
