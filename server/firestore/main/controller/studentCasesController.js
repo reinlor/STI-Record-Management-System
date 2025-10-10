@@ -21,6 +21,7 @@ const violationSchema = Joi.object({
   status: Joi.string().required().empty(""),
   notes: Joi.string().required().empty(""),
   proofUrl: Joi.string().optional().empty(""),
+  priorityLevel: Joi.string().optional().empty(""),
   timeCreated: Joi.string().optional().empty("")
 });
 const updateSchema = Joi.object({
@@ -38,6 +39,7 @@ const updateSchema = Joi.object({
   status: Joi.string().optional(),
   notes: Joi.string().optional(),
   proofUrl: Joi.string().optional(),
+  priorityLevel: Joi.string().optional().empty(""),
   timeCreated: Joi.string().optional("")
 
 });
@@ -102,8 +104,26 @@ const addViolation = async (req, res) => {
       fs.unlinkSync(req.file.path);
     }
 
+    const body = {
+      sid: req.body.sid || req.body.studentId,
+      name: req.body.name || req.body.studentName,
+      programSection: req.body.programSection || req.body.programSection,
+      initiationDate: req.body.initiationDate || req.body.dateOfInitiation,
+      initialTime: req.body.initialTime || req.body.timeOfInitiation,
+      counselingType: req.body.counselingType || req.body.counselingTypeCategory,
+      actionTaken: req.body.actionTaken || req.body.actions,
+      status: req.body.status || req.body.caseStatus,
+      notes: req.body.notes || req.body.counselorNotes,
+      violation: req.body.violation,
+      detailedDescription: req.body.detailedDescription,
+      proofDescription: req.body.proofDescription,
+      dateOfAction: req.body.dateOfAction,
+      priorityLevel: req.body.priorityLevel || req.body.priorityLevels, 
+      proofUrl,
+    };
+
     const violation = {
-      ...req.body,
+      ...body,
       proofUrl: proofUrl,
     }
 

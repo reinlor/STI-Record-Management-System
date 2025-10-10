@@ -34,9 +34,9 @@ const TABS = [
 
 const PRIORITY_LEVELS = [
     { value: "", label: "No Priority" },
-    { value: "Level 1 Academics", label: "Level 1 Academics" },
-    { value: "Level 2 Abt Self Esteem, Motivation", label: "Level 2 Abt Self Esteem, Motivation" },
-    { value: "Level 3 Safety and Security", label: "Level 3 Safety and Security" },
+    { value: "1", label: "Level 1" },
+    { value: "2", label: "Level 2" },
+    { value: "3", label: "Level 3" },
 ];
 
 function StudentCases() {
@@ -75,13 +75,26 @@ function StudentCases() {
 
     const handleNewCaseChange = (eOrObj) => {
         if (eOrObj?.target) {
-            const { name, value } = eOrObj.target;
-            setNewCaseForm(prev => ({ ...prev, [name]: value }));
+            const { name, value, files } = eOrObj.target;
+
+            if (files && files.length > 0) {
+                setNewCaseForm(prev => ({
+                    ...prev,
+                    [name]: files[0],
+                }));
+            } else {
+                setNewCaseForm(prev => ({
+                    ...prev,
+                    [name]: value,
+                }));
+            }
+
         } else if (eOrObj?.name) {
             const { name, value } = eOrObj;
             setNewCaseForm(prev => ({ ...prev, [name]: value }));
         }
     };
+
 
     // Pagination state
     const [currentPage, setCurrentPage] = useState(1);
@@ -100,6 +113,7 @@ function StudentCases() {
                     status: v.status ?? "On-going",
                     timeCreated: v.timeCreated,
                     programSection: v.programSection ?? "",
+                    priorityLevel: v.priorityLevel ?? v.priority ?? v.caseDetails?.priority ?? "",
                 }));
                 const details = {};
                 violations.forEach((v) => {
@@ -118,24 +132,110 @@ function StudentCases() {
         fetchCases();
     }, []);
 
+    // helper: convert various priority formats into a numeric rank (0..3)
+    const getPriorityRank = (priority) => {
+        if (priority == null) return 0;
+
+        // number (1,2,3)
+        if (typeof priority === "number") return priority;
+
+        // string: "3", "Level 3", "Level 3 Safety and Security", "Level 1", etc.
+        if (typeof priority === "string") {
+            const numMatch = priority.match(/\b([1-3])\b/i);
+            if (numMatch) return parseInt(numMatch[1], 10);
+
+            const levelMatch = priority.match(/level\s*([1-3])/i);
+            if (levelMatch) return parseInt(levelMatch[1], 10);
+
+            return 0;
+        }
+
+        // object: maybe { value: "3" } or { label: "Level 3" }
+        if (typeof priority === "object") {
+            if (priority.value) {
+                const v = parseInt(priority.value, 10);
+                if (!isNaN(v)) return v;
+            }
+            if (priority.label) {
+                const m = priority.label.match(/\b([1-3])\b/);
+                if (m) return parseInt(m[1], 10);
+            }
+        }
+
+        return 0;
+    };
+
+    const getPriorityInfo = (priority) => {
+        if (!priority) return { rank: 0, label: "No Priority" };
+
+        // If priority is numeric or string numeric
+        if (typeof priority === "number" || /^\d+$/.test(priority)) {
+            const num = parseInt(priority, 10);
+            return { rank: num, label: `Level ${num}` };
+        }
+
+        // If string like "Level 3 Safety and Security"
+        if (typeof priority === "string") {
+            const match = priority.match(/([1-3])/);
+            if (match) {
+                const num = parseInt(match[1], 10);
+                return { rank: num, label: `Level ${num}` };
+            }
+        }
+
+        // If object like { value: "3" } or { label: "Level 2" }
+        if (typeof priority === "object") {
+            const fromValue = priority?.value || priority?.label || "";
+            const match = String(fromValue).match(/([1-3])/);
+            if (match) {
+                const num = parseInt(match[1], 10);
+                return { rank: num, label: `Level ${num}` };
+            }
+        }
+
+        return { rank: 0, label: "No Priority" };
+    };
+
     // Filtered and sorted cases
     const filteredCases = cases
         .filter((c) => {
             const matchesTab =
                 (activeTab === "All" && (c.status === "On-going" || c.status === "Resolved")) ||
                 c.status === activeTab;
+
             const matchesSearch =
                 searchTerm === "" ||
                 (c.studentName && c.studentName.toLowerCase().includes(searchTerm.toLowerCase())) ||
                 (c.studentId && c.studentId.toLowerCase().includes(searchTerm.toLowerCase())) ||
                 (c.id && c.id.toLowerCase().includes(searchTerm.toLowerCase()));
+
             return matchesTab && matchesSearch;
         })
         .sort((a, b) => {
+            const rawPriorityA =
+                a.priorityLevel ??
+                caseDetailsMap[a.id]?.caseDetails?.priority ??
+                caseDetailsMap[a.id]?.priority ??
+                "";
+
+            const rawPriorityB =
+                b.priorityLevel ??
+                caseDetailsMap[b.id]?.caseDetails?.priority ??
+                caseDetailsMap[b.id]?.priority ??
+                "";
+
+            const { rank: priorityA } = getPriorityInfo(rawPriorityA);
+            const { rank: priorityB } = getPriorityInfo(rawPriorityB);
+
+            // Sort by priority first (3 → 1)
+            if (priorityA !== priorityB) return priorityB - priorityA;
+
+            // Then by date (newest first)
             const dateA = a.timeCreated && a.timeCreated.toDate ? a.timeCreated.toDate() : new Date(0);
             const dateB = b.timeCreated && b.timeCreated.toDate ? b.timeCreated.toDate() : new Date(0);
             return dateB - dateA;
         });
+
 
     // Pagination logic
     const totalRows = filteredCases.length;
@@ -169,19 +269,36 @@ function StudentCases() {
     };
 
     // Add Case
-    const handleAddCase = async () => {
-        if (!newCaseForm.studentName || !newCaseForm.studentId || !newCaseForm.counselingTypeCategory) {
+    const handleAddCase = async (caseDataWithPriority) => {
+        const dataToSave = { ...caseDataWithPriority };
+
+        dataToSave.priorityLevel =
+            (dataToSave.priorityLevels &&
+                dataToSave.counselingTypeCategory &&
+                typeof dataToSave.priorityLevels[dataToSave.counselingTypeCategory] === "string")
+                ? dataToSave.priorityLevels[dataToSave.counselingTypeCategory]
+                : "";
+
+        if (!dataToSave.studentName || !dataToSave.studentId || !dataToSave.counselingTypeCategory) {
             toast.error("Please fill in Student Name, Student ID, and Counseling Type/Category.");
             return;
         }
         try {
             const formData = new FormData();
-            Object.entries(newCaseForm).forEach(([key, value]) => {
-                if (value !== null && value !== undefined) formData.append(key, value);
+            Object.entries(dataToSave).forEach(([key, value]) => {
+                if (value !== null && value !== undefined) {
+                    if (key === 'proofImage' && value instanceof File) {
+                        formData.append('proof', value, value.name);
+                    } else if (key === 'proofImage' && value === null) {
+                    } else {
+                        formData.append(key, value);
+                    }
+                }
             });
             await axios.post("/cases/add", formData, {
                 headers: { "Content-Type": "multipart/form-data" },
             });
+
             toast.success("Case Added Successfully!");
             setShowAddModal(false);
             setNewCaseForm({
@@ -249,6 +366,7 @@ function StudentCases() {
         if (!editedCaseData || !selectedCaseId) return;
         try {
             const payload = uiDetailsToServerPayload(editedCaseData);
+            console.log(payload)
             await axios.put(`/cases/update/${selectedCaseId}`, payload);
             toast.success("Changes saved successfully!");
             setIsEditing(false);
@@ -404,9 +522,25 @@ function StudentCases() {
                                         <td className="px-4 py-3 whitespace-nowrap hidden lg:table-cell">{aCase.programSection}</td>
                                         {/* Priority column */}
                                         <td className="px-4 py-3 whitespace-nowrap">
-                                            {caseDetailsMap[aCase.id]?.caseDetails?.priority ||
-                                                caseDetailsMap[aCase.id]?.priority ||
-                                                ""}
+                                            {(() => {
+                                                const rawPriority = aCase.priorityLevel || caseDetailsMap[aCase.id]?.priority || "";
+
+                                                const { label } = getPriorityInfo(rawPriority);
+                                                return (
+                                                    <span
+                                                        className={`px-2 py-1 rounded text-xs font-semibold ${label.includes("3")
+                                                            ? "bg-red-100 text-red-700"
+                                                            : label.includes("2")
+                                                                ? "bg-yellow-100 text-yellow-700"
+                                                                : label.includes("1")
+                                                                    ? "bg-green-100 text-green-700"
+                                                                    : "bg-gray-100 text-gray-600"
+                                                            }`}
+                                                    >
+                                                        {label}
+                                                    </span>
+                                                );
+                                            })()}
                                         </td>
                                         {/* Status column */}
                                         <td className="px-4 py-3 whitespace-nowrap">

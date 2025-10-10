@@ -261,7 +261,9 @@ const updateSchema = Joi.object({
   lifeCircumstances: Joi.object({
     recentLoss: Joi.string().empty('').optional(),
     currentConcern: Joi.string().empty('').optional(),
-  }).empty({}).optional()
+  }).empty({}).optional(),
+
+  violations: Joi.object().optional().empty({})
 });
 
 // Controller Function to retrieve active student data

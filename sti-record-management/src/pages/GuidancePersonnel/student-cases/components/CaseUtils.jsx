@@ -36,6 +36,7 @@ export const serverViolationToUIDetails = (violation) => {
             caseStatus: violation.status ?? 'On-going',
             detailedDescription: violation.detailedDescription ?? 'N/A',
             violation: violation.violation ?? 'N/A',
+            priority: violation.priorityLevel ?? 'N/A'
         },
         proof: {
             proofDescription: violation.proofDescription ?? 'N/A',
@@ -72,5 +73,6 @@ export const uiDetailsToServerPayload = (uiGrouped) => {
         dateOfAction: act.dateOfAction ?? '',
         status: cd.caseStatus ?? 'On-going',
         notes: cn.notes ?? '',
+        priorityLevel: cd.priority ?? ''
     };
 };
