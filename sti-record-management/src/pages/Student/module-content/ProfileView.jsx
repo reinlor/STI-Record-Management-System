@@ -823,59 +823,22 @@ export default function ProfileView() {
 
   // Save handler for Health section
   const handleHealthSave = async () => {
-    let updateObj = { health: {} };
-    // Hospitalized and reason
-    if (
-      JSON.stringify(healthEdit.hospitalized) !==
-      JSON.stringify(healthOriginal.hospitalized)
-    ) {
-      updateObj.health.hospitalized = healthEdit.hospitalized.map((h) => h.event).filter((v) => v !== "");
-      updateObj.health.reason = healthEdit.hospitalized.map((h) => h.reason).filter((v) => v !== "");
-    }
-    // Operation
-    if (
-      JSON.stringify(healthEdit.operation) !==
-      JSON.stringify(healthOriginal.operation)
-    ) {
-      updateObj.health.operation = healthEdit.operation.filter((v) => v !== "");
-    }
-    // Illness
-    if (
-      JSON.stringify(healthEdit.illness) !==
-      JSON.stringify(healthOriginal.illness)
-    ) {
-      updateObj.health.illness = healthEdit.illness.filter((v) => v !== "");
-    }
-    // Prescribed Drug
-    if (
-      JSON.stringify(healthEdit.prescribedDrug) !==
-      JSON.stringify(healthOriginal.prescribedDrug)
-    ) {
-      updateObj.health.prescribedDrug = healthEdit.prescribedDrug.filter((v) => v !== "");
-    }
-    // Hereditary
-    if (
-      JSON.stringify(healthEdit.hereditary) !==
-      JSON.stringify(healthOriginal.hereditary)
-    ) {
-      updateObj.health.hereditary = healthEdit.hereditary.filter((v) => v !== "");
-    }
-    // Doctor Last Seen (single entry)
-    if (
-      healthEdit.doctorLastSeen !== healthOriginal.doctorLastSeen
-    ) {
-      updateObj.health.doctorLastSeen = healthEdit.doctorLastSeen ? [healthEdit.doctorLastSeen] : [];
-    }
-    // Medical Cert
-    if (
-      JSON.stringify(healthEdit.medicalCert) !==
-      JSON.stringify(healthOriginal.medicalCert)
-    ) {
-      updateObj.health.medicalCert = healthEdit.medicalCert.filter((v) => v !== "");
-    }
+    // Always send the full health object
+    let updateObj = {
+      health: {
+        hospitalized: healthEdit.hospitalized.map(h => h.event).filter(v => v !== ""),
+        reason: healthEdit.hospitalized.map(h => h.reason).filter(v => v !== ""),
+        operation: healthEdit.operation.filter(v => v !== ""),
+        illness: healthEdit.illness.filter(v => v !== ""),
+        prescribedDrug: healthEdit.prescribedDrug.filter(v => v !== ""),
+        hereditary: healthEdit.hereditary.filter(v => v !== ""),
+        doctorLastSeen: healthEdit.doctorLastSeen ? [healthEdit.doctorLastSeen] : [],
+        medicalCert: healthEdit.medicalCert.filter(v => v !== ""),
+      }
+    };
 
     // If nothing changed, just exit edit mode
-    if (Object.keys(updateObj.health).length === 0) {
+    if (JSON.stringify(updateObj.health) === JSON.stringify(healthOriginal)) {
       setIsEditing(false);
       return;
     }
@@ -886,7 +849,7 @@ export default function ProfileView() {
         deepMerge({ ...prevStudent }, updateObj)
       );
       setIsEditing(false);
-      setHealthOriginal(healthEdit);
+      setHealthOriginal(JSON.parse(JSON.stringify(updateObj.health)));
     } catch (err) {
       console.error("Failed to update health info.", err);
     }
