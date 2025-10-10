@@ -137,7 +137,7 @@ const addAbsentSlip = async (req, res) => {
       isRead: false,
       notifID: `adminRequest-${existingAdminNotification.length + 1}`,
       type: 'Submission',
-      subject: `${req.body.sid} has submitted a request`
+      subject: `${req.body.name} has submitted a request`
     }
 
     const updatedAdminNotifications = [...existingAdminNotification, newAdminNotification]
@@ -278,7 +278,7 @@ const getAllSlipsById = async (req, res) => {
 // Controller Function for updating slips/passes
 const updateSlipStatus = async (req, res) => {
   const { slipType, slipId } = req.params;
-  const { status, remarks, uid, name } = req.body;
+  const { status, remarks, uid, name, studentName } = req.body;
 
   const statusSchema = Joi.object({
     status: Joi.string().valid("Approved", "Denied").required(),
@@ -356,7 +356,7 @@ const updateSlipStatus = async (req, res) => {
       isRead: false,
       notifID: `adminRequest-${existingAdminNotification.length + 1}`,
       type: 'Update',
-      subject: `${uid} slip has been ${status}`
+      subject: `${studentName}'s slip has been ${status}`
     }
 
     const updatedNotifications = [...existingNotifications, newStudentNotification];

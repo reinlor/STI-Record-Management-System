@@ -104,7 +104,6 @@ function parseToMillis(dateInput) {
 }
 
 function formatDate(dateInput) {
-  // Your existing date formatting logic
   const ms = typeof dateInput === 'number' ? dateInput : parseToMillis(dateInput);
   if (!ms) return '';
   const d = new Date(ms);
@@ -126,7 +125,6 @@ function RequestSlip() {
   const [sortBy, setSortBy] = useState("oldest");
   const [loading, setLoading] = useState(true);
 
-  // Add state for editable remarks
   const [remarks, setRemarks] = useState("");
 
   if (!authData?.user?.access?.requestSlip) {
@@ -145,13 +143,15 @@ function RequestSlip() {
           status,
           remarks,
           name: authData.user.displayName,
-          uid: slip.sid
+          uid: slip.sid,
+          studentName: slip.name
         }
         : {
           status,
           remarks,
           name: authData.user.displayName,
-          uid: slip.sid
+          uid: slip.sid,
+          studentName: slip.name
         };
 
       await axios.put(`/slip/update/${slipType}/${slipId}`, updatePayload);

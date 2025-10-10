@@ -111,7 +111,7 @@ const addReferral = async (req, res) => {
       isRead: false,
       notifID: `adminReferral-${existingAdminNotification.length + 1}`,
       type: 'Submission',
-      subject: `${req.body.employeeID} has submitted a referral`
+      subject: `${req.body.referredBy} has submitted a referral`
     }
 
     const updatedAdminNotifications = [...existingAdminNotification, newAdminNotification]
@@ -153,7 +153,6 @@ const updateReferral = async (req, res) => {
       return res.status(404).json({ error: "Student not found" });
     }
 
-    // Firestore update call is perfect.
     await referralRef.set(validatedUpdates, { merge: true });
 
     const notifCollection = getNotificationCollection();
@@ -188,7 +187,7 @@ const updateReferral = async (req, res) => {
       isRead: false,
       notifID: `adminReferral-${existingAdminNotification.length + 1}`,
       type: 'Update',
-      subject: `${uid} referral has been ${updates.status}`
+      subject: `${req.body.referredBy}'s referral has been ${updates.status}`
     }
 
     const updatedNotifications = [...existingNotifications, newTeacherNotification];

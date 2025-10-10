@@ -1,9 +1,8 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Bell, Check, X, ClipboardList, Clock, FilePen, FilePlus } from "lucide-react";
+import { Bell, ClipboardList, FilePen, FilePlus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { doc, onSnapshot, updateDoc, getDoc } from "firebase/firestore";
+import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "../firebaseClient";
-
 
 const GuidanceNotificationIcon = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -13,48 +12,24 @@ const GuidanceNotificationIcon = () => {
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
 
-  const unreadCount = notifications.filter((notif) => !notif.isRead).length;
+  const today = new Date();
+  const todayCount = notifications.filter((notif) => {
+    const notifDate = notif.date?.toDate ? notif.date.toDate() : new Date(notif.date);
+    return (
+      notifDate.getDate() === today.getDate() &&
+      notifDate.getMonth() === today.getMonth() &&
+      notifDate.getFullYear() === today.getFullYear()
+    );
+  }).length;
+
   const toggleDropdown = () => setIsDropdownOpen((prev) => !prev);
-  const markAllAsRead = async () => {
-    try {
-      const requestRef = doc(db, "notification", "request");
-      const requestSnap = await getDoc(requestRef);
-      if (requestSnap.exists()) {
-        const requestData = requestSnap.data().data || [];
-        const updatedRequests = requestData.map((item) => ({ ...item, isRead: true }));
-        await updateDoc(requestRef, { data: updatedRequests });
-      }
 
-      const referralRef = doc(db, "notification", "referral");
-      const referralSnap = await getDoc(referralRef);
-      if (referralSnap.exists()) {
-        const referralData = referralSnap.data().data || [];
-        const updatedReferrals = referralData.map((item) => ({ ...item, isRead: true }));   
-        await updateDoc(referralRef, { data: updatedReferrals });
-      }
-    } catch (error) {
-      console.error("Error marking all notifications as read:", error);
-    }
-  };
-
-
-  const handleNotificationClick = async (notif) => {
-    try {
-      const docRef = doc(db, "notification", notif.notifID.startsWith("adminReferral") ? "referral" : "request");
-
-      const docSnap = await getDoc(docRef);
-      if (!docSnap.exists()) return;
-
-      const data = docSnap.data().data || [];
-
-      const updatedData = data.map((item) =>
-        item.notifID === notif.notifID ? { ...item, isRead: true } : item
-      );
-
-      await updateDoc(docRef, { data: updatedData });
-
-    } catch (error) {
-      console.error("Error marking notification as read:", error);
+  const handleNotificationClick = (notif) => {
+    setIsDropdownOpen(false);
+    if (notif.collectionType === "referral") {
+      navigate("/guidance/referral-form");
+    } else {
+      navigate("/guidance/request-slip");
     }
   };
 
@@ -66,14 +41,14 @@ const GuidanceNotificationIcon = () => {
       const requestData = requestSnapshot.exists()
         ? requestSnapshot.data().data || []
         : [];
-      setRequests(requestData);
+      setRequests(requestData.map((n) => ({ ...n, collectionType: "request" })));
     });
 
     const unsubscribeReferral = onSnapshot(referralRef, (referralSnapshot) => {
       const referralData = referralSnapshot.exists()
         ? referralSnapshot.data().data || []
         : [];
-      setReferrals(referralData);
+      setReferrals(referralData.map((n) => ({ ...n, collectionType: "referral" })));
     });
 
     return () => {
@@ -89,6 +64,7 @@ const GuidanceNotificationIcon = () => {
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -97,21 +73,12 @@ const GuidanceNotificationIcon = () => {
 
   const parseToDate = (val) => {
     if (!val) return null;
-
-    if (val.toDate && typeof val.toDate === "function") {
-      return val.toDate();
-    }
-    if (val.seconds) {
-      return new Date(val.seconds * 1000);
-    }
-    if (val._seconds) {
-      return new Date(val._seconds * 1000);
-    }
-
+    if (val.toDate && typeof val.toDate === "function") return val.toDate();
+    if (val.seconds) return new Date(val.seconds * 1000);
+    if (val._seconds) return new Date(val._seconds * 1000);
     const d = new Date(val);
     return isNaN(d.getTime()) ? null : d;
   };
-
 
   const formatDate = (timestamp) => {
     const d = parseToDate(timestamp);
@@ -126,52 +93,47 @@ const GuidanceNotificationIcon = () => {
         aria-label="Notifications"
       >
         <Bell className="w-6 h-6" />
-        {unreadCount > 0 && (
+        {todayCount > 0 && (
           <span className="absolute -top-1 -right-1 min-w-[16px] h-[16px] inline-flex items-center justify-center px-1 text-[10px] font-bold leading-none text-white bg-red-600 rounded-full">
-            {unreadCount > 99 ? "99+" : unreadCount}
+            {todayCount > 99 ? "99+" : todayCount}
           </span>
         )}
       </button>
+
       {isDropdownOpen && (
         <div className="absolute top-full right-0 mt-3 w-80 bg-white rounded-lg shadow-xl py-2 text-gray-800">
           <div className="flex items-center justify-between px-4 py-2 border-b">
             <h3 className="text-lg font-bold">Notifications</h3>
-            {unreadCount > 0 && (
-              <button
-                onClick={markAllAsRead}
-                className="text-sm text-[#0B5793] hover:text-[#3473A4] transition-colors"
-              >
-                Mark all as read
-              </button>
+            {todayCount > 0 && (
+              <span className="text-sm text-gray-500">Today: {todayCount}</span>
             )}
           </div>
+
           <ul className="max-h-60 overflow-y-auto custom-scrollbar">
-            {notifications.sort((a, b) => {
-              const da = parseToDate(a.date);
-              const db = parseToDate(b.date);
-              return db - da;
-            })
+            {notifications
+              .sort((a, b) => {
+                const da = parseToDate(a.date);
+                const db = parseToDate(b.date);
+                return db - da;
+              })
               .slice(0, 5)
               .map((notif) => (
                 <li
-                  key={notif.id}
-                  className={`py-2 px-4 border-b last:border-b-0 cursor-pointer ${!notif.isRead
-                    ? "bg-blue-50 hover:bg-blue-100"
-                    : "hover:bg-gray-100"
-                    }`}
+                  key={notif.notifID}
+                  className="py-2 px-4 border-b last:border-b-0 cursor-pointer hover:bg-gray-100 transition"
                   onClick={() => handleNotificationClick(notif)}
                 >
                   <div className="flex items-start gap-3">
                     <div
                       className={`p-2 rounded-full ${notif.status === "Approved"
-                        ? "bg-green-100"
-                        : notif.status === "Denied"
-                          ? "bg-red-100"
-                          : notif.status === "Resolved"
-                            ? "bg-green-100"
-                            : notif.status === "In Progress"
-                              ? "bg-yellow-100"
-                              : "bg-gray-100"
+                          ? "bg-green-100"
+                          : notif.status === "Denied"
+                            ? "bg-red-100"
+                            : notif.status === "Resolved"
+                              ? "bg-green-100"
+                              : notif.status === "In Progress"
+                                ? "bg-yellow-100"
+                                : "bg-gray-100"
                         }`}
                     >
                       {notif.type === "Update" ? (
@@ -182,23 +144,22 @@ const GuidanceNotificationIcon = () => {
                         <ClipboardList className="w-5 h-5 text-gray-600" />
                       )}
                     </div>
+
                     <div className="flex-1">
                       <p className="font-semibold">{notif.subject}</p>
                       <p className="text-sm text-gray-600">{notif.from}</p>
                       <p className="text-xs text-gray-400">{formatDate(notif.date)}</p>
                     </div>
-                    {!notif.isRead && (
-                      <span className="w-2 h-2 bg-[#F4D03F] rounded-full shrink-0 mt-2"></span>
-                    )}
                   </div>
                 </li>
               ))}
           </ul>
+
           <div className="px-4 py-2 mt-2">
             <button
               className="block w-full text-center text-[#0B5793] font-semibold hover:text-[#3473A4]"
               onClick={() => {
-                navigate('/guidance/notifications')
+                navigate("/guidance/notifications");
               }}
             >
               See all notifications

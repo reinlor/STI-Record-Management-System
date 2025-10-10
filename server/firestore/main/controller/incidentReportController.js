@@ -122,7 +122,7 @@ const addIncident = async (req, res) => {
       isRead: false,
       notifID: `adminRequest-${existingAdminNotification.length + 1}`,
       type: 'Submission',
-      subject: `${req.body.sid} has submitted a request`
+      subject: `${req.body.name} has submitted a request`
     }
 
     const updatedAdminNotifications = [...existingAdminNotification, newAdminNotification]
