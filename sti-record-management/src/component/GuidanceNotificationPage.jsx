@@ -30,29 +30,39 @@ const GuidanceNotificationPage = () => {
 
   useEffect(() => {
     setIsLoading(true);
+
     const requestRef = doc(db, "notification", "request");
     const referralRef = doc(db, "notification", "referral");
+    const casesRef = doc(db, "notification", "cases");
+
+    const mergeData = (newData, type) => {
+      setNotifications((prev) => {
+        const filtered = prev.filter((n) => n.collectionType !== type);
+        const formatted = (newData || []).map((n) => ({ ...n, collectionType: type }));
+        return [...filtered, ...formatted];
+      });
+    };
 
     const unsubReq = onSnapshot(requestRef, (snap) => {
       const data = snap.exists() ? snap.data().data || [] : [];
-      setNotifications((prev) => {
-        const refs = prev.filter((n) => n.collectionType === "referral");
-        return [...data.map((n) => ({ ...n, collectionType: "request" })), ...refs];
-      });
+      mergeData(data, "request");
       setIsLoading(false);
     });
 
     const unsubRef = onSnapshot(referralRef, (snap) => {
       const data = snap.exists() ? snap.data().data || [] : [];
-      setNotifications((prev) => {
-        const reqs = prev.filter((n) => n.collectionType === "request");
-        return [...reqs, ...data.map((n) => ({ ...n, collectionType: "referral" }))];
-      });
+      mergeData(data, "referral");
+    });
+
+    const unsubCase = onSnapshot(casesRef, (snap) => {
+      const data = snap.exists() ? snap.data().data || [] : [];
+      mergeData(data, "cases");
     });
 
     return () => {
       unsubReq();
       unsubRef();
+      unsubCase();
     };
   }, []);
 
@@ -98,14 +108,16 @@ const GuidanceNotificationPage = () => {
                 return (
                   <tr
                     key={notif.notifID}
-                    onClick={() =>
-                      notif.collectionType === "referral"
-                        ? navigate("/guidance/referral-form")
-                        : navigate("/guidance/request-slip")
-                    }
-                    className={`border-b last:border-b-0 cursor-pointer transition-colors ${highlight
-                        ? "bg-blue-50 hover:bg-blue-100"
-                        : "bg-white hover:bg-gray-50"
+                    onClick={() => {
+                      if (notif.collectionType === "referral") {
+                        navigate("/guidance/referral-form");
+                      } else if (notif.collectionType === "cases") {
+                        navigate("/guidance/student-cases");
+                      } else {
+                        navigate("/guidance/request-slip");
+                      }
+                    }}
+                    className={`border-b last:border-b-0 cursor-pointer transition-colors ${highlight ? "bg-blue-50 hover:bg-blue-100" : "bg-white hover:bg-gray-50"
                       }`}
                   >
                     <td className="px-4 py-3">
@@ -180,7 +192,9 @@ const GuidanceNotificationPage = () => {
         )}
 
         {sorted.length === 0 && (
-          <div className="text-center py-10 text-gray-500">No notifications available.</div>
+          <div className="text-center py-10 text-gray-500">
+            No notifications available.
+          </div>
         )}
       </div>
     </div>

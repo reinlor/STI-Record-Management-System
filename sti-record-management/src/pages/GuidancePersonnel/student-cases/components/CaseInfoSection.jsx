@@ -72,6 +72,7 @@ const CaseInfoSection = ({ infoType, caseData, isEditing, onFieldChange }) => {
                                 ) : (
                                     <input
                                         id={inputId}
+                                        disabled={fieldDef.disabled}
                                         type={fieldDef.type}
                                         value={value === 'N/A' ? '' : value}
                                         onChange={(e) => onFieldChange(infoType, fieldDef.key, e.target.value)}

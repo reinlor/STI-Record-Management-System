@@ -8,6 +8,7 @@ const GuidanceNotificationIcon = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [requests, setRequests] = useState([]);
   const [referrals, setReferrals] = useState([]);
+  const [cases, setCases] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
@@ -28,14 +29,17 @@ const GuidanceNotificationIcon = () => {
     setIsDropdownOpen(false);
     if (notif.collectionType === "referral") {
       navigate("/guidance/referral-form");
-    } else {
+    } else if (notif.collectionType === 'request') {
       navigate("/guidance/request-slip");
+    } else {
+      navigate("/guidance/student-cases")
     }
   };
 
   useEffect(() => {
     const requestRef = doc(db, "notification", "request");
     const referralRef = doc(db, "notification", "referral");
+    const casesRef = doc(db, "notification", "cases");
 
     const unsubscribeRequest = onSnapshot(requestRef, (requestSnapshot) => {
       const requestData = requestSnapshot.exists()
@@ -51,15 +55,23 @@ const GuidanceNotificationIcon = () => {
       setReferrals(referralData.map((n) => ({ ...n, collectionType: "referral" })));
     });
 
+    const unsubscribeCases = onSnapshot(casesRef, (casesSnapshot) => {
+      const referralData = casesSnapshot.exists()
+        ? casesSnapshot.data().data || []
+        : [];
+      setCases(referralData.map((n) => ({ ...n, collectionType: "casses" })));
+    });
+
     return () => {
       unsubscribeRequest();
       unsubscribeReferral();
+      unsubscribeCases();
     };
   }, []);
 
   useEffect(() => {
-    setNotifications([...requests, ...referrals]);
-  }, [requests, referrals]);
+    setNotifications([...requests, ...referrals, ...cases]);
+  }, [requests, referrals, cases]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -126,14 +138,14 @@ const GuidanceNotificationIcon = () => {
                   <div className="flex items-start gap-3">
                     <div
                       className={`p-2 rounded-full ${notif.status === "Approved"
-                          ? "bg-green-100"
-                          : notif.status === "Denied"
-                            ? "bg-red-100"
-                            : notif.status === "Resolved"
-                              ? "bg-green-100"
-                              : notif.status === "In Progress"
-                                ? "bg-yellow-100"
-                                : "bg-gray-100"
+                        ? "bg-green-100"
+                        : notif.status === "Denied"
+                          ? "bg-red-100"
+                          : notif.status === "Resolved"
+                            ? "bg-green-100"
+                            : notif.status === "In Progress"
+                              ? "bg-yellow-100"
+                              : "bg-gray-100"
                         }`}
                     >
                       {notif.type === "Update" ? (

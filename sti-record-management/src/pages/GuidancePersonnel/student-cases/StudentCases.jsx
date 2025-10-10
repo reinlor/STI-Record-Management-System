@@ -7,6 +7,7 @@ import {
     FileText,
     X,
     Edit as Pencil,
+    Clock,
     Archive,
     ChevronLeft,
     ChevronRight,
@@ -22,6 +23,7 @@ import {
 import LoadingDots from "../../../component/Loading.jsx";
 import { collection, onSnapshot } from "firebase/firestore";
 import { db } from "../../../firebaseClient.js";
+import { useNavigate } from "react-router-dom";
 
 const PRIORITY_LEVELS = [
     { value: "", label: "No Priority" },
@@ -45,6 +47,8 @@ function StudentCases() {
     const [editedCaseData, setEditedCaseData] = useState(null);
     const [activeLevel, setActiveLevel] = useState("shs");
     const [loading, setLoading] = useState(true);
+    const [isSubmitting, setIsSubmitting] = useState(false)
+    const navigate = useNavigate();
 
     // Add Case Form
     const [newCaseForm, setNewCaseForm] = useState({
@@ -233,7 +237,7 @@ function StudentCases() {
 
     // Add Case
     const handleAddCase = async (caseDataWithPriority) => {
-        const dataToSave = { ...caseDataWithPriority };
+        const dataToSave = { ...caseDataWithPriority, processedBy: authData.displayName };
 
         dataToSave.priorityLevel =
 
@@ -248,6 +252,7 @@ function StudentCases() {
             return;
         }
         try {
+            setIsSubmitting(true);
             const formData = new FormData();
             Object.entries(dataToSave).forEach(([key, value]) => {
                 if (value !== null && value !== undefined) {
@@ -281,25 +286,10 @@ function StudentCases() {
                 counselorNotes: "",
                 violation: ''
             });
-            // Refresh
-            const res = await axios.get("/cases");
-            const violations = Array.isArray(res.data) ? res.data : [];
-            const list = violations.map((v) => ({
-                id: v.id,
-                studentName: v.name ?? "Unknown",
-                studentId: v.sid ?? "",
-                status: v.status ?? "On-going",
-                timeCreated: v.timeCreated,
-                programSection: v.programSection ?? "",
-            }));
-            const details = {};
-            violations.forEach((v) => {
-                details[v.id] = v;
-            });
-            setCases(list);
-            setCaseDetailsMap(details);
         } catch (err) {
             toast.error("Error adding case.");
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -307,7 +297,7 @@ function StudentCases() {
     const handleArchiveCase = async () => {
         if (!selectedCaseId) return;
         try {
-            await axios.put(`/cases/update/${selectedCaseId}`, { status: "Resolved" });
+            await axios.put(`/cases/update/${selectedCaseId}`, { status: "Resolved", processedBy: authData.displayName });
             setCases((prev) =>
                 prev.map((c) =>
                     c.id === selectedCaseId ? { ...c, status: "Resolved" } : c
@@ -331,26 +321,9 @@ function StudentCases() {
         try {
             const payload = uiDetailsToServerPayload(editedCaseData);
             console.log(payload)
-            await axios.put(`/cases/update/${selectedCaseId}`, payload);
+            await axios.put(`/cases/update/${selectedCaseId}`, { ...payload, processedBy: authData.displayName });
             toast.success("Changes saved successfully!");
             setIsEditing(false);
-            // Refresh
-            const res = await axios.get("/cases");
-            const violations = Array.isArray(res.data) ? res.data : [];
-            const list = violations.map((v) => ({
-                id: v.id,
-                studentName: v.name ?? "Unknown",
-                studentId: v.sid ?? "",
-                status: v.status ?? "On-going",
-                timeCreated: v.timeCreated,
-                programSection: v.programSection ?? "",
-            }));
-            const details = {};
-            violations.forEach((v) => {
-                details[v.id] = v;
-            });
-            setCases(list);
-            setCaseDetailsMap(details);
         } catch (err) {
             toast.error("Error saving changes.");
         }
@@ -419,6 +392,16 @@ function StudentCases() {
                                     style={{ minWidth: 0 }}
                                 />
                                 <Search className="absolute right-3 top-2.5 text-gray-400 w-5 h-5" />
+                            </div>
+
+                            <div className="flex gap-2 flex-wrap">
+                                <button
+                                    onClick={() => navigate()}
+                                    className="flex items-center bg-[#0172bd] hover:bg-blue-500 text-sm text-white font-bold py-2 px-4 rounded-lg transition duration-150 ease-in-out shadow-md"
+                                >
+                                    History
+                                    <Clock className="w-4 h-4 ml-2" />
+                                </button>
                             </div>
                             <div className="flex gap-2 flex-wrap">
                                 {authData?.user?.access?.studentCases?.canEdit ? (
@@ -665,6 +648,7 @@ function StudentCases() {
                 newCaseForm={newCaseForm}
                 onChange={handleNewCaseChange}
                 onSave={handleAddCase}
+                isButtonSubmitting={isSubmitting}
             />
         </div>
     );

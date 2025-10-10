@@ -3,7 +3,7 @@ import { X, Check, Upload } from 'lucide-react';
 import axios, { all } from "axios";
 import Loading from "../../../../component/Loading"
 
-const AddCaseModal = ({ visible, onClose, newCaseForm, onChange, onSave }) => {
+const AddCaseModal = ({ visible, onClose, newCaseForm, onChange, onSave, isButtonSubmitting }) => {
     if (!visible) return null;
 
     const [violations, setViolations] = useState([]);
@@ -285,10 +285,11 @@ const AddCaseModal = ({ visible, onClose, newCaseForm, onChange, onSave }) => {
                         onClick={() => onSave({
                             ...newCaseForm,
                             priorityLevels,
+                        })}
+                        disabled={isButtonSubmitting}
+                    >
+                        {isButtonSubmitting ? 'Submitting...' : <>Add Case <Check className="w-8 h-8 ml-2" /></>}
 
-                        })}>
-                        Add Case
-                        <Check className="w-8 h-8 ml-2" />
                     </button>
                 </div>
             </div>

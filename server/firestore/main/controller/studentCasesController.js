@@ -1,5 +1,6 @@
 const { getViolationsCollection } = require("../models/studentCasesModel");
 const { getChartDataCollection } = require("../models/chartDataModel");
+const { getNotificationCollection } = require("../models/notificationModel.js");
 const Joi = require("joi");
 const { FieldValue } = require("firebase-admin/firestore");
 const cloudinary = require("../../../config/cloudinary.js");
@@ -22,7 +23,8 @@ const violationSchema = Joi.object({
   notes: Joi.string().optional().empty(""),
   proofUrl: Joi.string().optional().empty(""),
   priorityLevel: Joi.string().optional().empty(""),
-  timeCreated: Joi.date().optional().empty("")
+  timeCreated: Joi.date().optional().empty(""),
+  processedBy: Joi.string().optional().empty(""),
 });
 const updateSchema = Joi.object({
   sid: Joi.string().optional(),
@@ -40,8 +42,9 @@ const updateSchema = Joi.object({
   notes: Joi.string().optional(),
   proofUrl: Joi.string().optional(),
   priorityLevel: Joi.string().optional().empty(""),
-  timeCreated: Joi.date().optional("")
-
+  timeCreated: Joi.date().optional(),
+  processedBy: Joi.string().optional().empty(""),
+  lastUpdate: Joi.date().optional(),
 });
 
 // Controller function to retrieve all violation
@@ -119,7 +122,8 @@ const addViolation = async (req, res) => {
       proofDescription: req.body.proofDescription,
       dateOfAction: req.body.dateOfAction,
       priorityLevel: req.body.priorityLevel || req.body.priorityLevels,
-      proofUrl
+      proofUrl,
+      processedBy: req.body.processedBy
     };
 
     const violation = {
@@ -176,6 +180,31 @@ const addViolation = async (req, res) => {
 
     await getViolationsCollection().doc().set(violationData);
 
+    // Notification
+    const notifCollection = getNotificationCollection();
+    const adminDoc = notifCollection.doc('cases');
+    const adminDocData = await adminDoc.get();
+
+    let existingAdminNotification = [];
+    if (adminDocData.exists && adminDocData.data()['data']) {
+      existingAdminNotification = adminDocData.data()['data'];
+    }
+
+    const newAdminNotification = {
+      date: new Date(),
+      from: 'Admin',
+      notifID: `adminCase-${existingAdminNotification.length + 1}`,
+      type: 'Submission',
+      subject: `${req.body.processedBy} has created a new cases`
+    }
+
+    const updatedAdminNotifications = [...existingAdminNotification, newAdminNotification]
+    const updateAdminPayload = {
+      data: updatedAdminNotifications
+    }
+
+    await adminDoc.set(updateAdminPayload, { merge: true });
+
     res.status(201).json({
       message: `Added a new violation for Student: ${sid}`,
       proofUrl: proofUrl || "",
@@ -210,7 +239,41 @@ const updateViolation = async (req, res) => {
       return res.status(404).json({ error: "Violation not found" });
     }
 
-    await violationRef.set(validatedUpdates, { merge: true });
+    await violationRef.set({
+        ...validatedUpdates, 
+        lastUpdate: new Date()}, { merge: true });
+
+    // Notification
+    const notifCollection = getNotificationCollection();
+    const adminDoc = notifCollection.doc('cases');
+    const adminDocData = await adminDoc.get();
+
+    let existingAdminNotification = [];
+    if (adminDocData.exists && adminDocData.data()['data']) {
+      existingAdminNotification = adminDocData.data()['data'];
+    }
+
+    const message = () => {
+      if (req.body.status === 'Resolved'){
+        return `${req.body.processedBy} resolved a case`
+      }
+      return `${req.body.processedBy} has updated a case`
+    }
+
+    const newAdminNotification = {
+      date: new Date(),
+      from: 'Admin',
+      notifID: `adminCase-${existingAdminNotification.length + 1}`,
+      type: 'Submission',
+      subject: message()
+    }
+
+    const updatedAdminNotifications = [...existingAdminNotification, newAdminNotification]
+    const updateAdminPayload = {
+      data: updatedAdminNotifications
+    }
+
+    await adminDoc.set(updateAdminPayload, { merge: true });
 
     res.status(201).json({
       message: `Violation updated successfully!`,
