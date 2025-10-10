@@ -1,18 +1,12 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom';
-import axios from "axios";
-import back from '../../../assets/back.png'
-import closeB from '../../../assets/closeblack.png';
 import LoadingDots from '../../../component/Loading';
+import { collection, onSnapshot } from "firebase/firestore";
+import { db } from "../../../firebaseClient.js";
 
 import {
   Search,
-  User,
-  Clipboard,
-  Plus,
-  Check,
   X,
-  Clock,
   ChevronLeft,
   ChevronRight
 } from 'lucide-react';
@@ -64,7 +58,7 @@ function IncidentReportHistoryModal({ slip, onClose }) {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-[9999]">
-        <div className="relative bg-white w-full max-w-[95vw] sm:max-w-xl lg:max-w-7xl rounded-lg shadow-xl p-4 sm:p-6 overflow-y-auto max-h-[90vh] animate-fadeIn custom-scrollbar outline-solid outline-2 outline-gray-300">
+      <div className="relative bg-white w-full max-w-[95vw] sm:max-w-xl lg:max-w-7xl rounded-lg shadow-xl p-4 sm:p-6 overflow-y-auto max-h-[90vh] animate-fadeIn custom-scrollbar outline-solid outline-2 outline-gray-300">
         {/* Header */}
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-4">
@@ -103,13 +97,12 @@ function IncidentReportHistoryModal({ slip, onClose }) {
                 </div>
                 <div>
                   <p className="font-bold text-[#0172bd]">Status:</p>
-                  <p className={`font-semibold break-all ${
-                    slip.status === "Approved"
-                      ? "text-green-600"
-                      : slip.status === "Denied"
-                        ? "text-red-600"
-                        : "text-gray-600"
-                  }`}>{slip.status}</p>
+                  <p className={`font-semibold break-all ${slip.status === "Approved"
+                    ? "text-green-600"
+                    : slip.status === "Denied"
+                      ? "text-red-600"
+                      : "text-gray-600"
+                    }`}>{slip.status}</p>
                 </div>
                 <div>
                   <p className="font-bold text-[#0172bd]">Date:</p>
@@ -238,36 +231,80 @@ function RequestSlipHistory() {
   const rowsPerPage = 10;
 
   useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true)
-      try {
-        const res = await axios.get("/slip/allSlips");
-        const allSlips = (res.data || []).map((slip) => {
-          const ms = parseToMillis(slip.timeCreated);
-          return {
-            ...slip,
-            timeCreatedMs: ms,
-            timeCreatedFormatted: ms ? formatDate(ms) : '',
-          };
+    setLoading(true);
+
+    // Helper to map snapshot data
+    const mapSnapshot = (snapshot, collectionName) => {
+      return snapshot.docs.map((doc) => {
+        const data = doc.data();
+        const ms = parseToMillis(data.timeCreated);
+
+        return {
+          id: doc.id,
+          collection: collectionName, // optional: track source
+          ...data,
+          timeCreatedMs: ms,
+          timeCreatedFormatted: ms ? formatDate(ms) : '',
+        };
+      });
+    };
+
+    // Listeners for both collections
+    const unsubscribeAbsent = onSnapshot(
+      collection(db, "absentSlips"),
+      (snapshot) => {
+        const absentData = mapSnapshot(snapshot, "absentSlips");
+
+        setSlipData((prev) => {
+          const incidentData = prev?.filter(item => item.collection === "incidentReport") || [];
+          const combined = [...absentData, ...incidentData];
+
+          // Filter and sort
+          const filtered = combined.filter(
+            (s) => s.status === "Approved" || s.status === "Denied"
+          );
+          filtered.sort((a, b) => (b.timeCreatedMs || 0) - (a.timeCreatedMs || 0));
+          return filtered;
         });
 
-        // Only Approved or Rejected
-        const filtered = allSlips.filter(
-          (s) => s.status === "Approved" || s.status === "Denied"
-        );
-
-        // Sort latest → oldest
-        filtered.sort((a, b) => (b.timeCreatedMs || 0) - (a.timeCreatedMs || 0));
-
-        setSlipData(filtered);
-      } catch (error) {
-        console.error("Error fetching slip history:", error.message);
+        setLoading(false);
+      },
+      (error) => {
+        console.error("Error fetching absent slips:", error);
+        setLoading(false);
       }
-      finally {
-        setLoading(false)
+    );
+
+    const unsubscribeIncident = onSnapshot(
+      collection(db, "incidentReport"),
+      (snapshot) => {
+        const incidentData = mapSnapshot(snapshot, "incidentReport");
+
+        setSlipData((prev) => {
+          const absentData = prev?.filter(item => item.collection === "absentSlips") || [];
+          const combined = [...absentData, ...incidentData];
+
+          // Filter and sort
+          const filtered = combined.filter(
+            (s) => s.status === "Approved" || s.status === "Denied"
+          );
+          filtered.sort((a, b) => (b.timeCreatedMs || 0) - (a.timeCreatedMs || 0));
+          return filtered;
+        });
+
+        setLoading(false);
+      },
+      (error) => {
+        console.error("Error fetching incident reports:", error);
+        setLoading(false);
       }
+    );
+
+    // Cleanup on unmount
+    return () => {
+      unsubscribeAbsent();
+      unsubscribeIncident();
     };
-    fetchData();
   }, []);
 
   // PAGINATION LOGIC

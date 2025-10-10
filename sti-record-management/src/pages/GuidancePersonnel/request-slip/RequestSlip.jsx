@@ -5,12 +5,11 @@ import closeW from "../../../assets/close.png";
 import checkW from "../../../assets/check.png";
 import { AuthContext } from '../../../AuthProvider.jsx';
 import LoadingDots from "../../../component/Loading.jsx";
+import { collection, onSnapshot } from "firebase/firestore";
+import { db } from "../../../firebaseClient.js";
 
 import {
   Search,
-  User,
-  Clipboard,
-  Plus,
   Check,
   X,
   Clock,
@@ -181,28 +180,63 @@ function RequestSlip() {
   };
 
   useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const res = await axios.get("/slip/allSlips");
-        const allSlips = (res.data || []).map((slip) => {
-          const ms = parseToMillis(slip.timeCreated);
-          return {
-            ...slip,
-            timeCreatedMs: ms,
-            timeCreatedFormatted: ms ? formatDate(ms) : '',
-          };
-        });
-        allSlips.sort((a, b) => (b.timeCreatedMs || 0) - (a.timeCreatedMs || 0));
-        setAllSlipData(allSlips);
-      } catch (error) {
-        console.error("Error fetching slip data:", error.message);
-      }
-      finally {
-        setLoading(false)
-      }
+    setLoading(true);
+    const mapSnapshot = (snapshot) => {
+      return snapshot.docs.map((doc) => {
+        const data = doc.data();
+        const ms = parseToMillis(data.timeCreated);
+
+        return {
+          id: doc.id,
+          ...data,
+          timeCreatedMs: ms,
+          timeCreatedFormatted: ms ? formatDate(ms) : '',
+        };
+      });
     };
-    fetchData();
+
+    const unsubscribeAbsent = onSnapshot(
+      collection(db, "absentSlips"),
+      (snapshot) => {
+        const absentData = mapSnapshot(snapshot);
+
+        setAllSlipData((prev) => {
+          const combined = [...absentData, ...(prev?.filter(item => item.collection === "incidentReport") || [])];
+          combined.sort((a, b) => (b.timeCreatedMs || 0) - (a.timeCreatedMs || 0));
+          return combined;
+        });
+
+        setLoading(false);
+      },
+      (error) => {
+        console.error("Error fetching absent slips:", error);
+        setLoading(false);
+      }
+    );
+
+    const unsubscribeIncident = onSnapshot(
+      collection(db, "incidentReport"),
+      (snapshot) => {
+        const incidentData = mapSnapshot(snapshot).map(item => ({ ...item, collection: "incidentReport" }));
+
+        setAllSlipData((prev) => {
+          const combined = [...incidentData, ...(prev?.filter(item => item.collection !== "incidentReport") || [])];
+          combined.sort((a, b) => (b.timeCreatedMs || 0) - (a.timeCreatedMs || 0));
+          return combined;
+        });
+
+        setLoading(false);
+      },
+      (error) => {
+        console.error("Error fetching incident reports:", error);
+        setLoading(false);
+      }
+    );
+
+    return () => {
+      unsubscribeAbsent();
+      unsubscribeIncident();
+    };
   }, []);
 
 
@@ -481,13 +515,12 @@ function RequestSlip() {
                   </div>
                   <div>
                     <p className="font-bold text-[#0172bd]">Status:</p>
-                    <p className={`font-semibold break-all ${
-                      slip.status === "Approved"
+                    <p className={`font-semibold break-all ${slip.status === "Approved"
                         ? "text-green-600"
                         : slip.status === "Rejected"
                           ? "text-red-600"
                           : "text-gray-600"
-                    }`}>{slip.status}</p>
+                      }`}>{slip.status}</p>
                   </div>
                   {/* Row 3 */}
                   <div>
@@ -531,19 +564,19 @@ function RequestSlip() {
                     <p className="font-semibold text-black break-all">{slip.dateOfIncident}</p>
                   </div>
                   <div></div>
-                  
+
                 </div>
 
-                  {/* Row 8: Narrative Report (full width) */}
-                  <div className="md:col-span-2">
-                    <p className="font-bold text-[#0172bd]">Narrative Report:</p>
-                    <p className="font-semibold text-black break-all">{slip.narrativeReport}</p>
-                  </div>
-                  {/* Row 9: Action Taken (full width) */}
-                  <div className="md:col-span-2">
-                    <p className="font-bold text-[#0172bd]">Action Taken:</p>
-                    <p className="font-semibold text-black break-all">{slip.actionsTaken}</p>
-                  </div>
+                {/* Row 8: Narrative Report (full width) */}
+                <div className="md:col-span-2">
+                  <p className="font-bold text-[#0172bd]">Narrative Report:</p>
+                  <p className="font-semibold text-black break-all">{slip.narrativeReport}</p>
+                </div>
+                {/* Row 9: Action Taken (full width) */}
+                <div className="md:col-span-2">
+                  <p className="font-bold text-[#0172bd]">Action Taken:</p>
+                  <p className="font-semibold text-black break-all">{slip.actionsTaken}</p>
+                </div>
               </div>
 
               {/* Attachments Section */}
@@ -882,7 +915,7 @@ function RequestSlip() {
 
                 return (
                   <tr
-                    key={slips._id}
+                    key={slips.id}
                     className={`hover:bg-gray-50 transition border-b ${getRowColor(days)}`}
                   >
                     <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 lg:whitespace-nowrap font-semibold w-1/4">{slips.name}</td>

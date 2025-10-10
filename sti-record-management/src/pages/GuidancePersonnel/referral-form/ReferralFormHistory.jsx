@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import axios from 'axios'
 import {
   Search,
   ChevronLeft,
@@ -8,6 +7,8 @@ import {
   X,
 } from 'lucide-react';
 import LoadingDots from '../../../component/Loading';
+import { collection, onSnapshot } from "firebase/firestore";
+import { db } from "../../../firebaseClient.js";
 
 function ReferralFormHistory() {
   const navigate = useNavigate();
@@ -21,18 +22,31 @@ function ReferralFormHistory() {
   const rowsPerPage = 10;
 
   useEffect(() => {
-    setLoading(true)
-    axios
-      .get("/referral/getAll")
-      .then((res) => setReferralData(res.data))
-      .catch((err) => console.error("Error fetching list:", err.message))
-      .finally(() => setLoading(false));
+    setLoading(true);
+
+    const unsubscribe = onSnapshot(
+      collection(db, "referralForm"),
+      (snapshot) => {
+        const data = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setReferralData(data);
+        setLoading(false);
+      },
+      (error) => {
+        console.error("Error fetching referral list:", error);
+        setLoading(false);
+      }
+    );
+
+    return () => unsubscribe();
   }, []);
 
   // Filter and pagination logic
   const filtered = referralData.filter(
     (ref) =>
-      (ref.status === 'Resolved') &&
+      (ref.status === 'Resolved' || ref.status === 'Cancelled') &&
       (
         ref.referredBy?.toLowerCase().includes(search.toLowerCase()) ||
         ref.studentName?.toLowerCase().includes(search.toLowerCase())
@@ -110,11 +124,11 @@ function ReferralFormHistory() {
               <p><span className="font-bold text-[#0172bd]">Areas of Concern:</span> {selectedReferral.areasOfConcern || "-"}</p>
               <p><span className="font-bold text-[#0172bd]">Action Required:</span> {selectedReferral.actionRequired || "-"}</p>
               <p><span className="font-bold text-[#0172bd]">Level of Priority:</span> {selectedReferral.levelPriority || "-"}</p>
-              
+
             </div>
             {/* Right Column */}
             <div className="space-y-3">
-              
+
               <div>
                 <p className="font-bold text-[#0172bd]">Actions Taken before Referral:</p>
                 <textarea

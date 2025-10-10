@@ -20,6 +20,8 @@ import {
     uiDetailsToServerPayload,
 } from "./components/CaseUtils.jsx";
 import LoadingDots from "../../../component/Loading.jsx";
+import { collection, onSnapshot } from "firebase/firestore";
+import { db } from "../../../firebaseClient.js";
 
 const PRIORITY_LEVELS = [
     { value: "", label: "No Priority" },
@@ -41,7 +43,7 @@ function StudentCases() {
     const [isEditing, setIsEditing] = useState(false);
     const [infoType, setInfoType] = useState("caseDetails");
     const [editedCaseData, setEditedCaseData] = useState(null);
-    const [activeLevel, setActiveLevel] = useState("shs"); 
+    const [activeLevel, setActiveLevel] = useState("shs");
     const [loading, setLoading] = useState(true);
 
     // Add Case Form
@@ -91,11 +93,16 @@ function StudentCases() {
 
     // Fetch cases
     useEffect(() => {
-        const fetchCases = async () => {
-            try {
-                const res = await axios.get("/cases");
-                const violations = Array.isArray(res.data) ? res.data : [];
-                const list = violations.map((v) => ({
+        const unsub = onSnapshot(
+            collection(db, "studentCases"),
+            (snapshot) => {
+                setLoading(true);
+                const violations = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data(),
+                }));
+
+                const list = violations.map(v => ({
                     id: v.id,
                     studentName: v.name ?? "Unknown",
                     studentId: v.sid ?? "",
@@ -104,22 +111,27 @@ function StudentCases() {
                     programSection: v.programSection ?? "",
                     priorityLevel: v.priorityLevel ?? v.priority ?? v.caseDetails?.priority ?? "",
                 }));
+
                 const details = {};
-                violations.forEach((v) => {
+                violations.forEach(v => {
                     details[v.id] = v;
                 });
+
                 setCases(list);
                 setCaseDetailsMap(details);
-            } catch (err) {
-                toast.error("Failed to fetch cases");
-                setCases([]);
-                setCaseDetailsMap({});
+                setLoading(false);
+            },
+            (error) => {
+                console.error("Error listening for cases:", error);
+                toast.error("Failed to fetch realtime cases");
+                setLoading(false);
             }
-            finally {
-            }
-        };
-        fetchCases();
+        );
+
+        // Cleanup on unmount
+        return () => unsub();
     }, []);
+
 
     const getPriorityInfo = (priority) => {
         if (!priority) return { rank: 0, label: "No Priority" };
@@ -203,14 +215,9 @@ function StudentCases() {
 
     // Reset to page 1 
     useEffect(() => {
-        setLoading(true)
         if (currentPage > totalPages) setCurrentPage(1);
-        setLoading(false)
     }, [totalPages, currentPage]);
 
-    if (loading) {
-        return <LoadingDots />
-    }
 
     // Modal handlers
     const openCaseModal = (caseId) => {
@@ -229,6 +236,7 @@ function StudentCases() {
         const dataToSave = { ...caseDataWithPriority };
 
         dataToSave.priorityLevel =
+
             (dataToSave.priorityLevels &&
                 dataToSave.counselingTypeCategory &&
                 typeof dataToSave.priorityLevels[dataToSave.counselingTypeCategory] === "string")
@@ -368,6 +376,10 @@ function StudentCases() {
         { label: "Priority", key: "priority", show: "all" }, // Priority column
         { label: "Status", key: "status", show: "all" },
     ];
+
+    if (loading) {
+        return <LoadingDots />
+    }
 
     return (
         <div className="bg-gray-100 h-full flex flex-col pb-3">

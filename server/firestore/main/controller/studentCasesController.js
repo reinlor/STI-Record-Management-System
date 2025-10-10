@@ -14,15 +14,15 @@ const violationSchema = Joi.object({
   initialTime: Joi.string().required().empty(""),
   counselingType: Joi.string().required().empty(""),
   violation: Joi.string().required().empty(""),
-  detailedDescription: Joi.string().required().empty(""),
-  proofDescription: Joi.string().required().empty(""),
-  actionTaken: Joi.string().required().empty(""),
+  detailedDescription: Joi.string().optional().empty(""),
+  proofDescription: Joi.string().optional().empty(""),
+  actionTaken: Joi.string().optional().empty(""),
   dateOfAction: Joi.string().required().empty(""),
   status: Joi.string().required().empty(""),
-  notes: Joi.string().required().empty(""),
+  notes: Joi.string().optional().empty(""),
   proofUrl: Joi.string().optional().empty(""),
   priorityLevel: Joi.string().optional().empty(""),
-  timeCreated: Joi.string().optional().empty("")
+  timeCreated: Joi.date().optional().empty("")
 });
 const updateSchema = Joi.object({
   sid: Joi.string().optional(),
@@ -40,7 +40,7 @@ const updateSchema = Joi.object({
   notes: Joi.string().optional(),
   proofUrl: Joi.string().optional(),
   priorityLevel: Joi.string().optional().empty(""),
-  timeCreated: Joi.string().optional("")
+  timeCreated: Joi.date().optional("")
 
 });
 
@@ -118,8 +118,8 @@ const addViolation = async (req, res) => {
       detailedDescription: req.body.detailedDescription,
       proofDescription: req.body.proofDescription,
       dateOfAction: req.body.dateOfAction,
-      priorityLevel: req.body.priorityLevel || req.body.priorityLevels, 
-      proofUrl,
+      priorityLevel: req.body.priorityLevel || req.body.priorityLevels,
+      proofUrl
     };
 
     const violation = {
@@ -153,24 +153,26 @@ const addViolation = async (req, res) => {
       date: new Date().toISOString(),
     };
 
-    const studentCaseRef = getChartDataCollection().doc("studentCase");
-    const docSnapshot = await studentCaseRef.get();
+    if (body.status === 'Resolved') {
+      const studentCaseRef = getChartDataCollection().doc("studentCase");
+      const docSnapshot = await studentCaseRef.get();
+
+      if (!docSnapshot.exists) {
+        await studentCaseRef.set({
+          data: [chartData],
+        });
+      } else {
+        await studentCaseRef.update({
+          data: FieldValue.arrayUnion(chartData),
+        });
+      }
+
+    }
 
     const violationData = {
       ...newViolation,
-      date: serverTimestamp,
       timeCreated: serverTimestamp
     };
-
-    if (!docSnapshot.exists) {
-      await studentCaseRef.set({
-        data: [chartData],
-      });
-    } else {
-      await studentCaseRef.update({
-        data: FieldValue.arrayUnion(chartData),
-      });
-    }
 
     await getViolationsCollection().doc().set(violationData);
 

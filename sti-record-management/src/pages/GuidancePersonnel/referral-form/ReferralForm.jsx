@@ -1,9 +1,7 @@
-import React, { useState, useEffect, useContext } from "react";
+import { useState, useEffect, useContext } from "react";
 import { AuthContext } from '../../../AuthProvider.jsx';
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import historyW from "../../../assets/history.png";
-import closeB from "../../../assets/closeblack.png";
 import { ToastContainer, toast } from 'react-toastify';
 import LoadingDots from "../../../component/Loading.jsx";
 import 'react-toastify/dist/ReactToastify.css';
@@ -19,6 +17,8 @@ import {
   ChevronRight,
   FileEdit
 } from 'lucide-react';
+import { collection, onSnapshot } from "firebase/firestore";
+import { db } from "../../../firebaseClient.js";
 
 const PRIORITY_LEVELS = [
   { value: "", label: "No Priority" },
@@ -84,18 +84,26 @@ function ReferralFormProcessing() {
   };
 
   useEffect(() => {
-    const fetchReferrals = async () => {
-      setIsLoading(true);
-      try {
-        const res = await axios.get("/referral/getAll");
-        setReferralData(res.data);
-      } catch (err) {
-        console.error("Error fetching list:", err.message);
-      } finally {
+    setIsLoading(true);
+
+    const unsubscribe = onSnapshot(
+      collection(db, "referralForm"),
+      (snapshot) => {
+        const list = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+
+        setReferralData(list);
+        setIsLoading(false);
+      },
+      (error) => {
+        console.error("Error fetching referral list:", error);
         setIsLoading(false);
       }
-    };
-    fetchReferrals();
+    );
+
+    return () => unsubscribe();
   }, []);
 
   const openForm = async (ref) => {
@@ -167,7 +175,9 @@ function ReferralFormProcessing() {
   });
 
   // Remove resolved from display
-  const filteredPending = sorted.filter((ref) => ref.status !== 'Resolved');
+  const filteredPending = sorted.filter(
+    (ref) => ref.status !== 'Resolved' && ref.status !== 'Cancelled'
+  );
   const totalRows = filteredPending.length;
   const totalPages = Math.ceil(totalRows / rowsPerPage);
   const pagedReferrals = filteredPending.slice(

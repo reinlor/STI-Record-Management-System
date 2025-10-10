@@ -110,7 +110,7 @@ const AddCaseModal = ({ visible, onClose, newCaseForm, onChange, onSave }) => {
         if (hasSpecificViolations) {
             return (
                 <div>
-                    <label className="block text-sm font-medium text-gray-700">Violation:</label>
+                    <label className="block text-sm font-medium text-gray-700">Violation:<span className='text-red-700'>*</span></label>
                     <select
                         name="violation"
                         value={newCaseForm.violation}
@@ -142,7 +142,7 @@ const AddCaseModal = ({ visible, onClose, newCaseForm, onChange, onSave }) => {
 
     const handleCategoryDropDown = () => (
         <div>
-            <label className="block text-sm font-medium text-gray-700">Counseling Type/Category:</label>
+            <label className="block text-sm font-medium text-gray-700">Counseling Type/Category:<span className='text-red-700'>*</span></label>
             <select
                 name="counselingTypeCategory"
                 value={newCaseForm.counselingTypeCategory}
@@ -172,7 +172,7 @@ const AddCaseModal = ({ visible, onClose, newCaseForm, onChange, onSave }) => {
                         <div className="space-y-4">
                             {/* Student Name with AutoComplete */}
                             <div className="relative">
-                                <label className="block text-sm font-medium text-gray-700">Student Name:</label>
+                                <label className="block text-sm font-medium text-gray-700">Student Name:<span className='text-red-700'>*</span></label>
                                 <input
                                     type="text"
                                     name="studentName"
@@ -198,19 +198,19 @@ const AddCaseModal = ({ visible, onClose, newCaseForm, onChange, onSave }) => {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">Student ID:</label>
+                                <label className="block text-sm font-medium text-gray-700">Student ID:<span className='text-red-700'>*</span></label>
                                 <input type="text" name="studentId" value={newCaseForm.studentId} onChange={onChange} className="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3" />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">Program and Section:</label>
+                                <label className="block text-sm font-medium text-gray-700">Program and Section:<span className='text-red-700'>*</span></label>
                                 <input type="text" name="programSection" value={newCaseForm.programSection} onChange={onChange} className="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3" />
                             </div>
                             <div>
-                                <label htmlFor="dateOfInitiation" className="block text-sm font-medium text-gray-700">Date of Initiation:</label>
+                                <label htmlFor="dateOfInitiation" className="block text-sm font-medium text-gray-700">Date of Initiation:<span className='text-red-700'>*</span></label>
                                 <input type="date" id="dateOfInitiation" name="dateOfInitiation" value={newCaseForm.dateOfInitiation} onChange={onChange} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
                             </div>
                             <div>
-                                <label htmlFor="timeOfInitiation" className="block text-sm font-medium text-gray-700">Time of Initiation:</label>
+                                <label htmlFor="timeOfInitiation" className="block text-sm font-medium text-gray-700">Time of Initiation:<span className='text-red-700'>*</span></label>
                                 <input type="time" id="timeOfInitiation" name="timeOfInitiation" value={newCaseForm.timeOfInitiation} onChange={onChange} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
                             </div>
 
@@ -229,12 +229,12 @@ const AddCaseModal = ({ visible, onClose, newCaseForm, onChange, onSave }) => {
                                 <textarea id="actions" name="actions" value={newCaseForm.actions} onChange={onChange} rows="3" className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 resize-y"></textarea>
                             </div>
                             <div>
-                                <label htmlFor="dateOfAction" className="block text-sm font-medium text-gray-700">Date of Action:</label>
+                                <label htmlFor="dateOfAction" className="block text-sm font-medium text-gray-700">Date of Action:<span className='text-red-700'>*</span></label>
                                 <input type="date" id="dateOfAction" name="dateOfAction"
                                     value={newCaseForm.dateOfAction} onChange={onChange} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
                             </div>
                             <div>
-                                <label htmlFor="caseStatus" className="block text-sm font-medium text-gray-700">Case Status:</label>
+                                <label htmlFor="caseStatus" className="block text-sm font-medium text-gray-700">Case Status:<span className='text-red-700'>*</span></label>
                                 <select id="caseStatus" name="caseStatus" value={newCaseForm.caseStatus} onChange={onChange} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer">
                                     <option value="On-going">On-going</option>
                                     <option value="Resolved">Resolved</option>
@@ -281,7 +281,7 @@ const AddCaseModal = ({ visible, onClose, newCaseForm, onChange, onSave }) => {
                         Cancel
                         <X className="w-8 h-8 ml-2" />
                     </button>
-                    <button className="bg-[#28a745] hover:bg-green-500 text-white font-bold py-2 px-4 rounded-lg flex items-center transition duration-150 ease-in-out cursor-pointer" 
+                    <button className="bg-[#28a745] hover:bg-green-500 text-white font-bold py-2 px-4 rounded-lg flex items-center transition duration-150 ease-in-out cursor-pointer"
                         onClick={() => onSave({
                             ...newCaseForm,
                             priorityLevels,
