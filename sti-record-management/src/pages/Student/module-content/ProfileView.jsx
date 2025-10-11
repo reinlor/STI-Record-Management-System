@@ -1,8 +1,18 @@
 import React, { useState, useEffect, useMemo, useContext } from "react";
 import axios from "axios";
-import { Info, School, Users, Briefcase, Lightbulb, HeartPulse, Pencil, Lock, Phone, UserRound, Leaf, PlusCircle, Trash2} from "lucide-react";
+import { Info, School, Users, Briefcase, Lightbulb, HeartPulse, Pencil, Lock, Phone, UserRound, Leaf, PlusCircle, Trash2, X} from "lucide-react";
 import { AuthContext } from "../../../AuthProvider.jsx";
 import LoadingDots from "../../../component/Loading.jsx";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
+// Add this helper for file upload (replace with your actual upload logic)
+const uploadFile = async (file) => {
+  // Replace with your actual upload logic (e.g., to Firebase Storage)
+  // Return the uploaded file's URL
+  // For demo, just return a local object URL
+  return URL.createObjectURL(file);
+};
 
 export default function ProfileView() {
   const [studentId, setStudentId] = useState(null);
@@ -13,6 +23,8 @@ export default function ProfileView() {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState([]);
   const [originalFormData, setOriginalFormData] = useState([]);
+  const [medicalCertificates, setMedicalCertificates] = useState([]);
+  const [medicalCertificatesOriginal, setMedicalCertificatesOriginal] = useState([]);
   const { authData } = useContext(AuthContext);
 
   const lockedFields = [
@@ -299,7 +311,7 @@ export default function ProfileView() {
             path: "contactInfo.contactNo",
           },
           {
-            label: "Email Address",
+            label: "Email",
             value: student.contactInfo?.email || "",
             type: "email",
             path: "contactInfo.email",
@@ -781,7 +793,7 @@ export default function ProfileView() {
     const keys = path.split(".");
     let temp = obj;
     for (let i = 0; i < keys.length - 1; i++) {
-      if (!temp[keys[i]]) temp[keys[i]] = {};
+      if (!temp[keys[i]]) temp[keys[i] ]= {};
       temp = temp[keys[i]];
     }
     temp[keys[keys.length - 1]] = value;
@@ -805,7 +817,6 @@ export default function ProfileView() {
 
   // Save handler for Health section
   const handleHealthSave = async () => {
-    // Always send the full health object
     let updateObj = {
       health: {
         hospitalized: healthEdit.hospitalized.map(h => h.event).filter(v => v !== ""),
@@ -816,11 +827,14 @@ export default function ProfileView() {
         hereditary: healthEdit.hereditary.filter(v => v !== ""),
         doctorLastSeen: healthEdit.doctorLastSeen ? [healthEdit.doctorLastSeen] : [],
         medicalCert: healthEdit.medicalCert.filter(v => v !== ""),
-      }
+      },
+      medicalCertificates: medicalCertificates,
     };
 
-    // If nothing changed, just exit edit mode
-    if (JSON.stringify(updateObj.health) === JSON.stringify(healthOriginal)) {
+    if (
+      JSON.stringify(updateObj.health) === JSON.stringify(healthOriginal) &&
+      JSON.stringify(medicalCertificates) === JSON.stringify(medicalCertificatesOriginal)
+    ) {
       setIsEditing(false);
       return;
     }
@@ -832,14 +846,18 @@ export default function ProfileView() {
       );
       setIsEditing(false);
       setHealthOriginal(JSON.parse(JSON.stringify(updateObj.health)));
+      setMedicalCertificatesOriginal([...medicalCertificates]);
+      toast.success("Profile updated successfully!");
     } catch (err) {
       console.error("Failed to update health info.", err);
+      toast.error("Failed to update profile.");
     }
   };
 
-  // Cancel handler for Health section
+  // Cancel handler for Health section (reset medicalCertificates)
   const handleHealthCancel = () => {
     setHealthEdit(healthOriginal);
+    setMedicalCertificates(medicalCertificatesOriginal);
     setIsEditing(false);
   };
 
@@ -910,8 +928,10 @@ export default function ProfileView() {
       setStudent((prevStudent) => deepMerge({ ...prevStudent }, updateObj));
       setIsEditing(false);
       setInterestsOriginal(interestsEdit);
+      toast.success("Profile updated successfully!");
     } catch (err) {
       console.error("Failed to update interests.", err);
+      toast.error("Failed to update profile.");
     }
   };
 
@@ -962,6 +982,25 @@ export default function ProfileView() {
       [key]: prev[key].map((v, i) => (i === idx ? value : v)),
     }));
   };
+
+  const handleMedicalCertUpload = async (e) => {
+  const files = Array.from(e.target.files);
+  const uploadedFiles = await Promise.all(
+    files.map(async (file) => {
+      const url = await uploadFile(file);
+      return {
+        name: file.name,
+        url,
+        type: file.type,
+      };
+    })
+  );
+  setMedicalCertificates((prev) => [...prev, ...uploadedFiles]);
+};
+
+const handleMedicalCertRemove = (idx) => {
+  setMedicalCertificates((prev) => prev.filter((_, i) => i !== idx));
+};
 
   // Render Health section (edit & view mode)
   const renderHealthSection = () => {
@@ -1243,51 +1282,49 @@ export default function ProfileView() {
                   Medical Certificates
                 </span>
                 {isEditing && (
-                  <button
-                    type="button"
-                    onClick={() => handleHealthAdd("medicalCert")}
-                    className="flex items-center text-yellow-700 hover:text-yellow-900 text-sm font-medium"
-                  >
+                  <label className="flex items-center text-yellow-700 hover:text-yellow-900 text-sm font-medium cursor-pointer">
                     <PlusCircle className="w-4 h-4 mr-1" />
-                    Add Medical Certificate
-                  </button>
+                    <span>Add Medical Certificate</span>
+                    <input
+                      type="file"
+                      multiple
+                      accept="image/*,.pdf="
+                      onChange={handleMedicalCertUpload}
+                      className="hidden"
+                    />
+                  </label>
                 )}
               </div>
               <p className="text-xs text-gray-700 mb-2">
                 You may upload or link documents here.
               </p>
               <div className="space-y-2">
-                {(isEditing ? healthEdit.medicalCert : student.health?.medicalCert || []).length === 0 && !isEditing && (
+                {(isEditing ? medicalCertificates : student.medicalCertificates || []).length === 0 && !isEditing && (
                   <div className="text-gray-400 italic">No records.</div>
                 )}
-                {(isEditing ? healthEdit.medicalCert : student.health?.medicalCert || []).map((entry, idx) => (
-                  <div key={idx} className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
-                    {isEditing ? (
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="text"
-                          value={entry}
-                          onChange={(e) =>
-                            handleHealthChange("medicalCert", idx, e.target.value)
-                          }
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-yellow-400 text-base text-gray-800 transition-colors duration-200"
-                          placeholder="Enter link to document or a short description."
-                        />
-                        <button
-                          type="button"
-                          onClick={() => handleHealthRemove("medicalCert", idx)}
-                          className="text-red-500 hover:text-red-700 p-2 rounded-full hover:bg-red-100"
-                          title="Remove Entry"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
+                {(isEditing ? medicalCertificates : student.medicalCertificates || []).map((file, idx) => (
+                  <div key={idx} className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm flex items-center gap-3">
+                    {file.type?.startsWith("image/") ? (
+                      <img src={file.url} alt={file.name} className="w-16 h-16 object-cover rounded-lg border" />
                     ) : (
-                      <span className="text-gray-900 font-semibold">{entry || "N/A"}</span>
+                      <a href={file.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
+                        {file.name}
+                      </a>
+                    )}
+                    <span className="font-semibold text-gray-900">{file.name}</span>
+                    {isEditing && (
+                      <button
+                        type="button"
+                        onClick={() => handleMedicalCertRemove(idx)}
+                        className="text-red-500 hover:text-red-700 p-2 rounded-full hover:bg-red-100 ml-auto"
+                        title="Remove File"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
                     )}
                   </div>
                 ))}
-                {isEditing && healthEdit.medicalCert?.length === 0 && (
+                {isEditing && medicalCertificates.length === 0 && (
                   <div className="text-gray-400 italic p-4 text-center">Click 'Add Medical Certificate' to begin.</div>
                 )}
               </div>
@@ -1381,13 +1418,11 @@ export default function ProfileView() {
     let updateObj = {};
     formData.forEach((item, idx) => {
       const original = originalFormData[idx]?.value;
-      // Exclude array fields from this generic save handler
       if (item.type !== 'array' && item.value !== original) {
         setNested(updateObj, item.path, item.value);
       }
     });
 
-    // Handle array fields (siblings, awards, etc.)
     for (const key of Object.keys(arrayFieldsEdit)) {
       if (JSON.stringify(arrayFieldsEdit[key]) !== JSON.stringify(arrayFieldsOriginal[key])) {
         const path = {
@@ -1401,7 +1436,6 @@ export default function ProfileView() {
       }
     }
 
-    // Handle illness changes from Basic Info
     if (JSON.stringify(healthEdit.illness) !== JSON.stringify(healthOriginal.illness)) {
       if (!updateObj.health) updateObj.health = {};
       updateObj.health.illness = healthEdit.illness.filter((v) => v !== "");
@@ -1416,8 +1450,10 @@ export default function ProfileView() {
       await axios.put(`/student/update/${studentId}`, updateObj);
       setStudent((prevStudent) => deepMerge({ ...prevStudent }, updateObj));
       setIsEditing(false);
+      toast.success("Profile updated successfully!");
     } catch (err) {
       console.error("Failed to update student.", err);
+      toast.error("Failed to update profile.");
     }
   };
 
@@ -1708,6 +1744,7 @@ export default function ProfileView() {
   // Main layout: sidebar for categories, main area for content
   return (
     <div className="flex flex-col lg:flex-row w-full min-h-screen font-sans p-4 sm:p-6 bg-gray-100 antialiased text-gray-900 gap-8">
+      <ToastContainer />
       <div className="w-full lg:w-64 lg:min-w-[256px] p-4 sm:p-6 bg-white rounded-2xl shadow-xl flex-shrink-0">
         <h2 className="text-3xl font-bold text-gray-800 tracking-tight">
           Profile
