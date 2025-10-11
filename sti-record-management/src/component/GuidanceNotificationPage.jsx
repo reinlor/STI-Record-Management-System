@@ -47,7 +47,6 @@ const GuidanceNotificationPage = () => {
     const unsubReq = onSnapshot(requestRef, (snap) => {
       const data = snap.exists() ? snap.data().data || [] : [];
       mergeData(data, "request");
-      setIsLoading(false);
     });
 
     const unsubRef = onSnapshot(referralRef, (snap) => {
@@ -64,6 +63,8 @@ const GuidanceNotificationPage = () => {
       const data = snap.exists() ? snap.data().data || [] : [];
       mergeData(data, "records");
     });
+
+    setIsLoading(false);
 
     return () => {
       unsubReq();

@@ -1,6 +1,10 @@
+// StudentCasesController.js
 const { getViolationsCollection } = require("../models/studentCasesModel");
 const { getChartDataCollection } = require("../models/chartDataModel");
 const { getNotificationCollection } = require("../models/notificationModel.js");
+const { getStudentCollection } = require("../models/studentModel.js");
+const { getContentManagementCollection } = require("../models/contentManagementModel.js");
+
 const Joi = require("joi");
 const { FieldValue } = require("firebase-admin/firestore");
 const cloudinary = require("../../../config/cloudinary.js");
@@ -34,6 +38,7 @@ const updateSchema = Joi.object({
   initialTime: Joi.string().optional(),
   counselingType: Joi.string().optional(),
   violation: Joi.string().optional(),
+
   detailedDescription: Joi.string().optional(),
   proofDescription: Joi.string().optional(),
   actionTaken: Joi.string().optional(),
@@ -47,7 +52,110 @@ const updateSchema = Joi.object({
   lastUpdate: Joi.date().optional(),
 });
 
-// Controller function to retrieve all violation
+async function assignViolationToStudent(sid, violationName) {
+  try {
+    if (!sid || !violationName) {
+      console.warn("assignViolationToStudent called with missing sid or violationName");
+      return { category: null, newDegree: null, sanction: null };
+    }
+
+    const contentRoot = getContentManagementCollection();
+
+    let violationsData = {};
+    let offensesData = {};
+    try {
+      const vDoc = await contentRoot.doc("violations").get();
+      if (vDoc.exists) violationsData = vDoc.data();
+    } catch (e) {
+      console.warn("Could not load content/violations doc:", e.message || e);
+    }
+    try {
+      const oDoc = await contentRoot.doc("offenses").get();
+      if (oDoc.exists) offensesData = oDoc.data();
+    } catch (e) {
+      console.warn("Could not load content/offenses doc:", e.message || e);
+    }
+
+    const normalizedViolation = String(violationName).toLowerCase().trim();
+    let offenseCategoryName = null;
+
+    if (violationsData && violationsData[violationName]) {
+      offenseCategoryName = violationsData[violationName].offense || violationName;
+    }
+
+    if (!offenseCategoryName && violationsData && typeof violationsData === "object") {
+      for (const [catKey, catVal] of Object.entries(violationsData)) {
+        const vlist = catVal && catVal.violations ? catVal.violations : [];
+        if (Array.isArray(vlist)) {
+          for (const v of vlist) {
+            if (String(v).toLowerCase().trim() === normalizedViolation) {
+              offenseCategoryName = (catVal && (catVal.offense || catVal.Offense)) || catKey;
+              break;
+            }
+          }
+        }
+        if (offenseCategoryName) break;
+      }
+    }
+
+    if (!offenseCategoryName && offensesData && offensesData[violationName]) {
+      offenseCategoryName = violationName;
+    }
+
+    if (!offenseCategoryName) {
+      console.warn(`Could not determine offense category for violation "${violationName}".`);
+      return { category: null, newDegree: null, sanction: null };
+    }
+
+    const studentRef = getStudentCollection().doc(sid);
+    const studentSnap = await studentRef.get();
+    if (!studentSnap.exists) {
+      console.warn(`Student ${sid} not found when assigning violation for "${violationName}"`);
+      return { category: offenseCategoryName, newDegree: null, sanction: null };
+    }
+    const studentData = studentSnap.data() || {};
+    const studentViolations = studentData.violations || {};
+
+    const existingEntry = studentViolations[offenseCategoryName] || {};
+    const existingDegree = existingEntry.degree || "";
+
+    const degreeOrder = ["First Offense", "Second Offense", "Third Offense"];
+    let newDegree = "First Offense";
+    const idx = degreeOrder.indexOf(existingDegree);
+    if (idx === -1) newDegree = "First Offense";
+    else if (idx < degreeOrder.length - 1) newDegree = degreeOrder[idx + 1];
+    else newDegree = degreeOrder[idx];
+
+    const offenseDocEntry = offensesData[offenseCategoryName] || {};
+    let sanction =
+      offenseDocEntry[newDegree] ||
+      offenseDocEntry["Offense"] ||
+      offenseDocEntry["offense"] ||
+      offenseDocEntry.description ||
+      null;
+
+    const updatePayload = {
+      violations: {
+        [offenseCategoryName]: {
+          degree: newDegree,
+          sanction: sanction || "",
+          lastAssigned: FieldValue.serverTimestamp(),
+        },
+      },
+    };
+
+    await studentRef.set(updatePayload, { merge: true });
+
+    console.log(
+      `Assigned violation to student ${sid} -> category: ${offenseCategoryName}, degree: ${newDegree}`
+    );
+
+    return { category: offenseCategoryName, newDegree, sanction };
+  } catch (err) {
+    console.error("Error in assignViolationToStudent:", err);
+    return { category: null, newDegree: null, sanction: null };
+  }
+}
 const getAllViolations = async (req, res) => {
   const snapshot = await getViolationsCollection().get();
 
@@ -59,9 +167,7 @@ const getAllViolations = async (req, res) => {
 
     res.status(200).send(violations);
   } catch (error) {
-    res
-      .status(404)
-      .send({ error: `Failed to retrieve all violation records.` });
+    res.status(404).send({ error: `Failed to retrieve all violation records.` });
   }
 };
 
@@ -70,14 +176,10 @@ const getViolations = async (req, res) => {
   const { sid } = req.params;
 
   try {
-    const snapshot = await getViolationsCollection()
-      .where("sid", "==", sid)
-      .get();
+    const snapshot = await getViolationsCollection().where("sid", "==", sid).get();
 
     if (snapshot.empty) {
-      return res
-        .status(404)
-        .send({ error: `No violations available for Student: ${sid}` });
+      return res.status(404).send({ error: `No violations available for Student: ${sid}` });
     }
 
     const violations = snapshot.docs.map((violation) => ({
@@ -121,15 +223,16 @@ const addViolation = async (req, res) => {
       detailedDescription: req.body.detailedDescription,
       proofDescription: req.body.proofDescription,
       dateOfAction: req.body.dateOfAction,
+
       priorityLevel: req.body.priorityLevel || req.body.priorityLevels,
       proofUrl,
-      processedBy: req.body.processedBy
+      processedBy: req.body.processedBy,
     };
 
     const violation = {
       ...body,
       proofUrl: proofUrl,
-    }
+    };
 
     console.log("Validating body:", req.body);
     const { error, value: newViolation } = violationSchema.validate(violation);
@@ -157,7 +260,7 @@ const addViolation = async (req, res) => {
       date: new Date().toISOString(),
     };
 
-    if (body.status === 'Resolved') {
+    if (body.status === "Resolved") {
       const studentCaseRef = getChartDataCollection().doc("studentCase");
       const docSnapshot = await studentCaseRef.get();
 
@@ -170,38 +273,58 @@ const addViolation = async (req, res) => {
           data: FieldValue.arrayUnion(chartData),
         });
       }
-
     }
 
     const violationData = {
       ...newViolation,
-      timeCreated: serverTimestamp
+      timeCreated: serverTimestamp,
     };
 
-    await getViolationsCollection().doc().set(violationData);
+    const violationRef = getViolationsCollection().doc();
+    await violationRef.set(violationData);
+
+    if ((newViolation.status || "").toLowerCase() === "resolved") {
+      try {
+        const { newDegree, sanction } = await assignViolationToStudent(
+          sid,
+          newViolation.violation
+        );
+
+        await violationRef.set(
+          {
+            assignedDegree: newDegree || "",
+            assignedSanction: sanction || "",
+            assignedAt: FieldValue.serverTimestamp(),
+          },
+          { merge: true }
+        );
+      } catch (err) {
+        console.error("Error assigning violation after add:", err);
+      }
+    }
 
     // Notification
     const notifCollection = getNotificationCollection();
-    const adminDoc = notifCollection.doc('cases');
+    const adminDoc = notifCollection.doc("cases");
     const adminDocData = await adminDoc.get();
 
     let existingAdminNotification = [];
-    if (adminDocData.exists && adminDocData.data()['data']) {
-      existingAdminNotification = adminDocData.data()['data'];
+    if (adminDocData.exists && adminDocData.data()["data"]) {
+      existingAdminNotification = adminDocData.data()["data"];
     }
 
     const newAdminNotification = {
       date: new Date(),
-      from: 'Admin',
+      from: "Admin",
       notifID: `adminCase-${existingAdminNotification.length + 1}`,
-      type: 'Submission',
-      subject: `${req.body.processedBy} has created a new cases`
-    }
+      type: "Submission",
+      subject: `${req.body.processedBy} has created a new cases`,
+    };
 
-    const updatedAdminNotifications = [...existingAdminNotification, newAdminNotification]
+    const updatedAdminNotifications = [...existingAdminNotification, newAdminNotification];
     const updateAdminPayload = {
-      data: updatedAdminNotifications
-    }
+      data: updatedAdminNotifications,
+    };
 
     await adminDoc.set(updateAdminPayload, { merge: true });
 
@@ -239,39 +362,68 @@ const updateViolation = async (req, res) => {
       return res.status(404).json({ error: "Violation not found" });
     }
 
-    await violationRef.set({
-        ...validatedUpdates, 
-        lastUpdate: new Date()}, { merge: true });
+    await violationRef.set(
+      {
+        ...validatedUpdates,
+        lastUpdate: new Date(),
+      },
+      { merge: true }
+    );
+
+    if ((validatedUpdates.status || "").toLowerCase() === "resolved" || (doc.data()?.status || "").toLowerCase() !== "resolved" && (validatedUpdates.status || "").toLowerCase() === "resolved") {
+      try {
+        const updatedDoc = await violationRef.get();
+        const saved = updatedDoc.data() || {};
+        const sid = saved.sid;
+        const violationName = saved.violation;
+
+        const { category, newDegree, sanction } = await assignViolationToStudent(
+          sid,
+          violationName
+        );
+
+        await violationRef.set(
+          {
+            assignedDegree: newDegree || "",
+            assignedSanction: sanction || "",
+            assignedCategory: category || "",
+            assignedAt: FieldValue.serverTimestamp(),
+          },
+          { merge: true }
+        );
+      } catch (err) {
+        console.error("Error assigning violation on update (Resolved):", err);
+        // do not block the update - only log
+      }
+    }
 
     // Notification
     const notifCollection = getNotificationCollection();
-    const adminDoc = notifCollection.doc('cases');
+    const adminDoc = notifCollection.doc("cases");
     const adminDocData = await adminDoc.get();
 
     let existingAdminNotification = [];
-    if (adminDocData.exists && adminDocData.data()['data']) {
-      existingAdminNotification = adminDocData.data()['data'];
+    if (adminDocData.exists && adminDocData.data()["data"]) {
+      existingAdminNotification = adminDocData.data()["data"];
     }
 
     const message = () => {
-      if (req.body.status === 'Resolved'){
-        return `${req.body.processedBy} resolved a case`
+      if (req.body.status === "Resolved") {
+        return `${req.body.processedBy} resolved a case`;
       }
-      return `${req.body.processedBy} has updated a case`
-    }
+      return `${req.body.processedBy} has updated a case`;
+    };
 
     const newAdminNotification = {
       date: new Date(),
-      from: 'Admin',
+      from: "Admin",
       notifID: `adminCase-${existingAdminNotification.length + 1}`,
-      type: 'Submission',
-      subject: message()
-    }
+      type: "Submission",
+      subject: message(),
+    };
 
-    const updatedAdminNotifications = [...existingAdminNotification, newAdminNotification]
-    const updateAdminPayload = {
-      data: updatedAdminNotifications
-    }
+    const updatedAdminNotifications = [...existingAdminNotification, newAdminNotification];
+    const updateAdminPayload = { data: updatedAdminNotifications };
 
     await adminDoc.set(updateAdminPayload, { merge: true });
 

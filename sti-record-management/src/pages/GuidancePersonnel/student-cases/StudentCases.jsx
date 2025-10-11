@@ -57,7 +57,7 @@ function StudentCases() {
     const [selectedProgram, setSelectedProgram] = useState("all");
     const [selectedSection, setSelectedSection] = useState("all");
     const [selectedStatus, setSelectedStatus] = useState("On-going");
-    const [priorityOrder, setPriorityOrder] = useState("desc"); 
+    const [priorityOrder, setPriorityOrder] = useState("desc");
     const [programOptions, setProgramOptions] = useState(["all"]);
     const [sectionOptions, setSectionOptions] = useState(["all"]);
 
@@ -353,6 +353,11 @@ function StudentCases() {
                         </div>
                     </div>
 
+                    {/* Showing X results */}
+                    <div className="text-sm text-gray-500 mt-1 ml-1">
+                        Showing {filteredCases.length} result{filteredCases.length !== 1 ? "s" : ""} of {cases.length} total
+                    </div>
+
                     {/* Filters */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 mt-4 w-full">
                         <div>
@@ -399,11 +404,6 @@ function StudentCases() {
                             </div>
                         </div>
                     </div>
-
-                    {/* Showing X results */}
-                    <div className="text-sm text-gray-500 mt-1 ml-1">
-                        Showing {filteredCases.length} result{filteredCases.length !== 1 ? "s" : ""} of {cases.length} total
-                    </div>
                 </div>
 
                 {/* Table */}
@@ -435,12 +435,12 @@ function StudentCases() {
                                             <td className="px-4 py-3">
                                                 <span
                                                     className={`px-2 py-1 rounded text-xs font-semibold ${label.includes("3")
-                                                            ? "bg-red-100 text-red-700"
-                                                            : label.includes("2")
-                                                                ? "bg-yellow-100 text-yellow-700"
-                                                                : label.includes("1")
-                                                                    ? "bg-green-100 text-green-700"
-                                                                    : "bg-gray-100 text-gray-600"
+                                                        ? "bg-red-100 text-red-700"
+                                                        : label.includes("2")
+                                                            ? "bg-yellow-100 text-yellow-700"
+                                                            : label.includes("1")
+                                                                ? "bg-green-100 text-green-700"
+                                                                : "bg-gray-100 text-gray-600"
                                                         }`}
                                                 >
                                                     {label}
@@ -507,7 +507,7 @@ function StudentCases() {
                             <X className="w-8 h-8 sm:w-10 sm:h-10" />
                         </button>
 
-                        <div className="flex flex-col gap-2 mb-4 mt-2">
+                        <div className="flex flex-col gap-2 mb-4 mt-2 mr-15">
                             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
                                 <div className="flex items-center gap-3">
                                     <FileText className="w-8 h-8 sm:w-10 sm:h-10 text-[#0172bd]" />
