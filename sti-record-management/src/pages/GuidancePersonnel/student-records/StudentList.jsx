@@ -1,5 +1,5 @@
 import axios from "axios";
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import {
     ChevronLeft,
     Users,
@@ -32,7 +32,8 @@ import ViolationPanel from "./components/ViolationPanel";
 import CasesTable from "./components/CasesTable";
 import LoadingDots from "../../../component/Loading";
 import { collection, onSnapshot } from "firebase/firestore";
-import { db } from "../../../firebaseClient.js";
+import { auth, db } from "../../../firebaseClient.js";
+import { AuthContext } from '../../../AuthProvider.jsx';
 
 const STATUS_OPTIONS = [
     { value: "all", label: "All Status" },
@@ -60,6 +61,7 @@ const INFO_TYPES = [
 ];
 
 function StudentList() {
+    const { authData } = useContext(AuthContext);
     const [students, setStudents] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -301,7 +303,7 @@ function StudentList() {
     const handleSaveEdit = async () => {
         try {
             const { id, ...updatedData } = editedStudentData;
-            await axios.put(`/student/update/${modalStudent.id}`, updatedData);
+            await axios.put(`/student/update/${modalStudent.id}`, {...updatedData, processedBy: authData.displayName});
             setStudents(students =>
                 students.map(s =>
                     s.id === modalStudent.id ? editedStudentData : s
@@ -319,7 +321,7 @@ function StudentList() {
     const handleArchive = async () => {
         if (!modalStudent) return;
         try {
-            await axios.put(`/student/archiveData/${modalStudent.id}`);
+            await axios.put(`/student/archiveData/${modalStudent.id}`,{processedBy: authData.displayName});
             setStudents(students =>
                 students.map(s =>
                     s.id === modalStudent.id ? { ...s, isArchived: true } : s
@@ -337,7 +339,7 @@ function StudentList() {
     const handleRestore = async () => {
         if (!modalStudent) return;
         try {
-            await axios.put(`/student/restoreData/${modalStudent.id}`);
+            await axios.put(`/student/restoreData/${modalStudent.id}`, {processedBy: authData.displayName});
             setStudents(students =>
                 students.map(s =>
                     s.id === modalStudent.id ? { ...s, isArchived: false } : s
@@ -389,35 +391,6 @@ function StudentList() {
     // helper to replace entire violations object on editedStudentData
     const replaceEditedStudentViolations = (newViolations) => {
         setEditedStudentData((prev) => ({ ...(prev || {}), violations: newViolations }));
-    };
-
-    // Transfer
-    const handleTransfer = async () => {
-        if (!modalStudent) return;
-        try {
-            await axios.put(`/student/transfer/${modalStudent._id}`, {
-                program: transferProgram,
-                section: transferSection,
-            });
-            setStudents(students =>
-                students.map(s =>
-                    s._id === modalStudent._id
-                        ? {
-                            ...s,
-                            studentProfile: {
-                                ...s.studentProfile,
-                                program: transferProgram,
-                                section: transferSection,
-                            },
-                        }
-                        : s
-                )
-            );
-            setShowTransferModal(false);
-            closeStudentModal();
-        } catch (err) {
-            alert("Failed to transfer student.");
-        }
     };
 
     // Add Student Form handlers

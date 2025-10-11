@@ -10,7 +10,7 @@ export const fieldDefinitions = {
         { key: 'birthDate', label: 'Birth Date', type: 'date' },
         { key: 'address', label: 'Address', type: 'textarea' },
         { key: 'emergencyContact', label: 'Emergency Contact', type: 'text' },
-        { key: 'healthCondition', label: 'Health Condition/s', type: 'textarea' },
+        { key: 'healthCondition', label: 'Health Condition/s', type: 'array' },
     ],
     personal: [
         { key: 'fullName', label: 'Full Name', type: 'text' },
@@ -91,17 +91,17 @@ export const fieldDefinitions = {
         { key: 'hobbies', label: 'Hobbies', type: 'array' },
         { key: 'talents', label: 'Talents', type: 'array' },
         { key: 'socioCivic', label: 'Socio Civic', type: 'array' },
-        { key: 'organizationsInvolved', label: 'Organizations Involved', type: 'array' },
+        { key: 'organization', label: 'Organizations Involved', type: 'array' },
     ],
     health: [
         { key: 'hospitalized', label: 'Hospitalized', type: 'array' },
         { key: 'reason', label: 'Reason', type: 'array' },
         { key: 'operation', label: 'Operation', type: 'array' },
         { key: 'illness', label: 'Illness/Condition', type: 'array' },
-        { key: 'medicalCertificate', label: 'Medical Certificate', type: 'array' },
-        { key: 'takePrescribedDrugs', label: 'Take Prescribed Drugs', type: 'array' },
-        { key: 'hereditaryIllness', label: 'Hereditary Illness', type: 'array' },
-        { key: 'lastSawDoctor', label: 'Last Saw Doctor', type: 'array' },
+        { key: 'medicalCert', label: 'Medical Certificate', type: 'array' },
+        { key: 'prescribedDrug', label: 'Take Prescribed Drugs', type: 'array' },
+        { key: 'hereditary', label: 'Hereditary Illness', type: 'array' },
+        { key: 'doctorLastSeen', label: 'Last Saw Doctor', type: 'array' },
     ],
     // 
     life: [
@@ -234,7 +234,7 @@ export const normalizeForUI = (raw) => {
             hobbies: interests?.hobbies ?? 'N/A',
             talents: interests?.talents ?? 'N/A',
             socioCivic: interests?.socioCivic ?? 'N/A',
-            organizationsInvolved: interests?.organization ?? 'N/A',
+            organization: interests?.organization ?? 'N/A',
         },
 
         health: {
@@ -242,10 +242,10 @@ export const normalizeForUI = (raw) => {
             reason: health?.reason ?? 'N/A',
             operation: health?.operation ?? 'N/A',
             illness: health?.illness ?? 'N/A',
-            medicalCertificate: health?.medicalCert ?? 'N/A',
-            takePrescribedDrugs: health?.prescribedDrug ?? 'N/A',
-            hereditaryIllness: health?.hereditary ?? 'N/A',
-            lastSawDoctor: health?.doctorLastSeen ?? 'N/A',
+            medicalCert: health?.medicalCert ?? 'N/A',
+            prescribedDrug: health?.prescribedDrug ?? 'N/A',
+            hereditary: health?.hereditary ?? 'N/A',
+            doctorLastSeen: health?.doctorLastSeen ?? 'N/A',
         },
 
         life: {
@@ -368,7 +368,7 @@ export const updateRawField = (raw, category, field, value) => {
                 if (field === 'hobbies') setPath('interests.hobbies', value);
                 if (field === 'talents') setPath('interests.talents', value);
                 if (field === 'socioCivic') setPath('interests.socioCivic', value);
-                if (field === 'organizationsInvolved') setPath('interests.organization', value);
+                if (field === 'organization') setPath('interests.organization', value);
                 break;
 
             case 'health':
@@ -376,10 +376,10 @@ export const updateRawField = (raw, category, field, value) => {
                 if (field === 'reason') setPath('health.reason', value);
                 if (field === 'operation') setPath('health.operation', value);
                 if (field === 'illness') setPath('health.illness', value);
-                if (field === 'medicalCertificate') setPath('health.medicalCert', value);
+                if (field === 'medicalCert') setPath('health.medicalCert', value);
                 if (field === 'takePrescribedDrugs') setPath('health.prescribedDrug', value);
-                if (field === 'hereditaryIllness') setPath('health.hereditary', value);
-                if (field === 'lastSawDoctor') setPath('health.doctorLastSeen', value);
+                if (field === 'hereditary') setPath('health.hereditary', value);
+                if (field === 'doctorLastSeen') setPath('health.doctorLastSeen', value);
                 break;
 
             case 'life':

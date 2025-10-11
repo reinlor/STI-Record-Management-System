@@ -34,6 +34,7 @@ const GuidanceNotificationPage = () => {
     const requestRef = doc(db, "notification", "request");
     const referralRef = doc(db, "notification", "referral");
     const casesRef = doc(db, "notification", "cases");
+    const recordsRef = doc(db, "notification", "records");
 
     const mergeData = (newData, type) => {
       setNotifications((prev) => {
@@ -58,11 +59,17 @@ const GuidanceNotificationPage = () => {
       const data = snap.exists() ? snap.data().data || [] : [];
       mergeData(data, "cases");
     });
+    
+    const unsubRecord = onSnapshot(recordsRef, (snap) => {
+      const data = snap.exists() ? snap.data().data || [] : [];
+      mergeData(data, "records");
+    });
 
     return () => {
       unsubReq();
       unsubRef();
       unsubCase();
+      unsubRecord();
     };
   }, []);
 
@@ -113,10 +120,12 @@ const GuidanceNotificationPage = () => {
                         navigate("/guidance/referral-form");
                       } else if (notif.collectionType === "cases") {
                         navigate("/guidance/student-cases");
-                      } else {
+                      } else if (notif.collectionType === "request"){
                         navigate("/guidance/request-slip");
+                      } else if (notif.collectionType === "records"){
+                        navigate("/guidance/student-records");
                       }
-                    }}
+                    }} 
                     className={`border-b last:border-b-0 cursor-pointer transition-colors ${highlight ? "bg-blue-50 hover:bg-blue-100" : "bg-white hover:bg-gray-50"
                       }`}
                   >

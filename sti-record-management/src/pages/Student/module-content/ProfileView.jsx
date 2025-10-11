@@ -164,7 +164,7 @@ export default function ProfileView() {
               },
               {
                 label: "Address",
-                value: student.contactInfo?.address?.permanentAddress || "",
+                value: student.contactInfo?.address?.currentAddress || "",
                 type: "text",
                 path: "contactInfo.address.permanentAddress",
               },

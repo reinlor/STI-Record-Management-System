@@ -9,6 +9,7 @@ const GuidanceNotificationIcon = () => {
   const [requests, setRequests] = useState([]);
   const [referrals, setReferrals] = useState([]);
   const [cases, setCases] = useState([]);
+  const [records, setRecords] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
@@ -31,8 +32,10 @@ const GuidanceNotificationIcon = () => {
       navigate("/guidance/referral-form");
     } else if (notif.collectionType === 'request') {
       navigate("/guidance/request-slip");
-    } else {
+    } else if (notif.collectionType === 'cases'){
       navigate("/guidance/student-cases")
+    } else if (notif.collectionType === 'records'){
+      navigate("/guidance/student-records")
     }
   };
 
@@ -40,6 +43,7 @@ const GuidanceNotificationIcon = () => {
     const requestRef = doc(db, "notification", "request");
     const referralRef = doc(db, "notification", "referral");
     const casesRef = doc(db, "notification", "cases");
+    const recordsRef = doc(db, "notification", "records");
 
     const unsubscribeRequest = onSnapshot(requestRef, (requestSnapshot) => {
       const requestData = requestSnapshot.exists()
@@ -59,19 +63,27 @@ const GuidanceNotificationIcon = () => {
       const referralData = casesSnapshot.exists()
         ? casesSnapshot.data().data || []
         : [];
-      setCases(referralData.map((n) => ({ ...n, collectionType: "casses" })));
+      setCases(referralData.map((n) => ({ ...n, collectionType: "cases" })));
+    });
+
+    const unsubscribeRecords = onSnapshot(recordsRef, (recordSnapshot) => {
+      const referralData = recordSnapshot.exists()
+        ? recordSnapshot.data().data || []
+        : [];
+      setRecords(referralData.map((n) => ({ ...n, collectionType: "records" })));
     });
 
     return () => {
       unsubscribeRequest();
       unsubscribeReferral();
       unsubscribeCases();
+      unsubscribeRecords();
     };
   }, []);
 
   useEffect(() => {
-    setNotifications([...requests, ...referrals, ...cases]);
-  }, [requests, referrals, cases]);
+    setNotifications([...requests, ...referrals, ...cases, ...records]);
+  }, [requests, referrals, cases, records]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {

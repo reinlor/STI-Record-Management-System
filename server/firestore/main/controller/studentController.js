@@ -1,5 +1,6 @@
 const { getStudentCollection } = require("../models/studentModel.js");
 const { getUserCollection } = require("../models/userModel.js");
+const { getNotificationCollection } = require("../models/notificationModel.js");
 const admin = require("firebase-admin");
 const Joi = require("joi");
 
@@ -13,7 +14,6 @@ const studentSchema = Joi.object({
     nickname: Joi.string().empty('').optional(),
     section: Joi.string().required(),
     academicLevel: Joi.string().required(),
-    age: Joi.number().required(),
     nationality: Joi.string().empty('').optional(),
     gender: Joi.string().required(),
     status: Joi.string().empty('').optional(),
@@ -304,7 +304,8 @@ const getArchivedStudent = async (req, res) => {
 // Controller Function for adding student data
 const addStudent = async (req, res) => {
   try {
-    const { error, value: newStudent } = studentSchema.validate(req.body);
+    const {processedBy, ...data} = req.body;
+    const { error, value: newStudent } = studentSchema.validate(data);
     if (error) {
       return res.status(400).json({ error: error.details[0].message });
     }
@@ -335,6 +336,32 @@ const addStudent = async (req, res) => {
       sid: sid,
       uid: userRecord.uid,
     });
+
+    // Notification
+    const notifCollection = getNotificationCollection();
+    const adminDoc = notifCollection.doc('records');
+    const adminDocData = await adminDoc.get();
+
+    let existingAdminNotification = [];
+    if (adminDocData.exists && adminDocData.data()['data']) {
+      existingAdminNotification = adminDocData.data()['data'];
+    }
+
+    const newAdminNotification = {
+      date: new Date(),
+      from: 'Admin',
+      notifID: `adminRecord-${existingAdminNotification.length + 1}`,
+      type: 'Creation',
+      subject: `${processedBy} has created a new student record`
+    }
+
+    const updatedAdminNotifications = [...existingAdminNotification, newAdminNotification]
+    const updateAdminPayload = {
+      data: updatedAdminNotifications
+    }
+
+    await adminDoc.set(updateAdminPayload, { merge: true });
+
   } catch (error) {
     console.error("Registration error:", error);
 
@@ -379,7 +406,7 @@ const getStudent = async (req, res) => {
 const updateStudent = async (req, res) => {
   try {
     const { sid } = req.params;
-    const updates = req.body;
+    const { processedBy, ...updates } = req.body;
 
     if (!updates || Object.keys(updates).length === 0) {
       return res.status(400).json({ error: "No update data provided" });
@@ -404,6 +431,31 @@ const updateStudent = async (req, res) => {
       id: sid,
       updates: validatedUpdates,
     });
+
+    // Notification
+    const notifCollection = getNotificationCollection();
+    const adminDoc = notifCollection.doc('records');
+    const adminDocData = await adminDoc.get();
+
+    let existingAdminNotification = [];
+    if (adminDocData.exists && adminDocData.data()['data']) {
+      existingAdminNotification = adminDocData.data()['data'];
+    }
+
+    const newAdminNotification = {
+      date: new Date(),
+      from: 'Admin',
+      notifID: `adminRecord-${existingAdminNotification.length + 1}`,
+      type: 'Update',
+      subject: `${processedBy} has updated a student record`
+    }
+
+    const updatedAdminNotifications = [...existingAdminNotification, newAdminNotification]
+    const updateAdminPayload = {
+      data: updatedAdminNotifications
+    }
+
+    await adminDoc.set(updateAdminPayload, { merge: true });
   } catch (error) {
     console.error("Update error:", error);
     res.status(500).json({ error: error.message });
@@ -414,6 +466,7 @@ const updateStudent = async (req, res) => {
 const archiveStudent = async (req, res) => {
   try {
     const { sid } = req.params;
+    const { processedBy } = req.body;
     const studentRef = getStudentCollection().doc(sid);
 
     const doc = await studentRef.get();
@@ -430,6 +483,32 @@ const archiveStudent = async (req, res) => {
       message: "Student archived and account disabled successfully",
       id: sid,
     });
+
+    // Notification
+    const notifCollection = getNotificationCollection();
+    const adminDoc = notifCollection.doc('records');
+    const adminDocData = await adminDoc.get();
+
+    let existingAdminNotification = [];
+    if (adminDocData.exists && adminDocData.data()['data']) {
+      existingAdminNotification = adminDocData.data()['data'];
+    }
+
+    const newAdminNotification = {
+      date: new Date(),
+      from: 'Admin',
+      notifID: `adminRecord-${existingAdminNotification.length + 1}`,
+      type: 'Archive',
+      subject: `${processedBy} has archived a student record`
+    }
+
+    const updatedAdminNotifications = [...existingAdminNotification, newAdminNotification]
+    const updateAdminPayload = {
+      data: updatedAdminNotifications
+    }
+
+    await adminDoc.set(updateAdminPayload, { merge: true });
+
   } catch (error) {
     console.error("Archive error:", error);
     res.status(500).json({ error: error.message });
@@ -440,6 +519,7 @@ const archiveStudent = async (req, res) => {
 const restoreStudent = async (req, res) => {
   try {
     const { sid } = req.params;
+    const { processedBy } = req.body;
     const studentRef = getStudentCollection().doc(sid);
 
     const doc = await studentRef.get();
@@ -456,6 +536,32 @@ const restoreStudent = async (req, res) => {
       message: "Student restored and account re-enabled successfully",
       id: sid,
     });
+
+    // Notification
+    const notifCollection = getNotificationCollection();
+    const adminDoc = notifCollection.doc('records');
+    const adminDocData = await adminDoc.get();
+
+    let existingAdminNotification = [];
+    if (adminDocData.exists && adminDocData.data()['data']) {
+      existingAdminNotification = adminDocData.data()['data'];
+    }
+
+    const newAdminNotification = {
+      date: new Date(),
+      from: 'Admin',
+      notifID: `adminRecord-${existingAdminNotification.length + 1}`,
+      type: 'Restore',
+      subject: `${processedBy} has restored a student record`
+    }
+
+    const updatedAdminNotifications = [...existingAdminNotification, newAdminNotification]
+    const updateAdminPayload = {
+      data: updatedAdminNotifications
+    }
+
+    await adminDoc.set(updateAdminPayload, { merge: true });
+
   } catch (error) {
     console.error("Restore error:", error);
     res.status(500).json({ error: error.message });

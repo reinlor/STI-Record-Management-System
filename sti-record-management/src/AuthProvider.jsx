@@ -109,11 +109,13 @@ const AuthProvider = ({ children }) => {
     const requestRef = doc(db, "notification", "request");
     const referralRef = doc(db, "notification", "referral");
     const casesRef = doc(db, "notification", "cases");
+    const recordsRef = doc(db, "notification", "records");
 
     let prevRequestIds = new Set();
     let prevReferralIds = new Set();
     let prevCasesIds = new Set();
-    let initialized = { request: false, referral: false, cases: false };
+    let prevRecordsIds = new Set();
+    let initialized = { request: false, referral: false, cases: false, records: false };
 
     const showToastQueue = (() => {
       const queue = [];
@@ -173,19 +175,24 @@ const AuthProvider = ({ children }) => {
     const unsubCase = onSnapshot(casesRef, (snap) =>
       handleSnapshot(snap, prevCasesIds, (ids) => (prevCasesIds = ids), "cases")
     );
+    const unsubRecord = onSnapshot(recordsRef, (snap) =>
+      handleSnapshot(snap, prevRecordsIds, (ids) => (prevRecordsIds = ids), "records")
+    );
 
     return () => {
       unsubReq();
       unsubRef();
       unsubCase();
+      unsubRecord();
     };
   }, [authData.role]);
 
   const handleToastClick = () => {
     if (!toast.notif) return;
     if (toast.type === "referral") navigate("/guidance/referral-form");
-    else if(toast.type === "request") navigate("/guidance/request-slip");
-    else navigate("/guidance/student-cases");
+    else if (toast.type === "request") navigate("/guidance/request-slip");
+    else if (toast.type === "cases") navigate("/guidance/student-cases");
+    else if (toast.type === "records") navigate("/guidance/student-records");
     setToast({ show: false, message: "", type: "", notif: null });
   };
 
