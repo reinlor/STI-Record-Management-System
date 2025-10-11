@@ -4,6 +4,9 @@ const { getNotificationCollection } = require("../models/notificationModel.js");
 const admin = require("firebase-admin");
 const Joi = require("joi");
 
+const cloudinary = require("../../../config/cloudinary.js");
+const fs = require("fs");
+
 // Student Schema
 const studentSchema = Joi.object({
   sid: Joi.string().required(),
@@ -306,6 +309,22 @@ const addStudent = async (req, res) => {
       return res.status(400).json({ error: error.details[0].message });
     }
 
+    let resultUrls = [];
+    let publicIds = [];
+
+    if (req.files && req.files.length > 0) {
+      for (const file of req.files) {
+        const { secure_url, public_id } = await cloudinary.uploader.upload(file.path);
+        resultUrls.push(secure_url);
+        publicIds.push(public_id);
+        fs.unlinkSync(file.path);
+      }
+      if (!newStudent.health) newStudent.health = {};
+
+      newStudent.health.medicalCert = resultUrls;
+      newStudent.health.medicalCertIds = publicIds;
+    }
+
     const sid = newStudent.sid;
     const archived = newStudent.isArchived ?? false;
 
@@ -365,6 +384,10 @@ const addStudent = async (req, res) => {
       await getStudentCollection().doc(req.body.sid).delete().catch(() => { });
     }
 
+    for (const publicId of publicIds){
+      await cloudinary.uploader.destroy(publicId);
+    }
+
     res.status(500).json({ error: error.message });
   }
 };
@@ -413,6 +436,32 @@ const updateStudent = async (req, res) => {
       return res.status(400).json({ error: error.details[0].message });
     }
 
+    let resultUrls = [];
+    let publicIds = [];
+
+    if (req.files && req.files.length > 0) {
+      for (const file of req.files) {
+        const { secure_url, public_id } = await cloudinary.uploader.upload(file.path);
+        resultUrls.push(secure_url);
+        publicIds.push(public_id);
+        fs.unlinkSync(file.path);
+      }
+      if (!validatedUpdates.health) validatedUpdates.health = {};
+
+      // Merge the updates with the existing medicalCert array
+      const currentDoc = await getStudentCollection().doc(sid).get();
+      const currentHealth = currentDoc.exists && currentDoc.data().health ? currentDoc.data().health : {};
+
+      validatedUpdates.health.medicalCert = [
+        ...(currentHealth.medicalCert || []),
+        ...resultUrls
+      ];
+      validatedUpdates.health.medicalCertIds = [
+        ...(currentHealth.medicalCertIds || []),
+        ...publicIds
+      ];
+    }
+
     const studentRef = getStudentCollection().doc(sid);
 
     const doc = await studentRef.get();
@@ -454,6 +503,11 @@ const updateStudent = async (req, res) => {
     await adminDoc.set(updateAdminPayload, { merge: true });
   } catch (error) {
     console.error("Update error:", error);
+
+    for (const publicId of publicIds){
+      await cloudinary.uploader.destroy(publicId);
+    }
+
     res.status(500).json({ error: error.message });
   }
 };

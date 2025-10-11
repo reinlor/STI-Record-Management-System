@@ -51,7 +51,7 @@ const addAbsentSlip = async (req, res) => {
           folder: "slip-attachments",
         });
         excuseLetterUrl = result.secure_url;
-        uploadedPublicIds.push(result.public_id); // Track for cleanup
+        uploadedPublicIds.push(result.public_id); // Track for cleanup in case of error
         fs.unlinkSync(req.files[0].path);
       }
       if (req.files[1]) {
