@@ -166,7 +166,7 @@ export default function ProfileView() {
                 label: "Address",
                 value: student.contactInfo?.address?.currentAddress || "",
                 type: "text",
-                path: "contactInfo.address.permanentAddress",
+                path: "contactInfo.address.currentAddress",
               },
             ],
           },
@@ -364,22 +364,16 @@ export default function ProfileView() {
             path: "familyBackground.address",
           },
           {
-            label: "Number of Siblings",
-            value: (student.familyBackground?.siblings || []).length || 0,
-            type: "number",
-            path: "familyBackground.siblingsCount",
+            label: "Birth Order",
+            value: student.familyBackground?.birthOrder || "",
+            type: "text",
+            path: "familyBackground.birthOrder",
           },
           {
             label: "Siblings",
             value: (student.familyBackground?.siblings || []).join(", "),
             type: "array",
             path: "familyBackground.siblings",
-          },
-          {
-            label: "Birth Order",
-            value: student.familyBackground?.birthOrder || "",
-            type: "text",
-            path: "familyBackground.birthOrder",
           },
         ],
         subsections: [
@@ -391,12 +385,6 @@ export default function ProfileView() {
                 value: student.familyBackground?.fatherInfo?.name || "",
                 type: "text",
                 path: "familyBackground.fatherInfo.name",
-              },
-              {
-                label: "Age",
-                value: student.familyBackground?.fatherInfo?.age || "",
-                type: "number",
-                path: "familyBackground.fatherInfo.age",
               },
               {
                 label: "Date of Birth",
@@ -452,12 +440,6 @@ export default function ProfileView() {
                 value: student.familyBackground?.motherInfo?.name || "",
                 type: "text",
                 path: "familyBackground.motherInfo.name",
-              },
-              {
-                label: "Age",
-                value: student.familyBackground?.motherInfo?.age || "",
-                type: "number",
-                path: "familyBackground.motherInfo.age",
               },
               {
                 label: "Date of Birth",

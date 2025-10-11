@@ -38,7 +38,6 @@ const studentSchema = Joi.object({
   familyBackground: Joi.object({
     fatherInfo: Joi.object({
       name: Joi.string().empty('').optional(),
-      age: Joi.number().optional(),
       nationality: Joi.string().empty('').optional(),
       religion: Joi.string().empty('').optional(),
       birthday: Joi.string().empty('').optional(),
@@ -50,7 +49,6 @@ const studentSchema = Joi.object({
 
     motherInfo: Joi.object({
       name: Joi.string().empty('').optional(),
-      age: Joi.number().optional(),
       nationality: Joi.string().empty('').optional(),
       religion: Joi.string().empty('').optional(),
       birthday: Joi.string().empty('').optional(),
@@ -170,7 +168,6 @@ const updateSchema = Joi.object({
   familyBackground: Joi.object({
     fatherInfo: Joi.object({
       name: Joi.string().empty('').optional(),
-      age: Joi.number().optional(),
       nationality: Joi.string().empty('').optional(),
       religion: Joi.string().empty('').optional(),
       birthday: Joi.string().empty('').optional(),
@@ -181,7 +178,6 @@ const updateSchema = Joi.object({
     }).empty({}).optional(),
     motherInfo: Joi.object({
       name: Joi.string().empty('').optional(),
-      age: Joi.number().optional(),
       nationality: Joi.string().empty('').optional(),
       religion: Joi.string().empty('').optional(),
       birthday: Joi.string().empty('').optional(),
