@@ -76,6 +76,7 @@ const InfoSection = ({ infoType, student, isEditing, onFieldChange }) => {
                                         type={fieldDef.type}
                                         value={value === 'N/A' ? '' : value}
                                         onChange={(e) => onFieldChange(infoType, fieldDef.key, e.target.value)}
+                                        readOnly={fieldDef.readOnly}
                                         className="border border-gray-300 rounded-md px-3 py-2 w-full text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     />
                                 )

@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 import * as XLSX from "xlsx";
 import InfoSection from "./components/InfoSection";
-import { fieldDefinitions, normalizeForUI } from "./components/StudentUtils";
+import { fieldDefinitions, normalizeForUI, updateRawField } from "./components/StudentUtils";
 import AddStudentModal from "./components/AddStudentModal";
 import BulkModal from "./components/BulkModal";
 import PhotoToTextModal from "./components/PhotoToTextModal";
@@ -303,26 +303,29 @@ function StudentList() {
     const handleSaveEdit = async () => {
         try {
             const { id, ...updatedData } = editedStudentData;
-            console.log(updatedData);
-            await axios.put(`/student/update/${modalStudent.id}`, {...updatedData, processedBy: authData.displayName});
+            console.log(updatedData)
+
+            await axios.put(`/student/update/${modalStudent.id}`, updatedData);
+
             setStudents(students =>
-                students.map(s =>
-                    s.id === modalStudent.id ? editedStudentData : s
-                )
+                students.map(s => s.id === modalStudent.id ? editedStudentData : s)
             );
+
+            toast.success("Changes saved successfully!");
             setIsEditing(false);
             setModalStudent(editedStudentData);
-            toast.success("Changes saved successfully!");
         } catch (err) {
+            console.error(err);
             toast.error("Failed to update student.");
         }
     };
+
 
     // Archive
     const handleArchive = async () => {
         if (!modalStudent) return;
         try {
-            await axios.put(`/student/archiveData/${modalStudent.id}`,{processedBy: authData.displayName});
+            await axios.put(`/student/archiveData/${modalStudent.id}`, { processedBy: authData.displayName });
             setStudents(students =>
                 students.map(s =>
                     s.id === modalStudent.id ? { ...s, isArchived: true } : s
@@ -340,7 +343,7 @@ function StudentList() {
     const handleRestore = async () => {
         if (!modalStudent) return;
         try {
-            await axios.put(`/student/restoreData/${modalStudent.id}`, {processedBy: authData.displayName});
+            await axios.put(`/student/restoreData/${modalStudent.id}`, { processedBy: authData.displayName });
             setStudents(students =>
                 students.map(s =>
                     s.id === modalStudent.id ? { ...s, isArchived: false } : s
@@ -364,12 +367,9 @@ function StudentList() {
 
     // Info field change
     const handleFieldChange = (category, field, value) => {
-        setEditedStudentData(prev => {
-            const updated = { ...prev };
-            // Use updateRawField if you want deep update, or just shallow for demo
-            if (!updated[category]) updated[category] = {};
-            updated[category][field] = value;
-            return updated;
+        setEditedStudentData((prev) => {
+            const base = prev || JSON.parse(JSON.stringify(modalStudent || {}));
+            return updateRawField(base, category, field, value);
         });
     };
 

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import LoadingDots from "../../../../component/Loading";
 
 export default function CasesTable({ studentId }) {
   const [cases, setCases] = useState([]);
@@ -33,7 +34,7 @@ export default function CasesTable({ studentId }) {
         data.sort((a, b) => {
           const aDate = extractDate(a.timeCreated || a.date || a.createdAt);
           const bDate = extractDate(b.timeCreated || b.date || b.createdAt);
-          return bDate - aDate; 
+          return bDate - aDate;
         });
 
         if (mounted) setCases(data);
@@ -84,7 +85,7 @@ export default function CasesTable({ studentId }) {
 
   return (
     <div className="mt-6 overflow-x-auto rounded-lg shadow">
-      <table className="w-full text-left">
+      {loading ? <LoadingDots /> : (<table className="w-full text-left">
         <thead>
           <tr>
             <th className={tableHeaderClass}>Case ID</th>
@@ -132,7 +133,7 @@ export default function CasesTable({ studentId }) {
             })
           )}
         </tbody>
-      </table>
+      </table>)}
     </div>
   );
 }
