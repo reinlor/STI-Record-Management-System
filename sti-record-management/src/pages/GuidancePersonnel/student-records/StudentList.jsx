@@ -31,6 +31,8 @@ import 'react-toastify/dist/ReactToastify.css';
 import ViolationPanel from "./components/ViolationPanel";
 import CasesTable from "./components/CasesTable";
 import LoadingDots from "../../../component/Loading";
+import { collection, onSnapshot } from "firebase/firestore";
+import { db } from "../../../firebaseClient.js";
 
 const STATUS_OPTIONS = [
     { value: "all", label: "All Status" },
@@ -124,35 +126,47 @@ function StudentList() {
     const [currentPage, setCurrentPage] = useState(1);
     const rowsPerPage = 10;
 
-    
+
     // Fetch students and filter options
     useEffect(() => {
-        const fetchData = async () => {
-            setLoading(true);
-            try {
-                const res = await axios.get('/student/');
-                setStudents(res.data || []);
-                // Extract unique programs and sections for dropdowns
+        setLoading(true);
+
+        const unsubscribe = onSnapshot(
+            collection(db, "students"),
+            (snapshot) => {
+                const fetchedStudents = snapshot.docs.map((doc) => ({
+                    id: doc.id,
+                    ...doc.data(),
+                }));
+
+                setStudents(fetchedStudents);
+
                 const progs = new Set();
                 const sects = new Set();
-                (res.data || []).forEach(stu => {
+
+                fetchedStudents.forEach((stu) => {
                     const prog = stu.studentProfile?.program;
                     const sect = stu.studentProfile?.section;
                     if (prog) progs.add(prog);
                     if (sect) sects.add(sect);
                 });
+
                 setProgramOptions(["all", ...Array.from(progs)]);
                 setSectionOptions(["all", ...Array.from(sects)]);
-            } catch (err) {
+                setLoading(false);
+            },
+            (err) => {
+                console.error("Error listening to students:", err);
+                toast.error("Error loading students.");
                 setError(err);
-                toast.error('Error loading students.');
-            } finally {
                 setLoading(false);
             }
-        };
-        fetchData();
+        );
+
+        // Cleanup listener when unmounting
+        return () => unsubscribe();
     }, []);
-    
+
     if (loading) {
         return <LoadingDots />
     }
