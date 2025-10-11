@@ -1,5 +1,3 @@
-import React from 'react';
-
 export const fieldDefinitions = {
     basic: [
         { key: 'fullName', label: 'Full Name', type: 'text' },
@@ -87,29 +85,30 @@ export const fieldDefinitions = {
         { key: 'companyContactNo', label: 'Company Contact No', type: 'tel' },
         { key: 'companyEmailAddress', label: 'Company Email Address', type: 'email' },
     ],
+    // This are the array values (previosly has type: text or type: textarea )
     interests: [
-        { key: 'sports', label: 'Sports', type: 'text' },
-        { key: 'hobbies', label: 'Hobbies', type: 'text' },
-        { key: 'talents', label: 'Talents', type: 'text' },
-        { key: 'socioCivic', label: 'Socio Civic', type: 'text' },
-        { key: 'organizationsInvolved', label: 'Organizations Involved', type: 'text' },
+        { key: 'sports', label: 'Sports', type: 'array' },
+        { key: 'hobbies', label: 'Hobbies', type: 'array' },
+        { key: 'talents', label: 'Talents', type: 'array' },
+        { key: 'socioCivic', label: 'Socio Civic', type: 'array' },
+        { key: 'organizationsInvolved', label: 'Organizations Involved', type: 'array' },
     ],
     health: [
-        { key: 'hospitalized', label: 'Hospitalized', type: 'text' },
-        { key: 'reason', label: 'Reason', type: 'textarea' },
-        { key: 'operation', label: 'Operation', type: 'text' },
-        { key: 'illnessCondition', label: 'Illness/Condition', type: 'textarea' },
-        { key: 'medicalCertificate', label: 'Medical Certificate', type: 'text' },
-        { key: 'takePrescribedDrugs', label: 'Take Prescribed Drugs', type: 'text' },
-        { key: 'hereditaryIllness', label: 'Hereditary Illness', type: 'textarea' },
-        { key: 'lastSawDoctor', label: 'Last Saw Doctor', type: 'date' },
+        { key: 'hospitalized', label: 'Hospitalized', type: 'array' },
+        { key: 'reason', label: 'Reason', type: 'array' },
+        { key: 'operation', label: 'Operation', type: 'array' },
+        { key: 'illness', label: 'Illness/Condition', type: 'array' },
+        { key: 'medicalCertificate', label: 'Medical Certificate', type: 'array' },
+        { key: 'takePrescribedDrugs', label: 'Take Prescribed Drugs', type: 'array' },
+        { key: 'hereditaryIllness', label: 'Hereditary Illness', type: 'array' },
+        { key: 'lastSawDoctor', label: 'Last Saw Doctor', type: 'array' },
     ],
+    // 
     life: [
         { key: 'recentLoss', label: 'Recent Loss', type: 'text' },
         { key: 'currentConcern', label: 'Current Concern', type: 'textarea' },
     ],
     violation: [
-        // we'll handle rendering via a custom panel, but keep a placeholder so other code doesn't break
         { key: "violations", label: "Violations", type: "custom" }
     ]
 };
@@ -242,7 +241,7 @@ export const normalizeForUI = (raw) => {
             hospitalized: health?.hospitalized ?? 'N/A',
             reason: health?.reason ?? 'N/A',
             operation: health?.operation ?? 'N/A',
-            illnessCondition: health?.illness ?? 'N/A',
+            illness: health?.illness ?? 'N/A',
             medicalCertificate: health?.medicalCert ?? 'N/A',
             takePrescribedDrugs: health?.prescribedDrug ?? 'N/A',
             hereditaryIllness: health?.hereditary ?? 'N/A',
@@ -376,7 +375,7 @@ export const updateRawField = (raw, category, field, value) => {
                 if (field === 'hospitalized') setPath('health.hospitalized', value);
                 if (field === 'reason') setPath('health.reason', value);
                 if (field === 'operation') setPath('health.operation', value);
-                if (field === 'illnessCondition') setPath('health.illness', value);
+                if (field === 'illness') setPath('health.illness', value);
                 if (field === 'medicalCertificate') setPath('health.medicalCert', value);
                 if (field === 'takePrescribedDrugs') setPath('health.prescribedDrug', value);
                 if (field === 'hereditaryIllness') setPath('health.hereditary', value);

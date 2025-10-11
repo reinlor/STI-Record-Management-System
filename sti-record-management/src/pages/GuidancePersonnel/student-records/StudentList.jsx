@@ -20,17 +20,17 @@ import {
     ChevronRight,
 } from "lucide-react";
 import * as XLSX from "xlsx";
-import InfoSection from "./InfoSection";
-import { fieldDefinitions, normalizeForUI } from "./StudentUtils";
-import AddStudentModal from "./AddStudentModal";
-import BulkModal from "./BulkModal";
-import PhotoToTextModal from "./PhotoToTextModal";
-import ArchiveConfirmModal from "./ArchiveConfirmModal";
+import InfoSection from "./components/InfoSection";
+import { fieldDefinitions, normalizeForUI } from "./components/StudentUtils";
+import AddStudentModal from "./components/AddStudentModal";
+import BulkModal from "./components/BulkModal";
+import PhotoToTextModal from "./components/PhotoToTextModal";
+import ArchiveConfirmModal from "./components/ArchiveConfirmModal";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import ViolationPanel from "./ViolationPanel";
-import CasesTable from "./CasesTable";
-import LoadingDots from "../../../../component/Loading";
+import ViolationPanel from "./components/ViolationPanel";
+import CasesTable from "./components/CasesTable";
+import LoadingDots from "../../../component/Loading";
 
 const STATUS_OPTIONS = [
     { value: "all", label: "All Status" },
@@ -71,7 +71,7 @@ function StudentList() {
     const [selectedProgram, setSelectedProgram] = useState("all");
     const [selectedSection, setSelectedSection] = useState("all");
     const [selectedGender, setSelectedGender] = useState("all");
-    const [selectedStatus, setSelectedStatus] = useState("all");
+    const [selectedStatus, setSelectedStatus] = useState("active");
 
     // For dropdown options
     const [programOptions, setProgramOptions] = useState([]);
@@ -250,7 +250,7 @@ function StudentList() {
         setSelectedProgram("all");
         setSelectedSection("all");
         setSelectedGender("all");
-        setSelectedStatus("all");
+        setSelectedStatus("active");
     };
 
     // Modal open handler
