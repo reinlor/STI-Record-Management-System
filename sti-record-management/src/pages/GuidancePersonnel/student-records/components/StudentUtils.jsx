@@ -73,7 +73,7 @@ export const fieldDefinitions = {
         { key: 'yearsAttendedSeniorHighSchool', label: 'Years Attended Senior High School', type: 'text' },
         { key: 'nameOfCollege', label: 'Name of College', type: 'text' },
         { key: 'yearsAttendedCollege', label: 'Years Attended College', type: 'text' },
-        { key: 'extraCurricularActivities', label: 'Extra Curricular Activities', type: 'textarea' },
+        { key: 'extraCurricularActivities', label: 'Extra Curricular Activities', type: 'array' },
         { key: 'awards', label: 'Awards/Citations Received', type: 'array' },
         { key: 'mostLikedSubject', label: 'Most Liked Subject', type: 'text' },
         { key: 'leastLikedSubject', label: 'Least Liked Subject', type: 'text' },
