@@ -303,6 +303,7 @@ function StudentList() {
     const handleSaveEdit = async () => {
         try {
             const { id, ...updatedData } = editedStudentData;
+            console.log(updatedData);
             await axios.put(`/student/update/${modalStudent.id}`, {...updatedData, processedBy: authData.displayName});
             setStudents(students =>
                 students.map(s =>

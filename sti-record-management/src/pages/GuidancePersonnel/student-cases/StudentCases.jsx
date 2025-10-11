@@ -1,3 +1,4 @@
+// StudentCases.jsx
 import { useState, useEffect, useContext } from "react";
 import { AuthContext } from '../../../AuthProvider.jsx';
 import axios from "axios";
@@ -7,10 +8,12 @@ import {
     FileText,
     X,
     Edit as Pencil,
-    Clock,
     Archive,
     ChevronLeft,
     ChevronRight,
+    ChevronDown,
+    SlidersHorizontal,
+    ArrowUpDown,
 } from 'lucide-react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -23,7 +26,6 @@ import {
 import LoadingDots from "../../../component/Loading.jsx";
 import { collection, onSnapshot } from "firebase/firestore";
 import { db } from "../../../firebaseClient.js";
-import { useNavigate } from "react-router-dom";
 
 const PRIORITY_LEVELS = [
     { value: "", label: "No Priority" },
@@ -32,25 +34,37 @@ const PRIORITY_LEVELS = [
     { value: "3", label: "Level 3" },
 ];
 
+const STATUS_OPTIONS = [
+    { value: "All", label: "All Status" },
+    { value: "On-going", label: "On-going" },
+    { value: "Resolved", label: "Resolved" },
+];
+
 function StudentCases() {
     const { authData } = useContext(AuthContext);
 
-    // State
     const [cases, setCases] = useState([]);
     const [caseDetailsMap, setCaseDetailsMap] = useState({});
-    const [activeTab, setActiveTab] = useState("On-going");
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedCaseId, setSelectedCaseId] = useState(null);
     const [showAddModal, setShowAddModal] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [infoType, setInfoType] = useState("caseDetails");
     const [editedCaseData, setEditedCaseData] = useState(null);
-    const [activeLevel, setActiveLevel] = useState("shs");
     const [loading, setLoading] = useState(true);
-    const [isSubmitting, setIsSubmitting] = useState(false)
-    const navigate = useNavigate();
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-    // Add Case Form
+    const [selectedProgram, setSelectedProgram] = useState("all");
+    const [selectedSection, setSelectedSection] = useState("all");
+    const [selectedStatus, setSelectedStatus] = useState("On-going");
+    const [priorityOrder, setPriorityOrder] = useState("desc"); 
+    const [programOptions, setProgramOptions] = useState(["all"]);
+    const [sectionOptions, setSectionOptions] = useState(["all"]);
+
+    // Pagination
+    const [currentPage, setCurrentPage] = useState(1);
+    const rowsPerPage = 10;
+
     const [newCaseForm, setNewCaseForm] = useState({
         studentName: "",
         studentId: "",
@@ -71,31 +85,18 @@ function StudentCases() {
     const handleNewCaseChange = (eOrObj) => {
         if (eOrObj?.target) {
             const { name, value, files } = eOrObj.target;
-
             if (files && files.length > 0) {
-                setNewCaseForm(prev => ({
-                    ...prev,
-                    [name]: files[0],
-                }));
+                setNewCaseForm(prev => ({ ...prev, [name]: files[0] }));
             } else {
-                setNewCaseForm(prev => ({
-                    ...prev,
-                    [name]: value,
-                }));
+                setNewCaseForm(prev => ({ ...prev, [name]: value }));
             }
-
         } else if (eOrObj?.name) {
             const { name, value } = eOrObj;
             setNewCaseForm(prev => ({ ...prev, [name]: value }));
         }
     };
 
-
-    // Pagination state
-    const [currentPage, setCurrentPage] = useState(1);
-    const rowsPerPage = 10;
-
-    // Fetch cases
+    // Fetch data
     useEffect(() => {
         const unsub = onSnapshot(
             collection(db, "studentCases"),
@@ -116,10 +117,19 @@ function StudentCases() {
                     priorityLevel: v.priorityLevel ?? v.priority ?? v.caseDetails?.priority ?? "",
                 }));
 
-                const details = {};
-                violations.forEach(v => {
-                    details[v.id] = v;
+                // Build filter dropdown options
+                const programs = new Set();
+                const sections = new Set();
+                list.forEach(c => {
+                    const [prog, sect] = c.programSection?.split(" ") || [];
+                    if (prog) programs.add(prog);
+                    if (sect) sections.add(sect);
                 });
+                setProgramOptions(["all", ...Array.from(programs)]);
+                setSectionOptions(["all", ...Array.from(sections)]);
+
+                const details = {};
+                violations.forEach(v => (details[v.id] = v));
 
                 setCases(list);
                 setCaseDetailsMap(details);
@@ -132,21 +142,16 @@ function StudentCases() {
             }
         );
 
-        // Cleanup on unmount
         return () => unsub();
     }, []);
 
-
+    // Priority Helper
     const getPriorityInfo = (priority) => {
         if (!priority) return { rank: 0, label: "No Priority" };
-
-        // If priority is numeric or string numeric
         if (typeof priority === "number" || /^\d+$/.test(priority)) {
             const num = parseInt(priority, 10);
             return { rank: num, label: `Level ${num}` };
         }
-
-        // If string like "Level 3 Safety and Security"
         if (typeof priority === "string") {
             const match = priority.match(/([1-3])/);
             if (match) {
@@ -154,8 +159,6 @@ function StudentCases() {
                 return { rank: num, label: `Level ${num}` };
             }
         }
-
-        // If object like { value: "3" } or { label: "Level 2" }
         if (typeof priority === "object") {
             const fromValue = priority?.value || priority?.label || "";
             const match = String(fromValue).match(/([1-3])/);
@@ -164,50 +167,35 @@ function StudentCases() {
                 return { rank: num, label: `Level ${num}` };
             }
         }
-
         return { rank: 0, label: "No Priority" };
     };
 
-    // Filtered and sorted cases
+    // Filtering Logic
     const filteredCases = cases
         .filter((c) => {
-            const matchesTab =
-                (activeTab === "All" && (c.status === "On-going" || c.status === "Resolved")) ||
-                c.status === activeTab;
-
+            // Search filter
             const matchesSearch =
                 searchTerm === "" ||
                 (c.studentName && c.studentName.toLowerCase().includes(searchTerm.toLowerCase())) ||
                 (c.studentId && c.studentId.toLowerCase().includes(searchTerm.toLowerCase())) ||
                 (c.id && c.id.toLowerCase().includes(searchTerm.toLowerCase()));
 
-            return matchesTab && matchesSearch;
+            // Program filter
+            const prog = c.programSection?.split(" ")[0] || "";
+            const sect = c.programSection?.split(" ")[1] || "";
+            if (selectedProgram !== "all" && prog !== selectedProgram) return false;
+            if (selectedSection !== "all" && sect !== selectedSection) return false;
+
+            // Status filter
+            if (selectedStatus !== "All" && c.status !== selectedStatus) return false;
+
+            return matchesSearch;
         })
         .sort((a, b) => {
-            const rawPriorityA =
-                a.priorityLevel ??
-                caseDetailsMap[a.id]?.caseDetails?.priority ??
-                caseDetailsMap[a.id]?.priority ??
-                "";
-
-            const rawPriorityB =
-                b.priorityLevel ??
-                caseDetailsMap[b.id]?.caseDetails?.priority ??
-                caseDetailsMap[b.id]?.priority ??
-                "";
-
-            const { rank: priorityA } = getPriorityInfo(rawPriorityA);
-            const { rank: priorityB } = getPriorityInfo(rawPriorityB);
-
-            // Sort by priority first (3 → 1)
-            if (priorityA !== priorityB) return priorityB - priorityA;
-
-            // Then by date (newest first)
-            const dateA = a.timeCreated && a.timeCreated.toDate ? a.timeCreated.toDate() : new Date(0);
-            const dateB = b.timeCreated && b.timeCreated.toDate ? b.timeCreated.toDate() : new Date(0);
-            return dateB - dateA;
+            const { rank: priorityA } = getPriorityInfo(a.priorityLevel);
+            const { rank: priorityB } = getPriorityInfo(b.priorityLevel);
+            return priorityOrder === "desc" ? priorityB - priorityA : priorityA - priorityB;
         });
-
 
     // Pagination
     const totalRows = filteredCases.length;
@@ -217,13 +205,11 @@ function StudentCases() {
         currentPage * rowsPerPage
     );
 
-    // Reset to page 1 
     useEffect(() => {
         if (currentPage > totalPages) setCurrentPage(1);
     }, [totalPages, currentPage]);
 
-
-    // Modal handlers
+    // For Modal Handlers
     const openCaseModal = (caseId) => {
         setSelectedCaseId(caseId);
         setIsEditing(false);
@@ -235,18 +221,32 @@ function StudentCases() {
         setIsEditing(false);
     };
 
-    // Add Case
+    const handleSaveEdits = async () => {
+        if (!editedCaseData || !selectedCaseId) return;
+        try {
+            const payload = uiDetailsToServerPayload(editedCaseData);
+            await axios.put(`/cases/update/${selectedCaseId}`, { ...payload, processedBy: authData.displayName });
+            toast.success("Changes saved successfully!");
+            setIsEditing(false);
+        } catch {
+            toast.error("Error saving changes.");
+        }
+    };
+
+    const handleArchiveCase = async () => {
+        if (!selectedCaseId) return;
+        try {
+            await axios.put(`/cases/update/${selectedCaseId}`, { status: "Resolved", processedBy: authData.displayName });
+            setCases(prev => prev.map(c => c.id === selectedCaseId ? { ...c, status: "Resolved" } : c));
+            toast.success("Case status updated to Resolved!");
+            setSelectedCaseId(null);
+        } catch {
+            toast.error("Error archiving case.");
+        }
+    };
+
     const handleAddCase = async (caseDataWithPriority) => {
         const dataToSave = { ...caseDataWithPriority, processedBy: authData.displayName };
-
-        dataToSave.priorityLevel =
-
-            (dataToSave.priorityLevels &&
-                dataToSave.counselingTypeCategory &&
-                typeof dataToSave.priorityLevels[dataToSave.counselingTypeCategory] === "string")
-                ? dataToSave.priorityLevels[dataToSave.counselingTypeCategory]
-                : "";
-
         if (!dataToSave.studentName || !dataToSave.studentId || !dataToSave.counselingTypeCategory) {
             toast.error("Please fill in Student Name, Student ID, and Counseling Type/Category.");
             return;
@@ -256,18 +256,13 @@ function StudentCases() {
             const formData = new FormData();
             Object.entries(dataToSave).forEach(([key, value]) => {
                 if (value !== null && value !== undefined) {
-                    if (key === 'proofImage' && value instanceof File) {
+                    if (key === 'proofImage' && value instanceof File)
                         formData.append('proof', value, value.name);
-                    } else if (key === 'proofImage' && value === null) {
-                    } else {
+                    else if (key !== 'proofImage')
                         formData.append(key, value);
-                    }
                 }
             });
-            await axios.post("/cases/add", formData, {
-                headers: { "Content-Type": "multipart/form-data" },
-            });
-
+            await axios.post("/cases/add", formData, { headers: { "Content-Type": "multipart/form-data" } });
             toast.success("Case Added Successfully!");
             setShowAddModal(false);
             setNewCaseForm({
@@ -286,93 +281,42 @@ function StudentCases() {
                 counselorNotes: "",
                 violation: ''
             });
-        } catch (err) {
+        } catch {
             toast.error("Error adding case.");
         } finally {
             setIsSubmitting(false);
         }
     };
 
-    // Archive/Resolve
-    const handleArchiveCase = async () => {
-        if (!selectedCaseId) return;
-        try {
-            await axios.put(`/cases/update/${selectedCaseId}`, { status: "Resolved", processedBy: authData.displayName });
-            setCases((prev) =>
-                prev.map((c) =>
-                    c.id === selectedCaseId ? { ...c, status: "Resolved" } : c
-                )
-            );
-            setCaseDetailsMap((prev) => {
-                const next = { ...prev };
-                if (next[selectedCaseId]) next[selectedCaseId].status = "Resolved";
-                return next;
-            });
-            setSelectedCaseId(null);
-            toast.success("Case status updated to Resolved!");
-        } catch (err) {
-            toast.error("Error archiving case.");
-        }
+    if (loading) return <LoadingDots />;
+
+    const dropdownClass =
+        "block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-[#0172bd] bg-white text-[#0172bd] text-sm appearance-none pr-8";
+    const filterLabel = "text-xs font-semibold text-gray-500 mb-1 ml-1";
+
+    const clearFilters = () => {
+        setSearchTerm("");
+        setSelectedProgram("all");
+        setSelectedSection("all");
+        setSelectedStatus("On-going");
+        setPriorityOrder("desc");
     };
 
-    // Edit
-    const handleSaveEdits = async () => {
-        if (!editedCaseData || !selectedCaseId) return;
-        try {
-            const payload = uiDetailsToServerPayload(editedCaseData);
-            console.log(payload)
-            await axios.put(`/cases/update/${selectedCaseId}`, { ...payload, processedBy: authData.displayName });
-            toast.success("Changes saved successfully!");
-            setIsEditing(false);
-        } catch (err) {
-            toast.error("Error saving changes.");
-        }
-    };
-
-    // Info field change
-    const handleCaseFieldChange = (category, field, value) => {
-        setEditedCaseData((prevData) => {
-            if (!prevData) return prevData;
-            const newData = JSON.parse(JSON.stringify(prevData));
-            if (!newData[category]) newData[category] = {};
-            newData[category][field] = value;
-            return newData;
-        });
-    };
-
-    // Table columns for large screens
     const columns = [
         { label: "Case ID", key: "id", show: "lg" },
         { label: "Student Name", key: "studentName", show: "all" },
         { label: "Student ID", key: "studentId", show: "lg" },
         { label: "Program & Section", key: "programSection", show: "lg" },
-        { label: "Priority", key: "priority", show: "all" }, // Priority column
+        { label: "Priority", key: "priority", show: "all" },
         { label: "Status", key: "status", show: "all" },
     ];
 
-    if (loading) {
-        return <LoadingDots />
-    }
-
     return (
         <div className="bg-gray-100 h-full flex flex-col pb-3">
-            <ToastContainer
-                position="top-right"
-                autoClose={4000}
-                hideProgressBar={false}
-                newestOnTop={false}
-                closeOnClick
-                rtl={false}
-                pauseOnFocusLoss
-                draggable
-                pauseOnHover
-            />
+            <ToastContainer position="top-right" autoClose={4000} />
 
-            {/* --- SHS/College buttons removed here --- */}
-
-            {/* Header */}
-            <div className={`bg-white rounded-xl shadow-lg mx-2 sm:mx-4 flex-1 flex flex-col p-2 sm:p-6`} style={{ maxWidth: "100vw" }}>
-
+            <div className="bg-white rounded-xl shadow-lg mx-2 sm:mx-4 flex-1 flex flex-col p-2 sm:p-6" style={{ maxWidth: "100vw" }}>
+                {/* Header */}
                 <div className="flex flex-col gap-2 pb-2">
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 w-full">
                         <div className="text-3xl font-bold text-[#0172bd] flex items-center gap-2">
@@ -380,7 +324,7 @@ function StudentCases() {
                             Student Cases
                         </div>
 
-                        {/* Search bar aligned right */}
+                        {/* Search + Add */}
                         <div className="flex gap-2 w-full md:w-auto md:justify-end md:items-center">
                             <div className="relative flex-1 max-w-xs">
                                 <input
@@ -388,63 +332,87 @@ function StudentCases() {
                                     placeholder="Search Name/ID"
                                     value={searchTerm}
                                     onChange={e => setSearchTerm(e.target.value)}
-                                    className="w-full pr-10 pl-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#0172bd] focus:border-transparent text-sm"
-                                    style={{ minWidth: 0 }}
+                                    className="w-full pr-10 pl-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#0172bd] text-sm"
                                 />
                                 <Search className="absolute right-3 top-2.5 text-gray-400 w-5 h-5" />
                             </div>
-
-                            <div className="flex gap-2 flex-wrap">
+                            <button
+                                onClick={clearFilters}
+                                className="flex items-center gap-1 px-3 py-2 bg-gray-200 hover:bg-gray-300 text-[#0172bd] rounded-lg font-semibold text-sm"
+                            >
+                                <SlidersHorizontal className="w-4 h-4 mr-1" /> Clear
+                            </button>
+                            {authData?.user?.access?.studentCases?.canEdit && (
                                 <button
-                                    onClick={() => navigate()}
-                                    className="flex items-center bg-[#0172bd] hover:bg-blue-500 text-sm text-white font-bold py-2 px-4 rounded-lg transition duration-150 ease-in-out shadow-md"
+                                    onClick={() => setShowAddModal(true)}
+                                    className="flex items-center bg-[#0172bd] hover:bg-blue-500 text-sm text-white font-bold py-2 px-4 rounded-lg shadow-md"
                                 >
-                                    History
-                                    <Clock className="w-4 h-4 ml-2" />
+                                    Add Case <Plus className="w-4 h-4 ml-2" />
                                 </button>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Filters */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 mt-4 w-full">
+                        <div>
+                            <div className={filterLabel}>Program/Strand</div>
+                            <div className="relative">
+                                <select className={dropdownClass} value={selectedProgram} onChange={e => setSelectedProgram(e.target.value)}>
+                                    {programOptions.map(opt => (
+                                        <option key={opt} value={opt}>{opt === "all" ? "All Programs" : opt}</option>
+                                    ))}
+                                </select>
+                                <ChevronDown className="absolute right-2 top-3 w-4 h-4 text-[#0172bd] pointer-events-none" />
                             </div>
-                            <div className="flex gap-2 flex-wrap">
-                                {authData?.user?.access?.studentCases?.canEdit ? (
-                                    <button
-                                        onClick={() => setShowAddModal(true)}
-                                        className="flex items-center bg-[#0172bd] hover:bg-blue-500 text-sm text-white font-bold py-2 px-4 rounded-lg transition duration-150 ease-in-out shadow-md"
-                                    >
-                                        Add Case
-                                        <Plus className="w-4 h-4 ml-2" />
-                                    </button>
-                                ) : null}
+                        </div>
+                        <div>
+                            <div className={filterLabel}>Section</div>
+                            <div className="relative">
+                                <select className={dropdownClass} value={selectedSection} onChange={e => setSelectedSection(e.target.value)}>
+                                    {sectionOptions.map(opt => (
+                                        <option key={opt} value={opt}>{opt === "all" ? "All Sections" : opt}</option>
+                                    ))}
+                                </select>
+                                <ChevronDown className="absolute right-2 top-3 w-4 h-4 text-[#0172bd] pointer-events-none" />
+                            </div>
+                        </div>
+                        <div>
+                            <div className={filterLabel}>Priority Order</div>
+                            <button
+                                onClick={() => setPriorityOrder(prev => prev === "asc" ? "desc" : "asc")}
+                                className="flex items-center justify-center w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm text-[#0172bd] font-semibold text-sm bg-white"
+                            >
+                                {priorityOrder === "desc" ? "High → Low" : "Low → High"}
+                                <ArrowUpDown className="w-4 h-4 ml-2" />
+                            </button>
+                        </div>
+                        <div>
+                            <div className={filterLabel}>Status</div>
+                            <div className="relative">
+                                <select className={dropdownClass} value={selectedStatus} onChange={e => setSelectedStatus(e.target.value)}>
+                                    {STATUS_OPTIONS.map(opt => (
+                                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                    ))}
+                                </select>
+                                <ChevronDown className="absolute right-2 top-3 w-4 h-4 text-[#0172bd] pointer-events-none" />
                             </div>
                         </div>
                     </div>
 
-                    {/* Showing X results of Y total */}
+                    {/* Showing X results */}
                     <div className="text-sm text-gray-500 mt-1 ml-1">
                         Showing {filteredCases.length} result{filteredCases.length !== 1 ? "s" : ""} of {cases.length} total
                     </div>
                 </div>
 
                 {/* Table */}
-                <div
-                    className="mt-4 overflow-x-auto rounded-lg shadow bg-white "
-                    style={{
-                        width: "100%",
-                        minWidth: 0,
-                        maxWidth: "100vw",
-                    }}
-                >
+                <div className="mt-4 overflow-x-auto rounded-lg shadow bg-white">
                     <table className="w-full text-left">
                         <thead>
                             <tr>
                                 {columns.map(col => (
-                                    <th
-                                        key={col.key}
-                                        className={
-                                            "bg-[#0172bd] text-white font-bold px-4 py-2" +
-                                            (col.show === "lg"
-                                                ? " hidden lg:table-cell"
-                                                : "")
-                                        }
-                                    >
+                                    <th key={col.key} className={`bg-[#0172bd] text-white font-bold px-4 py-2 ${col.show === "lg" ? "hidden lg:table-cell" : ""}`}>
                                         {col.label}
                                     </th>
                                 ))}
@@ -453,67 +421,55 @@ function StudentCases() {
                         <tbody>
                             {pagedCases.length === 0 ? (
                                 <tr>
-                                    <td colSpan={columns.length} className="text-center py-8 text-gray-400">
-                                        No cases found.
-                                    </td>
+                                    <td colSpan={columns.length} className="text-center py-8 text-gray-400">No cases found.</td>
                                 </tr>
                             ) : (
-                                pagedCases.map(aCase => (
-                                    <tr
-                                        key={aCase.id}
-                                        className="hover:bg-gray-100 transition cursor-pointer"
-                                        onClick={() => openCaseModal(aCase.id)}
-                                    >
-                                        <td className="px-4 py-3 whitespace-nowrap hidden lg:table-cell">{aCase.id}</td>
-                                        <td className="px-4 py-3 whitespace-nowrap">{aCase.studentName}</td>
-                                        <td className="px-4 py-3 whitespace-nowrap hidden lg:table-cell">{aCase.studentId}</td>
-                                        <td className="px-4 py-3 whitespace-nowrap hidden lg:table-cell">{aCase.programSection}</td>
-                                        {/* Priority column */}
-                                        <td className="px-4 py-3 whitespace-nowrap">
-                                            {(() => {
-                                                const rawPriority = aCase.priorityLevel || caseDetailsMap[aCase.id]?.priority || "";
-
-                                                const { label } = getPriorityInfo(rawPriority);
-                                                return (
-                                                    <span
-                                                        className={`px-2 py-1 rounded text-xs font-semibold ${label.includes("3")
+                                pagedCases.map(aCase => {
+                                    const { label } = getPriorityInfo(aCase.priorityLevel);
+                                    return (
+                                        <tr key={aCase.id} className="hover:bg-gray-100 transition cursor-pointer" onClick={() => openCaseModal(aCase.id)}>
+                                            <td className="px-4 py-3 hidden lg:table-cell">{aCase.id}</td>
+                                            <td className="px-4 py-3">{aCase.studentName}</td>
+                                            <td className="px-4 py-3 hidden lg:table-cell">{aCase.studentId}</td>
+                                            <td className="px-4 py-3 hidden lg:table-cell">{aCase.programSection}</td>
+                                            <td className="px-4 py-3">
+                                                <span
+                                                    className={`px-2 py-1 rounded text-xs font-semibold ${label.includes("3")
                                                             ? "bg-red-100 text-red-700"
                                                             : label.includes("2")
                                                                 ? "bg-yellow-100 text-yellow-700"
                                                                 : label.includes("1")
                                                                     ? "bg-green-100 text-green-700"
                                                                     : "bg-gray-100 text-gray-600"
-                                                            }`}
-                                                    >
-                                                        {label}
-                                                    </span>
-                                                );
-                                            })()}
-                                        </td>
-                                        {/* Status column */}
-                                        <td className="px-4 py-3 whitespace-nowrap">
-                                            {aCase.status === "Resolved" ? (
-                                                <span className="bg-red-100 text-red-600 px-2 py-1 rounded text-xs font-semibold">Resolved</span>
-                                            ) : (
-                                                <span className="bg-green-100 text-green-600 px-2 py-1 rounded text-xs font-semibold">On-going</span>
-                                            )}
-                                        </td>
-                                    </tr>
-                                ))
+                                                        }`}
+                                                >
+                                                    {label}
+                                                </span>
+                                            </td>
+                                            <td className="px-4 py-3">
+                                                {aCase.status === "Resolved" ? (
+                                                    <span className="bg-red-100 text-red-600 px-2 py-1 rounded text-xs font-semibold">Resolved</span>
+                                                ) : (
+                                                    <span className="bg-green-100 text-green-600 px-2 py-1 rounded text-xs font-semibold">On-going</span>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    );
+                                })
                             )}
                         </tbody>
                     </table>
-
                 </div>
-                {/* Pagination controls */}
-                <div className="w-full flex justify-center lg:justify-end items-center mt-2 pr-0 lg:pr-2">
+
+                {/* Pagination */}
+                <div className="w-full flex justify-center lg:justify-end items-center mt-2">
                     <nav className="flex items-center space-x-1">
                         <button
                             className="px-2 py-1 rounded hover:bg-gray-200 text-[#0172bd] font-bold"
-                            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                             disabled={currentPage === 1}
                         >
-                            <ChevronLeft className="w-5 h-5 object-cover rounded" />
+                            <ChevronLeft className="w-5 h-5" />
                         </button>
                         {Array.from({ length: totalPages }, (_, i) => (
                             <button
@@ -526,10 +482,10 @@ function StudentCases() {
                         ))}
                         <button
                             className="px-2 py-1 rounded hover:bg-gray-200 text-[#0172bd] font-bold"
-                            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                             disabled={currentPage === totalPages}
                         >
-                            <ChevronRight className="w-5 h-5 object-cover rounded" />
+                            <ChevronRight className="w-5 h-5" />
                         </button>
                     </nav>
                 </div>
@@ -539,45 +495,37 @@ function StudentCases() {
             {selectedCaseId && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
                     <div
-                        className={`
-                            bg-white rounded-2xl shadow-2xl
-                            w-[98vw] max-w-[98vw] h-[98vh] max-h-[98vh]
-                            md:w-[90vw] md:max-w-[900px] md:h-[90vh] md:max-h-[900px]
-                            lg:w-[95vw] lg:max-w-[1600px] lg:h-[90vh] lg:max-h-[900px]
-                            flex flex-col p-3 sm:p-4 md:p-6 relative overflow-y-auto custom-scrollbar
-                        `}
-                        style={{
-                            minWidth: 0,
-                        }}
+                        className="bg-white rounded-2xl shadow-2xl w-[98vw] max-w-[98vw] h-[98vh] max-h-[98vh]
+            md:w-[90vw] md:max-w-[900px] md:h-[90vh] md:max-h-[900px]
+            lg:w-[95vw] lg:max-w-[1600px] lg:h-[90vh] lg:max-h-[900px]
+            flex flex-col p-3 sm:p-4 md:p-6 relative overflow-y-auto custom-scrollbar"
                     >
-                        {/* Close button always top right */}
                         <button
                             className="absolute top-11 right-5 text-[#0172bd] hover:text-blue-500 transition-transform hover:scale-110"
                             onClick={closeCaseModal}
                         >
                             <X className="w-8 h-8 sm:w-10 sm:h-10" />
                         </button>
-                        {/* Header: Name, ID, Buttons aligned right */}
-                        <div className="flex flex-col gap-2 mb-4 mt-2 mr-15">
+
+                        <div className="flex flex-col gap-2 mb-4 mt-2">
                             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
-                                {/* Name and ID */}
-                                <div className="flex items-center gap-3 flex-shrink min-w-0">
-                                    <FileText className="w-8 h-8 sm:w-10 sm:h-10 text-[#0172bd] flex-shrink-0" />
-                                    <div className="min-w-0">
-                                        <div className="text-xl sm:text-2xl md:text-3xl font-bold text-[#0172bd] break-words truncate md:break-normal md:whitespace-normal" style={{ maxWidth: "70vw" }}>
+                                <div className="flex items-center gap-3">
+                                    <FileText className="w-8 h-8 sm:w-10 sm:h-10 text-[#0172bd]" />
+                                    <div>
+                                        <div className="text-2xl font-bold text-[#0172bd]">
                                             {caseDetailsMap[selectedCaseId]?.name || ""}
                                         </div>
-                                        <div className="text-gray-500 text-sm sm:text-base md:text-lg break-all">{caseDetailsMap[selectedCaseId]?.sid || ""}</div>
+                                        <div className="text-gray-500 text-sm">
+                                            {caseDetailsMap[selectedCaseId]?.sid || ""}
+                                        </div>
                                     </div>
                                 </div>
-                                {/* Buttons aligned right with name */}
-                                <div className="flex gap-2 mt-2 md:mt-0 flex-wrap justify-start md:justify-end">
+
+                                <div className="flex gap-2 mt-2 md:mt-0">
                                     <button
-                                        className={`flex items-center gap-1 px-3 sm:px-4 py-2 bg-[#0172bd] hover:bg-blue-500 text-white rounded-lg font-semibold text-sm sm:text-base shadow`}
+                                        className="flex items-center gap-1 px-3 py-2 bg-[#0172bd] hover:bg-blue-500 text-white rounded-lg font-semibold text-sm shadow"
                                         onClick={() => {
-                                            if (isEditing) {
-                                                handleSaveEdits();
-                                            }
+                                            if (isEditing) handleSaveEdits();
                                             setIsEditing(!isEditing);
                                         }}
                                     >
@@ -585,7 +533,7 @@ function StudentCases() {
                                         <Pencil className="w-5 h-5 ml-1" />
                                     </button>
                                     <button
-                                        className="flex items-center gap-1 px-3 sm:px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold text-sm sm:text-base shadow"
+                                        className="flex items-center gap-1 px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold text-sm shadow"
                                         onClick={handleArchiveCase}
                                     >
                                         Resolve Case
@@ -593,31 +541,26 @@ function StudentCases() {
                                     </button>
                                 </div>
                             </div>
-                            {/* Priority Dropdown */}
+
+                            {/* Priority and Info Tabs */}
                             <div className="flex flex-wrap gap-2 mt-2 items-center">
                                 <label className="font-semibold text-[#0172bd]">Priority Level:</label>
                                 <select
-                                    className="px-3 py-1 rounded-lg font-semibold text-xs sm:text-sm bg-gray-100 text-[#0172bd] hover:bg-blue-100"
+                                    className="px-3 py-1 rounded-lg font-semibold text-xs sm:text-sm bg-gray-100 text-[#0172bd]"
                                     value={editedCaseData?.caseDetails?.priority || ""}
                                     disabled={!isEditing}
-                                    onChange={e => {
-                                        if (!isEditing) return;
-                                        setEditedCaseData(prev => ({
-                                            ...prev,
-                                            caseDetails: {
-                                                ...prev.caseDetails,
-                                                priority: e.target.value,
-                                            }
-                                        }));
-                                    }}
+                                    onChange={e => setEditedCaseData(prev => ({
+                                        ...prev,
+                                        caseDetails: { ...prev.caseDetails, priority: e.target.value },
+                                    }))}
                                 >
                                     {PRIORITY_LEVELS.map(opt => (
                                         <option key={opt.value} value={opt.value}>{opt.label}</option>
                                     ))}
                                 </select>
-                                {/* Info type tabs beside priority */}
+
                                 <select
-                                    className="px-3 py-1 rounded-lg font-semibold text-xs sm:text-sm bg-gray-100 text-[#0172bd] hover:bg-blue-100"
+                                    className="px-3 py-1 rounded-lg font-semibold text-xs sm:text-sm bg-gray-100 text-[#0172bd]"
                                     value={infoType}
                                     onChange={e => setInfoType(e.target.value)}
                                 >
@@ -628,13 +571,20 @@ function StudentCases() {
                                 </select>
                             </div>
                         </div>
-                        {/* Info Section */}
+
                         <div className="flex-1 overflow-y-auto custom-scrollbar w-full">
                             <CaseInfoSection
                                 infoType={infoType}
-                                caseData={editedCaseData && editedCaseData[infoType] ? editedCaseData[infoType] : {}}
+                                caseData={editedCaseData?.[infoType] || {}}
                                 isEditing={isEditing}
-                                onFieldChange={handleCaseFieldChange}
+                                onFieldChange={(cat, field, val) =>
+                                    setEditedCaseData(prev => {
+                                        const updated = JSON.parse(JSON.stringify(prev));
+                                        if (!updated[cat]) updated[cat] = {};
+                                        updated[cat][field] = val;
+                                        return updated;
+                                    })
+                                }
                             />
                         </div>
                     </div>

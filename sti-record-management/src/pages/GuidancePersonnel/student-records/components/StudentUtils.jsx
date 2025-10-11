@@ -60,11 +60,11 @@ export const fieldDefinitions = {
         { key: 'guardianContactNumber', label: 'Guardian Contact Number', type: 'tel' },
         { key: 'guardianEmailAddress', label: 'Guardian Email Address', type: 'email' },
         { key: 'parentGuardianAddress', label: 'Parent/Guardian Address', type: 'textarea' },
-        { key: 'siblings', label: 'Siblings', type: 'text' },
+        { key: 'siblings', label: 'Siblings', type: 'array' },
         { key: 'siblingsCount', label: 'Number of Siblings', type: 'number' },
         { key: 'birthOrder', label: 'Birth Order', type: 'text' },
     ],
-    educational: [
+    educationalBackground: [
         { key: 'nameOfGradeSchool', label: 'Name of Grade School', type: 'text' },
         { key: 'yearsAttendedGradeSchool', label: 'Years Attended Grade School', type: 'text' },
         { key: 'nameOfJuniorHighSchool', label: 'Name of Junior High School', type: 'text' },
@@ -74,7 +74,7 @@ export const fieldDefinitions = {
         { key: 'nameOfCollege', label: 'Name of College', type: 'text' },
         { key: 'yearsAttendedCollege', label: 'Years Attended College', type: 'text' },
         { key: 'extraCurricularActivities', label: 'Extra Curricular Activities', type: 'textarea' },
-        { key: 'awardsCitationsReceived', label: 'Awards/Citations Received', type: 'textarea' },
+        { key: 'awards', label: 'Awards/Citations Received', type: 'array' },
         { key: 'mostLikedSubject', label: 'Most Liked Subject', type: 'text' },
         { key: 'leastLikedSubject', label: 'Least Liked Subject', type: 'text' },
     ],
@@ -206,7 +206,7 @@ export const normalizeForUI = (raw) => {
             birthOrder: family?.birthOrder ?? 'N/A',
         },
 
-        educational: {
+        educationalBackground: {
             nameOfGradeSchool: edu?.elementary?.schoolName ?? 'N/A',
             yearsAttendedGradeSchool: edu?.elementary?.dateEnrolled ?? 'N/A',
             nameOfJuniorHighSchool: edu?.juniorHighSchool?.schoolName ?? 'N/A',
@@ -216,7 +216,7 @@ export const normalizeForUI = (raw) => {
             nameOfCollege: edu?.college?.schoolName ?? 'N/A',
             yearsAttendedCollege: edu?.college?.dateEnrolled ?? 'N/A',
             extraCurricularActivities: edu?.extraCurricular ?? 'N/A',
-            awardsCitationsReceived: edu?.awards ?? 'N/A',
+            awards: edu?.awards ?? 'N/A',
             mostLikedSubject: edu?.likedSubject ?? 'N/A',
             leastLikedSubject: edu?.leastSubject ?? 'N/A',
         },
