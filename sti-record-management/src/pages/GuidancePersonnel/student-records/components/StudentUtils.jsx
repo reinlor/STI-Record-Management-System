@@ -64,7 +64,7 @@ export const fieldDefinitions = {
         { key: 'siblingsCount', label: 'Number of Siblings', type: 'number' },
         { key: 'birthOrder', label: 'Birth Order', type: 'text' },
     ],
-    educationalBackground: [
+    educational: [
         { key: 'nameOfGradeSchool', label: 'Name of Grade School', type: 'text' },
         { key: 'yearsAttendedGradeSchool', label: 'Years Attended Grade School', type: 'text' },
         { key: 'nameOfJuniorHighSchool', label: 'Name of Junior High School', type: 'text' },
@@ -206,7 +206,7 @@ export const normalizeForUI = (raw) => {
             birthOrder: family?.birthOrder ?? 'N/A',
         },
 
-        educationalBackground: {
+        educational: {
             nameOfGradeSchool: edu?.elementary?.schoolName ?? 'N/A',
             yearsAttendedGradeSchool: edu?.elementary?.dateEnrolled ?? 'N/A',
             nameOfJuniorHighSchool: edu?.juniorHighSchool?.schoolName ?? 'N/A',
