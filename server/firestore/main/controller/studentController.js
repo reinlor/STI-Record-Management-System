@@ -604,6 +604,44 @@ const updateStudent = async (req, res) => {
       ];
     }
 
+    if (req.body.deleteCerts) {
+      // Parse the array of {url, id}
+      let toDelete = [];
+      try {
+        toDelete = JSON.parse(req.body.deleteCerts);
+      } catch (e) {
+        // ignore
+      }
+      if (Array.isArray(toDelete) && toDelete.length > 0) {
+        // Get current doc
+        const currentDoc = await getStudentCollection().doc(sid).get();
+        const currentHealth = currentDoc.exists && currentDoc.data().health ? currentDoc.data().health : {};
+        let medicalCert = Array.isArray(currentHealth.medicalCert) ? [...currentHealth.medicalCert] : [];
+        let medicalCertIds = Array.isArray(currentHealth.medicalCertIds) ? [...currentHealth.medicalCertIds] : [];
+
+        // Remove each cert by matching id (or url as fallback)
+        toDelete.forEach(({ url, id }) => {
+          const idx = id
+            ? medicalCertIds.findIndex((pid) => pid === id)
+            : medicalCert.findIndex((u) => u === url);
+          if (idx !== -1) {
+            // Remove from arrays
+            medicalCert.splice(idx, 1);
+            medicalCertIds.splice(idx, 1);
+          }
+          // Remove from Cloudinary
+          if (id) {
+            cloudinary.uploader.destroy(id).catch(() => {});
+          }
+        });
+
+        // Save updated arrays
+        if (!validatedUpdates.health) validatedUpdates.health = {};
+        validatedUpdates.health.medicalCert = medicalCert;
+        validatedUpdates.health.medicalCertIds = medicalCertIds;
+      }
+    }
+
     const studentRef = getStudentCollection().doc(sid);
 
     const doc = await studentRef.get();
