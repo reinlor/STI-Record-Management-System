@@ -49,93 +49,129 @@ export default function DisplayInfo({ data, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm bg-black/30 animate-fade-in-backdrop">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm bg-black/40 animate-fade-in-backdrop">
       <ToastContainer theme="light" />
-      <div className="bg-white rounded-3xl shadow-2xl p-6 md:p-10 w-full max-w-7xl relative animate-fade-in border border-gray-200">
+      <div className="relative flex flex-col bg-white rounded-3xl shadow-2xl w-full max-w-full md:max-w-3xl lg:max-w-5xl xl:max-w-6xl animate-fade-in border border-gray-200">
         {/* Close Button */}
         <button
           type="button"
           onClick={onClose}
           aria-label="Close"
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-900 transition-colors duration-200 transform hover:-translate-y-0.5"
+          className="absolute top-4 right-4 z-50 text-gray-500 hover:text-gray-900 transition-colors duration-200"
         >
-          <X size={24} />
+          <X size={26} />
         </button>
 
         {/* Header with Prominent Status */}
-        <div className="text-center mb-8 border-b-2 pb-4 border-gray-100">
-          <h2 className="text-3xl md:text-4xl font-extrabold text-gray-800 tracking-tight">Referral Details</h2>
-          <p className="text-gray-500 mt-2 text-sm md:text-base">Detailed information about the student referral.</p>
-        </div>
-
-        {/* Prominent Status Badge */}
-        <div className="flex justify-center mb-8">
-          <div
-            className={`flex items-center space-x-2 px-6 py-3 rounded-full text-lg font-bold shadow-md transition-colors duration-200 border ${getStatusClasses(
-              data.status,
-              "modal"
-            )}`}
-          >
-            <Info size={24} />
-            <span>Status: {data.status || "N/A"}</span>
+        <div className="sticky top-0 bg-white border-b border-gray-100 text-center p-6 md:p-8 rounded-t-3xl z-20">
+          <h2 className="text-2xl md:text-3xl lg:text-4xl font-extrabold text-gray-800 tracking-tight">
+            Referral Details
+          </h2>
+          <p className="text-gray-500 mt-2 text-sm md:text-base">
+            Detailed information about the student referral.
+          </p>
+          {/* Status Badge */}
+          <div className="flex justify-center mt-5">
+            <div
+              className={`flex items-center space-x-2 px-4 py-2 md:px-6 md:py-3 rounded-full text-sm md:text-lg font-bold shadow-sm border ${getStatusClasses(
+                data.status,
+                "modal"
+              )}`}
+            >
+              <Info size={20} />
+              <span>Status: {data.status || "N/A"}</span>
+            </div>
           </div>
         </div>
 
         {/* Main Content Grid with Scrolling */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-h-[70vh] overflow-y-auto">
-          {/* Left Column (Referral & Student Info) */}
-          <div className="lg:col-span-2 space-y-8">
-            {/* Referral Information Card */}
-            <div className="bg-gray-50 p-6 rounded-2xl border border-gray-200 shadow-lg">
-              <div className="flex items-center text-yellow-700 mb-4">
-                <Info size={24} className="mr-3 text-gray-700" />
-                <h3 className="font-bold text-gray-700 text-xl">Referral Info</h3>
+        <div className="overflow-y-auto custom-scrollbar px-6 md:px-10 py-6 max-h-[70vh]">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Left Column (Referral & Student Info) */}
+            <div className="lg:col-span-2 space-y-8">
+              {/* Referral Information Card */}
+              <div className="bg-gray-50 p-6 rounded-2xl border border-gray-200 shadow-lg">
+                <div className="flex items-center text-yellow-700 mb-4">
+                  <Info size={24} className="mr-3 text-gray-700" />
+                  <h3 className="font-bold text-gray-700 text-xl">Referral Info</h3>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 text-sm text-gray-700">
+                  {renderField("School Year", data.schoolYear)}
+                  {renderField("Referred By", data.referredBy)}
+                  {renderField("Employee No.", data.employeeID)}
+                  {renderField("Prepared Date", data.preparedDate)}
+                  {renderField("Counseling Category", data.counselingTypeCategory)}
+                  {renderField("Violation", data.violation)}
+                  {renderField("Level of Priority", data.levelOfPriority)}
+                </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 text-sm text-gray-700">
-                {renderField("School Year", data.schoolYear)}
-                {renderField("Referred By", data.referredBy)}
-                {renderField("Employee No.", data.employeeID)}
-                {renderField("Prepared Date", data.preparedDate)}
-                {renderField("Level of Priority", data.levelOfPriority)}
-                {renderField("Reason For Referral", data.reasonForReferral)}
-              </div>
-            </div>
 
-            {/* Student Information Card */}
-            <div className="bg-gray-50 p-6 rounded-2xl border border-gray-200 shadow-lg">
-              <div className="flex items-center text-yellow-700 mb-4">
-                <User size={24} className="mr-3 text-gray-700" />
-                <h3 className="font-bold text-gray-700 text-xl">Student Information</h3>
+              {/* Student Information Card */}
+              <div className="bg-gray-50 p-6 rounded-2xl border border-gray-200 shadow-lg">
+                <div className="flex items-center text-yellow-700 mb-4">
+                  <User size={24} className="mr-3 text-gray-700" />
+                  <h3 className="font-bold text-gray-700 text-xl">Student Information</h3>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 text-sm text-gray-700">
+                  {renderField("Student Name", data.studentName)}
+                  {renderField("Program", data.program)}
+                  {renderField("Gender", data.gender)}
+                  {renderField("Age", data.age)}
+                  <div className="space-y-1 md:col-span-2">
+                    <p className="text-gray-500 text-sm font-medium">Status</p>
+                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusClasses(data.status, "table")}`}>
+                      {data.status || "-"}
+                    </span>
+                  </div>
+                </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 text-sm text-gray-700">
-                {renderField("Student Name", data.studentName)}
-                {renderField("Program", data.program)}
-                {renderField("Gender", data.gender)}
-                {renderField("Age", data.age)}
-                <div className="space-y-1 md:col-span-2">
-                  <p className="text-gray-500 text-sm font-medium">Status</p>
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusClasses(data.status, "table")}`}>
-                    {data.status || "-"}
-                  </span>
+
+              {/* Narrative / Reason Section */}
+              <div className="bg-gray-50 p-6 rounded-2xl border border-gray-200 shadow-lg">
+                <div className="flex items-center text-yellow-700 mb-4">
+                  <MessageSquare size={24} className="mr-3 text-gray-700" />
+                  <h3 className="font-bold text-gray-700 text-xl">Narratives</h3>
+                </div>
+                <div className="space-y-6">
+                  <div>
+                    <p className="text-gray-500 text-sm font-medium">
+                      Reason for Referral
+                    </p>
+                    <div className="bg-white p-4 rounded-xl border border-gray-200 whitespace-pre-wrap break-words min-h-[100px] mt-1">
+                      <p className="font-semibold text-gray-900 text-base">
+                        {data.reasonForReferral || "No reason provided."}
+                      </p>
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-gray-500 text-sm font-medium">
+                      Actions Taken Before Referral
+                    </p>
+                    <div className="bg-white p-4 rounded-xl border border-gray-200 whitespace-pre-wrap break-words min-h-[100px] mt-1">
+                      <p className="font-semibold text-gray-900 text-base">
+                        {data.actionTaken || "No actions listed."}
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          {/* Right Column (Counselor's Action) */}
-          <div className="lg:col-span-1 space-y-8">
-            {/* Counselor's Action Card */}
-            <div className="bg-gray-50 p-6 rounded-2xl border border-gray-200 shadow-lg">
-              <div className="flex items-center text-yellow-700 mb-4">
-                <MessageSquare size={24} className="mr-3 text-gray-700" />
-                <h3 className="font-bold text-gray-700 text-xl">Counselor's Action</h3>
-              </div>
-              <div className="space-y-3 text-sm text-gray-700">
-                {renderField("Received By", data.receivedBy)}
-                {renderField("Initial Action", data.initialAction)}
-                {renderField("Action Required", data.actionRequired)}
-                {renderField("Received Date", data.receivedDate)}
-                {renderField("Feedback Update Date", data.feedBackDate)}
+            {/* Right Column (Counselor's Action) */}
+            <div className="lg:col-span-1 space-y-8">
+              {/* Counselor's Action Card */}
+              <div className="bg-gray-50 p-6 rounded-2xl border border-gray-200 shadow-lg">
+                <div className="flex items-center text-yellow-700 mb-4">
+                  <MessageSquare size={24} className="mr-3 text-gray-700" />
+                  <h3 className="font-bold text-gray-700 text-xl">Counselor's Action</h3>
+                </div>
+                <div className="space-y-3 text-sm text-gray-700">
+                  {renderField("Received By", data.receivedBy)}
+                  {renderField("Initial Action", data.initialAction)}
+                  {renderField("Action Required", data.actionRequired)}
+                  {renderField("Received Date", data.receivedDate)}
+                  {renderField("Feedback Update Date", data.feedBackDate)}
+                </div>
               </div>
             </div>
           </div>
@@ -173,12 +209,25 @@ export default function DisplayInfo({ data, onClose }) {
           animation: fadeInBackdrop 0.3s ease-out;
         }
         @keyframes fadeInModal {
-          from { opacity: 0; transform: scale(0.95) translateY(10px); }
+          from { opacity: 0; transform: scale(0.97) translateY(10px); }
           to { opacity: 1; transform: scale(1) translateY(0); }
         }
         @keyframes fadeInBackdrop {
           from { opacity: 0; }
           to { opacity: 1; }
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background-color: #d1d5db;
+          border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background-color: #9ca3af;
         }
       `}</style>
     </div>
