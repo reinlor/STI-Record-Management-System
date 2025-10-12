@@ -370,6 +370,8 @@ const updateViolation = async (req, res) => {
       { merge: true }
     );
 
+    console.log(validatedUpdates.status)
+
     if ((validatedUpdates.status || "").toLowerCase() === "resolved" || (doc.data()?.status || "").toLowerCase() !== "resolved" && (validatedUpdates.status || "").toLowerCase() === "resolved") {
       try {
         const updatedDoc = await violationRef.get();

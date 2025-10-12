@@ -225,7 +225,7 @@ function StudentCases() {
         if (!editedCaseData || !selectedCaseId) return;
         try {
             const payload = uiDetailsToServerPayload(editedCaseData);
-            await axios.put(`/cases/update/${selectedCaseId}`, { ...payload, processedBy: authData?.displayName ?? 'Admin'});
+            await axios.put(`/cases/update/${selectedCaseId}`, { ...payload, processedBy: authData?.displayName ?? 'Admin' });
             toast.success("Changes saved successfully!");
             setIsEditing(false);
         } catch {
@@ -247,21 +247,43 @@ function StudentCases() {
 
     const handleAddCase = async (caseDataWithPriority) => {
         const dataToSave = { ...caseDataWithPriority, processedBy: authData?.displayName ?? 'Admin' };
-        if (!dataToSave.studentName || !dataToSave.studentId || !dataToSave.counselingTypeCategory) {
-            toast.error("Please fill in Student Name, Student ID, and Counseling Type/Category.");
-            return;
+        console.log(caseDataWithPriority)
+        if (
+            !dataToSave.studentName || !dataToSave.studentId || !dataToSave.counselingTypeCategory ||
+            !dataToSave.programSection || !dataToSave.dateOfInitiation || !dataToSave.timeOfInitiation ||
+            !dataToSave.violation || !dataToSave.dateOfAction ||!dataToSave.caseStatus) {
+                let emptyFields = [];
+                if (!dataToSave.studentName) emptyFields.push('Name');
+                if (!dataToSave.studentId) emptyFields.push('ID');
+                if (!dataToSave.counselingTypeCategory) emptyFields.push('Counseling Type');
+                if (!dataToSave.programSection) emptyFields.push('Program Section');
+                if (!dataToSave.dateOfInitiation) emptyFields.push('Date of Initiation');
+                if (!dataToSave.timeOfInitiation) emptyFields.push('Time of initiation');
+                if (!dataToSave.violation) emptyFields.push('Violation');
+                if (!dataToSave.dateOfAction) emptyFields.push('Date of Action');
+                if (!dataToSave.caseStatus) emptyFields.push('Case Status');
+                const fieldList = emptyFields.join(', ')
+                toast.error(`Please fill out the required fields: ${fieldList}`);
+                return;
         }
+        
         try {
             setIsSubmitting(true);
             const formData = new FormData();
             Object.entries(dataToSave).forEach(([key, value]) => {
                 if (value !== null && value !== undefined) {
-                    if (key === 'proofImage' && value instanceof File)
+                    if (key === 'proofImage' && value instanceof File) {
                         formData.append('proof', value, value.name);
-                    else if (key !== 'proofImage')
-                        formData.append(key, value);
+                    } else if (key !== 'proofImage') {
+                        if (typeof value === 'object') {
+                            formData.append(key, value.value ?? value.label ?? JSON.stringify(value));
+                        } else {
+                            formData.append(key, value);
+                        }
+                    }
                 }
             });
+
             await axios.post("/cases/add", formData, { headers: { "Content-Type": "multipart/form-data" } });
             toast.success("Case Added Successfully!");
             setShowAddModal(false);

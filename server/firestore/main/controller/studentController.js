@@ -125,7 +125,10 @@ const studentSchema = Joi.object({
     reason: Joi.array().items(Joi.string()).empty('').optional().default([]),
     operation: Joi.array().items(Joi.string()).empty('').optional().default([]),
     illness: Joi.array().items(Joi.string()).empty('').optional().default([]),
-    medicalCert: Joi.array().items(Joi.string()).empty('').optional().default([]),
+    medicalCert: Joi.object({
+      urls: Joi.array().items(Joi.string()).optional().default([]),
+      ids: Joi.array().items(Joi.string()).optional().default([])
+    }).optional().default({ urls: [], ids: [] }),
     prescribedDrug: Joi.array().items(Joi.string()).empty('').optional().default([]),
     hereditary: Joi.array().items(Joi.string()).empty('').optional().default([]),
     doctorLastSeen: Joi.array().items(Joi.string()).empty('').optional().default([]),
@@ -251,7 +254,10 @@ const updateSchema = Joi.object({
     reason: Joi.array().items(Joi.string()).empty('').optional().default([]),
     operation: Joi.array().items(Joi.string()).empty('').optional().default([]),
     illness: Joi.array().items(Joi.string()).empty('').optional().default([]),
-    medicalCert: Joi.array().items(Joi.string()).empty('').optional().default([]),
+    medicalCert: Joi.object({
+      urls: Joi.array().items(Joi.string()).optional().default([]),
+      ids: Joi.array().items(Joi.string()).optional().default([])
+    }).optional().default({ urls: [], ids: [] }),
     prescribedDrug: Joi.array().items(Joi.string()).empty('').optional().default([]),
     hereditary: Joi.array().items(Joi.string()).empty('').optional().default([]),
     doctorLastSeen: Joi.array().items(Joi.string()).empty('').optional().default([]),
@@ -321,9 +327,10 @@ const addStudent = async (req, res) => {
         fs.unlinkSync(file.path);
       }
       if (!newStudent.health) newStudent.health = {};
-
-      newStudent.health.medicalCert = resultUrls;
-      newStudent.health.medicalCertIds = publicIds;
+      newStudent.health.medicalCert = {
+        urls: resultUrls,
+        ids: publicIds
+      };
     }
 
     const sid = newStudent.sid;
@@ -428,6 +435,14 @@ const updateStudent = async (req, res) => {
     const { sid } = req.params;
     const { processedBy, ...updates } = req.body;
 
+    if (typeof updates.health === "string") {
+      try {
+        updates.health = JSON.parse(updates.health);
+      } catch (err) {
+        return res.status(400).json({ error: "Invalid health format" });
+      }
+    }
+
     if (!updates || Object.keys(updates).length === 0) {
       return res.status(400).json({ error: "No update data provided" });
     }
@@ -453,14 +468,18 @@ const updateStudent = async (req, res) => {
       const currentDoc = await getStudentCollection().doc(sid).get();
       const currentHealth = currentDoc.exists && currentDoc.data().health ? currentDoc.data().health : {};
 
-      validatedUpdates.health.medicalCert = [
-        ...(currentHealth.medicalCert || []),
-        ...resultUrls
-      ];
-      validatedUpdates.health.medicalCertIds = [
-        ...(currentHealth.medicalCertIds || []),
-        ...publicIds
-      ];
+      const currentCert = currentHealth.medicalCert || {};
+      validatedUpdates.health.medicalCert = {
+        urls: [
+          ...(currentCert.urls || currentHealth.medicalCert || []),
+          ...resultUrls
+        ],
+        ids: [
+          ...(currentCert.ids || currentHealth.medicalCertIds || []),
+          ...publicIds
+        ]
+      };
+
     }
 
     if (req.body.deleteCerts) {
@@ -475,8 +494,13 @@ const updateStudent = async (req, res) => {
         // Get current doc
         const currentDoc = await getStudentCollection().doc(sid).get();
         const currentHealth = currentDoc.exists && currentDoc.data().health ? currentDoc.data().health : {};
-        let medicalCert = Array.isArray(currentHealth.medicalCert) ? [...currentHealth.medicalCert] : [];
-        let medicalCertIds = Array.isArray(currentHealth.medicalCertIds) ? [...currentHealth.medicalCertIds] : [];
+        let medicalCert = Array.isArray(currentHealth.medicalCert?.urls)
+          ? [...currentHealth.medicalCert.urls]
+          : [];
+        let medicalCertIds = Array.isArray(currentHealth.medicalCert?.ids)
+          ? [...currentHealth.medicalCert.ids]
+          : [];
+
 
         // Remove each cert by matching id (or url as fallback)
         toDelete.forEach(({ url, id }) => {
@@ -490,14 +514,13 @@ const updateStudent = async (req, res) => {
           }
           // Remove from Cloudinary
           if (id) {
-            cloudinary.uploader.destroy(id).catch(() => {});
+            cloudinary.uploader.destroy(id).catch(() => { });
           }
         });
 
         // Save updated arrays
         if (!validatedUpdates.health) validatedUpdates.health = {};
-        validatedUpdates.health.medicalCert = medicalCert;
-        validatedUpdates.health.medicalCertIds = medicalCertIds;
+        validatedUpdates.health.medicalCert = { urls: medicalCert, ids: medicalCertIds };
       }
     }
 
@@ -543,7 +566,7 @@ const updateStudent = async (req, res) => {
   } catch (error) {
     console.error("Update error:", error);
 
-    for (const publicId of publicIds){
+    for (const publicId of publicIds) {
       await cloudinary.uploader.destroy(publicId);
     }
 

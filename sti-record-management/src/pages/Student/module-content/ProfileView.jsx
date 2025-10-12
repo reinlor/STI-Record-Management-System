@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useContext } from "react";
 import axios from "axios";
-import { Info, School, Users, Briefcase, Lightbulb, HeartPulse, Pencil, Lock, Phone, UserRound, Leaf, PlusCircle, Trash2, X} from "lucide-react";
+import { Info, School, Users, Briefcase, Lightbulb, HeartPulse, Pencil, Lock, Phone, UserRound, Leaf, PlusCircle, Trash2, X } from "lucide-react";
 import { AuthContext } from "../../../AuthProvider.jsx";
 import LoadingDots from "../../../component/Loading.jsx";
 import { ToastContainer, toast } from "react-toastify";
@@ -722,12 +722,12 @@ export default function ProfileView() {
       // Hospitalized: array of { event, reason }
       initial.hospitalized = Array.isArray(healthData.hospitalized)
         ? healthData.hospitalized.map((event, idx) => ({
-            event: event || "",
-            reason:
-              Array.isArray(healthData.reason) && healthData.reason[idx]
-                ? healthData.reason[idx]
-                : "",
-          }))
+          event: event || "",
+          reason:
+            Array.isArray(healthData.reason) && healthData.reason[idx]
+              ? healthData.reason[idx]
+              : "",
+        }))
         : [];
       // Operation: array of strings
       initial.operation = Array.isArray(healthData.operation)
@@ -792,7 +792,7 @@ export default function ProfileView() {
     const keys = path.split(".");
     let temp = obj;
     for (let i = 0; i < keys.length - 1; i++) {
-      if (!temp[keys[i]]) temp[keys[i] ]= {};
+      if (!temp[keys[i]]) temp[keys[i]] = {};
       temp = temp[keys[i]];
     }
     temp[keys[keys.length - 1]] = value;
@@ -1010,12 +1010,12 @@ export default function ProfileView() {
       let initial = {};
       initial.hospitalized = Array.isArray(healthData.hospitalized)
         ? healthData.hospitalized.map((event, idx) => ({
-            event: event || "",
-            reason:
-              Array.isArray(healthData.reason) && healthData.reason[idx]
-                ? healthData.reason[idx]
-                : "",
-          }))
+          event: event || "",
+          reason:
+            Array.isArray(healthData.reason) && healthData.reason[idx]
+              ? healthData.reason[idx]
+              : "",
+        }))
         : [];
       // Operation: array of strings
       initial.operation = Array.isArray(healthData.operation)
@@ -1036,13 +1036,15 @@ export default function ProfileView() {
           ? healthData.doctorLastSeen[0]
           : "";
       // Load medical certificates with both url and id
-      const certs = Array.isArray(healthData.medicalCert)
-        ? healthData.medicalCert.map((url, idx) => ({
-            name: `Medical Certificate ${idx + 1}`,
-            url,
-            type: getMedicalCertType(url),
-            id: Array.isArray(healthData.medicalCertIds) ? healthData.medicalCertIds[idx] : undefined,
-          }))
+      const certs = Array.isArray(healthData.medicalCert?.urls)
+        ? healthData.medicalCert.urls.map((url, idx) => ({
+          name: `Medical Certificate ${idx + 1}`,
+          url,
+          type: getMedicalCertType(url),
+          id: Array.isArray(healthData.medicalCert?.ids)
+            ? healthData.medicalCert.ids[idx]
+            : undefined,
+        }))
         : [];
       setMedicalCertificates(certs);
       setMedicalCertificatesOriginal(certs);
@@ -1114,8 +1116,8 @@ export default function ProfileView() {
                     ? student.health.reason[idx]
                     : "",
                 })) : [])).length === 0 && !isEditing && (
-                  <div className="text-gray-400 italic">No records.</div>
-                )}
+                    <div className="text-gray-400 italic">No records.</div>
+                  )}
                 {(isEditing ? healthEdit.hospitalized : (Array.isArray(student.health?.hospitalized) ? student.health.hospitalized.map((event, idx) => ({
                   event,
                   reason: Array.isArray(student.health?.reason) && student.health.reason[idx]
@@ -1167,7 +1169,7 @@ export default function ProfileView() {
                     )}
                   </div>
                 ))}
-                 {isEditing && healthEdit.hospitalized?.length === 0 && (
+                {isEditing && healthEdit.hospitalized?.length === 0 && (
                   <div className="text-gray-400 italic p-4 text-center">Click 'Add Entry' to begin.</div>
                 )}
               </div>
@@ -1374,18 +1376,18 @@ export default function ProfileView() {
                 You may upload up to 5 documents here.
               </p>
               <div className="space-y-2">
-                {(isEditing ? medicalCertificates : (student.health?.medicalCert || []).map((url, idx) => ({
-    name: `Medical Certificate ${idx + 1}`,
-    url,
-    type: url.endsWith('.pdf') ? 'application/pdf' : 'image',
-  }))).length === 0 && !isEditing && (
-                  <div className="text-gray-400 italic">No records.</div>
-                )}
-                {(isEditing ? medicalCertificates : (student.health?.medicalCert || []).map((url, idx) => ({
-    name: `Medical Certificate ${idx + 1}`,
-    url,
-    type: url.endsWith('.pdf') ? 'application/pdf' : 'image',
-  }))).map((file, idx) => (
+                {(isEditing ? medicalCertificates : (student.health?.medicalCert?.urls || []).map((url, idx) => ({
+                  name: `Medical Certificate ${idx + 1}`,
+                  url,
+                  type: url.endsWith('.pdf') ? 'application/pdf' : 'image',
+                }))).length === 0 && !isEditing && (
+                    <div className="text-gray-400 italic">No records.</div>
+                  )}
+                {(isEditing ? medicalCertificates : (student.health?.medicalCert?.urls || []).map((url, idx) => ({
+                  name: `Medical Certificate ${idx + 1}`,
+                  url,
+                  type: url.endsWith('.pdf') ? 'application/pdf' : 'image',
+                }))).map((file, idx) => (
                   <div key={idx} className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm flex items-center gap-3">
                     {file.type?.startsWith("image") ? (
                       <img src={file.url} alt={file.name} className="w-16 h-16 object-cover rounded-lg border" />
@@ -1737,8 +1739,8 @@ export default function ProfileView() {
                   {section.title === "Health Conditions"
                     ? renderIllnessField()
                     : fields.map((item, idx) =>
-                        renderField(item, startOffset + idx)
-                      )}
+                      renderField(item, startOffset + idx)
+                    )}
                 </div>
               </div>
             );
@@ -1804,8 +1806,8 @@ export default function ProfileView() {
             <button
               onClick={
                 selectedCategory === "Health" ? handleHealthCancel :
-                selectedCategory === "Interests and Hobbies" ? handleInterestsCancel :
-                handleCancelEdit
+                  selectedCategory === "Interests and Hobbies" ? handleInterestsCancel :
+                    handleCancelEdit
               }
               className="bg-gray-200 hover:bg-gray-300 font-semibold text-gray-800 px-6 py-2 rounded-xl text-sm shadow-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-400"
             >
@@ -1814,8 +1816,8 @@ export default function ProfileView() {
             <button
               onClick={
                 selectedCategory === "Health" ? handleHealthSave :
-                selectedCategory === "Interests and Hobbies" ? handleInterestsSave :
-                handleSave
+                  selectedCategory === "Interests and Hobbies" ? handleInterestsSave :
+                    handleSave
               }
               className="bg-yellow-400 font-semibold text-black px-6 py-2 rounded-xl text-sm shadow-md hover:bg-yellow-500 hover:shadow-lg hover:-translate-y-0.5 transform transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-yellow-400"
             >
@@ -1846,14 +1848,14 @@ export default function ProfileView() {
                     setIsEditing(false);
                   }}
                   className={`w-full text-left py-3 px-4 rounded-xl font-medium flex items-center text-sm shadow-sm hover:shadow-lg hover:-translate-y-0.5 transform transition-all duration-200 ${selectedCategory === categoryName
-                      ? "bg-yellow-400 text-black shadow-lg"
-                      : "text-gray-700 hover:bg-gray-200 hover:text-black"
+                    ? "bg-yellow-400 text-black shadow-lg"
+                    : "text-gray-700 hover:bg-gray-200 hover:text-black"
                     }`}
                 >
                   {React.cloneElement(categories[categoryName].icon, {
                     className: `w-5 h-5 mr-3 transition-colors duration-200 ${selectedCategory === categoryName
-                        ? "text-black"
-                        : "text-gray-600"
+                      ? "text-black"
+                      : "text-gray-600"
                       }`,
                   })}
                   {categoryName}
