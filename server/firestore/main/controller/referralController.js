@@ -15,7 +15,7 @@ const referralSchema = Joi.object({
   program: Joi.string().required(),
   gender: Joi.string().required(),
   status: Joi.string().required(),
-  age: Joi.number().required().options({ convert: true }),
+  age: Joi.number().optional().allow(null, '').options({ convert: true }),
   referredBy: Joi.string().required(),
   areasOfConcern: Joi.array().optional(),  // subject to remove this bullshet
   counselingTypeCategory: Joi.string().required(),
