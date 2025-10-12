@@ -7,6 +7,7 @@ import axios from "axios";
 import { AuthContext } from "../AuthProvider.jsx";
 import { Eye, EyeOff } from "lucide-react";
 import stiBg from "../assets/dasma-sti.jpg";
+import LoadingDots from "../component/Loading.jsx";
 
 function LoginBeta() {
   const [schoolId, setSchoolId] = useState("");
@@ -93,8 +94,8 @@ function LoginBeta() {
 
   if (checkingSession) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p>Loading...</p>
+      <div className="flex items-center justify-center h-screen w-screen bg-white">
+        <LoadingDots/>
       </div>
     );
   }
