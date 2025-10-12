@@ -141,14 +141,14 @@ function RequestSlip() {
         ? {
           status,
           remarks,
-          name: authData.user.displayName,
+          name: authData?.user?.displayName ?? 'Admin',
           uid: slip.sid,
           studentName: slip.name
         }
         : {
           status,
           remarks,
-          name: authData.user.displayName,
+          name: authData?.user?.displayName ?? 'Admin',
           uid: slip.sid,
           studentName: slip.name
         };

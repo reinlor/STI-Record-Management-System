@@ -225,7 +225,7 @@ function StudentCases() {
         if (!editedCaseData || !selectedCaseId) return;
         try {
             const payload = uiDetailsToServerPayload(editedCaseData);
-            await axios.put(`/cases/update/${selectedCaseId}`, { ...payload, processedBy: authData.displayName });
+            await axios.put(`/cases/update/${selectedCaseId}`, { ...payload, processedBy: authData?.displayName ?? 'Admin'});
             toast.success("Changes saved successfully!");
             setIsEditing(false);
         } catch {
@@ -236,7 +236,7 @@ function StudentCases() {
     const handleArchiveCase = async () => {
         if (!selectedCaseId) return;
         try {
-            await axios.put(`/cases/update/${selectedCaseId}`, { status: "Resolved", processedBy: authData.displayName });
+            await axios.put(`/cases/update/${selectedCaseId}`, { status: "Resolved", processedBy: authData?.displayName ?? 'Admin' });
             setCases(prev => prev.map(c => c.id === selectedCaseId ? { ...c, status: "Resolved" } : c));
             toast.success("Case status updated to Resolved!");
             setSelectedCaseId(null);
@@ -246,7 +246,7 @@ function StudentCases() {
     };
 
     const handleAddCase = async (caseDataWithPriority) => {
-        const dataToSave = { ...caseDataWithPriority, processedBy: authData.displayName };
+        const dataToSave = { ...caseDataWithPriority, processedBy: authData?.displayName ?? 'Admin' };
         if (!dataToSave.studentName || !dataToSave.studentId || !dataToSave.counselingTypeCategory) {
             toast.error("Please fill in Student Name, Student ID, and Counseling Type/Category.");
             return;

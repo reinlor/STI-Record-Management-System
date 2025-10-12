@@ -277,7 +277,7 @@ const AddStudentModal = ({ visible, onClose, newStudentForm = null, clearForm = 
         };
 
         try {
-            await axios.post("/student/create", { processedBy: authData?.displayName, ...payload });
+            await axios.post("/student/create", { processedBy: authData?.displayName ?? 'Admin', ...payload });
             toast.success("Student Created Successfully!");
             if (clearForm) clearForm();
             onClose();

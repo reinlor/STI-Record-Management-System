@@ -126,7 +126,7 @@ function ReferralFormProcessing() {
         ...selectedReferral,
         // counselorNote: counselorNote,
         status: newStatus,
-        name: authData.user.displayName,
+        name: authData?.user?.displayName ?? 'Admin',
         uid: selectedReferral.employeeID
       };
 

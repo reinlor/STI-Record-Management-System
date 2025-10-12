@@ -305,7 +305,7 @@ function StudentList() {
             const { id, ...updatedData } = editedStudentData;
             console.log(updatedData)
 
-            await axios.put(`/student/update/${modalStudent.id}`, updatedData);
+            await axios.put(`/student/update/${modalStudent.id}`, {processedBy: authData?.displayName ?? 'Admin' ,...updatedData});
 
             setStudents(students =>
                 students.map(s => s.id === modalStudent.id ? editedStudentData : s)
@@ -325,7 +325,7 @@ function StudentList() {
     const handleArchive = async () => {
         if (!modalStudent) return;
         try {
-            await axios.put(`/student/archiveData/${modalStudent.id}`, { processedBy: authData.displayName });
+            await axios.put(`/student/archiveData/${modalStudent.id}`, { processedBy: authData?.displayName ?? 'Admin' });
             setStudents(students =>
                 students.map(s =>
                     s.id === modalStudent.id ? { ...s, isArchived: true } : s
@@ -343,7 +343,7 @@ function StudentList() {
     const handleRestore = async () => {
         if (!modalStudent) return;
         try {
-            await axios.put(`/student/restoreData/${modalStudent.id}`, { processedBy: authData.displayName });
+            await axios.put(`/student/restoreData/${modalStudent.id}`, { processedBy: authData?.displayName ?? 'Admin' });
             setStudents(students =>
                 students.map(s =>
                     s.id === modalStudent.id ? { ...s, isArchived: false } : s
