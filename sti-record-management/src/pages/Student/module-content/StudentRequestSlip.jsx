@@ -108,6 +108,9 @@ export default function StudentRequestSlip() {
     e.preventDefault();
     setIsLoading(true);
 
+    // Show loading toast
+    const toastId = toast.loading("Submitting, please wait...");
+
     const form = new FormData();
     form.append("name", formData.name);
     form.append("sid", formData.sid);
@@ -180,7 +183,7 @@ export default function StudentRequestSlip() {
       await axios.post(endpoint, form, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      toast.success("Form submitted successfully!");
+      toast.update(toastId, { render: "Form submitted successfully!", type: "success", isLoading: false, autoClose: 2000 });
       setFormData((prev) => ({
         ...prev,
         dateAbsent: "",
@@ -206,11 +209,15 @@ export default function StudentRequestSlip() {
       setAbsentReason("");
     } catch (error) {
       console.error(error);
-      toast.error(
-        error.response?.data?.error ||
-        error.message ||
-        "Failed to submit form. Please try again."
-      );
+      toast.update(toastId, {
+        render:
+          error.response?.data?.error ||
+          error.message ||
+          "Failed to submit form. Please try again.",
+        type: "error",
+        isLoading: false,
+        autoClose: 3000,
+      });
     } finally {
       setIsLoading(false);
     }
