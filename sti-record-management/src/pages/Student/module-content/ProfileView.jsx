@@ -6,13 +6,7 @@ import LoadingDots from "../../../component/Loading.jsx";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-// Add this helper for file upload (replace with your actual upload logic)
-const uploadFile = async (file) => {
-  // Replace with your actual upload logic (e.g., to Firebase Storage)
-  // Return the uploaded file's URL
-  // For demo, just return a local object URL
-  return URL.createObjectURL(file);
-};
+const getMedicalCertType = (url) => url.endsWith('.pdf') ? 'application/pdf' : 'image';
 
 export default function ProfileView() {
   const [studentId, setStudentId] = useState(null);
@@ -26,6 +20,9 @@ export default function ProfileView() {
   const [medicalCertificates, setMedicalCertificates] = useState([]);
   const [medicalCertificatesOriginal, setMedicalCertificatesOriginal] = useState([]);
   const { authData } = useContext(AuthContext);
+
+  // Track certs to delete (by index in the arrays)
+  const [certsToDelete, setCertsToDelete] = useState([]);
 
   const lockedFields = [
     "Student Number",
@@ -687,16 +684,18 @@ export default function ProfileView() {
         icon: <Leaf className={iconClass} />,
         data: [
           {
-            label: "Recent Loss",
+            label: "Recent Loss or Major Life Change",
             value: student.lifeCircumstances?.recentLoss || "",
             type: "text",
             path: "lifeCircumstances.recentLoss",
+            description: "Describe any recent loss or big change in your life that affected you.",
           },
           {
-            label: "Current Concern",
+            label: "Current Concern or Challenge",
             value: student.lifeCircumstances?.currentConcern || "",
             type: "text",
             path: "lifeCircumstances.currentConcern",
+            description: "Share any problem or concern you’re currently experiencing.",
           },
         ],
       },
@@ -818,6 +817,7 @@ export default function ProfileView() {
   // Save handler for Health section
   // SEAN
   const handleHealthSave = async () => {
+    // Prepare health fields
     let updateObj = {
       health: {
         hospitalized: healthEdit.hospitalized.map(h => h.event).filter(v => v !== ""),
@@ -827,31 +827,49 @@ export default function ProfileView() {
         prescribedDrug: healthEdit.prescribedDrug.filter(v => v !== ""),
         hereditary: healthEdit.hereditary.filter(v => v !== ""),
         doctorLastSeen: healthEdit.doctorLastSeen ? [healthEdit.doctorLastSeen] : [],
-        medicalCert: healthEdit.medicalCert.filter(v => v !== ""),
+        // Do NOT send medicalCert here, backend will merge
       },
-      medicalCertificates: medicalCertificates,
     };
 
-    if (
-      JSON.stringify(updateObj.health) === JSON.stringify(healthOriginal) &&
-      JSON.stringify(medicalCertificates) === JSON.stringify(medicalCertificatesOriginal)
-    ) {
-      setIsEditing(false);
-      return;
-    }
+    // Separate new files from already uploaded certificates
+    const newFiles = medicalCertificates.filter(isFileObj);
+    // Existing certificates (already uploaded, have only url/name/type/id)
+    const existingCerts = medicalCertificates.filter((f) => !isFileObj(f));
 
+    let toastId;
     try {
-      await axios.put(`/student/update/${studentId}`, updateObj);
-      setStudent((prevStudent) =>
-        deepMerge({ ...prevStudent }, updateObj)
-      );
+      toastId = toast.loading("Saving, please wait...");
+      let formData;
+      let hasFiles = newFiles.length > 0;
+      let hasDeletions = certsToDelete.length > 0;
+
+      if (hasFiles || hasDeletions) {
+        formData = new FormData();
+        formData.append("health", JSON.stringify(updateObj.health));
+        if (hasFiles) {
+          newFiles.forEach((cert) => {
+            formData.append("attachments", cert.file);
+          });
+        }
+        if (hasDeletions) {
+          // Send array of objects: [{url, id}]
+          formData.append("deleteCerts", JSON.stringify(certsToDelete));
+        }
+        await axios.put(`/student/update/${studentId}`, formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+      } else {
+        // No new files or deletions, just update health info
+        await axios.put(`/student/update/${studentId}`, updateObj);
+      }
+      // After saving, reload student data and update medicalCertificates state
+      await fetchStudentData();
       setIsEditing(false);
-      setHealthOriginal(JSON.parse(JSON.stringify(updateObj.health)));
-      setMedicalCertificatesOriginal([...medicalCertificates]);
-      toast.success("Profile updated successfully!");
+      setCertsToDelete([]);
+      toast.update(toastId, { render: "Profile updated successfully!", type: "success", isLoading: false, autoClose: 2000 });
     } catch (err) {
       console.error("Failed to update health info.", err);
-      toast.error("Failed to update profile.");
+      toast.update(toastId, { render: "Failed to update profile.", type: "error", isLoading: false, autoClose: 3000 });
     }
   };
 
@@ -984,24 +1002,80 @@ export default function ProfileView() {
     }));
   };
 
-  const handleMedicalCertUpload = async (e) => {
-  const files = Array.from(e.target.files);
-  const uploadedFiles = await Promise.all(
-    files.map(async (file) => {
-      const url = await uploadFile(file);
-      return {
-        name: file.name,
-        url,
-        type: file.type,
-      };
-    })
-  );
-  setMedicalCertificates((prev) => [...prev, ...uploadedFiles]);
-};
+  // When switching to Health, sync medicalCertificates state from backend (with IDs)
+  useEffect(() => {
+    if (["Health", "Basic Information"].includes(selectedCategory) && student) {
+      const healthData = student.health || {};
+      // Hospitalized: array of { event, reason }
+      let initial = {};
+      initial.hospitalized = Array.isArray(healthData.hospitalized)
+        ? healthData.hospitalized.map((event, idx) => ({
+            event: event || "",
+            reason:
+              Array.isArray(healthData.reason) && healthData.reason[idx]
+                ? healthData.reason[idx]
+                : "",
+          }))
+        : [];
+      // Operation: array of strings
+      initial.operation = Array.isArray(healthData.operation)
+        ? [...healthData.operation]
+        : [];
+      initial.illness = Array.isArray(healthData.illness)
+        ? [...healthData.illness]
+        : [];
+      initial.prescribedDrug = Array.isArray(healthData.prescribedDrug)
+        ? [...healthData.prescribedDrug]
+        : [];
+      initial.hereditary = Array.isArray(healthData.hereditary)
+        ? [...healthData.hereditary]
+        : [];
+      // Only one entry for doctorLastSeen
+      initial.doctorLastSeen =
+        Array.isArray(healthData.doctorLastSeen) && healthData.doctorLastSeen.length > 0
+          ? healthData.doctorLastSeen[0]
+          : "";
+      // Load medical certificates with both url and id
+      const certs = Array.isArray(healthData.medicalCert)
+        ? healthData.medicalCert.map((url, idx) => ({
+            name: `Medical Certificate ${idx + 1}`,
+            url,
+            type: getMedicalCertType(url),
+            id: Array.isArray(healthData.medicalCertIds) ? healthData.medicalCertIds[idx] : undefined,
+          }))
+        : [];
+      setMedicalCertificates(certs);
+      setMedicalCertificatesOriginal(certs);
+      setCertsToDelete([]); // Reset deletion tracker
+    }
+  }, [selectedCategory, student]);
 
-const handleMedicalCertRemove = (idx) => {
-  setMedicalCertificates((prev) => prev.filter((_, i) => i !== idx));
-};
+  // Helper: check if a medical certificate is a new File
+  const isFileObj = (entry) => entry.file instanceof File;
+
+  // Upload handler
+  const handleMedicalCertUpload = (e) => {
+    const files = Array.from(e.target.files);
+    const uploadedFiles = files.map((file) => ({
+      name: file.name,
+      file,
+      type: file.type,
+      url: URL.createObjectURL(file),
+    }));
+    setMedicalCertificates((prev) => [...prev, ...uploadedFiles]);
+  };
+
+  // Remove handler (for both new and existing certs)
+  const handleMedicalCertRemove = (idx) => {
+    setMedicalCertificates((prev) => {
+      const removed = prev[idx];
+      // If it's an existing cert (has id), track for deletion
+      if (removed && removed.id) {
+        setCertsToDelete((del) => [...del, { url: removed.url, id: removed.id }]);
+      }
+      return prev.filter((_, i) => i !== idx);
+    });
+  };
 
   // Render Health section (edit & view mode)
   const renderHealthSection = () => {
@@ -1297,15 +1371,23 @@ const handleMedicalCertRemove = (idx) => {
                 )}
               </div>
               <p className="text-xs text-gray-700 mb-2">
-                You may upload or link documents here.
+                You may upload up to 5 documents here.
               </p>
               <div className="space-y-2">
-                {(isEditing ? medicalCertificates : student.medicalCertificates || []).length === 0 && !isEditing && (
+                {(isEditing ? medicalCertificates : (student.health?.medicalCert || []).map((url, idx) => ({
+    name: `Medical Certificate ${idx + 1}`,
+    url,
+    type: url.endsWith('.pdf') ? 'application/pdf' : 'image',
+  }))).length === 0 && !isEditing && (
                   <div className="text-gray-400 italic">No records.</div>
                 )}
-                {(isEditing ? medicalCertificates : student.medicalCertificates || []).map((file, idx) => (
+                {(isEditing ? medicalCertificates : (student.health?.medicalCert || []).map((url, idx) => ({
+    name: `Medical Certificate ${idx + 1}`,
+    url,
+    type: url.endsWith('.pdf') ? 'application/pdf' : 'image',
+  }))).map((file, idx) => (
                   <div key={idx} className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm flex items-center gap-3">
-                    {file.type?.startsWith("image/") ? (
+                    {file.type?.startsWith("image") ? (
                       <img src={file.url} alt={file.name} className="w-16 h-16 object-cover rounded-lg border" />
                     ) : (
                       <a href={file.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
@@ -1530,6 +1612,9 @@ const handleMedicalCertRemove = (idx) => {
           {item.label}
           {isLocked && <Lock className="w-3 h-3 text-gray-400 ml-1" />}
         </p>
+        {item.description && (
+          <p className="text-xs text-gray-500 mb-1">{item.description}</p>
+        )}
         {isEditing && !isLocked ? (
           <input
             type={item.type}
