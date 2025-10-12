@@ -1,11 +1,10 @@
 const express = require('express');
-const multer = require('multer');
-const { exportData, importData } = require('../controller/backupController');
-
 const router = express.Router();
-const upload = multer();
+const backupController = require('../controller/backupController');
 
-router.post('/export', exportData);
-router.post('/import', upload.single('backup'), importData);
+router.post('/export-now', backupController.backupData); 
+router.get('/logs', backupController.getBackupLogs);
+router.get('/schedule', backupController.getBackupSchedule);
+router.post('/schedule', backupController.setBackupSchedule);
 
 module.exports = router;
