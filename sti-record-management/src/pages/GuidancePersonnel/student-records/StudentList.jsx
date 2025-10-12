@@ -26,14 +26,14 @@ import AddStudentModal from "./components/AddStudentModal";
 import BulkModal from "./components/BulkModal";
 import PhotoToTextModal from "./components/PhotoToTextModal";
 import ArchiveConfirmModal from "./components/ArchiveConfirmModal";
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import ViolationPanel from "./components/ViolationPanel";
 import CasesTable from "./components/CasesTable";
 import LoadingDots from "../../../component/Loading";
 import { collection, onSnapshot } from "firebase/firestore";
 import { auth, db } from "../../../firebaseClient.js";
-import { AuthContext } from '../../../AuthProvider.jsx';
+import { AuthContext } from "../../../AuthProvider.jsx";
 
 const STATUS_OPTIONS = [
     { value: "all", label: "All Status" },
@@ -57,7 +57,7 @@ const INFO_TYPES = [
     { key: "interests", label: "Interests" },
     { key: "health", label: "Health" },
     { key: "life", label: "Life" },
-    { key: "violation", label: "Violation" }
+    { key: "violation", label: "Violation" },
 ];
 
 function StudentList() {
@@ -86,7 +86,7 @@ function StudentList() {
     const [modalStudent, setModalStudent] = useState(null);
 
     // Add Student Modal state
-    const [showAddMode, setShowAddMode] = useState(null); // 'individual', 'bulk', 'photo'
+    const [showAddMode, setShowAddMode] = useState(null);
     const [showArchiveModal, setShowArchiveModal] = useState(false);
 
     // Info section state
@@ -128,8 +128,7 @@ function StudentList() {
     const [currentPage, setCurrentPage] = useState(1);
     const rowsPerPage = 10;
 
-
-    // Fetch students and filter options
+    // Fetch students and set filter options
     useEffect(() => {
         setLoading(true);
 
@@ -165,30 +164,23 @@ function StudentList() {
             }
         );
 
-        // Cleanup listener when unmounting
         return () => unsubscribe();
     }, []);
 
     if (loading) {
-        return <LoadingDots />
+        return <LoadingDots />;
     }
 
     // Filtering logic
-    const filtered = students.filter(student => {
+    const filtered = students.filter((student) => {
         const profile = student.studentProfile || {};
-        // Academic Level
         if (activeLevel === "shs" && profile.academicLevel === "Tertiary") return false;
         if (activeLevel === "college" && profile.academicLevel !== "Tertiary") return false;
-        // Search
         const searchStr = (profile.name || "") + (student.sid || "");
         if (search && !searchStr.toLowerCase().includes(search.toLowerCase())) return false;
-        // Program
         if (selectedProgram !== "all" && profile.program !== selectedProgram) return false;
-        // Section
         if (selectedSection !== "all" && profile.section !== selectedSection) return false;
-        // Gender
         if (selectedGender !== "all" && profile.gender !== selectedGender) return false;
-        // Status
         if (selectedStatus !== "all") {
             if (selectedStatus === "active" && student.isArchived) return false;
             if (selectedStatus === "inactive" && !student.isArchived) return false;
@@ -196,11 +188,9 @@ function StudentList() {
         return true;
     });
 
-    // Responsive: get filtered program/strand and section options
     const filteredProgramOptions = (() => {
-        // Only show programs/strands for the selected academic level
         const progs = new Set();
-        students.forEach(stu => {
+        students.forEach((stu) => {
             const profile = stu.studentProfile || {};
             if (
                 (activeLevel === "shs" && profile.academicLevel !== "Tertiary") ||
@@ -213,18 +203,14 @@ function StudentList() {
     })();
 
     const filteredSectionOptions = (() => {
-        // Only show sections for the selected program/strand and academic level
         const sects = new Set();
-        students.forEach(stu => {
+        students.forEach((stu) => {
             const profile = stu.studentProfile || {};
             if (
                 (activeLevel === "shs" && profile.academicLevel !== "Tertiary") ||
                 (activeLevel === "college" && profile.academicLevel === "Tertiary")
             ) {
-                if (
-                    (selectedProgram === "all" || profile.program === selectedProgram) &&
-                    profile.section
-                ) {
+                if ((selectedProgram === "all" || profile.program === selectedProgram) && profile.section) {
                     sects.add(profile.section);
                 }
             }
@@ -232,7 +218,7 @@ function StudentList() {
         return ["all", ...Array.from(sects)];
     })();
 
-    // Table columns for large screens
+    // Table columns
     const columns = [
         { label: "Student ID", key: "sid", show: "lg" },
         { label: "Name", key: "name", show: "all" },
@@ -241,21 +227,21 @@ function StudentList() {
         { label: "Status", key: "status", show: "all" },
     ];
 
-    // For "Showing X results of Y total"
-    const totalCount = students.filter(student => {
+    const totalCount = students.filter((student) => {
         const profile = student.studentProfile || {};
         if (activeLevel === "shs" && profile.academicLevel === "Tertiary") return false;
         if (activeLevel === "college" && profile.academicLevel !== "Tertiary") return false;
         return true;
     }).length;
 
-    // Colors
+    // UI utilities
     const blue = "#0172bd";
     const grayBg = "bg-gray-100";
     const whiteBg = "bg-white";
     const labelClass = "text-3xl font-bold text-[#0172bd] flex items-center gap-2";
     const filterLabel = "text-xs font-semibold text-gray-500 mb-1 ml-1";
-    const dropdownClass = "block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-[#0172bd] focus:border-transparent bg-white text-[#0172bd] text-sm appearance-none pr-8";
+    const dropdownClass =
+        "block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-[#0172bd] focus:border-transparent bg-white text-[#0172bd] text-sm appearance-none pr-8";
     const tableHeaderClass = "bg-[#0172bd] text-white font-bold px-4 py-2";
     const tableCellClass = "px-4 py-3 whitespace-nowrap";
     const tableRowClass = "hover:bg-gray-100 transition cursor-pointer";
@@ -269,7 +255,7 @@ function StudentList() {
         setSelectedStatus("active");
     };
 
-    // Modal open handler
+    // Modal open / close
     const openStudentModal = (student) => {
         setModalStudent(student);
         setEditedStudentData(JSON.parse(JSON.stringify(student)));
@@ -278,7 +264,6 @@ function StudentList() {
         setModalOpen(true);
     };
 
-    // Modal close handler
     const closeStudentModal = () => {
         setModalOpen(false);
         setModalStudent(null);
@@ -287,13 +272,12 @@ function StudentList() {
     };
 
     // Add Student Button Handlers
-    const handleAddIndividual = () => setShowAddMode('individual');
-    const handleAddBulk = () => setShowAddMode('bulk');
-    const handleAddPhoto = () => setShowAddMode('photo');
+    const handleAddIndividual = () => setShowAddMode("individual");
+    const handleAddBulk = () => setShowAddMode("bulk");
+    const handleAddPhoto = () => setShowAddMode("photo");
     const closeAddModal = () => setShowAddMode(null);
 
-    // --- Functions from StudentRecords for modal actions ---
-    // Edit
+    // Editing handlers
     const handleEdit = () => setIsEditing(true);
     const handleCancelEdit = () => {
         setIsEditing(false);
@@ -302,13 +286,27 @@ function StudentList() {
 
     const handleSaveEdit = async () => {
         try {
-            const { id, ...updatedData } = editedStudentData;
-            console.log(updatedData)
+            if (!editedStudentData) {
+                toast.error("No data to save.");
+                return;
+            }
 
-            await axios.put(`/student/update/${modalStudent.id}`, {processedBy: authData?.displayName ?? 'Admin' ,...updatedData});
+            const sidParam = modalStudent?.sid || modalStudent?.id || editedStudentData?.sid || editedStudentData?.id;
+            if (!sidParam) {
+                toast.error("Missing student identifier (sid).");
+                return;
+            }
+            const { id, ...payload } = editedStudentData;
+            await axios.put(`/student/update/${sidParam}`, { processedBy: authData?.displayName ?? "Admin", ...payload });
 
-            setStudents(students =>
-                students.map(s => s.id === modalStudent.id ? editedStudentData : s)
+            // Update local list
+            setStudents((prevStudents) =>
+                prevStudents.map((s) => {
+                    if (s.id === modalStudent.id || s.sid === sidParam || s.id === editedStudentData.id || s.sid === editedStudentData.sid) {
+                        return { ...s, ...editedStudentData };
+                    }
+                    return s;
+                })
             );
 
             toast.success("Changes saved successfully!");
@@ -320,17 +318,12 @@ function StudentList() {
         }
     };
 
-
-    // Archive
+    // Archive / Restore handlers (unchanged logic)
     const handleArchive = async () => {
         if (!modalStudent) return;
         try {
-            await axios.put(`/student/archiveData/${modalStudent.id}`, { processedBy: authData?.displayName ?? 'Admin' });
-            setStudents(students =>
-                students.map(s =>
-                    s.id === modalStudent.id ? { ...s, isArchived: true } : s
-                )
-            );
+            await axios.put(`/student/archiveData/${modalStudent.id}`, { processedBy: authData?.displayName ?? "Admin" });
+            setStudents((students) => students.map((s) => (s.id === modalStudent.id ? { ...s, isArchived: true } : s)));
             setShowArchiveModal(false);
             closeStudentModal();
             toast.success("Student archived successfully!");
@@ -339,16 +332,11 @@ function StudentList() {
         }
     };
 
-    // Restore
     const handleRestore = async () => {
         if (!modalStudent) return;
         try {
-            await axios.put(`/student/restoreData/${modalStudent.id}`, { processedBy: authData?.displayName ?? 'Admin' });
-            setStudents(students =>
-                students.map(s =>
-                    s.id === modalStudent.id ? { ...s, isArchived: false } : s
-                )
-            );
+            await axios.put(`/student/restoreData/${modalStudent.id}`, { processedBy: authData?.displayName ?? "Admin" });
+            setStudents((students) => students.map((s) => (s.id === modalStudent.id ? { ...s, isArchived: false } : s)));
             setShowArchiveModal(false);
             closeStudentModal();
             toast.success("Student restored successfully!");
@@ -357,27 +345,25 @@ function StudentList() {
         }
     };
 
-
-    // Case
+    // Case toggle
     const handleCaseButton = () => {
-        setShowCasesView(s => !s);
-
+        setShowCasesView((s) => !s);
         if (isEditing) setIsEditing(false);
     };
 
     // Info field change
     const handleFieldChange = (category, field, value) => {
         setEditedStudentData((prev) => {
-            const base = prev || JSON.parse(JSON.stringify(modalStudent || {}));
+            const base = JSON.parse(JSON.stringify(prev || modalStudent || {}));
             return updateRawField(base, category, field, value);
         });
     };
 
-    // Helper function for Violation Panel
+    // Violation panel helper
     const updateEditedStudent = (path, value) => {
         setEditedStudentData((prev) => {
             const next = JSON.parse(JSON.stringify(prev || {}));
-            const parts = path.split('.');
+            const parts = path.split(".");
             let cur = next;
             for (let i = 0; i < parts.length - 1; i++) {
                 const p = parts[i];
@@ -389,7 +375,6 @@ function StudentList() {
         });
     };
 
-    // helper to replace entire violations object on editedStudentData
     const replaceEditedStudentViolations = (newViolations) => {
         setEditedStudentData((prev) => ({ ...(prev || {}), violations: newViolations }));
     };
@@ -407,101 +392,101 @@ function StudentList() {
     // Pagination logic
     const totalRows = filtered.length;
     const totalPages = Math.ceil(totalRows / rowsPerPage);
-    const pagedStudents = filtered.slice(
-        (currentPage - 1) * rowsPerPage,
-        currentPage * rowsPerPage
-    );
+    const pagedStudents = filtered.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage);
 
-    // Download Excel logic (all info types)
+    // Download Excel
     const handleDownload = () => {
         let data = [];
         if (downloadSHS) {
-            data = data.concat(
-                students.filter(
-                    s => s.studentProfile?.academicLevel !== "Tertiary"
-                )
-            );
+            data = data.concat(students.filter((s) => s.studentProfile?.academicLevel !== "Tertiary"));
         }
         if (downloadCollege) {
-            data = data.concat(
-                students.filter(
-                    s => s.studentProfile?.academicLevel === "Tertiary"
-                )
-            );
+            data = data.concat(students.filter((s) => s.studentProfile?.academicLevel === "Tertiary"));
         }
         if (data.length === 0) {
             alert("Please select at least one group to download.");
             return;
         }
-        // Gather all info types for each student
-        const excelData = data.map(s => {
+
+        const stringifyCell = (v) => {
+            if (Array.isArray(v)) return v.join("\n");
+            if (v === null || v === undefined) return "";
+            return String(v);
+        };
+
+        const excelData = data.map((s) => {
             const info = normalizeForUI(s);
+
             return {
-                "Student ID": s.sid,
-                "Name": s.studentProfile?.name,
-                "Gender": s.studentProfile?.gender,
-                "Program": s.studentProfile?.program,
-                "Section": s.studentProfile?.section,
-                "Academic Level": s.studentProfile?.academicLevel,
-                "Status": s.isArchived ? "Inactive" : "Active",
-                "Email": info.basic?.emailAddress,
-                "Contact No": info.basic?.mobilePhoneNumber,
-                // Basic
-                "Birth Date": info.basic?.birthDate,
-                "Personal Place of Birth": info.personal?.birthDate,
-                "Address": info.basic?.address,
-                "Health Condition": info.basic?.healthCondition,
-                "Emergency Contact": info.basic?.emergencyContact,
-                // Personal
-                "Religion": info.personal?.religion,
-                "Civil Status": info.personal?.status,
-                "Personal Nationality": info.personal?.nationality,
-                // Contact
-                "Mobile No": info.contact?.mobilePhoneNumber,
-                "Home No": info.contact?.homeNumber,
-                "Contact Address": info.contact?.presentAddress,
-                // Family
-                "Father Name": info.family?.fatherName,
-                "Father Occupation": info.family?.fatherOccupation,
-                "Mother Name": info.family?.motherName,
-                "Mother Occupation": info.family?.motherOccupation,
-                "Guardian Name": info.family?.nameOfGuardian,
-                "Guardian Contact": info.family?.guardianContactNumber,
-                // Educational
-                "Elementary School": info.educational?.nameOfGradeSchool,
-                "Elementary Year Graduated": info.educational?.yearsAttendedGradeSchool,
-                "Junior High School": info.educational?.nameOfJuniorHighSchool,
-                "Junior High Year Graduated": info.educational?.yearsAttendedJuniorHighSchool,
-                "Senior High School": info.educational?.nameOfSeniorHighSchool,
-                "Senior High Year Graduated": info.educational?.yearsAttendedSeniorHighSchool,
-                "College School": info.educational?.nameOfCollege,
-                "College Year Graduated": info.educational?.yearsAttendedCollege,
-                // Work
-                "Work Company": info.work?.nameOfCompanyInstitution,
-                "Work description": info.work?.jobDescription,
-                "Work Years": info.work?.durationFromTo,
-                // Interests
-                "Sports": info.interests?.sports,
-                "Hobbies": info.interests?.hobbies,
-                "Talents": info.interests?.talents,
-                "Socio Civic": info.interests?.socioCivic,
-                "Organization": info.interests?.organizationsInvolved,
-                // Health
-                "Hospitalized": info.health?.hospitalized,
-                "Reason of Hospitalization": info.health?.reason,
-                "Undergo an Operation": info.health?.operation,
-                "Health Condition": info.health?.illnessCondition,
-                "Medical Certificate": info.health?.medicalCertificate,
-                "Prescribed Drugs": info.health?.takePrescribedDrugs,
-                "Heriditary Illness": info.health?.hereditaryIllness,
-                "Last Saw Doctor": info.health?.lastSawDoctor,
-                // Life
-                "Recent Loss": info.life?.recentLoss,
-                "Current Concerns": info.life?.currentConcern,
-                // Violations
+                "Student ID": s.sid ?? s.id ?? "",
+                Name: s.studentProfile?.name ?? "",
+                Gender: s.studentProfile?.gender ?? "",
+                Program: s.studentProfile?.program ?? "",
+                Section: s.studentProfile?.section ?? "",
+                "Academic Level": s.studentProfile?.academicLevel ?? "",
+                Status: s.isArchived ? "Inactive" : "Active",
+                Email: info.basic?.emailAddress ?? "",
+                "Contact No": info.basic?.mobilePhoneNumber ?? "",
+                "Birth Date": info.basic?.birthDate ?? "",
+                "Personal Place of Birth": info.personal?.birthDate ?? "",
+                Address: info.basic?.address ?? "",
+                "Health Condition": stringifyCell(info.basic?.healthCondition),
+                "Emergency Contact": info.basic?.emergencyContact ?? "",
+                Religion: info.personal?.religion ?? "",
+                "Civil Status": info.personal?.status ?? "",
+                "Personal Nationality": info.personal?.nationality ?? "",
+                "Mobile No": info.contact?.mobilePhoneNumber ?? "",
+                "Home No": info.contact?.homeNumber ?? "",
+                "Contact Address": info.contact?.presentAddress ?? "",
+                "Father Name": info.family?.fatherName ?? "",
+                "Father Occupation": info.family?.fatherOccupation ?? "",
+                "Mother Name": info.family?.motherName ?? "",
+                "Mother Occupation": info.family?.motherOccupation ?? "",
+                "Guardian Name": info.family?.nameOfGuardian ?? "",
+                "Guardian Contact": info.family?.guardianContactNumber ?? "",
+                Siblings: stringifyCell(info.family?.siblings),
+                "Elementary School": info.educational?.nameOfGradeSchool ?? "",
+                "Elementary Year Graduated": info.educational?.yearsAttendedGradeSchool ?? "",
+                "Junior High School": info.educational?.nameOfJuniorHighSchool ?? "",
+                "Junior High Year Graduated": info.educational?.yearsAttendedJuniorHighSchool ?? "",
+                "Senior High School": info.educational?.nameOfSeniorHighSchool ?? "",
+                "Senior High Year Graduated": info.educational?.yearsAttendedSeniorHighSchool ?? "",
+                "College School": info.educational?.nameOfCollege ?? "",
+                "College Year Graduated": info.educational?.yearsAttendedCollege ?? "",
+                "Work Company": info.work?.nameOfCompanyInstitution ?? "",
+                "Work description": info.work?.jobDescription ?? "",
+                "Work Years": info.work?.durationFromTo ?? "",
+                Sports: stringifyCell(info.interests?.sports),
+                Hobbies: stringifyCell(info.interests?.hobbies),
+                Talents: stringifyCell(info.interests?.talents),
+                "Socio Civic": stringifyCell(info.interests?.socioCivic),
+                Organization: stringifyCell(info.interests?.organization),
+                Hospitalized: stringifyCell(info.health?.hospitalized),
+                "Reason of Hospitalization": stringifyCell(info.health?.reason),
+                "Undergo an Operation": stringifyCell(info.health?.operation),
+                "Health Condition (detailed)": stringifyCell(info.health?.illness),
+                "Medical Certificate": stringifyCell(info.health?.medicalCert),
+                "Prescribed Drugs": stringifyCell(info.health?.prescribedDrug),
+                "Heriditary Illness": stringifyCell(info.health?.hereditary),
+                "Last Saw Doctor": stringifyCell(info.health?.doctorLastSeen),
+                "Recent Loss": info.life?.recentLoss ?? "",
+                "Current Concerns": info.life?.currentConcern ?? "",
+                Violations: info.violations ? JSON.stringify(info.violations) : "",
             };
         });
+
         const ws = XLSX.utils.json_to_sheet(excelData);
+
+        // For multiline array value
+        Object.keys(ws).forEach((cell) => {
+            if (cell[0] === '!') return;
+            const cellObj = ws[cell];
+            if (typeof cellObj.v === "string" && cellObj.v.includes("\n")) {
+                if (!cellObj.s) cellObj.s = {};
+                cellObj.s.alignment = { wrapText: true, vertical: "top" };
+            }
+        });
+
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "Students");
         XLSX.writeFile(wb, "student_list.xlsx");
@@ -510,81 +495,42 @@ function StudentList() {
 
     return (
         <div className={`${grayBg} h-full flex flex-col pb-3`}>
-            <ToastContainer
-                position="top-right"
-                autoClose={4000}
-                hideProgressBar={false}
-                newestOnTop={false}
-                closeOnClick
-                rtl={false}
-                pauseOnFocusLoss
-                draggable
-                pauseOnHover
-            />
+            <ToastContainer position="top-right" autoClose={4000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
+
             {/* Top bar */}
             <div className="flex items-center gap-2 p-4 pb-2">
-                {/* SHS/College Tabs */}
                 <div className="flex items-center gap-2">
-                    <button
-                        className={`flex items-center px-4 py-2 rounded-lg font-semibold transition ${activeLevel === "shs"
-                            ? "bg-[#0172bd] text-white shadow"
-                            : "bg-white text-[#0172bd] hover:bg-blue-100"} `}
-                        onClick={() => setActiveLevel("shs")}
-                    >
+                    <button className={`flex items-center px-4 py-2 rounded-lg font-semibold transition ${activeLevel === "shs" ? "bg-[#0172bd] text-white shadow" : "bg-white text-[#0172bd] hover:bg-blue-100"} `} onClick={() => setActiveLevel("shs")}>
                         Senior High School
                         <Building className="w-5 h-5 ml-2" />
                     </button>
-                    <button
-                        className={`flex items-center px-4 py-2 rounded-lg font-semibold transition ${activeLevel === "college"
-                            ? "bg-[#0172bd] text-white shadow"
-                            : "bg-white text-[#0172bd] hover:bg-blue-100"} `}
-                        onClick={() => setActiveLevel("college")}
-                    >
+                    <button className={`flex items-center px-4 py-2 rounded-lg font-semibold transition ${activeLevel === "college" ? "bg-[#0172bd] text-white shadow" : "bg-white text-[#0172bd] hover:bg-blue-100"} `} onClick={() => setActiveLevel("college")}>
                         College
                         <GraduationCap className="w-6 h-6 ml-2" />
                     </button>
-                    {/* Download Button */}
-                    <button
-                        className="flex items-center px-4 py-2 rounded-lg font-semibold bg-[#0172bd] text-white hover:bg-blue-500 ml-2 transition"
-                        onClick={() => setShowDownloadForm(f => !f)}
-                        title="Download Student List"
-                    >
+                    <button className="flex items-center px-4 py-2 rounded-lg font-semibold bg-[#0172bd] text-white hover:bg-blue-500 ml-2 transition" onClick={() => setShowDownloadForm((f) => !f)} title="Download Student List">
                         <Download className="w-5 h-5 mr-2" />
                         Download
                     </button>
                 </div>
             </div>
+
             {/* Download Form */}
             {showDownloadForm && (
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-blue-50 border border-blue-200 rounded-lg p-4 mx-4 mb-2">
                     <label className="flex items-center gap-2 font-semibold text-[#0172bd]">
-                        <input
-                            type="checkbox"
-                            checked={downloadSHS}
-                            onChange={e => setDownloadSHS(e.target.checked)}
-                        />
+                        <input type="checkbox" checked={downloadSHS} onChange={(e) => setDownloadSHS(e.target.checked)} />
                         Senior High School
                     </label>
                     <label className="flex items-center gap-2 font-semibold text-[#0172bd]">
-                        <input
-                            type="checkbox"
-                            checked={downloadCollege}
-                            onChange={e => setDownloadCollege(e.target.checked)}
-                        />
+                        <input type="checkbox" checked={downloadCollege} onChange={(e) => setDownloadCollege(e.target.checked)} />
                         College
                     </label>
-                    <button
-                        className="flex items-center px-4 py-2 rounded-lg font-semibold bg-[#0172bd] text-white hover:bg-blue-500 transition"
-                        onClick={handleDownload}
-                    >
+                    <button className="flex items-center px-4 py-2 rounded-lg font-semibold bg-[#0172bd] text-white hover:bg-blue-500 transition" onClick={handleDownload}>
                         <Download className="w-5 h-5 mr-2" />
                         Download Excel
                     </button>
-                    <button
-                        className="ml-auto text-gray-400 hover:text-gray-600"
-                        onClick={() => setShowDownloadForm(false)}
-                        title="Close"
-                    >
+                    <button className="ml-auto text-gray-400 hover:text-gray-600" onClick={() => setShowDownloadForm(false)} title="Close">
                         <X className="w-6 h-6" />
                     </button>
                 </div>
@@ -599,55 +545,32 @@ function StudentList() {
                             <Users className="w-8 h-8" />
                             Student List
                         </div>
-                        {/* Search bar aligned with label, right side */}
                         <div className="flex gap-2 w-full md:w-auto md:justify-end md:items-center">
                             <div className="relative flex-1 max-w-xs">
-                                <input
-                                    type="text"
-                                    placeholder="Search Name/ID"
-                                    value={search}
-                                    onChange={e => setSearch(e.target.value)}
-                                    className="w-full pr-10 pl-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#0172bd] focus:border-transparent text-sm"
-                                    style={{ minWidth: 0 }}
-                                />
+                                <input type="text" placeholder="Search Name/ID" value={search} onChange={(e) => setSearch(e.target.value)} className="w-full pr-10 pl-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#0172bd] focus:border-transparent text-sm" style={{ minWidth: 0 }} />
                                 <Search className="absolute right-3 top-2.5 text-gray-400 w-5 h-5" />
                             </div>
-                            <button
-                                onClick={clearFilters}
-                                className="flex items-center gap-1 px-3 py-2 bg-gray-200 hover:bg-gray-300 text-[#0172bd] rounded-lg font-semibold text-sm"
-                            >
+                            <button onClick={clearFilters} className="flex items-center gap-1 px-3 py-2 bg-gray-200 hover:bg-gray-300 text-[#0172bd] rounded-lg font-semibold text-sm">
                                 <SlidersHorizontal className="w-4 h-4 mr-2" />
                                 Clear Filters
                             </button>
                         </div>
                     </div>
+
                     {/* Add Student Buttons */}
                     <div className="flex gap-2 mt-2 mb-2 flex-wrap">
-                        <button
-                            className="flex items-center gap-1 px-3 py-2 bg-[#0172bd] hover:bg-blue-500 text-white rounded-lg font-semibold text-sm shadow"
-                            onClick={handleAddIndividual}
-                        >
+                        <button className="flex items-center gap-1 px-3 py-2 bg-[#0172bd] hover:bg-blue-500 text-white rounded-lg font-semibold text-sm shadow" onClick={handleAddIndividual}>
                             <UserPlus className="w-4 h-4" />
                             Individual
                         </button>
-                        <button
-                            className="flex items-center gap-1 px-3 py-2 bg-[#0172bd] hover:bg-blue-500 text-white rounded-lg font-semibold text-sm shadow"
-                            onClick={handleAddBulk}
-                        >
+                        <button className="flex items-center gap-1 px-3 py-2 bg-[#0172bd] hover:bg-blue-500 text-white rounded-lg font-semibold text-sm shadow" onClick={handleAddBulk}>
                             <UsersIcon className="w-4 h-4" />
                             Bulk
                         </button>
-                        <button
-                            className="flex items-center gap-1 px-3 py-2 bg-[#0172bd] hover:bg-blue-500 text-white rounded-lg font-semibold text-sm shadow"
-                            onClick={handleAddPhoto}
-                        >
+                        <button className="flex items-center gap-1 px-3 py-2 bg-[#0172bd] hover:bg-blue-500 text-white rounded-lg font-semibold text-sm shadow" onClick={handleAddPhoto}>
                             <Camera className="w-4 h-4" />
-                            Photo To Text
+                            Photo OCR
                         </button>
-                    </div>
-                    {/* Showing X results of Y total */}
-                    <div className="text-sm text-gray-500 mt-1 ml-1">
-                        Showing {filtered.length} result{filtered.length !== 1 ? "s" : ""} of {totalCount} total
                     </div>
                 </div>
 
@@ -985,5 +908,3 @@ function StudentList() {
 }
 
 export default StudentList;
-
-
