@@ -5,10 +5,13 @@ import TeacherDashboard from "./content/TeacherDashboard.jsx";
 import SubmitReferralForm from "./content/SubmitReferral";
 import ViewRequest from "./content/ViewRequest";
 import NotificationsPage from "../../component/NotificationPage.jsx";
-import axios from "axios";
 import { AuthContext } from "../../AuthProvider";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+
+// Firebase imports for real-time data
+import { collection, onSnapshot, query, where } from "firebase/firestore";
+import { db } from "../../firebaseClient.js";
 
 export default function TeacherHomepage() {
   const { authData, logout } = useContext(AuthContext);
@@ -17,23 +20,47 @@ export default function TeacherHomepage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] = useState(false);
 
-  const fetchReferral = async (teacherID) => {
-    try {
-      setIsLoading(true);
-      const res = await axios.get(`/referral/get/employee/${teacherID}`);
-      setReferralData(res.data);
-    } catch (error) {
-      console.error("Error fetching referral data:", error);
-      setReferralData([]);
-    } finally {
+  const setupRealtimeReferralListener = (teacherID) => {
+    if (!teacherID) return () => { }; 
+
+    setIsLoading(true);
+
+    const referralQuery = query(
+      collection(db, "referralForm"),
+      where("employeeID", "==", teacherID)
+    );
+
+    // real-time listener
+    const unsubscribe = onSnapshot(referralQuery, (snapshot) => {
+      const data = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setReferralData(data);
       setIsLoading(false);
-    }
+    }, (error) => {
+      console.error("Error fetching real-time referral data:", error);
+      toast.error("Failed to load referral data in real-time.");
+      setReferralData([]);
+      setIsLoading(false);
+    });
+
+    return unsubscribe;
   };
 
   useEffect(() => {
-    if (!authData) return;
+    if (!authData) {
+      setIsLoading(false);
+      return;
+    }
     const teacherID = authData.user?.uid;
-    fetchReferral(teacherID);
+    console.log(teacherID)
+
+    // Set up the listener and store the unsubscribe function
+    const unsubscribe = setupRealtimeReferralListener(teacherID);
+
+    // Clean up the listener when the component unmounts or authData changes
+    return () => unsubscribe();
   }, [authData]);
 
   const handlePasswordChange = (currentPassword, newPassword) => {
@@ -46,10 +73,12 @@ export default function TeacherHomepage() {
       case "dashboard":
         return <TeacherDashboard />;
       case "submit":
+        // The onSuccess now simply closes the form or provides a success message, 
+        // as data fetching is handled by the real-time listener in useEffect
         return authData && (
           <SubmitReferralForm
             teacher={authData}
-            onSuccess={() => fetchReferral(authData.user?.uid)}
+            onSuccess={() => toast.success("Referral submitted successfully!")}
           />
         );
       case "view":

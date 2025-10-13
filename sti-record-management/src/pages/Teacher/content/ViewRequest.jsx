@@ -59,9 +59,45 @@ export default function ViewRequest({ referralData = [], isLoading = false }) {
     return isNaN(d.getTime()) ? null : d;
   };
 
-  const formatDate = (val) => {
-    const d = parseToDate(val);
-    return d ? d.toLocaleString() : "-";
+  const formatDate = (timestamp) => {
+    if (!timestamp) return "N/A";
+
+    if (typeof timestamp.toDate === 'function') {
+      const date = timestamp.toDate();
+
+      if (isNaN(date.getTime())) {
+        return "Invalid Date";
+      }
+
+      return new Intl.DateTimeFormat('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      }).format(date);
+    }
+
+    try {
+      const date = new Date(timestamp);
+
+      if (isNaN(date.getTime())) {
+        return "Invalid Date";
+      }
+
+      return new Intl.DateTimeFormat('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      }).format(date);
+    } catch (error) {
+      console.error("Date formatting error:", error);
+      return "N/A";
+    }
   };
 
   // Helper for text truncation
@@ -69,6 +105,7 @@ export default function ViewRequest({ referralData = [], isLoading = false }) {
     if (!text) return "-";
     return text.length > limit ? `${text.substring(0, limit)}...` : text;
   };
+
 
   // Date range helpers
   const isWithinRange = (val, range, customStart, customEnd) => {

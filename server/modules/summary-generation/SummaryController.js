@@ -25,7 +25,7 @@ ${JSON.stringify(slipData, null, 2)}
         const response = await axios.post(
             "https://openrouter.ai/api/v1/chat/completions",
             {
-                model: "nousresearch/deephermes-3-llama-3-8b-preview:free",
+                model: "mistralai/mistral-nemo:free",
                 messages: [{ role: "user", content: prompt }],
                 max_tokens: 2000,
             },

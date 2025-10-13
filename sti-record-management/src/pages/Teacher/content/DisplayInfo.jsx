@@ -16,6 +16,47 @@ export default function DisplayInfo({ data, onClose }) {
     </div>
   );
 
+  const formatDate = (timestamp) => {
+    if (!timestamp) return "N/A";
+
+    if (typeof timestamp.toDate === 'function') {
+      const date = timestamp.toDate();
+
+      if (isNaN(date.getTime())) {
+        return "Invalid Date";
+      }
+
+      return new Intl.DateTimeFormat('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      }).format(date);
+    }
+
+    try {
+      const date = new Date(timestamp);
+
+      if (isNaN(date.getTime())) {
+        return "Invalid Date";
+      }
+
+      return new Intl.DateTimeFormat('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      }).format(date);
+    } catch (error) {
+      console.error("Date formatting error:", error);
+      return "N/A";
+    }
+  };
+
   // Cancel referral request handler
   const handleCancelReferral = async () => {
     setIsCancelling(true);
@@ -99,7 +140,7 @@ export default function DisplayInfo({ data, onClose }) {
                   {renderField("School Year", data.schoolYear)}
                   {renderField("Referred By", data.referredBy)}
                   {renderField("Employee No.", data.employeeID)}
-                  {renderField("Prepared Date", data.preparedDate)}
+                  {renderField("Prepared Date", formatDate(data.preparedDate))}
                   {renderField("Counseling Category", data.counselingTypeCategory)}
                   {renderField("Violation", data.violation)}
                   {renderField("Level of Priority", data.levelOfPriority)}
@@ -116,8 +157,7 @@ export default function DisplayInfo({ data, onClose }) {
                   {renderField("Student Name", data.studentName)}
                   {renderField("Program", data.program)}
                   {renderField("Gender", data.gender)}
-                  {renderField("Age", data.age)}
-                  <div className="space-y-1 md:col-span-2">
+                  <div className="space-y-1 md:col-span-1">
                     <p className="text-gray-500 text-sm font-medium">Status</p>
                     <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusClasses(data.status, "table")}`}>
                       {data.status || "-"}
@@ -168,9 +208,23 @@ export default function DisplayInfo({ data, onClose }) {
                 <div className="space-y-3 text-sm text-gray-700">
                   {renderField("Received By", data.receivedBy)}
                   {renderField("Initial Action", data.initialAction)}
-                  {renderField("Action Required", data.actionRequired)}
-                  {renderField("Received Date", data.receivedDate)}
-                  {renderField("Feedback Update Date", data.feedBackDate)}
+                  {renderField("Feedback Update Date", formatDate(data.feedBackDate))}
+                </div>
+              </div>
+
+              <div className="bg-gray-50 p-6 rounded-2xl border border-gray-200 shadow-lg">
+                <div className="flex items-center text-yellow-700 mb-4">
+                  <MessageSquare size={24} className="mr-3 text-gray-700" />
+                  <h3 className="font-bold text-gray-700 text-xl">Remarks</h3>
+                </div>
+                <div className="space-y-6">
+                  <div>
+                    <div className="bg-white p-4 rounded-xl border border-gray-200 whitespace-pre-wrap break-words min-h-[200px] mt-1">
+                      <p className="font-semibold text-gray-900 text-base">
+                        {data.remarks || "No reason provided."}
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -183,19 +237,18 @@ export default function DisplayInfo({ data, onClose }) {
             <button
               onClick={handleCancelReferral}
               disabled={isCancelling || cancelSuccess}
-              className={`px-8 py-3 rounded-lg font-semibold shadow transition-colors text-white ${
-                cancelSuccess
-                  ? "bg-green-500"
-                  : isCancelling
+              className={`px-8 py-3 rounded-lg font-semibold shadow transition-colors text-white ${cancelSuccess
+                ? "bg-green-500"
+                : isCancelling
                   ? "bg-gray-400"
                   : "bg-red-500 hover:bg-red-600"
-              }`}
+                }`}
             >
               {isCancelling
                 ? "Cancelling..."
                 : cancelSuccess
-                ? "Cancelled!"
-                : "Cancel Referral"}
+                  ? "Cancelled!"
+                  : "Cancel Referral"}
             </button>
           </div>
         )}

@@ -17,18 +17,11 @@ const referralSchema = Joi.object({
   status: Joi.string().required(),
   age: Joi.number().optional().allow(null, '').options({ convert: true }),
   referredBy: Joi.string().required(),
-  areasOfConcern: Joi.array().optional(),  // subject to remove this bullshet
   counselingTypeCategory: Joi.string().required(),
   violation: Joi.string().required(),
-  actionRequired: Joi.string().required().allow(''),
   levelOfPriority: Joi.string().required(),
   actionTaken: Joi.string().required(),
   reasonForReferral: Joi.string().required(),
-  initialAction: Joi.string().required().allow(''),
-  preparedDate: Joi.string().required(),
-  feedBackDate: Joi.string().required().allow(''),
-  receivedBy: Joi.string().required().allow(''),
-  receivedDate: Joi.string().required().allow(''),
 });
 
 const updateSchema = Joi.object({
@@ -47,15 +40,14 @@ const updateSchema = Joi.object({
   areasOfConcern: Joi.array().optional(),
   counselingTypeCategory: Joi.string().optional(),
   violation: Joi.string().optional(),
-  actionRequired: Joi.string().optional().allow(''),
   levelOfPriority: Joi.string().optional(),
   actionTaken: Joi.string().optional(),
   reasonForReferral: Joi.string().optional(),
   initialAction: Joi.string().optional().allow(''),
-  preparedDate: Joi.string().optional(),
-  feedBackDate: Joi.string().optional().allow(''),
+  preparedDate: Joi.date().optional(),
+  feedBackDate: Joi.date().optional().allow(''),
   receivedBy: Joi.string().optional().allow(''),
-  receivedDate: Joi.string().optional().allow(''),
+  remarks: Joi.string().optional().allow('')
 });
 
 // Controller Function for adding
@@ -67,7 +59,7 @@ const addReferral = async (req, res) => {
     if (error) {
       return res.status(400).json({ error: error.details[0].message });
     }
-    await getReferralFormCollection().doc().set(newReferral);
+    await getReferralFormCollection().doc().set({preparedDate: new Date(), ...newReferral});
 
     const sid = newReferral.sid;
     const reason = newReferral.counselingTypeCategory;
@@ -153,7 +145,7 @@ const updateReferral = async (req, res) => {
       return res.status(404).json({ error: "Student not found" });
     }
 
-    await referralRef.set(validatedUpdates, { merge: true });
+    await referralRef.set({feedBackDate: new Date(), ...validatedUpdates}, { merge: true });
 
     const notifCollection = getNotificationCollection();
     const teacherDoc = notifCollection.doc('teacher');

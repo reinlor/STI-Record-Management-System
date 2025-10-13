@@ -193,20 +193,13 @@ function SubmitReferralForm({ teacher = {}, onCancel, onSuccess }) {
       gradeLevel: referral.gradeLevel,
       gender: referral.gender,
       status: referral.status,
-      age: referral.age,
       referredBy: referral.referredBy,
       areasOfConcern: referral.concerns,
       counselingTypeCategory: referral.counselingTypeCategory,
       violation: referral.violation,
-      actionRequired: "awaiting for response",
       levelOfPriority: referral.priorityLevel,
       actionTaken: referral.actionsBefore,
       reasonForReferral: referral.reasons,
-      initialAction: "awaiting for response",
-      preparedDate: referral.preparedDate,
-      feedBackDate: "awaiting for response",
-      receivedBy: "awaiting for response",
-      receivedDate: "awaiting for response",
       email: referral.email,
     };
 
@@ -481,21 +474,6 @@ function SubmitReferralForm({ teacher = {}, onCancel, onSuccess }) {
                   <span className="ml-2 text-gray-800">Female</span>
                 </label>
               </div>
-            </div>
-
-            {/* Age */}
-            <div>
-              <label className="block text-gray-700 font-medium mb-1">
-                Age:
-              </label>
-              <input
-                type="number"
-                className={`w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-800 transition-colors duration-500 ${
-                  highlightedFields.age ? "bg-yellow-100 animate-pulse" : ""
-                }`}
-                value={referral.age || ""}
-                onChange={(e) => handleReferralForm(e, "age")}
-              />
             </div>
 
             {/* Referred By */}

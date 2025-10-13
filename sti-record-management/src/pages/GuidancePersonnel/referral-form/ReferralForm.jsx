@@ -21,10 +21,10 @@ import { collection, onSnapshot } from "firebase/firestore";
 import { db } from "../../../firebaseClient.js";
 
 const PRIORITY_LEVELS = [
-  { value: "", label: "No Priority" },
-  { value: "Level 1 Academics", label: "Level 1 Academics" },
-  { value: "Level 2 Abt Self Esteem, Motivation", label: "Level 2 Abt Self Esteem, Motivation" },
-  { value: "Level 3 Safety and Security", label: "Level 3 Safety and Security" },
+  { value: "0", label: "No Priority" },
+  { value: "1", label: "Level 1" },
+  { value: "2", label: "Level 2" },
+  { value: "3", label: "Level 3" },
 ];
 
 const STATUS_OPTIONS = [
@@ -52,11 +52,54 @@ function ReferralFormProcessing() {
 
   const [search, setSearch] = useState("");
 
-  // For email
+  // Editable Fields
+  const [priorityLevel, setPriorityLevel] = useState();
+  const [action, setAction] = useState();
   const [counselorNote, setCounselorNote] = useState();
   const [emailTo, setEmailTo] = useState();
   const [emailSubject, setEmailSubject] = useState();
   const [emailBody, setEmailBody] = useState();
+
+  const formatDate = (timestamp) => {
+    if (!timestamp) return "N/A";
+
+    if (typeof timestamp.toDate === 'function') {
+      const date = timestamp.toDate();
+
+      if (isNaN(date.getTime())) {
+        return "Invalid Date";
+      }
+
+      return new Intl.DateTimeFormat('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      }).format(date);
+    }
+
+    try {
+      const date = new Date(timestamp);
+
+      if (isNaN(date.getTime())) {
+        return "Invalid Date";
+      }
+
+      return new Intl.DateTimeFormat('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      }).format(date);
+    } catch (error) {
+      console.error("Date formatting error:", error);
+      return "N/A";
+    }
+  };
 
   // PAGINATION STATE
   const [currentPage, setCurrentPage] = useState(1);
@@ -107,12 +150,14 @@ function ReferralFormProcessing() {
   }, []);
 
   const openForm = async (ref) => {
-    console.log(ref)
+    console.log(ref);
+    setPriorityLevel(ref.levelOfPriority);
     setSelectedReferral(ref);
     setDisplay(true);
-    setCounselorNote(ref.counselorNote || "");
+    setCounselorNote(ref.remarks || "");
     setEmailTo(ref.email || "");
     setEmailSubject("Referral Submission");
+    setAction(ref.initialAction || "")
     setEmailBody("Your submitted referral status has been updated");
   };
 
@@ -122,13 +167,22 @@ function ReferralFormProcessing() {
   };
   const handleUpdate = async (newStatus) => {
     try {
+      const { initialAction, preparedDate, feedBackDate, levelOfPriority, ...data } = selectedReferral;
+      console.log(data)
       const updatedData = {
-        ...selectedReferral,
-        // counselorNote: counselorNote,
+        ...data,
+        levelOfPriority: priorityLevel,
+        remarks: counselorNote,
+        initialAction: action,
         status: newStatus,
         name: authData?.user?.displayName ?? 'Admin',
-        uid: selectedReferral.employeeID
+        uid: selectedReferral.employeeID,
+
+        receivedBy: authData?.user?.displayName ?? 'Admin',
+
       };
+
+      console.log('update', updatedData);
 
       const emailData = {
         to: emailTo,
@@ -337,7 +391,7 @@ function ReferralFormProcessing() {
                       <td className="px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">{ref.employeeID}</td>
                       <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 break-words max-w-[120px] truncate align-middle">{ref.reasonForReferral}</td>
                       <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 lg:whitespace-nowrap">{ref.studentName}</td>
-                      <td className="px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">{ref.preparedDate}</td>
+                      <td className="px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">{formatDate(ref.preparedDate)}</td>
                       <td className={`px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto font-semibold ${ref.status === 'Resolved' ? 'text-green-600' : 'text-gray-600'
                         }`}>
                         {ref.status}
@@ -410,17 +464,8 @@ function ReferralFormProcessing() {
                 {/* --- PRIORITY DROPDOWN LEFT OF STATUS --- */}
                 <select
                   className="px-3 py-1 rounded-lg font-semibold text-xs sm:text-sm bg-gray-100 text-[#0172bd] hover:bg-blue-100"
-                  value={selectedReferral?.priority || ""}
-                  onChange={e => {
-                    setSelectedReferral(prev => prev ? { ...prev, priority: e.target.value } : prev);
-                    setReferralData(prev =>
-                      prev.map(r =>
-                        r.id === selectedReferral.id
-                          ? { ...r, priority: e.target.value }
-                          : r
-                      )
-                    );
-                  }}
+                  value={priorityLevel || ""}
+                  onChange={(e) => { setPriorityLevel(e.target.value) }}
                   disabled={selectedReferral?.status === "Resolved"}
                 >
                   {PRIORITY_LEVELS.map(opt => (
@@ -474,18 +519,10 @@ function ReferralFormProcessing() {
                       <strong className="text-[#0172bd]">Student Number:</strong>{" "}
                       <span className="text-black">{selectedReferral.sid || "-"}</span>
                     </p>
-                    <p>
-                      <strong className="text-[#0172bd]">Areas of Concern:</strong>{" "}
-                      <span className="text-black">{selectedReferral.areasOfConcern || "-"}</span>
-                    </p>
 
                     <p>
                       <strong className="text-[#0172bd]">Student’s Name:</strong>{" "}
                       <span className="text-black">{selectedReferral.studentName || "-"}</span>
-                    </p>
-                    <p>
-                      <strong className="text-[#0172bd]">Action Required:</strong>{" "}
-                      <span className="text-black">{selectedReferral.actionRequired || "-"}</span>
                     </p>
 
                     <p>
@@ -518,11 +555,12 @@ function ReferralFormProcessing() {
                     />
                   </div>
 
-                  <p className="font-bold text-[#0172bd]">Counselor’s Initial Action:</p>
+                  <p className="font-bold text-[#0172bd]">Counselor’s Initial Action:<span className="text-red-700">*</span></p>
                   <textarea
-                    readOnly
-                    value={selectedReferral.initialAction || ""}
+                    value={action}
+                    onChange={(e) => { setAction(e.target.value) }}
                     className="w-full border border-gray-300 rounded-md p-3 mt-1 resize-y bg-[#f3f4f6] text-black focus:outline-none focus:ring-1 focus:ring-[#0172bd]"
+                    placeholder="Investigates the case, Develop an action plan, etc..."
                     rows={5}
                   />
 

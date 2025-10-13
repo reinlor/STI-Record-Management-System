@@ -88,6 +88,7 @@ function SummaryReport({ allData, slipData }) {
               p-6 
               relative 
               overflow-y-auto 
+              custom-scrollbar
               max-h-[80vh]
               transition-transform 
               duration-300 
