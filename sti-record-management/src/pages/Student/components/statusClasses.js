@@ -23,6 +23,11 @@ export const getStatusClasses = (status, variant = "table") => {
         ? "bg-gray-300 text-gray-800 border-gray-400"
         : "bg-gray-200 text-gray-700 font-medium";
 
+    case "Inactive":
+      return variant === "modal"
+        ? "bg-slate-200 text-slate-700 border-slate-300"
+        : "bg-slate-100 text-slate-700 font-medium";
+
     default:
       return variant === "modal"
         ? "bg-gray-200 text-gray-700 border-gray-300"

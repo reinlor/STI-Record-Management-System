@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState, useContext, useRef } from "react";
 import axios from "axios";
 import ViewRequestModal from "./ViewRequestModal";
 import { getStatusClasses } from "../components/statusClasses";
-import { Search, Loader2, X, ChevronDown, Filter } from "lucide-react";
+import { Search, Loader2, X, ChevronDown, Filter, FileText, AlertTriangle } from "lucide-react";
 import { AuthContext } from "../../../AuthProvider.jsx";
 import LoadingDots from "../../../component/Loading.jsx";
 
@@ -16,13 +16,13 @@ export default function StudentViewRequest() {
   const [search, setSearch] = useState("");
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
+  const [activeView, setActiveView] = useState("Absent Slip");
 
   // State for window width to handle responsive text truncation
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 
   // Filters & sorting
   const [filters, setFilters] = useState({
-    formType: "All",
     statuses: [],
     dateRange: "All",
     customStart: "",
@@ -94,7 +94,21 @@ export default function StudentViewRequest() {
 
   const formatDate = (val) => {
     const d = parseToDate(val);
-    return d ? d.toLocaleString() : "-";
+    if (!d) return "-";
+
+    try {
+      return new Intl.DateTimeFormat("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+      }).format(d);
+    } catch (error) {
+      console.error("Date formatting error:", error);
+      return "N/A";
+    }
   };
 
   // Helper for text truncation
@@ -148,10 +162,8 @@ export default function StudentViewRequest() {
   const processedData = useMemo(() => {
     let data = Array.isArray(requestData) ? [...requestData] : [];
 
-    // Filter by formType
-    if (filters.formType !== "All") {
-      data = data.filter((r) => r.typeOfSlip === filters.formType);
-    }
+    // Filter by activeView (Absent Slip or Incident Report)
+    data = data.filter((r) => r.typeOfSlip === activeView);
 
     // Filter by statuses (multi-select)
     if (filters.statuses.length > 0) {
@@ -198,7 +210,7 @@ export default function StudentViewRequest() {
     });
 
     return data;
-  }, [requestData, filters, search, sortOption]);
+  }, [requestData, filters, search, sortOption, activeView]);
 
   // UI helpers to toggle status checkbox in filters
   const toggleStatusFilter = (status) => {
@@ -212,7 +224,6 @@ export default function StudentViewRequest() {
   const clearFilters = () => {
     setSearch("");
     setFilters({
-      formType: "All",
       statuses: [],
       dateRange: "All",
       customStart: "",
@@ -243,7 +254,7 @@ export default function StudentViewRequest() {
                 <input
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search by form, reason, or status"
+                  placeholder={`Search ${activeView.toLowerCase()}...`}
                   className="w-full pl-3 pr-4 py-2 bg-transparent text-sm md:text-base focus:outline-none"
                 />
               </div>
@@ -267,24 +278,35 @@ export default function StudentViewRequest() {
             </div>
           </div>
 
+          {/* View Switcher Buttons */}
+          <div className="flex flex-wrap gap-2 mb-8">
+            <button
+              onClick={() => setActiveView("Absent Slip")}
+              className={`flex items-center gap-2 py-3 px-4 rounded-xl text-sm font-semibold transition-all duration-300 ${
+                activeView === "Absent Slip"
+                  ? "bg-yellow-400 text-black shadow-lg"
+                  : "bg-gray-200 text-gray-700 hover:bg-gray-300 hover:text-black"
+              }`}
+            >
+              <FileText className="w-5 h-5" />
+              Absent Slips
+            </button>
+            <button
+              onClick={() => setActiveView("Incident Report")}
+              className={`flex items-center gap-2 py-3 px-4 rounded-xl text-sm font-semibold transition-all duration-300 ${
+                activeView === "Incident Report"
+                  ? "bg-yellow-400 text-black shadow-lg"
+                  : "bg-gray-200 text-gray-700 hover:bg-gray-300 hover:text-black"
+              }`}
+            >
+              <AlertTriangle className="w-5 h-5" />
+              Incident Reports
+            </button>
+          </div>
+
           {/* Filters section - conditionally rendered */}
           {/* Hidden on mobile until the button is clicked, always visible on larger screens */}
           <div className={`flex-wrap items-end gap-3 mb-4 ${showFilters ? 'flex' : 'hidden'} sm:flex`}>
-            {/* Form Type */}
-            <div className="flex-grow">
-              <label htmlFor="form-type-select" className="block text-xs font-medium text-gray-500 mb-1">Form Type</label>
-              <select
-                id="form-type-select"
-                value={filters.formType}
-                onChange={(e) => setFilters((p) => ({ ...p, formType: e.target.value }))}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2 bg-white text-sm focus:ring-2 focus:ring-yellow-400"
-              >
-                <option value="All">All Forms</option>
-                <option value="Absent Slip">Absent Slip</option>
-                <option value="Incident Report">Incident Report</option>
-              </select>
-            </div>
-
             {/* Status multi-select */}
             <div ref={dropdownRef} className="relative flex-grow">
               <label htmlFor="status-select" className="block text-xs font-medium text-gray-500 mb-1">Status</label>
@@ -299,7 +321,7 @@ export default function StudentViewRequest() {
               {showStatusDropdown && (
                 <div className="absolute top-full left-0 mt-1 w-full bg-white border border-gray-300 rounded-lg p-2 shadow-lg z-20">
                   <div className="flex flex-col gap-1">
-                    {["Pending", "In Progress", "Resolved", "Approved", "Denied", "Cancelled" ].map((status) => (
+                    {["Pending", "In Progress", "Resolved", "Approved", "Denied", "Cancelled", "Inactive" ].map((status) => (
                       <label key={status} className="flex items-center gap-2 text-sm cursor-pointer select-none whitespace-nowrap">
                         <input
                           type="checkbox"
@@ -368,19 +390,6 @@ export default function StudentViewRequest() {
 
           {/* Active filter tags */}
           <div className="flex flex-wrap gap-2 mb-4">
-            {filters.formType !== "All" && (
-              <span className="inline-flex items-center gap-2 bg-yellow-50 text-yellow-800 px-3 py-1 rounded-full text-sm">
-                {filters.formType}
-                <button
-                  onClick={() => setFilters((p) => ({ ...p, formType: "All" }))}
-                  className="ml-1 text-yellow-700 font-bold"
-                  aria-label="remove form type filter"
-                >
-                  <X size={12} />
-                </button>
-              </span>
-            )}
-
             {filters.statuses.map((s) => (
               <span key={s} className="inline-flex items-center gap-2 bg-green-50 text-green-800 px-3 py-1 rounded-full text-sm">
                 {s}
@@ -422,6 +431,9 @@ export default function StudentViewRequest() {
                     <th scope="col" className="px-6 py-3 text-sm font-semibold text-gray-700">Details</th>
                     <th scope="col" className="px-6 py-3 text-sm font-semibold text-gray-700">Status</th>
                     <th scope="col" className="px-6 py-3 text-sm font-semibold text-gray-700 whitespace-nowrap">Processed Date</th>
+                    {activeView === "Absent Slip" && (
+                      <th scope="col" className="px-6 py-3 text-sm font-semibold text-gray-700 whitespace-nowrap">Pickup Date</th>
+                    )}
                     <th scope="col" className="px-6 py-3 text-sm font-semibold text-gray-700">Actions</th>
                   </tr>
                 </thead>
@@ -446,6 +458,9 @@ export default function StudentViewRequest() {
                           </span>
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">{formatDate(row.processedDate)}</td>
+                        {activeView === "Absent Slip" && (
+                           <td className="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">{formatDate(row.pickupDate)}</td>
+                        )}
                         <td className="px-6 py-4 text-sm">
                           <button
                             onClick={() => setSelectedRow(row)}
@@ -458,8 +473,8 @@ export default function StudentViewRequest() {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={6} className="text-center py-8 text-gray-500">
-                        No requests found.
+                      <td colSpan={activeView === "Absent Slip" ? 7 : 6} className="text-center py-8 text-gray-500">
+                        No {activeView.toLowerCase()} found.
                       </td>
                     </tr>
                   )}
