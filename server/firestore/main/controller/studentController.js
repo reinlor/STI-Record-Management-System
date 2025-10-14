@@ -13,7 +13,9 @@ const studentSchema = Joi.object({
   isArchived: Joi.boolean().required().default(false),
 
   studentProfile: Joi.object({
-    name: Joi.string().required(),
+    firstName: Joi.string().required(),
+    lastName: Joi.string().required(),
+    middleName: Joi.string().required(),
     nickname: Joi.string().empty('').optional(),
     section: Joi.string().required(),
     academicLevel: Joi.string().required(),
@@ -145,11 +147,12 @@ const updateSchema = Joi.object({
   isArchived: Joi.boolean().optional(),
 
   studentProfile: Joi.object({
-    name: Joi.string().empty('').optional(),
+    firstName: Joi.string().empty('').optional(),
+    lastName: Joi.string().empty('').optional(),
+    middleName: Joi.string().empty('').optional(),
     nickname: Joi.string().empty('').optional(),
     section: Joi.string().empty('').optional(),
     academicLevel: Joi.string().empty('').optional(),
-    age: Joi.number().optional(),
     nationality: Joi.string().empty('').optional(),
     gender: Joi.string().empty('').optional(),
     status: Joi.string().empty('').optional(),
@@ -309,15 +312,15 @@ const getArchivedStudent = async (req, res) => {
 
 // Controller Function for adding student data
 const addStudent = async (req, res) => {
+  let resultUrls = [];
+  let publicIds = [];
+
   try {
     const { processedBy, ...data } = req.body;
     const { error, value: newStudent } = studentSchema.validate(data);
     if (error) {
       return res.status(400).json({ error: error.details[0].message });
     }
-
-    let resultUrls = [];
-    let publicIds = [];
 
     if (req.files && req.files.length > 0) {
       for (const file of req.files) {
@@ -343,12 +346,12 @@ const addStudent = async (req, res) => {
       uid: sid,
       email: newStudent.contactInfo.email,
       password: "student1234",
-      displayName: newStudent.studentProfile.name,
+      displayName: `${newStudent.studentProfile.lastName}, ${newStudent.studentProfile.firstName} ${newStudent.studentProfile.middleName}`,
     });
 
     await getUserCollection().doc(userRecord.uid).set({
       uid: userRecord.uid,
-      displayName: newStudent.studentProfile.name,
+      displayName: `${newStudent.studentProfile.lastName}, ${newStudent.studentProfile.firstName} ${newStudent.studentProfile.middleName}`,
       email: newStudent.contactInfo.email,
       role: "Student",
       isFirstLogin: true
@@ -431,6 +434,9 @@ const getStudent = async (req, res) => {
 
 // Controller Function for updating student data
 const updateStudent = async (req, res) => {
+  let resultUrls = [];
+  let publicIds = [];
+  
   try {
     const { sid } = req.params;
     const { processedBy, ...updates } = req.body;
@@ -451,9 +457,6 @@ const updateStudent = async (req, res) => {
     if (error) {
       return res.status(400).json({ error: error.details[0].message });
     }
-
-    let resultUrls = [];
-    let publicIds = [];
 
     if (req.files && req.files.length > 0) {
       for (const file of req.files) {

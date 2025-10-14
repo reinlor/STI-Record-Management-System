@@ -4,7 +4,9 @@ const { getTeacherCollection } = require("../models/teacherModel");
 // Teacher Schema
 const teacherSchema = Joi.object({
   uid: Joi.string().required(),
-  name: Joi.string().required(),
+  firstName: Joi.string().required(),
+  lastName: Joi.string().required(),
+  middleName: Joi.string().required(),
   email: Joi.string().email({
     minDomainSegments: 2,
     tlds: {
@@ -15,7 +17,9 @@ const teacherSchema = Joi.object({
 
 const updateSchema = Joi.object({
   uid: Joi.string().optional(),
-  name: Joi.string().optional(),
+  firstName: Joi.string().required(),
+  lastName: Joi.string().required(),
+  middleName: Joi.string().required(),
   email: Joi.string().email({
     minDomainSegments: 2,
     tlds: {
