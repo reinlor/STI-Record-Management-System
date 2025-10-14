@@ -154,7 +154,7 @@ export default function DisplayInfo({ data, onClose }) {
                   <h3 className="font-bold text-gray-700 text-xl">Student Information</h3>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 text-sm text-gray-700">
-                  {renderField("Student Name", data.studentName)}
+                  {renderField("Student Name", data.studentName || [data.studentProfile?.firstName, data.studentProfile?.middleName, data.studentProfile?.lastName, data.studentProfile?.suffix].filter(Boolean).join(' '))}
                   {renderField("Program", data.program)}
                   {renderField("Gender", data.gender)}
                   <div className="space-y-1 md:col-span-1">

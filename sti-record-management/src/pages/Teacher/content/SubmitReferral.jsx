@@ -17,7 +17,7 @@ const useDebounce = (value, delay) => {
   return debouncedValue;
 };
 
-function SubmitReferralForm({ teacher = {}, onCancel, onSuccess }) {
+function SubmitReferralForm({ teacher = {}, onCancel }) {
   const [referral, setReferral] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const [violations, setViolations] = useState([]);
@@ -136,8 +136,9 @@ function SubmitReferralForm({ teacher = {}, onCancel, onSuccess }) {
       try {
         const { data } = await axios.get(`/student/get/${debouncedStudentID}`);
         if (data?.studentProfile) {
+          const { firstName, middleName, lastName, suffix } = data.studentProfile;
           const updates = {
-            studentName: data.studentProfile.name || "",
+            studentName: [firstName, middleName, lastName, suffix].filter(Boolean).join(' ') || "",
             programSection:
               data.studentProfile.program && data.studentProfile.section
                 ? `${data.studentProfile.program} ${data.studentProfile.section}`
@@ -220,7 +221,6 @@ function SubmitReferralForm({ teacher = {}, onCancel, onSuccess }) {
         status: prev.status,
       }));
 
-      if (onSuccess) onSuccess();
     } catch (error) {
       console.error(error);
       toast.error(`Failed to submit referral: ${error.message}`);

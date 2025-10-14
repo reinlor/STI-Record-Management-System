@@ -124,7 +124,7 @@ export default function ProfileView() {
             fields: [
               {
                 label: "Full Name",
-                value: student.studentProfile?.name || "",
+                value: [student.studentProfile?.firstName, student.studentProfile?.middleName, student.studentProfile?.lastName, student.studentProfile?.suffix ].filter(Boolean).join(' ') || "",
                 type: "text",
                 path: "studentProfile.name",
               },
@@ -236,7 +236,7 @@ export default function ProfileView() {
         data: [
           {
             label: "Full Name",
-            value: student.studentProfile?.name || "",
+            value: [student.studentProfile?.firstName, student.studentProfile?.middleName, student.studentProfile?.lastName, student.studentProfile?.suffix ].filter(Boolean).join(' ') || "",
             type: "text",
             path: "studentProfile.name",
           },
