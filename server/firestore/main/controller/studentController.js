@@ -324,7 +324,7 @@ const addStudent = async (req, res) => {
 
     if (req.files && req.files.length > 0) {
       for (const file of req.files) {
-        const { secure_url, public_id } = await cloudinary.uploader.upload(file.path);
+        const { secure_url, public_id } = await cloudinary.uploader.upload(file.path, {folder: "medical-certificates"});
         resultUrls.push(secure_url);
         publicIds.push(public_id);
         fs.unlinkSync(file.path);
@@ -460,7 +460,7 @@ const updateStudent = async (req, res) => {
 
     if (req.files && req.files.length > 0) {
       for (const file of req.files) {
-        const { secure_url, public_id } = await cloudinary.uploader.upload(file.path);
+        const { secure_url, public_id } = await cloudinary.uploader.upload(file.path, {folder: "medical-certificates"});
         resultUrls.push(secure_url);
         publicIds.push(public_id);
         fs.unlinkSync(file.path);

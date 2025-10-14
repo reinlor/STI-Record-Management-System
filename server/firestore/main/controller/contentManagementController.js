@@ -389,7 +389,7 @@ const addCollegeStudentHandbook = async (req, res) => {
     const uploadStream = cloudinary.uploader.upload_stream(
       {
         resource_type: "raw",
-        folder: "studentHandbook",
+        folder: "student-handbook",
         public_id: "collegeStudentHandbook", // Always overwrite the same doc
         overwrite: true,
         format: "pdf",
@@ -469,7 +469,7 @@ const addShsStudentHandbook = async (req, res) => {
     const uploadStream = cloudinary.uploader.upload_stream(
       {
         resource_type: "raw",
-        folder: "studentHandbook",
+        folder: "student-handbook",
         public_id: "shsStudentHandbook", // Always overwrite the same doc
         overwrite: true,
         format: "pdf",
