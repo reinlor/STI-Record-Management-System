@@ -50,7 +50,7 @@ export default function StudentRequestSlip() {
         setStudentData(res.data);
         setFormData((prev) => ({
           ...prev,
-          name: res.data.studentProfile.name || "",
+          name: [res.data.studentProfile?.firstName, res.data.studentProfile?.middleName, res.data.studentProfile?.lastName, res.data.studentProfile?.suffix].filter(Boolean).join(' ') || "",
           sid: res.data.sid || "",
           section: res.data.studentProfile.section || "",
           program: res.data.studentProfile.program || "",
@@ -661,7 +661,7 @@ export default function StudentRequestSlip() {
                 incidentEvidence.forEach(f => f.preview && URL.revokeObjectURL(f.preview));
 
                 setFormData({
-                  name: student?.studentProfile?.name || "",
+                  name: [student?.studentProfile?.firstName, student?.studentProfile?.middleName, student?.studentProfile?.lastName, student?.studentProfile?.suffix].filter(Boolean).join(' ') || "",
                   sid: student?.sid || "",
                   section: student?.studentProfile?.section || "",
                   program: student?.studentProfile?.program || "",

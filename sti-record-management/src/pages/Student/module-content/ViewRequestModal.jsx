@@ -130,7 +130,7 @@ export default function ViewRequestModal({ data, onClose }) {
                   <h3 className="font-bold text-xl">Student Information</h3>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 md:gap-x-8 md:gap-y-6 text-sm text-gray-700">
-                  {renderField("Full Name", data.name)}
+                  {renderField("Full Name", data.name || [data.firstName, data.middleName, data.lastName, data.suffix].filter(Boolean).join(' '))}
                   {renderField("Student Number", data.sid)}
                   {renderField("Program/Strand", data.program)}
                   {renderField("Year and Section", data.section)}
