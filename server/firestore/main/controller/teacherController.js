@@ -7,6 +7,7 @@ const teacherSchema = Joi.object({
   firstName: Joi.string().required(),
   lastName: Joi.string().required(),
   middleName: Joi.string().required(),
+  suffix: Joi.string().optional(),
   email: Joi.string().email({
     minDomainSegments: 2,
     tlds: {
@@ -20,6 +21,7 @@ const updateSchema = Joi.object({
   firstName: Joi.string().required(),
   lastName: Joi.string().required(),
   middleName: Joi.string().required(),
+  suffix: Joi.string().optional(),
   email: Joi.string().email({
     minDomainSegments: 2,
     tlds: {

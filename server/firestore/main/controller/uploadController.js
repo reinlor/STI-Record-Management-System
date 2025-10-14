@@ -3,9 +3,7 @@ const cloudinary = require("../../../config/cloudinary.js"); // Cloudinary confi
 const { getUploadCollection } = require("../models/uploadModel.js"); // Firestore upload collection reference
 const fs = require("fs"); // File system module for removing temporary files
 
-// =====================
 // Get all uploaded images from Firestore
-// =====================
 const getAllImages = async (req, res) => {
   try {
     // Fetch all documents in the upload collection (images stored in Firestore)
@@ -25,9 +23,7 @@ const getAllImages = async (req, res) => {
   }
 };
 
-// =====================
 // Delete an image from both Cloudinary and Firestore
-// =====================
 const deleteImage = async (req, res) => {
   try {
     const { id } = req.params; // Extract the Firestore document ID from route
@@ -58,9 +54,7 @@ const deleteImage = async (req, res) => {
   }
 };
 
-// =====================
 // Upload an image to Cloudinary
-// =====================
 const uploadImage = async (req, res) => {
   try {
     // Upload the image file from temporary upload directory to Cloudinary
