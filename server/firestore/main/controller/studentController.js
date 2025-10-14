@@ -322,9 +322,6 @@ const addStudent = async (req, res) => {
   let resultUrls = [];
   let publicIds = [];
 
-  let resultUrls = [];
-  let publicIds = [];
-
   try {
     const { processedBy, ...data } = req.body;
     const { error, value: newStudent } = studentSchema.validate(data);
@@ -334,7 +331,6 @@ const addStudent = async (req, res) => {
 
     if (req.files && req.files.length > 0) {
       for (const file of req.files) {
-        const { secure_url, public_id } = await cloudinary.uploader.upload(file.path, {folder: "medical-certificates"});
         const { secure_url, public_id } = await cloudinary.uploader.upload(file.path, {folder: "medical-certificates"});
         resultUrls.push(secure_url);
         publicIds.push(public_id);
