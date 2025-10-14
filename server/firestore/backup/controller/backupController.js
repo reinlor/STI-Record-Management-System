@@ -37,8 +37,11 @@ exports.authGoogle = async (req, res) => {
     access_type: "offline",
     scope: ["https://www.googleapis.com/auth/drive.file"],
   });
+
+  console.log("🔗 Generated Google Auth URL:", authUrl);
   res.redirect(authUrl);
 };
+
 
 exports.oauth2callback = async (req, res) => {
   const code = req.query.code;

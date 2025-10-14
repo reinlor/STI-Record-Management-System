@@ -10,7 +10,7 @@ const {
   GOOGLE_REDIRECT_URI,
 } = process.env;
 
-const TOKEN_PATH = path.join(__dirname, "tokens.json");
+const TOKEN_PATH = path.join(__dirname, "./tokens.json");
 const TMP_DIR = path.join(__dirname, "../../../tmp");
 
 if (!fs.existsSync(TMP_DIR)) fs.mkdirSync(TMP_DIR, { recursive: true });
