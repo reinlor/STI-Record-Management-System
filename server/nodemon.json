@@ -1,0 +1,9 @@
+{
+  "ignore": [
+    "firestore/backup/controller/*.json",
+    "firestore/backup/controller/**/*.json",
+    "tmp/",
+    "uploads/",
+    "*.json"
+  ]
+}

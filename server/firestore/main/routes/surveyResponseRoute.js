@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const controller = require("../controller/surveyResponseController");
-const { getSurveyResponsesCollection } = require("../models/surveyResponseModel"); // <-- add this
+const { getSurveyResponsesCollection } = require("../models/surveyResponseModel");
 
 router.post("/submit", controller.submitSurvey);
 router.get("/summary/getAll", controller.getAllSummaries);

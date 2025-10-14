@@ -16,7 +16,7 @@ const studentSchema = Joi.object({
     firstName: Joi.string().required(),
     lastName: Joi.string().required(),
     middleName: Joi.string().required(),
-    sufixName: Joi.string().empty('').optional(),
+    suffix: Joi.string().optional(),
     nickname: Joi.string().empty('').optional(),
     section: Joi.string().empty('').optional(),
     academicLevel: Joi.string().required(),
@@ -151,7 +151,7 @@ const updateSchema = Joi.object({
     firstName: Joi.string().empty('').optional(),
     lastName: Joi.string().empty('').optional(),
     middleName: Joi.string().empty('').optional(),
-    suffixName: Joi.string().empty('').optional(),
+    suffix: Joi.string().optional(),
     nickname: Joi.string().empty('').optional(),
     section: Joi.string().empty('').optional(),
     academicLevel: Joi.string().empty('').optional(),
@@ -349,14 +349,12 @@ const addStudent = async (req, res) => {
       uid: sid,
       email: newStudent.contactInfo.email,
       password: "student1234",
-      displayName: `${newStudent.studentProfile.lastName}, ${newStudent.studentProfile.firstName} ${newStudent.studentProfile.middleName}`,
-      displayName: `${newStudent.studentProfile.lastName}, ${newStudent.studentProfile.firstName} ${newStudent.studentProfile.middleName}`,
+      displayName: `${newStudent.studentProfile.lastName} ${newStudent.suffix}, ${newStudent.studentProfile.firstName} ${newStudent.studentProfile.middleName}`,
     });
 
     await getUserCollection().doc(userRecord.uid).set({
       uid: userRecord.uid,
-      displayName: `${newStudent.studentProfile.lastName}, ${newStudent.studentProfile.firstName} ${newStudent.studentProfile.middleName}`,
-      displayName: `${newStudent.studentProfile.lastName}, ${newStudent.studentProfile.firstName} ${newStudent.studentProfile.middleName}`,
+      displayName: `${newStudent.studentProfile.lastName} ${newStudent.suffix}, ${newStudent.studentProfile.firstName} ${newStudent.studentProfile.middleName}`,
       email: newStudent.contactInfo.email,
       role: "Student",
       isFirstLogin: true
