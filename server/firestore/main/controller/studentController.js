@@ -273,7 +273,8 @@ const updateSchema = Joi.object({
     currentConcern: Joi.string().empty('').optional(),
   }).empty({}).optional(),
 
-  violations: Joi.object().optional().empty({})
+  violations: Joi.object().optional().empty({}),
+  deleteCerts: Joi.string().optional(),
 });
 
 
@@ -349,10 +350,12 @@ const addStudent = async (req, res) => {
       email: newStudent.contactInfo.email,
       password: "student1234",
       displayName: `${newStudent.studentProfile.lastName}, ${newStudent.studentProfile.firstName} ${newStudent.studentProfile.middleName}`,
+      displayName: `${newStudent.studentProfile.lastName}, ${newStudent.studentProfile.firstName} ${newStudent.studentProfile.middleName}`,
     });
 
     await getUserCollection().doc(userRecord.uid).set({
       uid: userRecord.uid,
+      displayName: `${newStudent.studentProfile.lastName}, ${newStudent.studentProfile.firstName} ${newStudent.studentProfile.middleName}`,
       displayName: `${newStudent.studentProfile.lastName}, ${newStudent.studentProfile.firstName} ${newStudent.studentProfile.middleName}`,
       email: newStudent.contactInfo.email,
       role: "Student",
@@ -436,9 +439,8 @@ const getStudent = async (req, res) => {
 
 // Controller Function for updating student data
 const updateStudent = async (req, res) => {
-  let resultUrls = [];
-  let publicIds = [];
-  
+  let newPublicIds = []; // Track newly uploaded file IDs for potential rollback
+
   try {
     const { sid } = req.params;
     const { processedBy, ...updates } = req.body;
@@ -452,7 +454,9 @@ const updateStudent = async (req, res) => {
     }
 
     if (!updates || Object.keys(updates).length === 0) {
-      return res.status(400).json({ error: "No update data provided" });
+      if (!req.files || req.files.length === 0) {
+        return res.status(400).json({ error: "No update data provided" });
+      }
     }
     const { error, value: validatedUpdates } = updateSchema.validate(updates);
 
@@ -460,80 +464,55 @@ const updateStudent = async (req, res) => {
       return res.status(400).json({ error: error.details[0].message });
     }
 
-    if (req.files && req.files.length > 0) {
-      for (const file of req.files) {
-        const { secure_url, public_id } = await cloudinary.uploader.upload(file.path, {folder: "medical-certificates"});
-        resultUrls.push(secure_url);
-        publicIds.push(public_id);
-        fs.unlinkSync(file.path);
-      }
-      if (!validatedUpdates.health) validatedUpdates.health = {};
-
-      // Merge the updates with the existing medicalCert array
-      const currentDoc = await getStudentCollection().doc(sid).get();
-      const currentHealth = currentDoc.exists && currentDoc.data().health ? currentDoc.data().health : {};
-
-      const currentCert = currentHealth.medicalCert || {};
-      validatedUpdates.health.medicalCert = {
-        urls: [
-          ...(currentCert.urls || currentHealth.medicalCert || []),
-          ...resultUrls
-        ],
-        ids: [
-          ...(currentCert.ids || currentHealth.medicalCertIds || []),
-          ...publicIds
-        ]
-      };
-
+    const studentRef = getStudentCollection().doc(sid);
+    const currentDoc = await studentRef.get();
+    if (!currentDoc.exists) {
+      return res.status(404).json({ error: "Student not found" });
     }
 
+    const currentHealth = currentDoc.data().health || {};
+    let medicalCertUrls = Array.isArray(currentHealth.medicalCert?.urls) ? [...currentHealth.medicalCert.urls] : [];
+    let medicalCertIds = Array.isArray(currentHealth.medicalCert?.ids) ? [...currentHealth.medicalCert.ids] : [];
+
+    // 1. Handle new file uploads first
+    if (req.files && req.files.length > 0) {
+      for (const file of req.files) {
+        const { secure_url, public_id } = await cloudinary.uploader.upload(file.path, { folder: "medical-certificates" });
+        medicalCertUrls.push(secure_url);
+        medicalCertIds.push(public_id);
+        newPublicIds.push(public_id); // Track for rollback
+        fs.unlinkSync(file.path);
+      }
+    }
+
+    // 2. Handle deletions from the (now updated) lists
     if (req.body.deleteCerts) {
-      // Parse the array of {url, id}
       let toDelete = [];
       try {
         toDelete = JSON.parse(req.body.deleteCerts);
       } catch (e) {
-        // ignore
+        // ignore invalid JSON
       }
       if (Array.isArray(toDelete) && toDelete.length > 0) {
-        // Get current doc
-        const currentDoc = await getStudentCollection().doc(sid).get();
-        const currentHealth = currentDoc.exists && currentDoc.data().health ? currentDoc.data().health : {};
-        let medicalCert = Array.isArray(currentHealth.medicalCert?.urls)
-          ? [...currentHealth.medicalCert.urls]
-          : [];
-        let medicalCertIds = Array.isArray(currentHealth.medicalCert?.ids)
-          ? [...currentHealth.medicalCert.ids]
-          : [];
-
-
-        // Remove each cert by matching id (or url as fallback)
         toDelete.forEach(({ url, id }) => {
-          const idx = id
-            ? medicalCertIds.findIndex((pid) => pid === id)
-            : medicalCert.findIndex((u) => u === url);
+          const idx = id ? medicalCertIds.findIndex((pid) => pid === id) : medicalCertUrls.findIndex((u) => u === url);
+
           if (idx !== -1) {
-            // Remove from arrays
-            medicalCert.splice(idx, 1);
+            const deletedId = medicalCertIds[idx];
+            medicalCertUrls.splice(idx, 1);
             medicalCertIds.splice(idx, 1);
-          }
-          // Remove from Cloudinary
-          if (id) {
-            cloudinary.uploader.destroy(id).catch(() => { });
+            if (deletedId) {
+              cloudinary.uploader.destroy(deletedId).catch(() => {});
+            }
           }
         });
-
-        // Save updated arrays
-        if (!validatedUpdates.health) validatedUpdates.health = {};
-        validatedUpdates.health.medicalCert = { urls: medicalCert, ids: medicalCertIds };
       }
     }
 
-    const studentRef = getStudentCollection().doc(sid);
-
-    const doc = await studentRef.get();
-    if (!doc.exists) {
-      return res.status(404).json({ error: "Student not found" });
+    // 3. Assign the final, consolidated certificate data to the update payload
+    if ((req.files && req.files.length > 0) || req.body.deleteCerts) {
+      if (!validatedUpdates.health) validatedUpdates.health = {};
+      validatedUpdates.health.medicalCert = { urls: medicalCertUrls, ids: medicalCertIds };
     }
 
     await studentRef.set(validatedUpdates, { merge: true });
@@ -571,7 +550,8 @@ const updateStudent = async (req, res) => {
   } catch (error) {
     console.error("Update error:", error);
 
-    for (const publicId of publicIds) {
+    // Rollback: delete newly uploaded files if an error occurred
+    for (const publicId of newPublicIds) {
       await cloudinary.uploader.destroy(publicId);
     }
 
