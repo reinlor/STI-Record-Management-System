@@ -271,7 +271,8 @@ const updateSchema = Joi.object({
     currentConcern: Joi.string().empty('').optional(),
   }).empty({}).optional(),
 
-  violations: Joi.object().optional().empty({})
+  violations: Joi.object().optional().empty({}),
+  deleteCerts: Joi.string().optional()
 });
 
 
