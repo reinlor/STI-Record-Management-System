@@ -104,9 +104,21 @@ const getAnnouncement = async (req, res) => {
 
     const recentAnnouncements = messages.filter((announcement) => {
       if (!announcement.timeCreated) return false;
-      const announcementDate = announcement.timeCreated.toDate();
+
+      let announcementDate;
+
+      if (typeof announcement.timeCreated.toDate === 'function') {
+        announcementDate = announcement.timeCreated.toDate();
+      } else {
+        announcementDate = new Date(announcement.timeCreated);
+      }
+
+      if (isNaN(announcementDate)) return false;
+
       return announcementDate >= cutOffDate;
     });
+
+    console.log(docSnapshot);
 
     res.status(200).json({ announcements: recentAnnouncements });
   } catch (error) {
