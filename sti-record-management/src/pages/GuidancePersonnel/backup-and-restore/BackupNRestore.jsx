@@ -3,7 +3,14 @@ import { Navigate } from "react-router-dom";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { RefreshCcw, Clock, Database, Play, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  RefreshCcw,
+  Clock,
+  Database,
+  Play,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import LoadingDots from "../../../component/Loading";
 import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
 import { db } from "../../../firebaseClient.js";
@@ -26,6 +33,27 @@ function BackNRestore() {
   const [currentPage, setCurrentPage] = useState(1);
   const logsPerPage = 5;
 
+  // ✅ Improved parseDate that handles Firestore Timestamp, object, string, or number
+  const parseDate = (data) => {
+    if (!data) return null;
+
+    try {
+      // Firestore Timestamp object
+      if (typeof data.toDate === "function") return data.toDate();
+
+      // Firestore plain object with seconds field
+      if (data.seconds) return new Date(data.seconds * 1000);
+
+      // ISO string or numeric timestamp
+      const parsed = new Date(data);
+      if (!isNaN(parsed.getTime())) return parsed;
+
+      return null;
+    } catch {
+      return null;
+    }
+  };
+
   useEffect(() => {
     setIsLoading(true);
 
@@ -38,6 +66,8 @@ function BackNRestore() {
         id: doc.id,
         ...doc.data(),
       }));
+
+      console.log("🧩 Raw backup logs:", newLogs); // for debug
       setLogs(newLogs);
       logsInitialized = true;
       if (scheduleInitialized) setIsLoading(false);
@@ -162,7 +192,7 @@ function BackNRestore() {
             <p className="text-sm text-gray-600">
               Next backup scheduled on:{" "}
               <span className="font-semibold text-gray-800">
-                {new Date(nextBackup).toLocaleString()}
+                {parseDate(nextBackup)?.toLocaleString?.() || "-"}
               </span>
             </p>
           )}
@@ -205,11 +235,16 @@ function BackNRestore() {
               <tbody>
                 {currentLogs.length > 0 ? (
                   currentLogs.map((log, idx) => {
-                    const dt = log.time?.toDate ? log.time.toDate() : null;
+                    const dt = parseDate(log.time) || parseDate(log.createdAt);
+
                     return (
                       <tr key={idx} className="border-t hover:bg-gray-50 transition">
-                        <td className="p-3">{dt ? dt.toLocaleDateString("en-US") : "-"}</td>
-                        <td className="p-3">{dt ? dt.toLocaleTimeString("en-US") : "-"}</td>
+                        <td className="p-3">
+                          {dt ? dt.toLocaleDateString("en-US") : "-"}
+                        </td>
+                        <td className="p-3">
+                          {dt ? dt.toLocaleTimeString("en-US") : "-"}
+                        </td>
                         <td className="p-3">
                           <span
                             className={`px-2 py-1 rounded-md text-xs font-semibold ${
