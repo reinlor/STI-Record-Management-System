@@ -7,7 +7,10 @@ import { AuthContext } from "../../../../AuthProvider.jsx";
 
 const defaultForm = {
     studentNumber: "",
-    fullName: "",
+    lastName: "",
+    firstName: "",
+    middleName: "",
+    suffix: "",
     emailAddress: "",
     gradeYearLevel: "",
     programStrand: "",
@@ -77,7 +80,10 @@ const AddStudentModal = ({ visible, onClose, newStudentForm = null, clearForm = 
             setForm((prev) => ({
                 ...prev,
                 studentNumber: newStudentForm.studentNumber || newStudentForm.sid || "",
-                fullName: newStudentForm.fullName || newStudentForm.studentName || "",
+                lastName: newStudentForm.lastName || "",
+                firstName: newStudentForm.firstName || "",
+                middleName: newStudentForm.middleName || "",
+                suffix: newStudentForm.suffix || "",
                 emailAddress: newStudentForm.emailAddress || "",
                 gradeYearLevel: newStudentForm.gradeYearLevel || newStudentForm.grade || "",
                 programStrand: newStudentForm.programStrand || newStudentForm.program || "",
@@ -183,13 +189,7 @@ const AddStudentModal = ({ visible, onClose, newStudentForm = null, clearForm = 
             setForm((prev) => ({ ...prev, emergencyContact: { name: "", contactNo: "" } }));
             return;
         }
-        if (choice === "mobileNo") {
-            name = "Mobile";
-            contactNo = form.mobileNo || "";
-        } else if (choice === "contactNo") {
-            name = "Home";
-            contactNo = form.contactNo || "";
-        } else if (choice === "fatherContact") {
+        if (choice === "fatherContact") {
             name = form.family.fatherName || "Father";
             contactNo = form.family.fatherContact || "";
         } else if (choice === "motherContact") {
@@ -209,12 +209,12 @@ const AddStudentModal = ({ visible, onClose, newStudentForm = null, clearForm = 
 
     const validateBasic = () => {
         const errors = [];
-        if (!form.fullName?.trim()) errors.push("Full Name is required.");
+        if (!form.lastName?.trim()) errors.push("Last Name is required.");
+        if (!form.firstName?.trim()) errors.push("First Name is required.");
         if (!form.studentNumber?.trim()) errors.push("Student Number is required.");
         if (!form.emailAddress?.trim()) errors.push("Email Address is required.");
         if (!form.gradeYearLevel) errors.push("Year Level is required.");
         if (!form.programStrand) errors.push(`${form.gradeYearLevel === "Tertiary" ? "Program" : "Strand"} is required.`);
-        if (!form.section?.trim()) errors.push("Section is required.");
         if (!form.birthDate) errors.push("Birth date is required.");
         if (!form.gender) errors.push("Gender is required.");
         if (!form.address?.trim()) errors.push("Address is required.");
@@ -237,11 +237,25 @@ const AddStudentModal = ({ visible, onClose, newStudentForm = null, clearForm = 
     const handleAddStudent = async () => {
         if (isSubmitting) return;
         setIsSubmitting(true);
+
+        const fullName = [
+            form.lastName,
+            form.firstName ? `, ${form.firstName}` : "",
+            form.middleName ? ` ${form.middleName}` : "",
+            form.suffix ? ` ${form.suffix}` : "",
+        ]
+            .filter(Boolean)
+            .join("");
+
         const payload = {
             sid: form.studentNumber,
             isArchived: false,
             studentProfile: {
-                name: form.fullName,
+                name: fullName,
+                lastName: form.lastName,
+                firstName: form.firstName,
+                middleName: form.middleName,
+                suffix: form.suffix,
                 academicLevel: form.gradeYearLevel,
                 program: form.programStrand,
                 section: form.section,
@@ -318,10 +332,28 @@ const AddStudentModal = ({ visible, onClose, newStudentForm = null, clearForm = 
                     <form className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
                         <div className="space-y-4">
                             <div>
-                                <label htmlFor="fullName" className="block text-sm font-medium text-gray-700">
-                                    Full Name:<span className="text-red-700">*</span>
+                                <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">
+                                    Last Name:<span className="text-red-700">*</span>
                                 </label>
-                                <input type="text" id="fullName" name="fullName" value={form.fullName} onChange={handleBasicChange} placeholder="Last Name, First Name M.I." className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
+                                <input type="text" id="lastName" name="lastName" value={form.lastName} onChange={handleBasicChange} placeholder="e.g., Dela Cruz" className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
+                            </div>
+                            <div>
+                                <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">
+                                    First Name:<span className="text-red-700">*</span>
+                                </label>
+                                <input type="text" id="firstName" name="firstName" value={form.firstName} onChange={handleBasicChange} placeholder="e.g., Juan" className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
+                            </div>
+                            <div>
+                                <label htmlFor="middleName" className="block text-sm font-medium text-gray-700">
+                                    Middle Name:
+                                </label>
+                                <input type="text" id="middleName" name="middleName" value={form.middleName} onChange={handleBasicChange} placeholder="e.g., Santos" className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
+                            </div>
+                            <div>
+                                <label htmlFor="suffix" className="block text-sm font-medium text-gray-700">
+                                    Suffix:
+                                </label>
+                                <input type="text" id="suffix" name="suffix" value={form.suffix} onChange={handleBasicChange} placeholder="e.g., Jr., III" className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
                             </div>
 
                             <div>
@@ -369,7 +401,7 @@ const AddStudentModal = ({ visible, onClose, newStudentForm = null, clearForm = 
 
                             <div>
                                 <label htmlFor="section" className="block text-sm font-medium text-gray-700">
-                                    Section:<span className="text-red-700">*</span>
+                                    Section:
                                 </label>
                                 <input type="text" id="section" name="section" value={form.section} onChange={handleBasicChange} placeholder="Enter the section" className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
                             </div>
@@ -377,7 +409,7 @@ const AddStudentModal = ({ visible, onClose, newStudentForm = null, clearForm = 
                             <div>
                                 <div className="relative">
                                     <label htmlFor="birthDate" className="block text-sm font-medium text-gray-700">
-                                        Birth date:<span className="text-red-700">*</span>
+                                        Birth Date:<span className="text-red-700">*</span>
                                     </label>
                                     <input type="date" id="birthDate" name="birthDate" value={form.birthDate} onChange={handleBasicChange} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 pr-10 focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
                                     <span className="absolute right-3 top-2.5 text-gray-400 cursor-pointer" onClick={() => document.getElementById("birthDate")?.showPicker?.()} tabIndex={-1}>
@@ -423,38 +455,6 @@ const AddStudentModal = ({ visible, onClose, newStudentForm = null, clearForm = 
                                     Home No.:
                                 </label>
                                 <input type="text" id="contactNo" name="contactNo" value={form.contactNo} onChange={handleBasicChange} placeholder="Enter home or hotline #" className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700">Emergency Contact (choose one)</label>
-                                <div className="mt-2 space-y-2">
-                                    <label className="flex items-center space-x-2">
-                                        <input type="radio" name="emergencyChoice" value="mobileNo" checked={form.emergencyChoice === "mobileNo"} onChange={handleEmergencyChoice} />
-                                        <span>Student Mobile No</span>
-                                    </label>
-                                    <label className="flex items-center space-x-2">
-                                        <input type="radio" name="emergencyChoice" value="contactNo" checked={form.emergencyChoice === "contactNo"} onChange={handleEmergencyChoice} />
-                                        <span>Home No</span>
-                                    </label>
-                                    <label className="flex items-center space-x-2">
-                                        <input type="radio" name="emergencyChoice" value="fatherContact" checked={form.emergencyChoice === "fatherContact"} onChange={handleEmergencyChoice} />
-                                        <span>Father Contact</span>
-                                    </label>
-                                    <label className="flex items-center space-x-2">
-                                        <input type="radio" name="emergencyChoice" value="motherContact" checked={form.emergencyChoice === "motherContact"} onChange={handleEmergencyChoice} />
-                                        <span>Mother Contact</span>
-                                    </label>
-                                    <label className="flex items-center space-x-2">
-                                        <input type="radio" name="emergencyChoice" value="guardianContact" checked={form.emergencyChoice === "guardianContact"} onChange={handleEmergencyChoice} />
-                                        <span>Guardian Contact</span>
-                                    </label>
-
-                                    <div className="mt-2">
-                                        <label className="block text-sm font-medium text-gray-700">Selected Emergency Contact</label>
-                                        <input type="text" readOnly value={form.emergencyContact.name} placeholder="Name (auto-filled)" className="mt-1 block w-full border border-gray-200 bg-gray-50 rounded-md shadow-sm py-2 px-3" />
-                                        <input type="text" readOnly value={form.emergencyContact.contactNo} placeholder="Contact No (auto-filled)" className="mt-1 block w-full border border-gray-200 bg-gray-50 rounded-md shadow-sm py-2 px-3" />
-                                    </div>
-                                </div>
                             </div>
                         </div>
                     </form>

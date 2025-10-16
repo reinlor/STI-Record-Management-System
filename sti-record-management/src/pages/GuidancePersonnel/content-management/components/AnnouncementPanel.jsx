@@ -12,7 +12,7 @@ export default function AnnouncementPanel({
       {/* Header */}
       <div className="flex items-center gap-2">
         <h2 className="text-2xl font-bold text-[#0172bd]">Announcement</h2>
-        <Bell className="w-7 h-7 text-[#0172bd] ml-2 mt-1" />
+        <Bell className="w-7 h-7 text-[#0172bd] ml-2 mt-1 mb-5" />
       </div>
 
       {/* New announcement input */}

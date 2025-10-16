@@ -14,7 +14,8 @@ import {
   FileEdit,
   FolderKanban,
   User,
-  CircleAlert
+  CircleAlert,
+  LayoutTemplate
 } from "lucide-react";
 
 export default function Sidebar() {
@@ -35,7 +36,7 @@ export default function Sidebar() {
         "Referral Forms": <FileEdit className="w-5 h-5 mr-3" />,
         "Back Up and Restore": <RefreshCcw className="w-5 h-5 mr-3" />,
         "Wellness Assessment": <HeartPulse className="w-5 h-5 mr-3" />,
-        "Content Managemet": <FolderKanban className="w-5 h-5 mr-3" />,
+        "Content Manager": <LayoutTemplate className="w-5 h-5 mr-3" />,
         "Offenses List": <CircleAlert className="w-5 h-5 mr-3" />,
     };
 
@@ -53,7 +54,7 @@ export default function Sidebar() {
             access.referralForm ? { label: "Referral Forms", path: "/guidance/referral-form" } : null,
             access.backupRestore ? { label: "Back Up and Restore", path: "/guidance/back-n-restore" } : null,
             access.wellness ? { label: "Wellness Assessment", path: "/guidance/wellness" } : null,
-            {label: "Content Managemet", path: "/guidance/content-management" },
+            {label: "Content Manager", path: "/guidance/content-management" },
             {label: "Offenses List", path: "/guidance/offenses" },
         ].filter(Boolean);
     }

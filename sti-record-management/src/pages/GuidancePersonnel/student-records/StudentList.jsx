@@ -1,5 +1,5 @@
 import axios from "axios";
-import { useState, useEffect, useContext } from "react";
+import { useState, useEffect, useContext, useMemo } from "react";
 import {
     ChevronLeft,
     Users,
@@ -128,6 +128,19 @@ function StudentList() {
     const [currentPage, setCurrentPage] = useState(1);
     const rowsPerPage = 10;
 
+    // Calculate student counts
+    const { shsCount, collegeCount } = useMemo(() => {
+        const counts = { shs: 0, college: 0 };
+        students.forEach(student => {
+            if (student.studentProfile?.academicLevel === 'Tertiary') {
+                counts.college++;
+            } else {
+                counts.shs++;
+            }
+        });
+        return { shsCount: counts.shs, collegeCount: counts.college };
+    }, [students]);
+
     // Fetch students and set filter options
     useEffect(() => {
         setLoading(true);
@@ -220,7 +233,7 @@ function StudentList() {
 
     // Table columns
     const columns = [
-        { label: "Student ID", key: "sid", show: "lg" },
+        { label: "Student Number", key: "sid", show: "lg" },
         { label: "Name", key: "name", show: "all" },
         { label: "Gender", key: "gender", show: "lg" },
         { label: "Program & Section", key: "progsect", show: "all" },
@@ -418,7 +431,7 @@ function StudentList() {
             const info = normalizeForUI(s);
 
             return {
-                "Student ID": s.sid ?? s.id ?? "",
+                "Student Number": s.sid ?? s.id ?? "",
                 Name: s.studentProfile?.name ?? "",
                 Gender: s.studentProfile?.gender ?? "",
                 Program: s.studentProfile?.program ?? "",
@@ -546,6 +559,39 @@ function StudentList() {
                             Student List
                         </div>
                         <div className="flex gap-2 w-full md:w-auto md:justify-end md:items-center">
+                            {/* Student Count Cards */}
+                            <div className="flex gap-2">
+                                <div className={`p-2 rounded-lg border ${activeLevel === 'shs' ? 'bg-blue-100 border-blue-300' : 'bg-gray-50 border-gray-200'}`}>
+                                    <div className="text-xs text-gray-600 font-semibold">SHS Students</div>
+                                    <div className="text-xl font-bold text-[#0172bd]">{shsCount}</div>
+                                </div>
+                                <div className={`p-2 rounded-lg border ${activeLevel === 'college' ? 'bg-blue-100 border-blue-300' : 'bg-gray-50 border-gray-200'}`}>
+                                    <div className="text-xs text-gray-600 font-semibold">College Students</div>
+                                    <div className="text-xl font-bold text-[#0172bd]">{collegeCount}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 w-full">
+                        {/* Add Student Buttons */}
+                        <div className="flex gap-2 mt-2 mb-2 flex-wrap">
+                            <button className="flex items-center gap-1 px-3 py-2 bg-[#0172bd] hover:bg-blue-500 text-white rounded-lg font-semibold text-sm shadow" onClick={handleAddIndividual}>
+                                <UserPlus className="w-4 h-4" />
+                                Individual
+                            </button>
+                            <button className="flex items-center gap-1 px-3 py-2 bg-[#0172bd] hover:bg-blue-500 text-white rounded-lg font-semibold text-sm shadow" onClick={handleAddBulk}>
+                                <UsersIcon className="w-4 h-4" />
+                                Bulk
+                            </button>
+                            <button className="flex items-center gap-1 px-3 py-2 bg-[#0172bd] hover:bg-blue-500 text-white rounded-lg font-semibold text-sm shadow" onClick={handleAddPhoto}>
+                                <Camera className="w-4 h-4" />
+                                Photo OCR
+                            </button>
+                        </div>
+
+                        {/* Search and Filter */}
+                        <div className="flex gap-2 w-full md:w-auto md:justify-end md:items-center">
                             <div className="relative flex-1 max-w-xs">
                                 <input type="text" placeholder="Search Name/ID" value={search} onChange={(e) => setSearch(e.target.value)} className="w-full pr-10 pl-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#0172bd] focus:border-transparent text-sm" style={{ minWidth: 0 }} />
                                 <Search className="absolute right-3 top-2.5 text-gray-400 w-5 h-5" />
@@ -555,22 +601,6 @@ function StudentList() {
                                 Clear Filters
                             </button>
                         </div>
-                    </div>
-
-                    {/* Add Student Buttons */}
-                    <div className="flex gap-2 mt-2 mb-2 flex-wrap">
-                        <button className="flex items-center gap-1 px-3 py-2 bg-[#0172bd] hover:bg-blue-500 text-white rounded-lg font-semibold text-sm shadow" onClick={handleAddIndividual}>
-                            <UserPlus className="w-4 h-4" />
-                            Individual
-                        </button>
-                        <button className="flex items-center gap-1 px-3 py-2 bg-[#0172bd] hover:bg-blue-500 text-white rounded-lg font-semibold text-sm shadow" onClick={handleAddBulk}>
-                            <UsersIcon className="w-4 h-4" />
-                            Bulk
-                        </button>
-                        <button className="flex items-center gap-1 px-3 py-2 bg-[#0172bd] hover:bg-blue-500 text-white rounded-lg font-semibold text-sm shadow" onClick={handleAddPhoto}>
-                            <Camera className="w-4 h-4" />
-                            Photo OCR
-                        </button>
                     </div>
                 </div>
 

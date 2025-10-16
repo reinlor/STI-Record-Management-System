@@ -13,6 +13,7 @@ const studentSchema = Joi.object({
   isArchived: Joi.boolean().required().default(false),
 
   studentProfile: Joi.object({
+    name: Joi.string().optional(), // Add name for search/display
     firstName: Joi.string().required(),
     lastName: Joi.string().required(),
     middleName: Joi.string().required(),
@@ -148,6 +149,7 @@ const updateSchema = Joi.object({
   isArchived: Joi.boolean().optional(),
 
   studentProfile: Joi.object({
+    name: Joi.string().empty('').optional(), // Add name for search/display
     firstName: Joi.string().empty('').optional(),
     lastName: Joi.string().empty('').optional(),
     middleName: Joi.string().empty('').optional(),
@@ -325,6 +327,18 @@ const addStudent = async (req, res) => {
       return res.status(400).json({ error: error.details[0].message });
     }
 
+    // Construct and add the full name
+    const profile = newStudent.studentProfile;
+    profile.name = [
+        profile.lastName,
+        profile.firstName ? `, ${profile.firstName}` : "",
+        profile.middleName ? ` ${profile.middleName}` : "",
+        profile.suffix ? ` ${profile.suffix}` : "",
+    ]
+        .filter(Boolean)
+        .join("");
+
+
     if (req.files && req.files.length > 0) {
       for (const file of req.files) {
         const { secure_url, public_id } = await cloudinary.uploader.upload(file.path, {folder: "medical-certificates"});
@@ -460,6 +474,24 @@ const updateStudent = async (req, res) => {
 
     if (error) {
       return res.status(400).json({ error: error.details[0].message });
+    }
+
+    // If name parts are updated, reconstruct the full name
+    if (validatedUpdates.studentProfile) {
+        const studentRefCheck = getStudentCollection().doc(sid);
+        const currentDocCheck = await studentRefCheck.get();
+        const currentProfile = currentDocCheck.data()?.studentProfile || {};
+        
+        const updatedProfile = { ...currentProfile, ...validatedUpdates.studentProfile };
+
+        validatedUpdates.studentProfile.name = [
+            updatedProfile.lastName,
+            updatedProfile.firstName ? `, ${updatedProfile.firstName}` : "",
+            updatedProfile.middleName ? ` ${updatedProfile.middleName}` : "",
+            updatedProfile.suffix ? ` ${updatedProfile.suffix}` : "",
+        ]
+            .filter(Boolean)
+            .join("");
     }
 
     const studentRef = getStudentCollection().doc(sid);
