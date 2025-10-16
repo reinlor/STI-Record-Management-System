@@ -8,6 +8,7 @@ import { AuthContext } from "../AuthProvider.jsx";
 import { Eye, EyeOff } from "lucide-react";
 import stiBg from "../assets/dasma-sti.jpg";
 import LoadingDots from "../component/Loading.jsx";
+import logo from "../assets/GORMS.png";
 
 function LoginBeta() {
   const [schoolId, setSchoolId] = useState("");
@@ -223,7 +224,8 @@ function LoginBeta() {
         {/* Left branding */}
         <div className="md:w-1/2 w-full bg-[#0172B9] flex items-center justify-center p-8 md:p-12 text-white">
           <div className="text-center">
-            <h2 className="text-4xl md:text-5xl font-extrabold mb-4">STI GORMS</h2>
+            <img src={logo} alt="STI GORMS Logo" className="mx-auto w-50 h-50 object-contain mb-3" />
+            <h2 className="text-4xl md:text-5xl font-extrabold mb-4 text-[#fef201]">STI GORMS</h2>
             <p className="font-light text-base md:text-lg opacity-90">
               Sign in to access your dashboard and manage your account.
             </p>

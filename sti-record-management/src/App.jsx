@@ -16,7 +16,11 @@ import GuidanceBackNRestore from './pages/GuidancePersonnel/backup-and-restore/B
 import GuidanceWellnessGeneration from './pages/GuidancePersonnel/wellness-assessment/WellnessAssessment.jsx'
 import GuidanceContentManagement from './pages/GuidancePersonnel/content-management/ContentManagement.jsx'
 import GuidanceNotificationPage from './component/GuidanceNotificationPage.jsx';
-import GuidanceOffenses from './pages/GuidancePersonnel/offenses/OffensesList.jsx'
+import GuidanceOffenses from './pages/GuidancePersonnel/offenses/OffensesList.jsx';
+import OffensesTab from "./pages/GuidancePersonnel/offenses/OffensesTab";
+import ContentManagement from "./pages/GuidancePersonnel/content-management/ContentManagement";
+import Users from "./pages/GuidancePersonnel/users/Users";
+import BackupNRestore from "./pages/GuidancePersonnel/backup-and-restore/BackupNRestore";
 
 import StudentHomepage from './pages/Student/StudentHomepage.jsx';
 
@@ -98,7 +102,10 @@ function App() {
             <Route path="wellness" element={<GuidanceWellnessGeneration />} />
             <Route path="content-management" element={<GuidanceContentManagement />} />
             <Route path="notifications" element={<GuidanceNotificationPage />} />
-            <Route path="offenses" element={<GuidanceOffenses />} />
+            <Route path="offenses" element={<OffensesTab />} />
+            <Route path="content-management" element={<ContentManagement />} />
+            <Route path="users" element={<Users />} />
+            <Route path="backup-and-restore" element={<BackupNRestore />} />
           </Route>
 
           {/* Protected Student Routes */}

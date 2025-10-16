@@ -8,6 +8,8 @@ import RequestTypeFrequency from "./blocks/RequestTypeFrequency";
 import Leaderboard from "./blocks/Leaderboard";
 import Loading from "../../../component/Loading";
 import SummaryReport from "./blocks/SummaryReport";
+import ModuleShortcuts from "./blocks/ModuleShortcuts";
+import TodoList from "./blocks/TodoList";
 
 const tailwindScript = document.createElement("script");
 tailwindScript.src = "https://cdn.tailwindcss.com";
@@ -37,9 +39,12 @@ const App = () => {
     const [schoolYear, setSchoolYear] = useState("");
     const [counters, setCounters] = useState({
         students: 0,
+        shsCount: 0,
+        tertiaryCount: 0,
         cases: 0,
         pendingSlips: 0,
         pendingForms: 0,
+        onGoingCases: 0,
     });
 
 
@@ -141,16 +146,17 @@ const App = () => {
     }
 
     return (
-        <div className="bg-[#f3f4f6] p-4 h-full">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+        <div className="bg-[#f3f4f6] p-4 h-full space-y-4 overflow-auto">
+            {/* Stat Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                 <StatCard
-                    title="No of student"
+                    title="No of Students"
                     value={counters.students}
                     note="Student Records"
                     to="/guidance/student-records"
                 />
                 <StatCard
-                    title="No of cases"
+                    title="No of Cases"
                     value={counters.cases}
                     note="Student Cases"
                     to="/guidance/student-cases"
@@ -158,33 +164,33 @@ const App = () => {
                 <StatCard
                     title="Pending Slips"
                     value={counters.pendingSlips}
-                    note={`+${counters?.today?.pendingSlips ?? 0}`}
+                    note={`Today: +${counters?.today?.pendingSlips ?? 0}`}
                     to="/guidance/request-slip"
                 />
                 <StatCard
-                    title="Pending form"
+                    title="Pending Forms"
                     value={counters.pendingForms}
-                    note={`+${counters?.today?.pendingForms ?? 0}`}
+                    note={`Today: +${counters?.today?.pendingForms ?? 0}`}
                     to="/guidance/referral-form"
                 />
             </div>
 
-
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                <div className="md:col-span-2">
+            {/* Main Dashboard Layout */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                {/* Left Column (Main Analytics & Shortcuts) */}
+                <div className="lg:col-span-2 space-y-2 flex flex-col">
                     <ViolationFrequency allData={allData} />
-                </div>
-
-                <div className="md:col-span-1 md:row-span-1">
-                    <Leaderboard leaderboardData={leaderboardData} schoolYear={schoolYear} />
-                </div>
-
-                <div className="md:col-span-2">
                     <RequestTypeFrequency slipData={slipData} />
+                    <div className="mt-auto pt-4">
+                        <ModuleShortcuts />
+                    </div>
                 </div>
 
-                <div className="md:col-span-1">
-                    <SummaryReport allData={allData} slipData={slipData} />
+                {/* Right Column (Secondary Info & Actions) */}
+                <div className="lg:col-span-1 space-y-4">
+                    <TodoList counters={counters} />
+                    <Leaderboard leaderboardData={leaderboardData} schoolYear={schoolYear} />
+                    <SummaryReport allData={allData} slipData={slipData} leaderboardData={leaderboardData} />
                 </div>
             </div>
         </div>

@@ -5,7 +5,7 @@ function Leaderboard({ leaderboardData, schoolYear }) {
     return (
         <div className="col-span-1 md:col-span-1 row-span-1 bg-white rounded-lg border border-gray-300 p-4 shadow-sm flex flex-col min-h-[400px]">
             <h2 className="text-lg font-bold mb-2 text-[#0172bd] flex justify-between items-center">
-                <span>Leaderboards</span> 
+                <span>Top Violators</span> 
                 <span className="text-sm font-semibold text-right">S.Y. {schoolYear}</span></h2>
             <div className="flex-1 overflow-auto">
                 <table className="w-full text-sm">
