@@ -48,7 +48,7 @@ function BackNRestore() {
       if (typeof data._seconds === "number") {
         return new Date(data._seconds * 1000);
       }
-      
+
       const parsed = new Date(data);
       return isNaN(parsed.getTime()) ? null : parsed;
     } catch (err) {
@@ -71,6 +71,14 @@ function BackNRestore() {
         id: doc.id,
         ...doc.data(),
       }));
+
+      newLogs.sort((a, b) => {
+        const aDate = parseDate(a.time) || parseDate(a.createdAt);
+        const bDate = parseDate(b.time) || parseDate(b.createdAt);
+
+        // Newest first
+        return bDate - aDate;
+      });
 
       console.log("🧩 Raw backup logs:", newLogs);
       console.log("Parsed log times:", newLogs.map(l => ({
