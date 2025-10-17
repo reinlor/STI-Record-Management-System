@@ -309,8 +309,80 @@ function StudentList() {
                 toast.error("Missing student identifier (sid).");
                 return;
             }
-            const { id, ...payload } = editedStudentData;
-            await axios.put(`/student/update/${sidParam}`, { processedBy: authData?.displayName ?? "Admin", ...payload });
+
+            // shallow copy payload (we will mutate before sending)
+            const { id, ...payloadOriginal } = editedStudentData;
+            const payload = JSON.parse(JSON.stringify(payloadOriginal || {})); // deep copy to avoid mutating state
+
+            // Normalize edited medicalCert from payload (may be array of objects or object)
+            let editedMed = [];
+            if (payload.health && payload.health.medicalCert) {
+                const mc = payload.health.medicalCert;
+                if (Array.isArray(mc)) {
+                    editedMed = mc;
+                } else if (mc && Array.isArray(mc.urls)) {
+                    editedMed = mc.urls.map((u, i) => ({ url: u, id: Array.isArray(mc.ids) ? mc.ids[i] : undefined }));
+                }
+            }
+
+            // Normalize original medicalCert from modalStudent so we can compute deletions
+            let originalMed = [];
+            const orig = modalStudent?.health?.medicalCert;
+            if (Array.isArray(orig)) {
+                originalMed = orig.map((item) => (typeof item === "string" ? { url: item } : item));
+            } else if (orig && Array.isArray(orig.urls)) {
+                originalMed = orig.urls.map((u, i) => ({ url: u, id: Array.isArray(orig.ids) ? orig.ids[i] : undefined }));
+            }
+
+            // Identify new files (objects that include a File under 'file')
+            const newFiles = editedMed.filter((e) => e && e.file instanceof File);
+
+            // Identify kept existing certs (those without a File instance)
+            const keptExisting = editedMed.filter((e) => !(e && e.file instanceof File));
+
+            // Compute deletions: originals that are not present in keptExisting (match by id or url)
+            const deletions = originalMed.filter((o) => {
+                return !keptExisting.some((k) => {
+                    if (!k) return false;
+                    if (o.id && k.id) return o.id === k.id;
+                    if (o.url && k.url) return o.url === k.url;
+                    return false;
+                });
+            });
+
+            // If there are uploads or deletions, send FormData so server multer receives files and controller can merge
+            if (newFiles.length > 0 || deletions.length > 0) {
+                const formData = new FormData();
+
+                // Build health payload WITHOUT medicalCert (server will merge medicalCert using uploads/deletes)
+                const healthPayload = payload.health ? { ...payload.health } : {};
+                delete healthPayload.medicalCert;
+                formData.append("health", JSON.stringify(healthPayload));
+
+                // processedBy must be included (server uses it for notifications)
+                formData.append("processedBy", authData?.displayName ?? "Admin");
+
+                // Append files using the "attachments" key (multer on server expects upload.array("attachments", 5))
+                for (const f of newFiles) {
+                    formData.append("attachments", f.file);
+                }
+
+                // If there are deletions, include them as JSON string under deleteCerts
+                if (deletions.length > 0) {
+                    formData.append("deleteCerts", JSON.stringify(deletions));
+                }
+
+                await axios.put(`/student/update/${sidParam}`, formData, {
+                    headers: { "Content-Type": "multipart/form-data" },
+                });
+            } else {
+                // No file uploads nor deletions: remove any medicalCert array from payload to avoid schema mismatch
+                if (payload.health && payload.health.medicalCert) {
+                    delete payload.health.medicalCert;
+                }
+
+                await axios.put(`/student/update/${sidParam}`, { processedBy: authData?.displayName ?? "Admin", ...payload });
+            }
 
             // Update local list
             setStudents((prevStudents) =>
