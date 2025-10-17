@@ -61,6 +61,13 @@ function ReferralFormHistory() {
 
   // Table rows
   const displayReferralTable = () => {
+    if (!pagedReferrals.length > 0) {
+      return <tr>
+        <td colSpan="7" className="text-center py-4 text-gray-500">
+          No referral history forms found.
+        </td>
+      </tr>
+    }
     return pagedReferrals.map((referrals) => (
       <tr key={referrals.id} className="hover:bg-gray-100 transition">
         <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 font-semibold text-[#0172bd] w-1/4">{referrals.referredBy}</td>

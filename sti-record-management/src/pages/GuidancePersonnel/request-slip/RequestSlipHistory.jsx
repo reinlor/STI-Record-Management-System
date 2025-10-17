@@ -508,7 +508,19 @@ function RequestSlipHistory() {
                 <th className="sticky bg-[#0172bd] top-0 z-10 px-2 sm:px-3 lg:px-4 py-2 sm:py-3"></th>
               </tr>
             </thead>
-            <tbody>{displaySlipHistoryTable}</tbody>
+            <tbody>
+              {
+                pagedSlipData.length > 0 ?
+                  displaySlipHistoryTable :
+
+                  <tr>
+
+                    <td colSpan="7" className="text-center py-4 text-gray-500">
+                      No pending request slip forms found.
+                    </td>
+                  </tr>
+              }
+            </tbody>
           </table>
 
         </div>

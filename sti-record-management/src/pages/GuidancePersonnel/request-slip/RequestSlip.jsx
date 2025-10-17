@@ -516,10 +516,10 @@ function RequestSlip() {
                   <div>
                     <p className="font-bold text-[#0172bd]">Status:</p>
                     <p className={`font-semibold break-all ${slip.status === "Approved"
-                        ? "text-green-600"
-                        : slip.status === "Rejected"
-                          ? "text-red-600"
-                          : "text-gray-600"
+                      ? "text-green-600"
+                      : slip.status === "Rejected"
+                        ? "text-red-600"
+                        : "text-gray-600"
                       }`}>{slip.status}</p>
                   </div>
                   {/* Row 3 */}
@@ -909,48 +909,54 @@ function RequestSlip() {
               </tr>
             </thead>
             <tbody>
-              {pagedSlipData.map((slips) => {
-                // prefer precomputed ms if available; otherwise pass original value to the parser
-                const days = getDateDifference(slips.timeCreatedMs ?? slips.timeCreated);
+              {pagedSlipData.length > 0 ? (
+                pagedSlipData.map((slips) => {
+                  const days = getDateDifference(slips.timeCreatedMs ?? slips.timeCreated);
 
-                return (
-                  <tr
-                    key={slips.id}
-                    className={`hover:bg-gray-50 transition border-b ${getRowColor(days)}`}
-                  >
-                    <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 lg:whitespace-nowrap font-semibold w-1/4">{slips.name}</td>
-                    <td className="px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">{slips.sid}</td>
-                    <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 lg:whitespace-nowrap">{slips.typeOfSlip}</td>
-                    <td className="px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">
-                      {slips.timeCreatedFormatted || formatDate(slips.timeCreated)}
-                    </td>
-
-                    {/* STATUS badge unchanged */}
-                    <td className={`px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto font-semibold ${slips.status === "Approved"
-                      ? "text-green-600"
-                      : slips.status === "Rejected"
-                        ? "text-red-600"
-                        : "text-gray-600"
-                      }`}
+                  return (
+                    <tr
+                      key={slips.id}
+                      className={`hover:bg-gray-50 transition border-b ${getRowColor(days)}`}
                     >
-                      {slips.status}
-                    </td>
-
-                    <td className="px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">{slips.attachmentCount}</td>
-
-                    {authData?.user?.access?.requestSlip && (
-                      <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3">
-                        <button
-                          className="bg-[#0172bd] text-white font-bold px-3 sm:px-4 py-1 rounded-lg hover:bg-blue-500 transition w-full sm:w-auto"
-                          onClick={() => openSlip(slips._id)}
-                        >
-                          Open
-                        </button>
+                      <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 lg:whitespace-nowrap font-semibold w-1/4">{slips.name}</td>
+                      <td className="px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">{slips.sid}</td>
+                      <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 lg:whitespace-nowrap">{slips.typeOfSlip}</td>
+                      <td className="px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">
+                        {slips.timeCreatedFormatted || formatDate(slips.timeCreated)}
                       </td>
-                    )}
-                  </tr>
-                );
-              })}
+
+                      {/* STATUS badge unchanged */}
+                      <td className={`px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto font-semibold ${slips.status === "Approved"
+                        ? "text-green-600"
+                        : slips.status === "Rejected"
+                          ? "text-red-600"
+                          : "text-gray-600"
+                        }`}
+                      >
+                        {slips.status}
+                      </td>
+
+                      <td className="px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">{slips.attachmentCount}</td>
+
+                      {authData?.user?.access?.requestSlip && (
+                        <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3">
+                          <button
+                            className="bg-[#0172bd] text-white font-bold px-3 sm:px-4 py-1 rounded-lg hover:bg-blue-500 transition w-full sm:w-auto"
+                            onClick={() => openSlip(slips._id)}
+                          >
+                            Open
+                          </button>
+                        </td>
+                      )}
+                    </tr>
+                  );
+                })) :
+                <tr>
+                  <td colSpan="7" className="text-center py-4 text-gray-500">
+                    No pending request slip forms found.
+                  </td>
+                </tr>
+              }
             </tbody>
 
 
