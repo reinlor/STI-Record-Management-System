@@ -76,7 +76,6 @@ function BackNRestore() {
         const aDate = parseDate(a.time) || parseDate(a.createdAt);
         const bDate = parseDate(b.time) || parseDate(b.createdAt);
 
-        // Newest first
         return bDate - aDate;
       });
 
@@ -287,6 +286,10 @@ function BackNRestore() {
               </tbody>
             </table>
           </div>
+
+          <a 
+            href='http://localhost:5000/backup/auth'
+            className="font-medium text-blue-600 dark:text-blue-500 underline" target="_blank">Backup not working? Verify now</a>
 
           {/* Pagination controls */}
           {logs.length > logsPerPage && (

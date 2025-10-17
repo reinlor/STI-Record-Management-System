@@ -13,11 +13,11 @@ const studentSchema = Joi.object({
   isArchived: Joi.boolean().required().default(false),
 
   studentProfile: Joi.object({
-    name: Joi.string().optional(), // Add name for search/display
+    name: Joi.string().optional(),
     firstName: Joi.string().required(),
     lastName: Joi.string().required(),
     middleName: Joi.string().required(),
-    suffix: Joi.string().optional(),
+    suffix: Joi.string().empty('').optional(),
     nickname: Joi.string().empty('').optional(),
     section: Joi.string().empty('').optional(),
     academicLevel: Joi.string().required(),
