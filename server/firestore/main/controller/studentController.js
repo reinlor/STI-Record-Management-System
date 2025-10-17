@@ -472,6 +472,26 @@ const updateStudent = async (req, res) => {
     }
     const { error, value: validatedUpdates } = updateSchema.validate(updates);
 
+    // Prevent Joi defaults from wiping out existing medical certificates.
+    // If the client did not include a medicalCert field (and there are no file uploads/deletions),
+    // remove the defaulted medicalCert produced by Joi so we don't overwrite stored certs with empty arrays.
+    let sentHealthPayload;
+    if (typeof updates.health === "string") {
+      try {
+        sentHealthPayload = JSON.parse(updates.health);
+      } catch (e) {
+        sentHealthPayload = undefined;
+      }
+    } else {
+      sentHealthPayload = updates.health;
+    }
+    const hasHealthMedicalCertInPayload = !!(sentHealthPayload && Object.prototype.hasOwnProperty.call(sentHealthPayload, "medicalCert"));
+    const hasFileUpload = req.files && req.files.length > 0;
+    const hasDeleteCerts = !!req.body.deleteCerts;
+    if (validatedUpdates.health && !hasHealthMedicalCertInPayload && !hasFileUpload && !hasDeleteCerts) {
+      delete validatedUpdates.health.medicalCert;
+    }
+
     if (error) {
       return res.status(400).json({ error: error.details[0].message });
     }

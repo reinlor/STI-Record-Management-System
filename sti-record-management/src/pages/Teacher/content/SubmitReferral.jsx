@@ -16,7 +16,6 @@ const useDebounce = (value, delay) => {
 
   return debouncedValue;
 };
-
 function SubmitReferralForm({ teacher = {}, onCancel }) {
   const [referral, setReferral] = useState({});
   const [isLoading, setIsLoading] = useState(true);
@@ -325,6 +324,24 @@ function SubmitReferralForm({ teacher = {}, onCancel }) {
               />
             </div>
 
+            {/* Student Name */}
+            <div>
+              <label className="block text-gray-700 font-medium mb-1">
+                Student Name: <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                className={`w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-800 transition-colors duration-500 ${
+                  highlightedFields.studentName
+                    ? "bg-yellow-100 animate-pulse"
+                    : ""
+                }`}
+                value={referral.studentName || ""}
+                onChange={(e) => handleReferralForm(e, "studentName")}
+                required
+              />
+            </div>
+
             {/* Student Number */}
             <div>
               <label className="block text-gray-700 font-medium mb-1">
@@ -398,24 +415,6 @@ function SubmitReferralForm({ teacher = {}, onCancel }) {
                 className="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-800"
                 value={referral.quarterSemester || ""}
                 disabled
-              />
-            </div>
-
-            {/* Student Name */}
-            <div>
-              <label className="block text-gray-700 font-medium mb-1">
-                Student Name: <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                className={`w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-800 transition-colors duration-500 ${
-                  highlightedFields.studentName
-                    ? "bg-yellow-100 animate-pulse"
-                    : ""
-                }`}
-                value={referral.studentName || ""}
-                onChange={(e) => handleReferralForm(e, "studentName")}
-                required
               />
             </div>
 
