@@ -11,7 +11,7 @@ const getMedicalCertType = (url) => url.endsWith('.pdf') ? 'application/pdf' : '
 export default function ProfileView() {
   const [studentId, setStudentId] = useState(null);
   const [student, setStudent] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true);3
   const [error, setError] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState("Basic Information");
   const [isEditing, setIsEditing] = useState(false);
@@ -1390,18 +1390,34 @@ export default function ProfileView() {
                 }))).map((file, idx) => (
                   <div key={idx} className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm flex items-center gap-3">
                     {file.type?.startsWith("image") ? (
-                      <img src={file.url} alt={file.name} className="w-16 h-16 object-cover rounded-lg border" />
+                      // image: open full image in a new tab
+                      <a href={file.url} target="_blank" rel="noopener noreferrer" title="Open full image in new tab" className="p-0 border-0 bg-transparent inline-block">
+                        <img src={file.url} alt={file.name} className="w-16 h-16 object-cover rounded-lg border" />
+                      </a>
                     ) : (
+                      // PDFs: show link (opens in new tab)
                       <a href={file.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
                         {file.name}
                       </a>
                     )}
                     <span className="font-semibold text-gray-900">{file.name}</span>
+
+                    {/* open in new tab for any file */}
+                    <a
+                      href={file.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="ml-auto text-sm text-[#0172bd] hover:underline mr-2"
+                      title="Open in new tab"
+                    >
+                      Open
+                    </a>
+
                     {isEditing && (
                       <button
                         type="button"
                         onClick={() => handleMedicalCertRemove(idx)}
-                        className="text-red-500 hover:text-red-700 p-2 rounded-full hover:bg-red-100 ml-auto"
+                        className="text-red-500 hover:text-red-700 p-2 rounded-full hover:bg-red-100"
                         title="Remove File"
                       >
                         <X className="w-4 h-4" />
