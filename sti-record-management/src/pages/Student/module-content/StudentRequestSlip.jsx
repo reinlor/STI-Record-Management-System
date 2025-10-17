@@ -332,10 +332,30 @@ export default function StudentRequestSlip() {
               Student Information
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <input type="text" value={formData.name} readOnly className={inputClasses} />
-              <input type="text" value={formData.sid} readOnly className={inputClasses} />
-              <input type="text" value={`${formData.program} ${formData.section}`} readOnly className={inputClasses} />
-              <input type="email" value={formData.email} readOnly className={inputClasses} />
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Student Name: <span className="text-red-500">*</span>
+                </label>
+                <input type="text" value={formData.name} readOnly className={inputClasses} />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Student Number: <span className="text-red-500">*</span>
+                </label>
+                <input type="text" value={formData.sid} readOnly className={inputClasses} />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Program and Section: <span className="text-red-500">*</span>
+                </label>
+                <input type="text" value={`${formData.program} ${formData.section}`} readOnly className={inputClasses} />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Email: <span className="text-red-500">*</span>
+                </label>
+                <input type="email" value={formData.email} readOnly className={inputClasses} />
+              </div>
             </div>
           </div>
 
@@ -351,7 +371,7 @@ export default function StudentRequestSlip() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Start Date of Absence
+                      Start Date of Absence: <span className="text-red-500">*</span>
                     </label>
                     <input
                       ref={startDateRef}
@@ -365,7 +385,7 @@ export default function StudentRequestSlip() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      End Date of Absence
+                      End Date of Absence: <span className="text-red-500">*</span>
                     </label>
                     <input
                       ref={endDateRef}
@@ -381,7 +401,7 @@ export default function StudentRequestSlip() {
                 {/* Reason Combo Box */}
                 <div className="mt-2">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Reason for Absence
+                    Reason for Absence: <span className="text-red-500">*</span>
                   </label>
                   <select
                     value={absentReason}
@@ -403,7 +423,7 @@ export default function StudentRequestSlip() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Date of Incident
+                      Date of Incident: <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="date"
@@ -416,7 +436,7 @@ export default function StudentRequestSlip() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Time of Incident
+                      Time of Incident: <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="time"
@@ -431,7 +451,7 @@ export default function StudentRequestSlip() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Location of Incident
+                    Location of Incident: <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -446,7 +466,7 @@ export default function StudentRequestSlip() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Person/s Involved
+                    Person/s Involved: <span className="text-red-500">*</span>
                   </label>
                   <textarea
                     name="personsInvolved"
@@ -490,7 +510,7 @@ export default function StudentRequestSlip() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Narrative of the Incident
+                    Narrative of the Incident: <span className="text-red-500">*</span>
                   </label>
                   <textarea
                     name="narrative"
@@ -505,7 +525,7 @@ export default function StudentRequestSlip() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Actions Taken
+                    Actions Taken: <span className="text-red-500">*</span>
                   </label>
                   <textarea
                     name="actionsTaken"
@@ -522,10 +542,10 @@ export default function StudentRequestSlip() {
                 <div className="bg-gray-50 p-6 rounded-xl shadow-inner border border-gray-200">
                   <h2 className="text-xl font-bold text-gray-700 mb-4 flex items-center gap-2">
                     <Upload className="w-6 h-6 text-gray-500" />
-                    Attach Supporting Evidence
+                    Attach Supporting Evidence: <span className="text-red-500">*</span>
                   </h2>
                   <p className="text-sm text-gray-500 mb-4">
-                    You may upload up to <span className="font-semibold">5 images</span> (JPEG, PNG, or GIF).
+                    You may upload up to <span className="font-semibold">5 images</span> (JPEG, PNG, or GIF). At least one attachment is required for Incident Reports.
                     Please make sure your evidence is clear and directly related to the incident.
                   </p>
 
@@ -634,8 +654,8 @@ export default function StudentRequestSlip() {
                   renderFileUpload(
                     medicalCertificate,
                     setMedicalCertificate,
-                    "Medical Certificate",
-                    "Upload a medical certificate from a licensed doctor. Required if you are absent for 3 or more consecutive days due to illness."
+                    "Medical Certificate (required if 3+ consecutive days)",
+                    "Upload a medical certificate from a licensed doctor if absent for 3 or more consecutive days."
                   )
                 )}
                 {renderFileUpload(
