@@ -330,18 +330,18 @@ const addStudent = async (req, res) => {
     // Construct and add the full name
     const profile = newStudent.studentProfile;
     profile.name = [
-        profile.lastName,
-        profile.firstName ? `, ${profile.firstName}` : "",
-        profile.middleName ? ` ${profile.middleName}` : "",
-        profile.suffix ? ` ${profile.suffix}` : "",
+      profile.lastName,
+      profile.firstName ? `, ${profile.firstName}` : "",
+      profile.middleName ? ` ${profile.middleName}` : "",
+      profile.suffix ? ` ${profile.suffix}` : "",
     ]
-        .filter(Boolean)
-        .join("");
+      .filter(Boolean)
+      .join("");
 
 
     if (req.files && req.files.length > 0) {
       for (const file of req.files) {
-        const { secure_url, public_id } = await cloudinary.uploader.upload(file.path, {folder: "medical-certificates"});
+        const { secure_url, public_id } = await cloudinary.uploader.upload(file.path, { folder: "medical-certificates" });
         resultUrls.push(secure_url);
         publicIds.push(public_id);
         fs.unlinkSync(file.path);
@@ -498,20 +498,20 @@ const updateStudent = async (req, res) => {
 
     // If name parts are updated, reconstruct the full name
     if (validatedUpdates.studentProfile) {
-        const studentRefCheck = getStudentCollection().doc(sid);
-        const currentDocCheck = await studentRefCheck.get();
-        const currentProfile = currentDocCheck.data()?.studentProfile || {};
-        
-        const updatedProfile = { ...currentProfile, ...validatedUpdates.studentProfile };
+      const studentRefCheck = getStudentCollection().doc(sid);
+      const currentDocCheck = await studentRefCheck.get();
+      const currentProfile = currentDocCheck.data()?.studentProfile || {};
 
-        validatedUpdates.studentProfile.name = [
-            updatedProfile.lastName,
-            updatedProfile.firstName ? `, ${updatedProfile.firstName}` : "",
-            updatedProfile.middleName ? ` ${updatedProfile.middleName}` : "",
-            updatedProfile.suffix ? ` ${updatedProfile.suffix}` : "",
-        ]
-            .filter(Boolean)
-            .join("");
+      const updatedProfile = { ...currentProfile, ...validatedUpdates.studentProfile };
+
+      validatedUpdates.studentProfile.name = [
+        updatedProfile.lastName,
+        updatedProfile.firstName ? `, ${updatedProfile.firstName}` : "",
+        updatedProfile.middleName ? ` ${updatedProfile.middleName}` : "",
+        updatedProfile.suffix ? ` ${updatedProfile.suffix}` : "",
+      ]
+        .filter(Boolean)
+        .join("");
     }
 
     const studentRef = getStudentCollection().doc(sid);
@@ -552,7 +552,7 @@ const updateStudent = async (req, res) => {
             medicalCertUrls.splice(idx, 1);
             medicalCertIds.splice(idx, 1);
             if (deletedId) {
-              cloudinary.uploader.destroy(deletedId).catch(() => {});
+              cloudinary.uploader.destroy(deletedId).catch(() => { });
             }
           }
         });
@@ -578,25 +578,29 @@ const updateStudent = async (req, res) => {
     const adminDoc = notifCollection.doc('records');
     const adminDocData = await adminDoc.get();
 
-    let existingAdminNotification = [];
-    if (adminDocData.exists && adminDocData.data()['data']) {
-      existingAdminNotification = adminDocData.data()['data'];
+    if (processedBy !== null) {
+      let existingAdminNotification = [];
+      if (adminDocData.exists && adminDocData.data()['data']) {
+        existingAdminNotification = adminDocData.data()['data'];
+      }
+
+      const newAdminNotification = {
+        date: new Date(),
+        from: 'Admin',
+        notifID: `adminRecord-${existingAdminNotification.length + 1}`,
+        type: 'Update',
+        subject: `${processedBy} has updated a student record`
+      }
+
+      const updatedAdminNotifications = [...existingAdminNotification, newAdminNotification]
+      const updateAdminPayload = {
+        data: updatedAdminNotifications
+      }
+
+      await adminDoc.set(updateAdminPayload, { merge: true });
     }
 
-    const newAdminNotification = {
-      date: new Date(),
-      from: 'Admin',
-      notifID: `adminRecord-${existingAdminNotification.length + 1}`,
-      type: 'Update',
-      subject: `${processedBy} has updated a student record`
-    }
 
-    const updatedAdminNotifications = [...existingAdminNotification, newAdminNotification]
-    const updateAdminPayload = {
-      data: updatedAdminNotifications
-    }
-
-    await adminDoc.set(updateAdminPayload, { merge: true });
   } catch (error) {
     console.error("Update error:", error);
 

@@ -164,20 +164,20 @@ const InfoSection = ({ infoType, student = {}, isEditing, onFieldChange }) => {
 
     // Special handler for medicalCert upload (admin)
     const handleMedicalCertUpload = (e) => {
-    const files = Array.from(e.target.files);
-    const current = getMedicalCertFiles(student.medicalCert);
-    const newCerts = [
-        ...current,
-        ...files.map((file) => ({
-            name: file.name,
-            file,
-            type: file.type,
-            url: URL.createObjectURL(file),
-        })),
-    ];
-    onFieldChange("health", "medicalCert", newCerts);
-    if (fileInputRef.current) fileInputRef.current.value = "";
-};
+        const files = Array.from(e.target.files);
+        const current = getMedicalCertFiles(student.medicalCert);
+        const newCerts = [
+            ...current,
+            ...files.map((file) => ({
+                name: file.name,
+                file,
+                type: file.type,
+                url: URL.createObjectURL(file),
+            })),
+        ];
+        onFieldChange("health", "medicalCert", newCerts);
+        if (fileInputRef.current) fileInputRef.current.value = "";
+    };
 
     // Special renderer for medicalCert field
     const renderMedicalCertField = (fieldDef) => {
@@ -364,8 +364,8 @@ const InfoSection = ({ infoType, student = {}, isEditing, onFieldChange }) => {
             student && student[fieldDef.key] !== undefined && student[fieldDef.key] !== null
                 ? student[fieldDef.key]
                 : fieldDef.type === "array"
-                ? []
-                : "N/A";
+                    ? []
+                    : "N/A";
 
         const value = rawVal === "N/A" ? "" : rawVal;
         const inputId = `${infoType}-${fieldDef.key}`;
@@ -386,6 +386,7 @@ const InfoSection = ({ infoType, student = {}, isEditing, onFieldChange }) => {
                             rows={fieldDef.multiline ? 4 : 2}
                             className="border border-gray-300 rounded-md px-3 py-2 w-full text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                             readOnly={!!fieldDef.readOnly}
+                            placeholder={fieldDef.placeholder}
                         />
                     ) : fieldDef.type === "array" ? (
                         <div>
@@ -398,6 +399,7 @@ const InfoSection = ({ infoType, student = {}, isEditing, onFieldChange }) => {
                                             value={item ?? ""}
                                             onChange={(e) => handleArrayChangeAtIndex(fieldDef.key, i, e.target.value)}
                                             className="flex-1 border border-gray-300 rounded-md px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            placeholder={fieldDef.placeholder}
                                         />
                                         <button
                                             type="button"
@@ -447,6 +449,8 @@ const InfoSection = ({ infoType, student = {}, isEditing, onFieldChange }) => {
                             onChange={(e) => onFieldChange(infoType, fieldDef.key, e.target.value)}
                             readOnly={!!fieldDef.readOnly}
                             className="border border-gray-300 rounded-md px-3 py-2 w-full text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder={fieldDef.placeholder}
+
                         />
                     )
                 ) : (
