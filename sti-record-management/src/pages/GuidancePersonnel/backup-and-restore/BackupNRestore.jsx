@@ -17,7 +17,7 @@ import { db } from "../../../firebaseClient.js";
 
 const AuthContext = React.createContext({
   authData: { user: { access: { backupRestore: { canView: true } } } },
-  logout: () => {},
+  logout: () => { },
 });
 
 function BackNRestore() {
@@ -33,26 +33,31 @@ function BackNRestore() {
   const [currentPage, setCurrentPage] = useState(1);
   const logsPerPage = 5;
 
-  // ✅ Improved parseDate that handles Firestore Timestamp, object, string, or number
   const parseDate = (data) => {
     if (!data) return null;
 
     try {
-      // Firestore Timestamp object
-      if (typeof data.toDate === "function") return data.toDate();
+      if (typeof data.toDate === "function") {
+        return data.toDate();
+      }
 
-      // Firestore plain object with seconds field
-      if (data.seconds) return new Date(data.seconds * 1000);
+      if (typeof data.seconds === "number") {
+        return new Date(data.seconds * 1000);
+      }
 
-      // ISO string or numeric timestamp
+      if (typeof data._seconds === "number") {
+        return new Date(data._seconds * 1000);
+      }
+      
       const parsed = new Date(data);
-      if (!isNaN(parsed.getTime())) return parsed;
-
-      return null;
-    } catch {
+      return isNaN(parsed.getTime()) ? null : parsed;
+    } catch (err) {
+      console.error("Failed to parse date:", err, data);
       return null;
     }
   };
+
+
 
   useEffect(() => {
     setIsLoading(true);
@@ -67,7 +72,12 @@ function BackNRestore() {
         ...doc.data(),
       }));
 
-      console.log("🧩 Raw backup logs:", newLogs); // for debug
+      console.log("🧩 Raw backup logs:", newLogs);
+      console.log("Parsed log times:", newLogs.map(l => ({
+        id: l.id,
+        raw: l.time,
+        parsed: parseDate(l.time)
+      })));
       setLogs(newLogs);
       logsInitialized = true;
       if (scheduleInitialized) setIsLoading(false);
@@ -211,9 +221,8 @@ function BackNRestore() {
           <button
             onClick={restoreLatestBackup}
             disabled={isRestoring}
-            className={`flex-1 bg-[#fef201] hover:bg-green-500 text-black font-semibold py-3 rounded-xl shadow-md transition flex items-center justify-center gap-2 ${
-              isRestoring ? "opacity-50 cursor-not-allowed" : ""
-            }`}
+            className={`flex-1 bg-[#fef201] hover:bg-green-500 text-black font-semibold py-3 rounded-xl shadow-md transition flex items-center justify-center gap-2 ${isRestoring ? "opacity-50 cursor-not-allowed" : ""
+              }`}
           >
             <Database className="w-5 h-5" />
             {isRestoring ? "Restoring..." : "Restore Backup"}
@@ -240,20 +249,19 @@ function BackNRestore() {
                     return (
                       <tr key={idx} className="border-t hover:bg-gray-50 transition">
                         <td className="p-3">
-                          {dt ? dt.toLocaleDateString("en-US") : "-"}
+                          {dt ? dt.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }) : "-"}
                         </td>
                         <td className="p-3">
-                          {dt ? dt.toLocaleTimeString("en-US") : "-"}
+                          {dt ? dt.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", second: "2-digit" }) : "-"}
                         </td>
                         <td className="p-3">
                           <span
-                            className={`px-2 py-1 rounded-md text-xs font-semibold ${
-                              log.status === "success"
-                                ? "bg-green-100 text-green-700"
-                                : log.status === "restored"
+                            className={`px-2 py-1 rounded-md text-xs font-semibold ${log.status === "success"
+                              ? "bg-green-100 text-green-700"
+                              : log.status === "restored"
                                 ? "bg-blue-100 text-blue-700"
                                 : "bg-red-100 text-red-700"
-                            }`}
+                              }`}
                           >
                             {log.status}
                           </span>
@@ -286,11 +294,10 @@ function BackNRestore() {
                 {Array.from({ length: totalPages }, (_, i) => (
                   <button
                     key={i + 1}
-                    className={`px-2 py-1 rounded ${
-                      currentPage === i + 1
-                        ? "bg-[#0172bd] text-white"
-                        : "hover:bg-gray-200 text-[#0172bd]"
-                    }`}
+                    className={`px-2 py-1 rounded ${currentPage === i + 1
+                      ? "bg-[#0172bd] text-white"
+                      : "hover:bg-gray-200 text-[#0172bd]"
+                      }`}
                     onClick={() => setCurrentPage(i + 1)}
                   >
                     {i + 1}
