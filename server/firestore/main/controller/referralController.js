@@ -45,7 +45,7 @@ const updateSchema = Joi.object({
   actionTaken: Joi.string().optional(),
   reasonForReferral: Joi.string().optional(),
   initialAction: Joi.string().optional().allow(''),
-  preparedDate: Joi.date().optional(),
+  preparedDate: Joi.optional(),
   feedBackDate: Joi.date().optional().allow(''),
   receivedBy: Joi.string().optional().allow(''),
   remarks: Joi.string().optional().allow(''),

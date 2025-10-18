@@ -1,16 +1,12 @@
 import { useState, useEffect, useContext } from "react";
 import { AuthContext } from '../../../AuthProvider.jsx';
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Navigate } from "react-router-dom";
 import axios from "axios";
 import { ToastContainer, toast } from 'react-toastify';
 import LoadingDots from "../../../component/Loading.jsx";
 import 'react-toastify/dist/ReactToastify.css';
 import {
   Search,
-  User,
-  Clipboard,
-  Plus,
-  Check,
   X,
   Clock,
   ChevronLeft,
@@ -45,6 +41,13 @@ function ReferralFormProcessing() {
 
   const [display, setDisplay] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [updateToastId, setUpdateToastId] = useState(null);
+
+
+  const [showRedirectPrompt, setShowRedirectPrompt] = useState(false);
+  const [resolvedReferralData, setResolvedReferralData] = useState(null);
 
   const [referralData, setReferralData] = useState([]);
 
@@ -85,6 +88,7 @@ function ReferralFormProcessing() {
   const [filterStatus, setFilterStatus] = useState("");
   const [filterPriority, setFilterPriority] = useState("");
   const [sortBy, setSortBy] = useState("oldest"); // <-- Add sort state
+
 
   // For Color Indicator
   const getDateDifference = (dateString) => {
@@ -144,9 +148,15 @@ function ReferralFormProcessing() {
     setSelectedReferral(null); // Clear the selected referral data
   };
   const handleUpdate = async (newStatus) => {
+    if (!selectedReferral) return;
+
+    setIsUpdating(true);
+
+    const toastId = toast.loading("Updating referral — please wait...");
+
     try {
       const { initialAction, preparedDate, feedBackDate, levelOfPriority, ...data } = selectedReferral;
-      console.log(data)
+
       const updatedData = {
         ...data,
         levelOfPriority: priorityLevel,
@@ -154,35 +164,51 @@ function ReferralFormProcessing() {
         remarks: remarks,
         initialAction: action,
         status: newStatus,
-        name: authData?.user?.displayName ?? 'Admin',
+        name: authData?.user?.displayName ?? "Admin",
         uid: selectedReferral.employeeID,
-
-        receivedBy: authData?.user?.displayName ?? 'Admin',
-
+        receivedBy: authData?.user?.displayName ?? "Admin",
       };
-
-      console.log('update', updatedData);
 
       const emailData = {
         to: emailTo,
         subject: emailSubject,
-        text: emailBody
-      }
+        text: emailBody,
+      };
 
       await axios.put(`/referral/update/${selectedReferral.id}`, updatedData);
       await axios.post(`/email/send`, emailData);
 
-      // Refresh the list of referrals
-      const response = await axios.get(`/referral/getAll`);
-      setReferralData(response.data);
-
       closeForm();
-      toast.success(`Referral status updated to "${newStatus}"!`);
+
+      // ✅ Update toast to success
+      toast.update(toastId, {
+        render: `Referral status updated to "${newStatus}"!`,
+        type: "success",
+        isLoading: false,
+        autoClose: 3000,
+        closeOnClick: true,
+      });
+
+      if (newStatus === "Resolved") {
+        setResolvedReferralData(selectedReferral);
+        setShowRedirectPrompt(true);
+      }
     } catch (error) {
       console.error("Error updating referral:", error);
-      toast.error("Error updating referral.");
+
+      // ✅ Update toast to error (using the same toastId)
+      toast.update(toastId, {
+        render: "Error updating referral.",
+        type: "error",
+        isLoading: false,
+        autoClose: 4000,
+        closeOnClick: true,
+      });
+    } finally {
+      setIsUpdating(false);
     }
   };
+
 
 
   // filter logic with status and priority
@@ -622,16 +648,19 @@ function ReferralFormProcessing() {
 
                     <div className="flex flex-col sm:flex-row gap-2 mt-4">
                       <button
-                        className="flex-1 bg-[#0172bd] text-white px-4 py-2 rounded-lg hover:bg-blue-500 transition duration-200 shadow-md"
+                        className={`flex-1 ${isUpdating ? 'opacity-60 cursor-not-allowed' : ''} bg-[#0172bd] text-white px-4 py-2 rounded-lg hover:bg-blue-500 transition duration-200 shadow-md`}
                         onClick={() => handleUpdate("In Progress")}
+                        disabled={isUpdating}
                       >
-                        Update
+                        {isUpdating ? 'Working...' : 'Update'}
                       </button>
+
                       <button
-                        className="flex-1 bg-[#28a745] text-white px-4 py-2 rounded-lg hover:bg-green-500 transition duration-200 shadow-md"
+                        className={`flex-1 ${isUpdating ? 'opacity-60 cursor-not-allowed' : ''} bg-[#28a745] text-white px-4 py-2 rounded-lg hover:bg-green-500 transition duration-200 shadow-md`}
                         onClick={() => handleUpdate("Resolved")}
+                        disabled={isUpdating}
                       >
-                        Solved
+                        {isUpdating ? 'Working...' : 'Solved'}
                       </button>
                     </div>
                   </div>
@@ -645,6 +674,56 @@ function ReferralFormProcessing() {
           </div>
         </div>
       )}
+
+      {/* Confirmation Modal */}
+      {showRedirectPrompt && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl p-6 w-[90%] max-w-md text-center">
+            <h2 className="text-2xl font-bold text-[#0172bd] mb-4">Create Case Record?</h2>
+            <p className="text-gray-700 mb-6">
+              This referral has been marked as <span className="font-semibold text-green-600">Resolved</span>.<br />
+              Would you like to create a case record for this referral?<br />
+              You will be redirected to the Student Cases page.
+            </p>
+
+            <div className="flex justify-center gap-4">
+              <button
+                className="bg-[#0172bd] hover:bg-blue-600 text-white px-5 py-2 rounded-lg font-semibold transition"
+                onClick={() => {
+                  if (!resolvedReferralData) return;
+                  setShowRedirectPrompt(false);
+                  navigate("/guidance/student-cases", {
+                    state: {
+                      referralData: {
+                        studentName: resolvedReferralData.studentName,
+                        studentId: resolvedReferralData.sid,
+                        programSection: resolvedReferralData.program,
+                        counselingTypeCategory: resolvedReferralData.counselingTypeCategory,
+                        violation: resolvedReferralData.violation,
+                        detailedDescription: resolvedReferralData.reasonForReferral,
+                        actions: resolvedReferralData.actionTaken,
+                        dateOfInitiation: new Date().toISOString().split("T")[0],
+                        timeOfInitiation: new Date().toTimeString().slice(0, 5),
+                        dateOfAction: new Date().toISOString().split("T")[0],
+                        caseStatus: "Resolved",
+                      }
+                    }
+                  });
+                }}
+              >
+                Yes, Continue
+              </button>
+              <button
+                className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-5 py-2 rounded-lg font-semibold transition"
+                onClick={() => setShowRedirectPrompt(false)}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

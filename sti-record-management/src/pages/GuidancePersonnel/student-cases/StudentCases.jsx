@@ -26,6 +26,7 @@ import {
 import LoadingDots from "../../../component/Loading.jsx";
 import { collection, onSnapshot } from "firebase/firestore";
 import { db } from "../../../firebaseClient.js";
+import { useLocation } from "react-router-dom";
 
 const PRIORITY_LEVELS = [
     { value: "", label: "No Priority" },
@@ -42,6 +43,22 @@ const STATUS_OPTIONS = [
 
 function StudentCases() {
     const { authData } = useContext(AuthContext);
+
+    const location = useLocation();
+
+    useEffect(() => {
+        if (location.state?.referralData) {
+            setNewCaseForm((prev) => ({
+                ...prev,
+                ...location.state.referralData,
+            }));
+            setShowAddModal(true);
+            window.history.replaceState({}, document.title);
+        }
+    }, [location.state]);
+
+
+
 
     const [cases, setCases] = useState([]);
     const [caseDetailsMap, setCaseDetailsMap] = useState({});
@@ -251,22 +268,22 @@ function StudentCases() {
         if (
             !dataToSave.studentName || !dataToSave.studentId || !dataToSave.counselingTypeCategory ||
             !dataToSave.programSection || !dataToSave.dateOfInitiation || !dataToSave.timeOfInitiation ||
-            !dataToSave.violation || !dataToSave.dateOfAction ||!dataToSave.caseStatus) {
-                let emptyFields = [];
-                if (!dataToSave.studentName) emptyFields.push('Name');
-                if (!dataToSave.studentId) emptyFields.push('ID');
-                if (!dataToSave.counselingTypeCategory) emptyFields.push('Counseling Type');
-                if (!dataToSave.programSection) emptyFields.push('Program Section');
-                if (!dataToSave.dateOfInitiation) emptyFields.push('Date of Initiation');
-                if (!dataToSave.timeOfInitiation) emptyFields.push('Time of initiation');
-                if (!dataToSave.violation) emptyFields.push('Violation');
-                if (!dataToSave.dateOfAction) emptyFields.push('Date of Action');
-                if (!dataToSave.caseStatus) emptyFields.push('Case Status');
-                const fieldList = emptyFields.join(', ')
-                toast.error(`Please fill out the required fields: ${fieldList}`);
-                return;
+            !dataToSave.violation || !dataToSave.dateOfAction || !dataToSave.caseStatus) {
+            let emptyFields = [];
+            if (!dataToSave.studentName) emptyFields.push('Name');
+            if (!dataToSave.studentId) emptyFields.push('ID');
+            if (!dataToSave.counselingTypeCategory) emptyFields.push('Counseling Type');
+            if (!dataToSave.programSection) emptyFields.push('Program Section');
+            if (!dataToSave.dateOfInitiation) emptyFields.push('Date of Initiation');
+            if (!dataToSave.timeOfInitiation) emptyFields.push('Time of initiation');
+            if (!dataToSave.violation) emptyFields.push('Violation');
+            if (!dataToSave.dateOfAction) emptyFields.push('Date of Action');
+            if (!dataToSave.caseStatus) emptyFields.push('Case Status');
+            const fieldList = emptyFields.join(', ')
+            toast.error(`Please fill out the required fields: ${fieldList}`);
+            return;
         }
-        
+
         try {
             setIsSubmitting(true);
             const formData = new FormData();
