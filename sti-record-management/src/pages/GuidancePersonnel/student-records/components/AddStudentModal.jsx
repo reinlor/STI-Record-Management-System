@@ -332,6 +332,12 @@ const AddStudentModal = ({ visible, onClose, newStudentForm = null, clearForm = 
                     <form className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
                         <div className="space-y-4">
                             <div>
+                                <label htmlFor="studentNumber" className="block text-sm font-medium text-gray-700">
+                                    Student Number:<span className="text-red-700">*</span>
+                                </label>
+                                <input type="text" id="studentNumber" name="studentNumber" value={form.studentNumber} onChange={handleBasicChange} placeholder="02000XXXXXX" className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
+                            </div>
+                            <div>
                                 <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">
                                     Last Name:<span className="text-red-700">*</span>
                                 </label>
@@ -355,13 +361,39 @@ const AddStudentModal = ({ visible, onClose, newStudentForm = null, clearForm = 
                                 </label>
                                 <input type="text" id="suffix" name="suffix" value={form.suffix} onChange={handleBasicChange} placeholder="e.g., Jr., III" className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
                             </div>
-
                             <div>
-                                <label htmlFor="studentNumber" className="block text-sm font-medium text-gray-700">
-                                    Student Number:<span className="text-red-700">*</span>
-                                </label>
-                                <input type="text" id="studentNumber" name="studentNumber" value={form.studentNumber} onChange={handleBasicChange} placeholder="02000XXXXXX" className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
+                                <div className="relative">
+                                    <label htmlFor="birthDate" className="block text-sm font-medium text-gray-700">
+                                        Birth Date:<span className="text-red-700">*</span>
+                                    </label>
+                                    <input type="date" id="birthDate" name="birthDate" value={form.birthDate} onChange={handleBasicChange} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 pr-10 focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
+                                    <span className="absolute right-3 top-2.5 text-gray-400 cursor-pointer" onClick={() => document.getElementById("birthDate")?.showPicker?.()} tabIndex={-1}>
+                                        <Calendar className="w-5 h-5 mt-6" />
+                                    </span>
+                                </div>
                             </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Gender:<span className="text-red-700">*</span>
+                                </label>
+                                <div className="flex space-x-4">
+                                    <label className="inline-flex items-center">
+                                        <input type="radio" name="gender" value="Male" checked={form.gender === "Male"} onChange={(e) => update("gender", e.target.value)} className="form-radio text-blue-600 h-4 w-4" />
+                                        <span className="ml-2 text-gray-700">Male</span>
+                                    </label>
+                                    <label className="inline-flex items-center">
+                                        <input type="radio" name="gender" value="Female" checked={form.gender === "Female"} onChange={(e) => update("gender", e.target.value)} className="form-radio text-blue-600 h-4 w-4" />
+                                        <span className="ml-2 text-gray-700">Female</span>
+                                    </label>
+                                </div>
+                            </div>
+
+
+                        </div>
+
+                        <div className="space-y-4">
+
+
 
                             <div>
                                 <label htmlFor="emailAddress" className="block text-sm font-medium text-gray-700">
@@ -406,35 +438,6 @@ const AddStudentModal = ({ visible, onClose, newStudentForm = null, clearForm = 
                                 <input type="text" id="section" name="section" value={form.section} onChange={handleBasicChange} placeholder="Enter the section" className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
                             </div>
 
-                            <div>
-                                <div className="relative">
-                                    <label htmlFor="birthDate" className="block text-sm font-medium text-gray-700">
-                                        Birth Date:<span className="text-red-700">*</span>
-                                    </label>
-                                    <input type="date" id="birthDate" name="birthDate" value={form.birthDate} onChange={handleBasicChange} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 pr-10 focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
-                                    <span className="absolute right-3 top-2.5 text-gray-400 cursor-pointer" onClick={() => document.getElementById("birthDate")?.showPicker?.()} tabIndex={-1}>
-                                        <Calendar className="w-5 h-5 mt-6" />
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Gender:<span className="text-red-700">*</span>
-                                </label>
-                                <div className="flex space-x-4">
-                                    <label className="inline-flex items-center">
-                                        <input type="radio" name="gender" value="Male" checked={form.gender === "Male"} onChange={(e) => update("gender", e.target.value)} className="form-radio text-blue-600 h-4 w-4" />
-                                        <span className="ml-2 text-gray-700">Male</span>
-                                    </label>
-                                    <label className="inline-flex items-center">
-                                        <input type="radio" name="gender" value="Female" checked={form.gender === "Female"} onChange={(e) => update("gender", e.target.value)} className="form-radio text-blue-600 h-4 w-4" />
-                                        <span className="ml-2 text-gray-700">Female</span>
-                                    </label>
-                                </div>
-                            </div>
 
                             <div>
                                 <label htmlFor="mobileNo" className="block text-sm font-medium text-gray-700">
