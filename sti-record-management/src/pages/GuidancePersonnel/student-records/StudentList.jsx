@@ -309,24 +309,122 @@ function StudentList() {
                 toast.error("Missing student identifier (sid).");
                 return;
             }
-            const { id, ...payload } = editedStudentData;
-            await axios.put(`/student/update/${sidParam}`, { processedBy: authData?.displayName ?? "Admin", ...payload });
 
-            // Update local list
-            setStudents((prevStudents) =>
-                prevStudents.map((s) => {
-                    if (s.id === modalStudent.id || s.sid === sidParam || s.id === editedStudentData.id || s.sid === editedStudentData.sid) {
-                        return { ...s, ...editedStudentData };
-                    }
-                    return s;
-                })
-            );
+            // Clone editedStudentData BUT preserve File objects.
+            // Avoid JSON.stringify here because that removes File references.
+            const payload = {};
+            Object.assign(payload, editedStudentData);
+            if (editedStudentData?.health && typeof editedStudentData.health === "object") {
+                payload.health = { ...editedStudentData.health };
+                if (Array.isArray(editedStudentData.health.medicalCert)) {
+                    // shallow copy array (preserve file objects)
+                    payload.health.medicalCert = [...editedStudentData.health.medicalCert];
+                }
+            }
+            // remove local-only fields
+            delete payload.id;
+
+            // Helpers to normalize original (server) and edited lists
+            const normalizeOriginal = () => {
+                const orig = modalStudent?.health?.medicalCert;
+                if (!orig) return [];
+                if (Array.isArray(orig)) {
+                    return orig.map((it) => (typeof it === "string" ? { url: it } : it));
+                }
+                if (orig && Array.isArray(orig.urls)) {
+                    return orig.urls.map((url, i) => ({
+                        url,
+                        id: Array.isArray(orig.ids) ? orig.ids[i] : undefined,
+                    }));
+                }
+                return [];
+            };
+
+            const normalizeEdited = () => {
+                const edited = payload.health?.medicalCert;
+                if (!edited) return [];
+                if (Array.isArray(edited)) {
+                    return edited.map((it) => {
+                        if (typeof it === "string") return { url: it };
+                        return it;
+                    });
+                }
+                if (edited && Array.isArray(edited.urls)) {
+                    return edited.urls.map((url, i) => ({ url, id: Array.isArray(edited.ids) ? edited.ids[i] : undefined }));
+                }
+                return [];
+            };
+
+            const originalMed = normalizeOriginal();
+            const editedMed = normalizeEdited();
+
+            // New files are entries that include a File object under .file
+            const newFiles = editedMed.filter((e) => e && e.file instanceof File);
+
+            // Kept existing entries (no File)
+            const keptExisting = editedMed.filter((e) => !(e && e.file instanceof File));
+
+            // Deletions: originals not present in keptExisting (match by id or url)
+            const deletions = originalMed.filter((o) => {
+                return !keptExisting.some((k) => {
+                    if (!k) return false;
+                    if (o.id && k.id) return o.id === k.id;
+                    if (o.url && k.url) return o.url === k.url;
+                    return false;
+                });
+            });
+
+            // If there are files to upload or deletions, send multipart/form-data
+            if (newFiles.length > 0 || deletions.length > 0) {
+                const formData = new FormData();
+
+                // Append health payload WITHOUT medicalCert (server will merge uploads/deletions)
+                const healthPayload = payload.health ? { ...payload.health } : {};
+                delete healthPayload.medicalCert;
+                formData.append("health", JSON.stringify(healthPayload));
+
+                // processedBy
+                formData.append("processedBy", authData?.displayName ?? "Admin");
+
+                // Append files under "attachments" (server route expects upload.array("attachments"))
+                for (const f of newFiles) {
+                    formData.append("attachments", f.file);
+                }
+
+                if (deletions.length > 0) {
+                    const minimal = deletions.map(d => ({ url: d.url, id: d.id }));
+                    formData.append("deleteCerts", JSON.stringify(minimal));
+                }
+
+                // IMPORTANT: Do NOT set Content-Type header here. Let the browser set the multipart boundary.
+                await axios.put(`/student/update/${sidParam}`, formData);
+            } else {
+                // No file operations: remove any medicalCert array from payload to avoid schema mismatch
+                if (payload.health && Object.prototype.hasOwnProperty.call(payload.health, "medicalCert")) {
+                    delete payload.health.medicalCert;
+                }
+
+                await axios.put(`/student/update/${sidParam}`, { processedBy: authData?.displayName ?? "Admin", ...payload });
+            }
+
+            // Fetch the saved student from server to reflect persisted values (medicalCert urls/ids)
+            try {
+                const resp = await axios.get(`/student/get/${sidParam}`);
+                const saved = resp.data;
+                setModalStudent(saved);
+                setEditedStudentData(JSON.parse(JSON.stringify(saved)));
+                // onSnapshot listener will update students array eventually; update optimistically too
+                setStudents((prev) =>
+                    prev.map((s) => (s.id === saved.id || s.sid === saved.sid ? { ...s, ...saved } : s))
+                );
+            } catch (e) {
+                // Ignore fetch error; UI state remains best-effort
+            }
 
             toast.success("Changes saved successfully!");
             setIsEditing(false);
-            setModalStudent(editedStudentData);
         } catch (err) {
-            console.error(err);
+            console.error("Failed to save edit:", err?.response?.data ?? err);
             toast.error("Failed to update student.");
         }
     };

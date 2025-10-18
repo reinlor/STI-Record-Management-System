@@ -214,7 +214,7 @@ const InfoSection = ({ infoType, student = {}, isEditing, onFieldChange }) => {
                             <div key={file.url || idx} className="flex items-center gap-3 mb-2">
                                 {file.url && file.url.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
                                     <>
-                                        <a href={file.url} target="_blank" rel="noopener noreferrer">
+                                        <a href={file.url} target="_blank" rel="noopener noreferrer" title="Open full image in new tab" className="p-0 border-0 bg-transparent inline-block">
                                             <img
                                                 src={file.url}
                                                 alt={file.name || `Medical Certificate ${idx + 1}`}
@@ -248,6 +248,17 @@ const InfoSection = ({ infoType, student = {}, isEditing, onFieldChange }) => {
                                         </a>
                                     </>
                                 )}
+                                {/* open in new tab for any file */}
+                                <a
+                                    href={file.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="ml-auto text-sm text-[#0172bd] hover:underline mr-2"
+                                    title="Open in new tab"
+                                >
+                                    Open
+                                </a>
+
                                 <button
                                     type="button"
                                     className="ml-2 px-2 py-1 bg-red-100 text-red-700 rounded text-xs"
@@ -267,7 +278,7 @@ const InfoSection = ({ infoType, student = {}, isEditing, onFieldChange }) => {
                             <div key={file.url || idx} className="flex items-center gap-3 mb-2">
                                 {file.url && file.url.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
                                     <>
-                                        <a href={file.url} target="_blank" rel="noopener noreferrer">
+                                        <a href={file.url} target="_blank" rel="noopener noreferrer" title="Open full image in new tab" className="p-0 border-0 bg-transparent inline-block">
                                             <img
                                                 src={file.url}
                                                 alt={file.name || `Medical Certificate ${idx + 1}`}
@@ -301,6 +312,17 @@ const InfoSection = ({ infoType, student = {}, isEditing, onFieldChange }) => {
                                         </a>
                                     </>
                                 )}
+
+                                {/* open in new tab for any file */}
+                                <a
+                                    href={file.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="ml-auto text-sm text-[#0172bd] hover:underline mr-2"
+                                    title="Open in new tab"
+                                >
+                                    Open
+                                </a>
                             </div>
                         ))}
                     </>
