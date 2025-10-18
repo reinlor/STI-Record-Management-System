@@ -831,7 +831,7 @@ function StudentList() {
                                             {/* Student ID (large screens only) */}
                                             <td className={tableCellClass + " hidden lg:table-cell"}>{student.sid}</td>
                                             {/* Name */}
-                                            <td className={tableCellClass}>{profile.name}</td>
+                                            <td className={tableCellClass}>{profile?.lastName}, {profile?.firstName} {profile?.lastName} {profile?.suffix}</td>
                                             {/* Gender (large screens only) */}
                                             <td className={tableCellClass + " hidden lg:table-cell"}>{profile.gender}</td>
                                             {/* Program & Section */}
@@ -912,7 +912,7 @@ function StudentList() {
                                     <Users className="w-8 h-8 sm:w-10 sm:h-10 text-[#0172bd] flex-shrink-0" />
                                     <div className="min-w-0">
                                         <div className="text-xl sm:text-2xl md:text-3xl font-bold text-[#0172bd] break-words truncate md:break-normal md:whitespace-normal" style={{ maxWidth: "70vw" }}>
-                                            {modalStudent.studentProfile?.name}
+                                            {modalStudent.studentProfile?.lastName}, {modalStudent.studentProfile?.firstName} {modalStudent.studentProfile?.middleName} {modalStudent.studentProfile?.suffix}
                                         </div>
                                         <div className="text-gray-500 text-sm sm:text-base md:text-lg break-all">{modalStudent.sid}</div>
                                     </div>
