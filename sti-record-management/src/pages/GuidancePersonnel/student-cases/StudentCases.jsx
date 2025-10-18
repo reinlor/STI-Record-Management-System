@@ -285,6 +285,7 @@ function StudentCases() {
             });
 
             await axios.post("/cases/add", formData, { headers: { "Content-Type": "multipart/form-data" } });
+            console.log(formData)
             toast.success("Case Added Successfully!");
             setShowAddModal(false);
             setNewCaseForm({

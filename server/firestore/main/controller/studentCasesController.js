@@ -245,19 +245,29 @@ const addViolation = async (req, res) => {
       return res.status(400).json({ error: error.details[0].message });
     }
 
+    // Chart Data (Dashboard)
     const sid = newViolation.sid;
     const reason = newViolation.counselingType;
     const name = newViolation.name;
     const programSection = newViolation.programSection;
 
     const serverTimestamp = FieldValue.serverTimestamp();
+    const schoolPeriodDoc = await getContentManagementCollection().doc("schoolPeriod").get();
+
+    // Logic to get current school year
+    let currentSchoolYear = "";
+    if (schoolPeriodDoc.exists) {
+      currentSchoolYear = schoolPeriodDoc.data().schoolYear || "";
+    }
 
     const chartData = {
       sid: sid,
       type: reason,
       name: name,
       section: programSection,
-      date: new Date().toISOString(),
+      schoolYear: currentSchoolYear,
+
+      date: new Date(),
     };
 
     if (body.status === "Resolved") {
@@ -274,6 +284,7 @@ const addViolation = async (req, res) => {
         });
       }
     }
+    //
 
     const violationData = {
       ...newViolation,
@@ -393,6 +404,44 @@ const updateViolation = async (req, res) => {
           },
           { merge: true }
         );
+
+        // Chart Data (Dashboard)
+        const reason = saved.counselingType;
+        const name = saved.name;
+        const programSection = saved.programSection;
+
+        const schoolPeriodDoc = await getContentManagementCollection().doc("schoolPeriod").get();
+
+        // Logic to get current school year
+        let currentSchoolYear = "";
+        if (schoolPeriodDoc.exists) {
+          currentSchoolYear = schoolPeriodDoc.data().schoolYear || "";
+        }
+
+        const chartData = {
+          sid: sid,
+          type: reason,
+          name: name,
+          section: programSection,
+          schoolYear: currentSchoolYear,
+
+          date: new Date(),
+        };
+
+        const studentCaseRef = getChartDataCollection().doc("studentCase");
+        const docSnapshot = await studentCaseRef.get();
+
+        if (!docSnapshot.exists) {
+          await studentCaseRef.set({
+            data: [chartData],
+          });
+        } else {
+          await studentCaseRef.update({
+            data: FieldValue.arrayUnion(chartData),
+          });
+        }
+        //
+
       } catch (err) {
         console.error("Error assigning violation on update (Resolved):", err);
         // do not block the update - only log

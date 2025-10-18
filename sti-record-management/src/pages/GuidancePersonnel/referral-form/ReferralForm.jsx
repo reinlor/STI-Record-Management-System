@@ -56,49 +56,25 @@ function ReferralFormProcessing() {
   const [priorityLevel, setPriorityLevel] = useState();
   const [action, setAction] = useState();
   const [counselorNote, setCounselorNote] = useState();
+  const [remarks, setRemarks] = useState();
   const [emailTo, setEmailTo] = useState();
   const [emailSubject, setEmailSubject] = useState();
   const [emailBody, setEmailBody] = useState();
 
   const formatDate = (timestamp) => {
-    if (!timestamp) return "N/A";
-
-    if (typeof timestamp.toDate === 'function') {
-      const date = timestamp.toDate();
-
-      if (isNaN(date.getTime())) {
-        return "Invalid Date";
-      }
-
-      return new Intl.DateTimeFormat('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-      }).format(date);
+    if (!timestamp) return "-";
+    if (timestamp.seconds) {
+      return new Date(timestamp.seconds * 1000).toLocaleString("en-US", {
+        month: "long",
+        day: "numeric",
+        year: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+        second: "2-digit",
+      });
     }
-
-    try {
-      const date = new Date(timestamp);
-
-      if (isNaN(date.getTime())) {
-        return "Invalid Date";
-      }
-
-      return new Intl.DateTimeFormat('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-      }).format(date);
-    } catch (error) {
-      console.error("Date formatting error:", error);
-      return "N/A";
-    }
+    if (typeof timestamp === "string") return timestamp;
+    return "-";
   };
 
   // PAGINATION STATE
@@ -125,6 +101,7 @@ function ReferralFormProcessing() {
     if (days >= 1 && days <= 3) return "bg-blue-100";   // 1–3 days
     return "bg-white"; // today
   };
+
 
   useEffect(() => {
     setIsLoading(true);
@@ -154,7 +131,8 @@ function ReferralFormProcessing() {
     setPriorityLevel(ref.levelOfPriority);
     setSelectedReferral(ref);
     setDisplay(true);
-    setCounselorNote(ref.remarks || "");
+    setCounselorNote(ref.counselorNote || "");
+    setRemarks(ref.remarks || "");
     setEmailTo(ref.email || "");
     setEmailSubject("Referral Submission");
     setAction(ref.initialAction || "")
@@ -172,7 +150,8 @@ function ReferralFormProcessing() {
       const updatedData = {
         ...data,
         levelOfPriority: priorityLevel,
-        remarks: counselorNote,
+        counselorNote: counselorNote,
+        remarks: remarks,
         initialAction: action,
         status: newStatus,
         name: authData?.user?.displayName ?? 'Admin',
@@ -533,6 +512,22 @@ function ReferralFormProcessing() {
                       <strong className="text-[#0172bd]">Level of Priority:</strong>{" "}
                       <span className="text-black">{selectedReferral.levelOfPriority || "-"}</span>
                     </p>
+                    <p>
+                      <strong className="text-[#0172bd]">Category:</strong>{" "}
+                      <span className="text-black">{selectedReferral.counselingTypeCategory || "-"}</span>
+                    </p>
+                    <p>
+                      <strong className="text-[#0172bd]">Violation/Case:</strong>{" "}
+                      <span className="text-black">{selectedReferral.violation || "-"}</span>
+                    </p>
+                    <p>
+                      <strong className="text-[#0172bd]">Prepared Date:</strong>{" "}
+                      <span className="text-black">{formatDate(selectedReferral.preparedDate) || "-"}</span>
+                    </p>
+                    <p>
+                      <strong className="text-[#0172bd]">Feedback Date:</strong>{" "}
+                      <span className="text-black">{formatDate(selectedReferral.feedBackDate) || "-"}</span>
+                    </p>
                   </div>
 
                   <div>
@@ -574,10 +569,22 @@ function ReferralFormProcessing() {
                     <textarea
                       className="w-full border border-gray-300 rounded-md p-3 mt-1 resize-y bg-[#f3f4f6] text-black focus:outline-none focus:ring-1 focus:ring-[#0172bd]"
                       rows={2}
-                      placeholder="Add notes here..."
+                      placeholder="Only admin can see the notes added here"
                       value={counselorNote}
                       onChange={(e) => { setCounselorNote(e.target.value) }}
                     />
+
+                    <p className="font-bold text-[#0172bd]">Remarks:</p>
+                    <textarea
+                      className="w-full border border-gray-300 rounded-md p-3 mt-1 resize-y bg-[#f3f4f6] text-black focus:outline-none focus:ring-1 focus:ring-[#0172bd]"
+                      rows={2}
+                      placeholder="Add remarks here..."
+                      value={remarks}
+                      onChange={(e) => { setRemarks(e.target.value) }}
+                    />
+
+                    <p className="font-bold text-[#0172bd] text-xl">Email Notification</p>
+                    <hr />
 
                     <div className="flex flex-col gap-3">
                       <div className="flex items-center gap-2 flex-1">

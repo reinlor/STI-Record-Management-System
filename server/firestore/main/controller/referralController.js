@@ -2,6 +2,7 @@ const Joi = require("joi");
 const { getReferralFormCollection } = require("../models/referralModel");
 const { getChartDataCollection } = require("../models/chartDataModel");
 const { getNotificationCollection } = require("../models/notificationModel");
+const { getContentManagementCollection } = require("../models/contentManagementModel");
 const { FieldValue } = require("firebase-admin/firestore");
 
 // Referral Schema
@@ -47,7 +48,8 @@ const updateSchema = Joi.object({
   preparedDate: Joi.date().optional(),
   feedBackDate: Joi.date().optional().allow(''),
   receivedBy: Joi.string().optional().allow(''),
-  remarks: Joi.string().optional().allow('')
+  remarks: Joi.string().optional().allow(''),
+  counselorNote: Joi.string().optional().allow('')
 });
 
 // Controller Function for adding
@@ -59,33 +61,9 @@ const addReferral = async (req, res) => {
     if (error) {
       return res.status(400).json({ error: error.details[0].message });
     }
-    await getReferralFormCollection().doc().set({preparedDate: new Date(), ...newReferral});
+    await getReferralFormCollection().doc().set({ preparedDate: new Date(), ...newReferral });
 
-    const sid = newReferral.sid;
-    const reason = newReferral.counselingTypeCategory;
-    const name = newReferral.studentName;
-    const program = newReferral.program;
 
-    const chartData = {
-      sid: sid,
-      type: reason,
-      name: name,
-      section: program,
-      date: new Date().toISOString(),
-    };
-
-    const studentCaseRef = getChartDataCollection().doc("studentCase");
-    const docSnapshot = await studentCaseRef.get();
-
-    if (!docSnapshot.exists) {
-      await studentCaseRef.set({
-        data: [chartData],
-      });
-    } else {
-      await studentCaseRef.update({
-        data: FieldValue.arrayUnion(chartData),
-      });
-    }
 
     // Notifications
     const notifCollection = getNotificationCollection();
@@ -145,8 +123,9 @@ const updateReferral = async (req, res) => {
       return res.status(404).json({ error: "Student not found" });
     }
 
-    await referralRef.set({feedBackDate: new Date(), ...validatedUpdates}, { merge: true });
+    await referralRef.set({ feedBackDate: new Date(), ...validatedUpdates }, { merge: true });
 
+    // Notification
     const notifCollection = getNotificationCollection();
     const teacherDoc = notifCollection.doc('teacher');
     const teacherDocData = await teacherDoc.get();
@@ -195,7 +174,46 @@ const updateReferral = async (req, res) => {
 
     await teacherDoc.set(updatePayload, { merge: true });
     await adminDoc.set(updateAdminPayload, { merge: true });
+    //
 
+    // Chart Data (Dashboard)
+    // const sid = validatedUpdates.sid;
+    // const reason = validatedUpdates.counselingTypeCategory;
+    // const studentName = validatedUpdates.studentName;
+    // const program = validatedUpdates.program;
+    // const schoolPeriodDoc = await getContentManagementCollection().doc("schoolPeriod").get();
+
+    // Logic to get current school year
+    // if (validatedUpdates.status === 'Resolved') {
+    //   let currentSchoolYear = "";
+    //   if (schoolPeriodDoc.exists) {
+    //     currentSchoolYear = schoolPeriodDoc.data().schoolYear || "";  
+    //   }
+
+
+    //   const chartData = {
+    //     sid: sid,
+    //     type: reason,
+    //     name: studentName,
+    //     section: program,
+    //     schoolYear: currentSchoolYear,
+    //     date: new Date(),
+    //   };
+
+    //   const studentCaseRef = getChartDataCollection().doc("studentCase");
+    //   const docSnapshot = await studentCaseRef.get();
+
+    //   if (!docSnapshot.exists) {
+    //     await studentCaseRef.set({
+    //       data: [chartData],
+    //     });
+    //   } else {
+    //     await studentCaseRef.update({
+    //       data: FieldValue.arrayUnion(chartData),
+    //     });
+    //   }
+    // }
+    //
 
     res.status(201).json({
       message: `Referral Form (${id}) successfully updated.`,
@@ -209,7 +227,7 @@ const updateReferral = async (req, res) => {
 
 // Controller function for cancelling referral
 const cancelReferral = async (req, res) => {
-  const {referralId} = req.params;
+  const { referralId } = req.params;
 
   try {
     const docRef = getReferralFormCollection().doc(referralId);

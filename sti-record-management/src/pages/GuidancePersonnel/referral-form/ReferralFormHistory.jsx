@@ -43,6 +43,23 @@ function ReferralFormHistory() {
     return () => unsubscribe();
   }, []);
 
+  const formatDate = (timestamp) => {
+    if (!timestamp) return "-";
+    if (timestamp.seconds) {
+      return new Date(timestamp.seconds * 1000).toLocaleString("en-US", {
+        month: "long",
+        day: "numeric",
+        year: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+        second: "2-digit",
+      });
+    }
+    if (typeof timestamp === "string") return timestamp;
+    return "-";
+  };
+
+
   // Filter and pagination logic
   const filtered = referralData.filter(
     (ref) =>
@@ -74,7 +91,7 @@ function ReferralFormHistory() {
         <td className="px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">{referrals.employeeID}</td>
         <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 break-words max-w-[150px] truncate align-middle">{referrals.reasonForReferral}</td>
         <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3">{referrals.studentName}</td>
-        <td className="px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">{referrals.preparedDate}</td>
+        <td className="px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">{formatDate(referrals.preparedDate)}</td>
         <td className={`px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto font-semibold ${referrals.status === 'Resolved' ? 'text-green-600' : 'text-red-600'
           }`}>
           {referrals.status}
@@ -120,17 +137,17 @@ function ReferralFormHistory() {
             {/* Left Column */}
             <div className="space-y-3">
               <p><span className="font-bold text-[#0172bd]">School Year:</span> {selectedReferral.schoolYear || "-"}</p>
-              <p><span className="font-bold text-[#0172bd]">Tertiary (Semester):</span> {selectedReferral.semester || "-"}</p>
-              <p><span className="font-bold text-[#0172bd]">Senior High (Quarter):</span> {selectedReferral.quarter || "-"}</p>
-              <p><span className="font-bold text-[#0172bd]">Student Number:</span> {selectedReferral.studentNumber || "-"}</p>
+              <p><span className="font-bold text-[#0172bd]">Grade Level:</span> {selectedReferral.gradeLevel || "-"}</p>
+              <p><span className="font-bold text-[#0172bd]">Student Number:</span> {selectedReferral.sid || "-"}</p>
               <p><span className="font-bold text-[#0172bd]">Student’s Name:</span> {selectedReferral.studentName || "-"}</p>
-              <p><span className="font-bold text-[#0172bd]">Program and Section:</span> {selectedReferral.programSection || "-"}</p>
+              <p><span className="font-bold text-[#0172bd]">Program and Section:</span> {selectedReferral.program || "-"}</p>
               <p><span className="font-bold text-[#0172bd]">Gender:</span> {selectedReferral.gender || "-"}</p>
-              <p><span className="font-bold text-[#0172bd]">Age:</span> {selectedReferral.age || "-"}</p>
               <p><span className="font-bold text-[#0172bd]">Referred By:</span> {selectedReferral.referredBy || "-"}</p>
-              <p><span className="font-bold text-[#0172bd]">Areas of Concern:</span> {selectedReferral.areasOfConcern || "-"}</p>
-              <p><span className="font-bold text-[#0172bd]">Action Required:</span> {selectedReferral.actionRequired || "-"}</p>
-              <p><span className="font-bold text-[#0172bd]">Level of Priority:</span> {selectedReferral.levelPriority || "-"}</p>
+              <p><span className="font-bold text-[#0172bd]">Level of Priority:</span> {selectedReferral.levelOfPriority || "-"}</p>
+              <p><span className="font-bold text-[#0172bd]">Category:</span> {selectedReferral.counselingTypeCategory || "-"}</p>
+              <p><span className="font-bold text-[#0172bd]">Violation:</span> {selectedReferral.violation || "-"}</p>
+              <p><span className="font-bold text-[#0172bd]">Prepared Date:</span> {formatDate(selectedReferral.preparedDate) || "-"}</p>
+              <p><span className="font-bold text-[#0172bd]">Feedback Date:</span> {formatDate(selectedReferral.feedBackDate) || "-"}</p>
 
             </div>
             {/* Right Column */}
@@ -140,7 +157,7 @@ function ReferralFormHistory() {
                 <p className="font-bold text-[#0172bd]">Actions Taken before Referral:</p>
                 <textarea
                   readOnly
-                  value={selectedReferral.actionsBefore || ""}
+                  value={selectedReferral.actionTaken || ""}
                   className="w-full border border-gray-300 rounded p-2 mt-1 resize-none bg-gray-50"
                   rows={3}
                 />
@@ -149,7 +166,7 @@ function ReferralFormHistory() {
                 <p className="font-bold text-[#0172bd]">Reasons for Referral / Comments:</p>
                 <textarea
                   readOnly
-                  value={selectedReferral.reasons || ""}
+                  value={selectedReferral.reasonForReferral || ""}
                   className="w-full border border-gray-300 rounded p-2 mt-1 resize-none bg-gray-50"
                   rows={3}
                 />
@@ -158,7 +175,7 @@ function ReferralFormHistory() {
               <p className="font-bold text-[#0172bd]">Counselor’s Initial Action:</p>
               <textarea
                 readOnly
-                value={selectedReferral.counselorAction || ""}
+                value={selectedReferral.initialAction || ""}
                 className="w-full border border-gray-300 rounded p-2 resize-none bg-gray-50"
                 rows={10}
               />
