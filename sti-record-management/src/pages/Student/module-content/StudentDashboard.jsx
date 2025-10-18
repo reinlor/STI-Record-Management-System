@@ -17,17 +17,17 @@ export default function StudentDashboard() {
       setLoading(true)
       try {
         const announcementsRes = await axios.get(
-          "http://localhost:5000/content/announcement/get"
+          "/content/announcement/get"
         );
         setAnnouncements(announcementsRes.data.announcements);
 
         const wellnessRes = await axios.get(
-          "http://localhost:5000/content/wellness/get"
+          "/content/wellness/get"
         );
         setWellnessLink(wellnessRes.data.link);
 
         const handbookRes = await axios.get(
-          "http://localhost:5000/content/studentHandbook/get"
+          "/content/studentHandbook/get"
         );
         setHandbooks([
           {
