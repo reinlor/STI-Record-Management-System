@@ -5,7 +5,11 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   base: "./",
+  build: {
+    sourcemap: false, // Disable source maps for production builds
+  },
   server: {
+    allowedHosts: ['sti-gorms.duckdns.org'],
     proxy: {
       "/student": "http://localhost:5000",
       "/slip": "http://localhost:5000",

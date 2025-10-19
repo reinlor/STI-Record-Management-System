@@ -131,8 +131,6 @@ function LoginBeta() {
       const userRole = userData.role;
       const userDisplayName = userData.displayName;
 
-      console.log("Logged in user:", userData);
-
       setLoading(false);
       setAttempts(0); // reset attempts after success
       toast.success("Welcome!");

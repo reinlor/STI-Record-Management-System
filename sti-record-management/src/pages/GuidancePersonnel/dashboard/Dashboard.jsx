@@ -11,26 +11,6 @@ import SummaryReport from "./blocks/SummaryReport";
 import ModuleShortcuts from "./blocks/ModuleShortcuts";
 import TodoList from "./blocks/TodoList";
 
-const tailwindScript = document.createElement("script");
-tailwindScript.src = "https://cdn.tailwindcss.com";
-document.head.appendChild(tailwindScript);
-
-const mockData = [
-    {
-        id: "studentCase",
-        "2023-2024": [
-            { sid: "02000288488", name: "Juan Dela Cruz", violation: "Uniform Violation", section: "4A", date: "2023-10-26" },
-            { sid: "sid2", name: "Maria Clara", violation: "Tardiness", section: "3B", date: "2023-10-25" },
-            { sid: "02000288488", name: "Juan Dela Cruz", violation: "Haircut Violation", section: "4A", date: "2023-10-24" },
-            { sid: "sid3", name: "Crisostomo Ibarra", violation: "Disrespect", section: "4A", date: "2023-10-23" },
-            { sid: "sid2", name: "Maria Clara", violation: "Tardiness", section: "3B", date: "2023-10-22" },
-            { sid: "02000288488", name: "Juan Dela Cruz", violation: "Uniform Violation", section: "4A", date: "2023-10-21" },
-            { sid: "sid2", name: "Maria Clara", violation: "Tardiness", section: "3B", date: "2023-10-20" },
-        ],
-    },
-    { id: "slip-n-pass", "2023-2024": [] },
-];
-
 const App = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [allData, setAllData] = useState([]);

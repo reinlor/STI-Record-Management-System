@@ -60,7 +60,7 @@ ChartJS.register(
 
 
 // What the helly yow bat di to naka define       -renlor (genuine question)
-import './app.css'  // <- originally nakatangal   -renlor
+import './App.css'  // <- originally nakatangal   -renlor
 import AuthProvider from './AuthProvider.jsx';
 import ProtectedRoute from './ProtectedRoute.jsx';
 
