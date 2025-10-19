@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import axios from 'axios';
 import { X, Check } from 'lucide-react';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { AuthContext } from "../../../../AuthProvider.jsx";
 
 const SectionTabs = ({ tabs, active, onChange }) => (
     <div className="flex gap-2 mb-4">
@@ -70,10 +71,10 @@ const PhotoToTextModal = ({ visible, onClose, onOCRSuccess }) => {
     const [loading, setLoading] = useState(false);
     const [ocrData, setOcrData] = useState(null);
     const [activeTab, setActiveTab] = useState('profile');
+    const { authData } = useContext(AuthContext);
 
     if (!visible) return null;
 
-    // ✅ Updated required field validation
     const validateRequired = (data) => {
         const missing = [];
         if (!data) return { valid: false, missing: ['scan-image'] };
@@ -162,6 +163,7 @@ const PhotoToTextModal = ({ visible, onClose, onOCRSuccess }) => {
             const archived = (ocrData?.sid?.toString()?.toLowerCase()?.includes('prd')) ?? false;
             const final = {
                 ...ocrData,
+                processedBy: authData?.displayName ?? 'Admin',
                 sid: ocrData?.sid || "",
                 studentProfile: ocrData?.studentProfile || {},
                 contactInfo: ocrData?.contactInfo || { address: {} },
