@@ -5,6 +5,8 @@ import { getStatusClasses } from "../components/statusClasses";
 import { Search, Loader2, X, ChevronDown, Filter, FileText, AlertTriangle } from "lucide-react";
 import { AuthContext } from "../../../AuthProvider.jsx";
 import LoadingDots from "../../../component/Loading.jsx";
+import { collection, query, where, onSnapshot } from "firebase/firestore";
+import { db } from "../../../firebaseClient.js";
 
 export default function StudentViewRequest() {
   const { authData } = useContext(AuthContext);
@@ -59,38 +61,88 @@ export default function StudentViewRequest() {
 
   // fetch slips
   useEffect(() => {
-    setLoading(true)
-    const fetchData = async () => {
-      if (!authData || !authData.user?.uid) {
-        setRequestData([]);
-        setLoading(false);
-        return;
-      }
-      setLoading(true);
-      try {
-        const res = await axios.get(`/slip/allSlips/${authData.user.uid}`);
-        setRequestData(res.data || []);
-      } catch (err) {
-        console.error("Error fetching slips:", err);
-        setRequestData([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, [authData]);
+    if (!authData?.user?.uid) {
+      setRequestData([]);
+      return;
+    }
 
+    const uid = authData.user.uid;
+    setLoading(true);
+
+    try {
+      const absentRef = query(collection(db, "absentSlips"), where("sid", "==", uid));
+      const incidentRef = query(collection(db, "incidentReport"), where("sid", "==", uid));
+
+      const unsubAbsent = onSnapshot(
+        absentRef,
+        (snapshot) => {
+          const absents = snapshot.docs.map((doc) => ({
+            id: doc.id,
+            type: "absentSlip",
+            ...doc.data(),
+          }));
+
+          setRequestData((prev) => {
+            const incidents = prev.filter((x) => x.type === "incidentReport");
+            return [...absents, ...incidents];
+          });
+
+          setLoading(false);
+        },
+        (err) => {
+          console.error("Absent slips listener error:", err);
+          setLoading(false);
+        }
+      );
+
+      const unsubIncident = onSnapshot(
+        incidentRef,
+        (snapshot) => {
+          const incidents = snapshot.docs.map((doc) => ({
+            id: doc.id,
+            type: "incidentReport",
+            ...doc.data(),
+          }));
+
+          setRequestData((prev) => {
+            const absents = prev.filter((x) => x.type === "absentSlip");
+            return [...absents, ...incidents];
+          });
+
+          setLoading(false);
+        },
+        (err) => {
+          console.error("Incident reports listener error:", err);
+          setLoading(false);
+        }
+      );
+
+      return () => {
+        unsubAbsent();
+        unsubIncident();
+      };
+    } catch (err) {
+      console.error("Error setting up Firestore listeners:", err);
+      setRequestData([]);
+      setLoading(false);
+    }
+  }, [authData]);
   // helpers: normalize incoming time values to Date
   const parseToDate = (val) => {
     if (!val) return null;
-    // Firestore-like timestamp { _seconds: number, _nanoseconds: number }
+
+    if (val.toDate && typeof val.toDate === "function") {
+      return val.toDate();
+    }
+
     if (typeof val === "object" && val._seconds) {
       return new Date(val._seconds * 1000);
     }
-    // ISO string or number
+
     const d = new Date(val);
     return isNaN(d.getTime()) ? null : d;
   };
+
 
   const formatDate = (val) => {
     const d = parseToDate(val);
@@ -282,22 +334,20 @@ export default function StudentViewRequest() {
           <div className="flex flex-wrap gap-2 mb-8">
             <button
               onClick={() => setActiveView("Absent Slip")}
-              className={`flex items-center gap-2 py-3 px-4 rounded-xl text-sm font-semibold transition-all duration-300 ${
-                activeView === "Absent Slip"
-                  ? "bg-yellow-400 text-black shadow-lg"
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300 hover:text-black"
-              }`}
+              className={`flex items-center gap-2 py-3 px-4 rounded-xl text-sm font-semibold transition-all duration-300 ${activeView === "Absent Slip"
+                ? "bg-yellow-400 text-black shadow-lg"
+                : "bg-gray-200 text-gray-700 hover:bg-gray-300 hover:text-black"
+                }`}
             >
               <FileText className="w-5 h-5" />
               Absent Slips
             </button>
             <button
               onClick={() => setActiveView("Incident Report")}
-              className={`flex items-center gap-2 py-3 px-4 rounded-xl text-sm font-semibold transition-all duration-300 ${
-                activeView === "Incident Report"
-                  ? "bg-yellow-400 text-black shadow-lg"
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300 hover:text-black"
-              }`}
+              className={`flex items-center gap-2 py-3 px-4 rounded-xl text-sm font-semibold transition-all duration-300 ${activeView === "Incident Report"
+                ? "bg-yellow-400 text-black shadow-lg"
+                : "bg-gray-200 text-gray-700 hover:bg-gray-300 hover:text-black"
+                }`}
             >
               <AlertTriangle className="w-5 h-5" />
               Incident Reports
@@ -321,7 +371,7 @@ export default function StudentViewRequest() {
               {showStatusDropdown && (
                 <div className="absolute top-full left-0 mt-1 w-full bg-white border border-gray-300 rounded-lg p-2 shadow-lg z-20">
                   <div className="flex flex-col gap-1">
-                    {["Pending", "In Progress", "Resolved", "Approved", "Denied", "Cancelled", "Inactive" ].map((status) => (
+                    {["Pending", "In Progress", "Resolved", "Approved", "Denied", "Cancelled", "Inactive"].map((status) => (
                       <label key={status} className="flex items-center gap-2 text-sm cursor-pointer select-none whitespace-nowrap">
                         <input
                           type="checkbox"
@@ -459,7 +509,7 @@ export default function StudentViewRequest() {
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">{formatDate(row.processedDate)}</td>
                         {activeView === "Absent Slip" && (
-                           <td className="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">{formatDate(row.pickupDate)}</td>
+                          <td className="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">{formatDate(row.pickupDate)}</td>
                         )}
                         <td className="px-6 py-4 text-sm">
                           <button
