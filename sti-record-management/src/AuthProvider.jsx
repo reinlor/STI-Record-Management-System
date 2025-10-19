@@ -1,5 +1,5 @@
 import React, { createContext, useState, useEffect, useRef } from "react";
-import { signOut } from "firebase/auth";
+import { signOut, onAuthStateChanged, onIdTokenChanged } from "firebase/auth";
 import { auth, db } from "./firebaseClient";
 import { doc, onSnapshot } from "firebase/firestore";
 import axios from "axios";
@@ -76,19 +76,51 @@ const AuthProvider = ({ children }) => {
 
   // Session check
   useEffect(() => {
-    const checkSession = async () => {
-      try {
-        const res = await axios.get("/user/me", { withCredentials: true });
-        const user = res.data.user;
+    // Keep axios Authorization header in sync with Firebase ID token
+    const unsubId = onIdTokenChanged(auth, async (user) => {
+      if (user) {
+        const token = await user.getIdToken();
+        axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      } else {
+        delete axios.defaults.headers.common["Authorization"];
+      }
+    });
+
+    // React to auth state changes and call /user/me
+    const unsubAuth = onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        // no user -> clear state
+        delete axios.defaults.headers.common["Authorization"];
         setAuthData({
-          user,
-          role: user.role,
-          displayName: user.displayName,
+          user: null,
+          role: null,
+          displayName: null,
+          isAuthenticated: false,
+          loading: false,
+        });
+        cleanupActivityListeners();
+        return;
+      }
+
+      try {
+        // ensure axios has a token (onIdTokenChanged also keeps it updated)
+        const token = await user.getIdToken();
+        axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+
+        // call backend to get user session data
+        const res = await axios.get("/user/me");
+        const userInfo = res.data.user;
+        setAuthData({
+          user: userInfo,
+          role: userInfo.role,
+          displayName: userInfo.displayName,
           isAuthenticated: true,
           loading: false,
         });
         setupActivityListeners();
-      } catch {
+      } catch (err) {
+        // backend rejected token or no session
+        delete axios.defaults.headers.common["Authorization"];
         setAuthData({
           user: null,
           role: null,
@@ -97,9 +129,13 @@ const AuthProvider = ({ children }) => {
           loading: false,
         });
       }
+    });
+
+    return () => {
+      unsubId();
+      unsubAuth();
+      cleanupActivityListeners();
     };
-    checkSession();
-    return cleanupActivityListeners;
   }, []);
 
   // Real-time notifications

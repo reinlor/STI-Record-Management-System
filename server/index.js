@@ -2,7 +2,11 @@
 const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 require("dotenv").config();
+const authMiddleware = require('./authentication');
+const securityHeaders = require('./securityHeader');
 
 const { admin } = require("./firebase");
 const db = admin.firestore();
@@ -40,41 +44,61 @@ const backupController = require("./firestore/backup/controller/backupController
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Security Middleware
+app.use(helmet());
+
+// Rate limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes gar
+  max: 100, // 100 requests per windowMs 😏
+  message: 'Too many requests from this IP, please try again later.'
+});
+app.use(limiter);
+
+// custom security headers
+if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1);
+  app.use(securityHeaders);
+}
+
 // Middleware
 app.use(cors({
-  origin: "http://localhost:5173",
+  origin: process.env.CLIENT_URL || "http://localhost:5173",
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
 
 // Routes
-app.use("/user", userRoute);
-app.use("/student", studentRoute);
-app.use("/upload", uploadRoute);
-app.use("/cases", studentCaseRoute);
-app.use("/counseling", counselingRoute);
-app.use("/slip", slipRoute);
-app.use("/teacher", teacherRoute);
-app.use("/referral", referralRouter);
-app.use("/exam", assessmentExam);
-app.use('/exam', surveyResponsesRoute);
-app.use("/report", assessmentReport);
-app.use("/backup", backupRoute);
-app.use("/email", emailRoute);
-app.use("/bulk-upload", bulkUploadRoute);
-app.use("/batch-update", batchUpdateRoute);
-app.use("/chartData", chartDataRoute);
-app.use("/wellnessVersion", assessmentVersionHistory);
-app.use('/photo-to-text', demoOCRRoute);
-app.use("/content", contentManagementRoute);
-app.use("/incidentReport", incidentReportRoute);
-app.use("/notifications", notificationRoute);
-app.use("/generate", summaryRoute);
-app.use("/backup", backupRoute);
-app.use("/api/backup", backupRoutes);
-app.use('/api/restore', restoreRoutes);
-app.use('/restore', restoreRoutes);
+app.use("/user", authMiddleware, userRoute);
+app.use("/student", authMiddleware, studentRoute);
+app.use("/upload", authMiddleware, uploadRoute);
+app.use("/cases", authMiddleware, studentCaseRoute);
+app.use("/counseling", authMiddleware, counselingRoute);
+app.use("/slip", authMiddleware, slipRoute);
+app.use("/teacher", authMiddleware, teacherRoute);
+app.use("/referral", authMiddleware, referralRouter);
+app.use("/exam", authMiddleware, assessmentExam);
+app.use('/exam', authMiddleware, surveyResponsesRoute);
+app.use("/report", authMiddleware, assessmentReport);
+app.use("/backup", authMiddleware, backupRoute);
+app.use("/email", authMiddleware, emailRoute);
+app.use("/bulk-upload", authMiddleware, bulkUploadRoute);
+app.use("/batch-update", authMiddleware, batchUpdateRoute);
+app.use("/chartData", authMiddleware, chartDataRoute);
+app.use("/wellnessVersion", authMiddleware, assessmentVersionHistory);
+app.use('/photo-to-text', authMiddleware, demoOCRRoute);
+app.use("/content", authMiddleware, contentManagementRoute);
+app.use("/incidentReport", authMiddleware, incidentReportRoute);
+app.use("/notifications", authMiddleware, notificationRoute);
+app.use("/generate", authMiddleware, summaryRoute);
+app.use("/backup", authMiddleware, backupRoute);
+app.use("/api/backup", authMiddleware, backupRoutes);
+app.use('/api/restore', authMiddleware, restoreRoutes);
+app.use('/restore', authMiddleware, restoreRoutes);
 
 // Start the server
 app.listen(PORT, () => {
