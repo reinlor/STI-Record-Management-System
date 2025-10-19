@@ -1,12 +1,67 @@
+import { useEffect, useState } from "react";
+import axios from "axios";
 
+function Leaderboard({ leaderboardData, availableYears = [], onChangeYear }) {
+    const [localSchoolYear, setLocalSchoolYear] = useState("");
 
-function Leaderboard({ leaderboardData, schoolYear }) {
+    // Fetch the official current school year
+    useEffect(() => {
+        const fetchSchoolYear = async () => {
+            try {
+                const res = await axios.get("/content/schoolPeriod/get");
+                const current = res.data?.schoolYear;
+
+                if (current) {
+                    setLocalSchoolYear(current);
+                    onChangeYear(current);
+                    return;
+                }
+            } catch (error) {
+                console.warn("Failed to fetch current school year, using fallback:", error);
+            }
+
+            // Fallback to latest available year if API fails
+            if (availableYears.length > 0) {
+                const latestYear = [...availableYears].sort((a, b) => {
+                    const [startA] = a.split("-").map(Number);
+                    const [startB] = b.split("-").map(Number);
+                    return startB - startA;
+                })[0];
+                setLocalSchoolYear(latestYear);
+                onChangeYear(latestYear);
+            }
+        };
+
+        fetchSchoolYear();
+    }, [availableYears, onChangeYear]);
 
     return (
         <div className="col-span-1 md:col-span-1 row-span-1 bg-white rounded-lg border border-gray-300 p-4 shadow-sm flex flex-col min-h-[400px]">
             <h2 className="text-lg font-bold mb-2 text-[#0172bd] flex justify-between items-center">
-                <span>Top Violators</span> 
-                <span className="text-sm font-semibold text-right">S.Y. {schoolYear}</span></h2>
+                <span>Top Violators</span>
+                <select
+                    className="text-sm border border-gray-300 rounded-md px-2 py-1 focus:outline-none"
+                    value={localSchoolYear || ""}
+                    onChange={(e) => {
+                        const value = e.target.value;
+                        setLocalSchoolYear(value);
+                        onChangeYear(value);
+                    }}
+                >
+                    {availableYears
+                        .sort((a, b) => {
+                            const [startA] = a.split("-").map(Number);
+                            const [startB] = b.split("-").map(Number);
+                            return startB - startA; // newest first
+                        })
+                        .map((year) => (
+                            <option key={year} value={year}>
+                                {year}
+                            </option>
+                        ))}
+                </select>
+            </h2>
+
             <div className="flex-1 overflow-auto">
                 <table className="w-full text-sm">
                     <thead>
@@ -18,7 +73,7 @@ function Leaderboard({ leaderboardData, schoolYear }) {
                     </thead>
                     <tbody>
                         {leaderboardData.length > 0 ? (
-                            leaderboardData.map((student, index) => (
+                            leaderboardData.map((student) => (
                                 <tr key={student.sid}>
                                     <td className="py-2">{student.name}</td>
                                     <td className="text-center">{student.violations}</td>
@@ -36,7 +91,7 @@ function Leaderboard({ leaderboardData, schoolYear }) {
                 </table>
             </div>
         </div>
-    )
+    );
 }
 
 export default Leaderboard;

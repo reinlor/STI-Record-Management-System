@@ -5,6 +5,14 @@ import { useNavigate } from "react-router-dom";
 function RequestTypeFrequency({ slipData }) {
     const navigate = useNavigate();
 
+    const parseDate = (raw) => {
+        if (!raw) return null;
+        if (raw._seconds) return new Date(raw._seconds * 1000);
+        if (raw.seconds) return new Date(raw.seconds * 1000);
+        if (raw.toDate && typeof raw.toDate === "function") return raw.toDate();
+        return new Date(raw);
+    };
+
     const getColor = (label) => {
         const colors = {
             'Absent Slip': 'rgba(228, 222, 6, 1)',
@@ -42,7 +50,7 @@ function RequestTypeFrequency({ slipData }) {
 
         if (period === "daily") {
             filteredByDate = data.filter(item => {
-                const itemDate = new Date(item.date);
+                const itemDate = parseDate(item.date);
                 itemDate.setHours(0, 0, 0, 0);
                 return itemDate.getTime() === today.getTime();
             });
@@ -55,12 +63,12 @@ function RequestTypeFrequency({ slipData }) {
             endOfToday.setHours(23, 59, 59, 999);
 
             filteredByDate = data.filter(item => {
-                const itemDate = new Date(item.date);
+                const itemDate = parseDate(item.date);
                 return itemDate >= oneWeekAgo && itemDate <= endOfToday;
             });
         } else if (period === "monthly") {
             filteredByDate = data.filter(item => {
-                const itemDate = new Date(item.date);
+                const itemDate = parseDate(item.date);
                 return (
                     itemDate.getFullYear() === today.getFullYear() &&
                     itemDate.getMonth() === today.getMonth()
@@ -68,7 +76,7 @@ function RequestTypeFrequency({ slipData }) {
             });
         } else if (period === "yearly") {
             filteredByDate = data.filter(item => {
-                const itemDate = new Date(item.date);
+                const itemDate = parseDate(item.date);
                 return itemDate.getFullYear() === today.getFullYear();
             });
         }

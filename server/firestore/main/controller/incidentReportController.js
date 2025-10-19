@@ -94,11 +94,19 @@ const addIncident = async (req, res) => {
 
     const updatedData = docSnapshot.exists ? docSnapshot.data() : { id: "slip-n-pass", data: [] };
     const existingDataArray = updatedData.data || [];
+    const schoolPeriodDoc = await getContentManagementCollection().doc("schoolPeriod").get();
+
+    // Logic to get current school year
+    let currentSchoolYear = "";
+    if (schoolPeriodDoc.exists) {
+      currentSchoolYear = schoolPeriodDoc.data().schoolYear || "";
+    }
 
     existingDataArray.push({
       sid: newIncidentReport.sid,
       type: "Incident Report",
-      date: new Date().toISOString()
+      schoolYear: currentSchoolYear,
+      date: new Date()
     });
 
     updatedData.data = existingDataArray;

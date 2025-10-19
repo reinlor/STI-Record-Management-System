@@ -1,6 +1,12 @@
 // Dashboard.jsx
 import { useEffect, useMemo, useState } from "react";
-import axios from "axios";
+import {
+    collection,
+    onSnapshot,
+    query,
+    where
+} from "firebase/firestore";
+import { db } from "../../../firebaseClient.js";
 
 import StatCard from "./blocks/StatCard";
 import ViolationFrequency from "./blocks/ViolationFrequency";
@@ -17,59 +23,55 @@ const App = () => {
     const [slipData, setSlipData] = useState([]);
     const [leaderboardData, setLeaderboardData] = useState([]);
     const [schoolYear, setSchoolYear] = useState("");
+    const [availableYears, setAvailableYears] = useState([]);
     const [counters, setCounters] = useState({
         students: 0,
-        shsCount: 0,
-        tertiaryCount: 0,
         cases: 0,
         pendingSlips: 0,
         pendingForms: 0,
-        onGoingCases: 0,
+        today: {
+            pendingSlips: 0,
+            pendingForms: 0,
+        },
     });
 
-
+    // 🔹 Listen to chartData collection (studentCase + slip-n-pass)
     useEffect(() => {
-        const fetchData = async () => {
-            setIsLoading(true);
-            try {
-                const response = await axios.get("/chartData/retrieve");
-                const studentDataContainer = response.data.find((item) => item.id === "studentCase");
-                const studentYearKey = studentDataContainer && Object.keys(studentDataContainer).find((k) => k !== "id");
-                const fetchedStudentData = (studentDataContainer && studentDataContainer[studentYearKey]) || [];
-                setAllData(fetchedStudentData || []);
+        setIsLoading(true);
 
-                const slipDataContainer = response.data.find((item) => item.id === "slip-n-pass");
-                const slipYearKey = slipDataContainer && Object.keys(slipDataContainer).find((k) => k !== "id");
-                const fetchedSlipData = (slipDataContainer && slipDataContainer[slipYearKey]) || [];
-                setSlipData(fetchedSlipData || []);
+        const unsub = onSnapshot(collection(db, "chartData"), (snapshot) => {
+            snapshot.docs.forEach((doc) => {
+                const id = doc.id;
+                const docData = doc.data();
 
-                const countersRes = await axios.get("/chartData/counters");
-                setCounters(countersRes.data);
+                if (id === "studentCase" && Array.isArray(docData.data)) {
+                    const fetched = docData.data;
+                    setAllData(fetched);
 
-                const schoolyear = await axios.get("/content/schoolPeriod/get");
-                setSchoolYear(schoolyear.data.schoolYear);
+                    // collect unique school years dynamically
+                    const years = [...new Set(fetched.map((d) => d.schoolYear).filter(Boolean))];
+                    setAvailableYears(years);
+                    if (!schoolYear && years.length > 0) setSchoolYear(years[0]);
+                }
 
-            } catch (error) {
-                console.error("Error fetching data:", error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
+                if (id === "slip-n-pass" && Array.isArray(docData.data)) {
+                    setSlipData(docData.data);
+                }
+            });
 
-        fetchData();
+            setIsLoading(false);
+        });
+
+        return () => unsub();
     }, []);
 
-
+    // 🔹 Compute leaderboard dynamically based on school year
     useEffect(() => {
-        if (allData.length > 0) {
+        if (allData.length > 0 && schoolYear) {
+            const filtered = allData.filter((entry) => entry.schoolYear === schoolYear);
             const violationCounts = {};
-            allData.forEach((entry) => {
-                const year = new Date(entry.date).getFullYear();
-                const currentYear = new Date().getFullYear();
 
-                if (year !== currentYear) return;
-
-                const { sid, name, section } = entry;
+            filtered.forEach(({ sid, name, section }) => {
                 if (!violationCounts[sid]) {
                     violationCounts[sid] = { sid, name, section, violations: 0 };
                 }
@@ -86,44 +88,113 @@ const App = () => {
         }
     }, [allData, schoolYear]);
 
-    const { uniqueStudentsCount, casesCount, pendingSlipsCount, pendingFormsCount } = useMemo(() => {
-        const today = new Date();
-        const currentYear = today.getFullYear();
-        const currentYearEntries = allData.filter((d) => {
-            try {
-                return new Date(d.date).getFullYear() === currentYear;
-            } catch {
-                return false;
-            }
+    // 🔹 Listen to counters in realtime
+    useEffect(() => {
+        // Helper for checking today's date
+        const isToday = (timestamp) => {
+            if (!timestamp) return false;
+            const date =
+                timestamp?.toDate?.() ||
+                (timestamp._seconds ? new Date(timestamp._seconds * 1000) : null);
+            if (!date) return false;
+            const today = new Date();
+            return (
+                date.getFullYear() === today.getFullYear() &&
+                date.getMonth() === today.getMonth() &&
+                date.getDate() === today.getDate()
+            );
+        };
+
+        // --- Students ---
+        const unsubStudents = onSnapshot(collection(db, "students"), (snap) => {
+            setCounters((prev) => ({ ...prev, students: snap.size }));
         });
 
-        const uniqueStudents = new Set(currentYearEntries.map((e) => e.sid).filter(Boolean));
-        const studentsCount = uniqueStudents.size;
-        const cases = currentYearEntries.length;
+        // --- All Cases ---
+        const unsubCases = onSnapshot(collection(db, "studentCases"), (snap) => {
+            setCounters((prev) => ({ ...prev, cases: snap.size }));
+        });
 
-        const pendingSlips = slipData && Array.isArray(slipData)
-            ? (slipData.filter((s) => s?.status === "pending").length || slipData.length)
-            : 0;
+        // --- On-going Cases ---
+        const ongoingQuery = query(collection(db, "studentCases"), where("status", "==", "On-going"));
+        const unsubOngoing = onSnapshot(ongoingQuery, (ongoingSnap) => {
+            setCounters((prev) => ({ ...prev, onGoingCases: ongoingSnap.size }));
+        });
 
-        let pendingForms = 0;
-        if (Array.isArray(allData) && allData.length > 0) {
-            pendingForms =
-                allData.filter((d) => d?.formStatus === "pending").length ||
-                allData.filter((d) => d?.status === "pending").length ||
-                0;
-        }
+        // --- Pending Absent Slips ---
+        // --- Pending Absent Slips ---
+        const absentQuery = query(collection(db, "absentSlips"), where("status", "==", "Pending"));
+        const unsubAbsent = onSnapshot(absentQuery, (absentSnap) => {
+            const pendingAbsent = absentSnap.size;
+            const todayAbsent = absentSnap.docs.filter((d) => isToday(d.data().timeCreated)).length;
 
-        return {
-            uniqueStudentsCount: studentsCount,
-            casesCount: cases,
-            pendingSlipsCount: pendingSlips,
-            pendingFormsCount: pendingForms,
+            setCounters((prev) => ({
+                ...prev,
+                pendingAbsent,
+                todayAbsent,
+                today: {
+                    ...prev.today,
+                    pendingSlips: (prev.todayIncident ?? 0) + todayAbsent,
+                },
+                pendingSlips: pendingAbsent + (prev.pendingIncident ?? 0),
+            }));
+        });
+
+        // --- Pending Incident Reports ---
+        const incidentQuery = query(collection(db, "incidentReport"), where("status", "==", "Pending"));
+        const unsubIncident = onSnapshot(incidentQuery, (incidentSnap) => {
+            const pendingIncident = incidentSnap.size;
+            const todayIncident = incidentSnap.docs.filter((d) => isToday(d.data().timeCreated)).length;
+
+            setCounters((prev) => ({
+                ...prev,
+                pendingIncident,
+                todayIncident,
+                today: {
+                    ...prev.today,
+                    pendingSlips: (prev.todayAbsent ?? 0) + todayIncident,
+                },
+                pendingSlips: (prev.pendingAbsent ?? 0) + pendingIncident,
+            }));
+        });
+
+
+        // --- Pending Referral Forms ---
+        const formQuery = query(collection(db, "referralForm"), where("status", "==", "Pending"));
+        const unsubForms = onSnapshot(formQuery, (formSnap) => {
+            const pendingForms = formSnap.size;
+            const todayForms = formSnap.docs.filter((d) => isToday(d.data().preparedDate)).length;
+            setCounters((prev) => ({
+                ...prev,
+                pendingForms,
+                today: { ...prev.today, pendingForms: todayForms },
+            }));
+        });
+
+        // Cleanup
+        return () => {
+            unsubStudents();
+            unsubCases();
+            unsubOngoing();
+            unsubAbsent();
+            unsubIncident();
+            unsubForms();
         };
-    }, [allData, slipData]);
+    }, []);
 
-    if (isLoading) {
-        return <Loading />
-    }
+
+    // 🔹 Derived memoized stats (local)
+    const { uniqueStudentsCount, casesCount, pendingSlipsCount, pendingFormsCount } = useMemo(() => {
+        const uniqueStudents = new Set(allData.map((e) => e.sid).filter(Boolean));
+        return {
+            uniqueStudentsCount: uniqueStudents.size,
+            casesCount: allData.length,
+            pendingSlipsCount: slipData.length,
+            pendingFormsCount: counters.pendingForms,
+        };
+    }, [allData, slipData, counters.pendingForms]);
+
+    if (isLoading) return <Loading />;
 
     return (
         <div className="bg-[#f3f4f6] p-4 h-full space-y-4 overflow-auto">
@@ -157,7 +228,7 @@ const App = () => {
 
             {/* Main Dashboard Layout */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                {/* Left Column (Main Analytics & Shortcuts) */}
+                {/* Left Column */}
                 <div className="lg:col-span-2 space-y-2 flex flex-col">
                     <ViolationFrequency allData={allData} />
                     <RequestTypeFrequency slipData={slipData} />
@@ -166,11 +237,20 @@ const App = () => {
                     </div>
                 </div>
 
-                {/* Right Column (Secondary Info & Actions) */}
+                {/* Right Column */}
                 <div className="lg:col-span-1 space-y-4">
                     <TodoList counters={counters} />
-                    <Leaderboard leaderboardData={leaderboardData} schoolYear={schoolYear} />
-                    <SummaryReport allData={allData} slipData={slipData} leaderboardData={leaderboardData} />
+                    <Leaderboard
+                        leaderboardData={leaderboardData}
+                        schoolYear={schoolYear}
+                        availableYears={availableYears}
+                        onChangeYear={setSchoolYear}
+                    />
+                    <SummaryReport
+                        allData={allData}
+                        slipData={slipData}
+                        leaderboardData={leaderboardData}
+                    />
                 </div>
             </div>
         </div>

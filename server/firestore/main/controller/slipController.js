@@ -12,6 +12,7 @@ const {
 
 const { getChartDataCollection } = require("../models/chartDataModel");
 const { getNotificationCollection } = require("../models/notificationModel.js");
+const { getContentManagementCollection } = require("../models/contentManagementModel.js");
 
 // SLIPS / Passes Schema
 const absentSlipSchema = Joi.object({
@@ -103,6 +104,13 @@ const addAbsentSlip = async (req, res) => {
     // Pang Charts
     const chartDataDocRef = getChartDataCollection().doc("slip-n-pass");
     const docSnapshot = await chartDataDocRef.get();
+    const schoolPeriodDoc = await getContentManagementCollection().doc("schoolPeriod").get();
+
+    // Logic to get current school year
+    let currentSchoolYear = "";
+    if (schoolPeriodDoc.exists) {
+      currentSchoolYear = schoolPeriodDoc.data().schoolYear || "";
+    }
 
     const updatedData = docSnapshot.exists
       ? docSnapshot.data()
@@ -112,12 +120,13 @@ const addAbsentSlip = async (req, res) => {
     existingDataArray.push({
       sid: newAbsentSlip.sid,
       type: "Absent Slip",
-      date: new Date().toISOString(),
+      schoolYear: currentSchoolYear,
+      date: new Date(),
     });
 
     updatedData.data = existingDataArray;
     await chartDataDocRef.set(updatedData, { merge: true });
-    // Pang Charts
+    //
 
     // Admin Notification
     const notifCollection = getNotificationCollection();
