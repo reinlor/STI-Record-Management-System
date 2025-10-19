@@ -5,6 +5,7 @@ const {
 } = require("../models/incidentReportModel");
 const { getChartDataCollection } = require("../models/chartDataModel");
 const { getNotificationCollection } = require("../models/notificationModel.js");
+const { getContentManagementCollection } = require("../models/contentManagementModel.js");
 const cloudinary = require("../../../config/cloudinary.js");
 
 // Incident Report Form Schema
@@ -54,13 +55,13 @@ const updateIncidentReportSchema = Joi.object({
 
 // Controller function for adding new incidents
 const addIncident = async (req, res) => {
+  let publicIds = [];
   try {
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({ message: "No files uploaded" });
     }
 
     const attachmentUrls = [];
-    const publicIds = [];
 
     for (const file of req.files) {
       const result = await cloudinary.uploader.upload(file.path, {
@@ -143,8 +144,12 @@ const addIncident = async (req, res) => {
 
     res.status(201).json({ message: "Incident report added successfully" });
   } catch (error) {
-    if (publicIds.length) {
-      await Promise.all(publicIds.map((id) => cloudinary.uploader.destroy(id)));
+    if (publicIds.length > 0) {
+      try {
+        await Promise.all(publicIds.map(id => cloudinary.uploader.destroy(id)));
+      } catch (cleanupError) {
+        console.error("Error cleaning up files:", cleanupError);
+      }
     }
 
     console.error("Error adding incident report:", error);

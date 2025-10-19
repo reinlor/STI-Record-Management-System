@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Megaphone, BookOpen, Heart } from "lucide-react";
-import axios from "axios";
-import LoadingDots from '../../../component/Loading'
+import { db } from "../../../firebaseClient";
+import { doc, onSnapshot } from "firebase/firestore";
+import LoadingDots from "../../../component/Loading";
 
 export default function StudentDashboard() {
   const [announcements, setAnnouncements] = useState([]);
@@ -13,46 +14,132 @@ export default function StudentDashboard() {
   const [selectedPDF, setSelectedPDF] = useState(null);
 
   useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true)
-      try {
-        const announcementsRes = await axios.get(
-          "/content/announcement/get"
-        );
-        setAnnouncements(announcementsRes.data.announcements);
+    setLoading(true);
 
-        const wellnessRes = await axios.get(
-          "/content/wellness/get"
-        );
-        setWellnessLink(wellnessRes.data.link);
+    try {
+      // Announcement Listener
+      const announcementRef = doc(db, "content", "announcement");
+      const unsubAnnouncements = onSnapshot(
+        announcementRef,
+        (docSnap) => {
+          if (docSnap.exists()) {
+            let msgs = docSnap.data().messages || [];
 
-        const handbookRes = await axios.get(
-          "/content/studentHandbook/get"
-        );
-        setHandbooks([
-          {
-            title: "High School Handbook",
-            level: "High School",
-            description:
-              "Covers policies, guidelines, and services for junior and senior high students.",
-            url: handbookRes.data.link,
-          },
-          {
-            title: "Tertiary Handbook",
-            level: "College / University",
-            description:
-              "Provides academic rules, student services, and conduct guidelines for tertiary students.",
-            url: handbookRes.data.link,
-          },
-        ]);
-      } catch (err) {
-        setError("Failed to fetch data. Please check the network connection.");
-        console.error("Error fetching data:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
+            // Convert Firestore Timestamps
+            msgs = msgs.map((m) => {
+              let date = null;
+              if (m.timeCreated?.toDate) {
+                date = m.timeCreated.toDate();
+              } else if (m.timeCreated instanceof Date) {
+                date = m.timeCreated;
+              } else {
+                date = new Date();
+              }
+              return { ...m, timeCreated: date };
+            });
+
+            // Filter: keep only announcements within 30 days
+            const now = new Date();
+            const validMsgs = msgs.filter((m) => {
+              const diffDays = (now - m.timeCreated) / (1000 * 60 * 60 * 24);
+              return diffDays <= 30;
+            });
+
+            // Sort: latest first
+            validMsgs.sort((a, b) => b.timeCreated - a.timeCreated);
+
+            setAnnouncements(validMsgs);
+          } else {
+            setAnnouncements([]);
+          }
+        },
+        (err) => {
+          console.error("Announcement listener error:", err);
+          setError("Failed to fetch announcements.");
+        }
+      );
+
+      // 🔹 Wellness Listener
+      const wellnessRef = doc(db, "content", "wellness");
+      const unsubWellness = onSnapshot(
+        wellnessRef,
+        (docSnap) => {
+          if (docSnap.exists()) {
+            setWellnessLink(docSnap.data()?.link || "");
+          }
+        },
+        (err) => {
+          console.error("Wellness listener error:", err);
+          setError("Failed to fetch wellness link.");
+        }
+      );
+
+      // 🔹 SHS + College Handbooks
+      const shsRef = doc(db, "content", "shsStudentHandbook");
+      const collegeRef = doc(db, "content", "collegeStudentHandbook");
+
+      const unsubSHS = onSnapshot(
+        shsRef,
+        (shsSnap) => {
+          const shsLink = shsSnap.exists() ? shsSnap.data()?.link : "";
+          setHandbooks((prev) => {
+            const tertiary = prev.find((h) => h.level === "College / University");
+            return [
+              {
+                title: "High School Handbook",
+                level: "High School",
+                description:
+                  "Covers policies, guidelines, and services for junior and senior high students.",
+                url: shsLink,
+              },
+              ...(tertiary ? [tertiary] : []),
+            ];
+          });
+        },
+        (err) => {
+          console.error("SHS handbook listener error:", err);
+          setError("Failed to fetch SHS handbook.");
+        }
+      );
+
+      const unsubCollege = onSnapshot(
+        collegeRef,
+        (colSnap) => {
+          const colLink = colSnap.exists() ? colSnap.data()?.link : "";
+          setHandbooks((prev) => {
+            const shs = prev.find((h) => h.level === "High School");
+            return [
+              ...(shs ? [shs] : []),
+              {
+                title: "Tertiary Handbook",
+                level: "College / University",
+                description:
+                  "Provides academic rules, student services, and conduct guidelines for tertiary students.",
+                url: colLink,
+              },
+            ];
+          });
+        },
+        (err) => {
+          console.error("College handbook listener error:", err);
+          setError("Failed to fetch College handbook.");
+        }
+      );
+
+      setLoading(false);
+
+      // Cleanup
+      return () => {
+        unsubAnnouncements();
+        unsubWellness();
+        unsubSHS();
+        unsubCollege();
+      };
+    } catch (err) {
+      console.error("Realtime fetch error:", err);
+      setError("Failed to connect to Firestore.");
+      setLoading(false);
+    }
   }, []);
 
   const handleWellnessCheckClick = () => {
@@ -75,7 +162,7 @@ export default function StudentDashboard() {
   };
 
   if (loading) {
-    return <LoadingDots />
+    return <LoadingDots />;
   }
 
   if (error) {
@@ -139,7 +226,7 @@ export default function StudentDashboard() {
                         {isLong && (
                           <button
                             onClick={() => toggleExpand(index)}
-                            className="mt-1 text-yellow-600 text-xs font-medium hover:underline hover:-translate-y-0.5 transform transition-all duration-200"
+                            className="mt-1 text-yellow-600 text-xs font-medium hover:underline hover:-translate-y-0.5 transform transition-all duration-200 hover: cursor-pointer"
                           >
                             {isExpanded ? "Show Less" : "Read More"}
                           </button>
@@ -170,7 +257,7 @@ export default function StudentDashboard() {
               priority.
             </p>
             <button
-              className="mt-6 py-2.5 px-8 bg-yellow-400 text-black font-semibold rounded-lg shadow hover:bg-yellow-500 hover:-translate-y-0.5 transform transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="mt-6 py-2.5 px-8 bg-yellow-400 text-black font-semibold rounded-lg shadow hover:bg-yellow-500 hover:-translate-y-0.5 transform transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={handleWellnessCheckClick}
               disabled={!wellnessLink}
             >
@@ -201,7 +288,7 @@ export default function StudentDashboard() {
                   </h3>
                   <p className="text-sm text-gray-600 mb-3">{hb.description}</p>
                   <button
-                    className="py-2 px-4 bg-yellow-400 text-black text-sm font-medium rounded-lg shadow hover:bg-yellow-500 hover:-translate-y-0.5 transform transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="py-2 px-4 bg-yellow-400 text-black text-sm font-medium rounded-lg shadow hover:bg-yellow-500 hover:-translate-y-0.5 transform transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                     onClick={() => openPDF(hb.url)}
                   >
                     View PDF

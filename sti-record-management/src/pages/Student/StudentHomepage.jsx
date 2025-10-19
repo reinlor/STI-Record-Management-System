@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import StudentTopBar from "./components/StudentTopbar.jsx";
 import ChangePasswordModal from "../../component/ChangePasswordModal.jsx";
 import StudentDashboard from "./module-content/StudentDashboard.jsx";
@@ -13,10 +13,18 @@ import { ToastContainer, toast } from "react-toastify";
 import { AuthContext } from "../../AuthProvider.jsx";
 
 export default function StudentHomepage() {
-  const [selected, setSelected] = useState("dashboard");
+  const [selected, setSelected] = useState(() => {
+    const savedPage = sessionStorage.getItem("selectedPage");
+    
+    return savedPage || "dashboard";
+});
   const [selectedSurveyName, setSelectedSurveyName] = useState(null);
   const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] = useState(false);
   const { authData, logout } = useContext(AuthContext);
+
+  useEffect(() => {
+    sessionStorage.setItem("selectedPage", selected);
+  }, [selected]);
 
   const handlePasswordChange = (currentPassword, newPassword) => {
     console.log("Current Password entered:", currentPassword);

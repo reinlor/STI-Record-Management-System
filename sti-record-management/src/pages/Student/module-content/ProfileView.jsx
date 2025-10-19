@@ -5,13 +5,15 @@ import { AuthContext } from "../../../AuthProvider.jsx";
 import LoadingDots from "../../../component/Loading.jsx";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { doc, onSnapshot } from "firebase/firestore";
+import { db } from "../../../firebaseClient";
 
 const getMedicalCertType = (url) => url.endsWith('.pdf') ? 'application/pdf' : 'image';
 
 export default function ProfileView() {
   const [studentId, setStudentId] = useState(null);
   const [student, setStudent] = useState(null);
-  const [loading, setLoading] = useState(true);3
+  const [loading, setLoading] = useState(true); 3
   const [error, setError] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState("Basic Information");
   const [isEditing, setIsEditing] = useState(false);
@@ -34,23 +36,43 @@ export default function ProfileView() {
     "Email",
   ];
 
-  const fetchStudentData = async () => {
+  useEffect(() => {
+    if (!authData?.user?.uid) return;
+
+    const studentId = authData.user.uid;
+    setStudentId(studentId);
+    setLoading(true);
+
     try {
-      setLoading(true);
-      const response = await axios.get(`/student/get/${authData.user.uid}`);
-      setStudent(response.data);
-      setError(null);
+      const studentRef = doc(db, "students", studentId);
+
+      // Real-time listener
+      const unsubscribe = onSnapshot(
+        studentRef,
+        (docSnap) => {
+          if (docSnap.exists()) {
+            setStudent({ id: docSnap.id, ...docSnap.data() });
+            setError(null);
+          } else {
+            setStudent(null);
+            setError("Student record not found.");
+          }
+          setLoading(false);
+        },
+        (err) => {
+          console.error("Realtime student listener error:", err);
+          setError("Failed to fetch student data in real time.");
+          setLoading(false);
+        }
+      );
+
+      // Cleanup listener when component unmounts or auth changes
+      return () => unsubscribe();
     } catch (err) {
-      setError("Failed to load student data. Please check the network connection.");
-    } finally {
+      console.error("Error setting up student listener:", err);
+      setError("Unable to connect to Firestore.");
       setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    if (!authData) return;
-    setStudentId(authData.user?.uid);
-    fetchStudentData();
   }, [authData]);
 
   // Health fields for array-based editing
@@ -124,7 +146,7 @@ export default function ProfileView() {
             fields: [
               {
                 label: "Full Name",
-                value: [student.studentProfile?.firstName, student.studentProfile?.middleName, student.studentProfile?.lastName, student.studentProfile?.suffix ].filter(Boolean).join(' ') || "",
+                value: [student.studentProfile?.firstName, student.studentProfile?.middleName, student.studentProfile?.lastName, student.studentProfile?.suffix].filter(Boolean).join(' ') || "",
                 type: "text",
                 path: "studentProfile.name",
               },
@@ -236,7 +258,7 @@ export default function ProfileView() {
         data: [
           {
             label: "Full Name",
-            value: [student.studentProfile?.firstName, student.studentProfile?.middleName, student.studentProfile?.lastName, student.studentProfile?.suffix ].filter(Boolean).join(' ') || "",
+            value: [student.studentProfile?.firstName, student.studentProfile?.middleName, student.studentProfile?.lastName, student.studentProfile?.suffix].filter(Boolean).join(' ') || "",
             type: "text",
             path: "studentProfile.name",
           },
@@ -862,8 +884,6 @@ export default function ProfileView() {
         // No new files or deletions, just update health info
         await axios.put(`/student/update/${studentId}`, updateObj);
       }
-      // After saving, reload student data and update medicalCertificates state
-      await fetchStudentData();
       setIsEditing(false);
       setCertsToDelete([]);
       toast.update(toastId, { render: "Profile updated successfully!", type: "success", isLoading: false, autoClose: 2000 });

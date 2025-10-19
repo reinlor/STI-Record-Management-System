@@ -56,11 +56,10 @@ const StudentTopBar = ({
             <button
               key={mod.id}
               onClick={() => setSelected(mod.id)}
-              className={`py-2 px-3 lg:px-4 rounded-md transition-colors whitespace-nowrap text-sm lg:text-base ${
-                selected === mod.id
+              className={`py-2 px-3 lg:px-4 rounded-md transition-colors whitespace-nowrap text-sm lg:text-base ${selected === mod.id
                   ? "bg-[#3473A4] text-white font-bold"
-                  : "hover:bg-[#3473A4]"
-              }`}
+                  : "hover:bg-[#3473A4] cursor-pointer"
+                }`}
             >
               {mod.text}
             </button>
@@ -70,11 +69,13 @@ const StudentTopBar = ({
 
       {/* Right Section */}
       <div className="flex items-center gap-2">
-        <NotificationIcon setSelected={setSelected} uid={authData.user.uid}/>
+        <div className="hover: cursor-pointer">
+          <NotificationIcon setSelected={setSelected} uid={authData.user.uid} />
+        </div>
         {/* Settings Dropdown (PC only) */}
         <div ref={containerRef} className="relative hidden sm:block">
           <button
-            className="p-2 text-gray-300 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-[#F4D03F] rounded-full"
+            className="p-2 text-gray-300 hover:text-white transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#F4D03F] rounded-full"
             onClick={() => setIsDropdownOpen((open) => !open)}
             aria-expanded={isDropdownOpen}
             aria-label="User settings menu"
@@ -88,14 +89,14 @@ const StudentTopBar = ({
                   onOpenChangePassword();
                   setIsDropdownOpen(false);
                 }}
-                className="flex items-center gap-3 w-full px-4 py-2 text-sm text-[#39310F] hover:bg-[#E8E9EF] transition-colors duration-150"
+                className="flex items-center gap-3 w-full px-4 py-2 text-sm text-[#39310F] hover:bg-[#E8E9EF] cursor-pointer transition-colors duration-150"
               >
                 <KeyRound className="w-4 h-4 text-[#0B5793]" />
                 <span>Change Password</span>
               </button>
               <button
                 onClick={onLogout}
-                className="flex items-center gap-3 w-full px-4 py-2 text-sm text-[#39310F] hover:bg-red-500 hover:text-white transition-colors duration-150"
+                className="flex items-center gap-3 w-full px-4 py-2 text-sm text-[#39310F] hover:bg-red-500 hover:text-white cursor-pointer transition-colors duration-150"
               >
                 <LogOut className="w-4 h-4" />
                 <span>Logout</span>
@@ -127,11 +128,10 @@ const StudentTopBar = ({
                 setSelected(mod.id);
                 setIsMobileMenuOpen(false);
               }}
-              className={`w-full text-left py-3 px-4 rounded-lg transition-colors duration-200 ${
-                selected === mod.id
+              className={`w-full text-left py-3 px-4 rounded-lg transition-colors duration-200 ${selected === mod.id
                   ? "bg-[#3473A4] text-white font-bold"
                   : "hover:bg-[#E8E9EF]"
-              }`}
+                }`}
             >
               {mod.text}
             </button>

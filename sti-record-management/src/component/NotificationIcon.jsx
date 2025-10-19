@@ -1,12 +1,14 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useContext } from "react";
+import { AuthContext } from '../AuthProvider.jsx';
 import { Bell, Check, X, ClipboardList, Clock } from "lucide-react";
 import { doc, onSnapshot, updateDoc } from "firebase/firestore";
 import { db } from "../firebaseClient";
-import axios from "axios";
 
-const NotificationIcon = ({ setSelected, uid = "02000288488" }) => {
+const NotificationIcon = ({ setSelected }) => {
+  const { authData } = useContext(AuthContext);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
+  const uid = authData?.user?.uid
 
   const dropdownRef = useRef(null);
 

@@ -72,8 +72,26 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
 
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 2000,
+  message: 'Too many authentication attempts, try again later.',
+  standardHeaders: true,
+  legacyHeaders: false
+});
+
+// general API limiter (more generous)
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 2000,
+  message: 'Too many requests, slow down.',
+  standardHeaders: true,
+  legacyHeaders: false
+});
+
+
 // Routes
-app.use("/user", authMiddleware, userRoute);
+app.use('/user', authLimiter, authMiddleware, userRoute);
 app.use("/student", authMiddleware, studentRoute);
 app.use("/upload", authMiddleware, uploadRoute);
 app.use("/cases", authMiddleware, studentCaseRoute);
@@ -99,6 +117,13 @@ app.use("/backup", authMiddleware, backupRoute);
 app.use("/api/backup", authMiddleware, backupRoutes);
 app.use('/api/restore', authMiddleware, restoreRoutes);
 app.use('/restore', authMiddleware, restoreRoutes);
+
+app.use([
+    '/student','/upload','/cases','/counseling','/slip','/teacher','/referral',
+    '/exam','/report','/backup','/email','/bulk-upload','/batch-update',
+    '/chartData','/wellnessVersion','/photo-to-text','/content',
+    '/incidentReport','/notifications','/generate','/api/backup','/api/restore','/restore'
+  ], apiLimiter);
 
 // Start the server
 app.listen(PORT, () => {

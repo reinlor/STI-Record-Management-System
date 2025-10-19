@@ -5,6 +5,8 @@ import { AuthContext } from "../../../AuthProvider.jsx";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import LoadingDots from "../../../component/Loading.jsx";
+import { collection, query, where, onSnapshot } from "firebase/firestore";
+import { db } from "../../../firebaseClient.js"; 
 
 export default function StudentRequestSlip() {
   const [activeSlip, setActiveSlip] = useState("Absent");
@@ -43,30 +45,72 @@ export default function StudentRequestSlip() {
   });
 
   useEffect(() => {
-    if (!authData || !authData.user?.uid) return;
-    const fetchStudentData = async () => {
-      try {
-        const res = await axios.get(`/student/get/${authData.user.uid}`);
-        setStudentData(res.data);
-        setFormData((prev) => ({
-          ...prev,
-          name: [res.data.studentProfile?.firstName, res.data.studentProfile?.middleName, res.data.studentProfile?.lastName, res.data.studentProfile?.suffix].filter(Boolean).join(' ') || "",
-          sid: res.data.sid || "",
-          section: res.data.studentProfile.section || "",
-          program: res.data.studentProfile.program || "",
-          email: res.data.contactInfo.email || "",
-        }));
-      } catch (error) {
-        console.error("Error fetching student data:", error);
-      }
-    };
-    fetchStudentData();
-  }, [authData]);
+    if (!authData?.user?.uid) {
+      setRequestData([]);
+      return;
+    }
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prevData) => ({ ...prevData, [name]: value }));
-  };
+    const uid = authData.user.uid;
+    setIsLoading(true);
+
+    try {
+      const absentRef = query(collection(db, "absentSlips"), where("sid", "==", uid));
+      const incidentRef = query(collection(db, "incidentReport"), where("sid", "==", uid));
+
+      const unsubAbsent = onSnapshot(
+        absentRef,
+        (snapshot) => {
+          const absents = snapshot.docs.map((doc) => ({
+            id: doc.id,
+            type: "absentSlip",
+            ...doc.data(),
+          }));
+
+          setRequestData((prev) => {
+            const incidents = prev.filter((x) => x.type === "incidentReport");
+            return [...absents, ...incidents];
+          });
+
+          setIsLoading(false);
+        },
+        (err) => {
+          console.error("Absent slips listener error:", err);
+          setIsLoading(false);
+        }
+      );
+
+      const unsubIncident = onSnapshot(
+        incidentRef,
+        (snapshot) => {
+          const incidents = snapshot.docs.map((doc) => ({
+            id: doc.id,
+            type: "incidentReport",
+            ...doc.data(),
+          }));
+
+          setRequestData((prev) => {
+            const absents = prev.filter((x) => x.type === "absentSlip");
+            return [...absents, ...incidents];
+          });
+
+          setIsLoading(false);
+        },
+        (err) => {
+          console.error("Incident reports listener error:", err);
+          setIsLoading(false);
+        }
+      );
+
+      return () => {
+        unsubAbsent();
+        unsubIncident();
+      };
+    } catch (err) {
+      console.error("Error setting up Firestore listeners:", err);
+      setRequestData([]);
+      setIsLoading(false);
+    }
+  }, [authData]);
 
   // Helper to compute absent days
   const getAbsentDays = () => {
@@ -208,15 +252,19 @@ export default function StudentRequestSlip() {
       setIncidentEvidence([]);
       setAbsentReason("");
     } catch (error) {
-      console.error(error);
+      console.error("Submission error:", {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status
+      });
+
       toast.update(toastId, {
-        render:
+        render: error.response?.data?.message ||
           error.response?.data?.error ||
-          error.message ||
           "Failed to submit form. Please try again.",
         type: "error",
         isLoading: false,
-        autoClose: 3000,
+        autoClose: 3000
       });
     } finally {
       setIsLoading(false);
@@ -312,11 +360,10 @@ export default function StudentRequestSlip() {
                 setParentID(null);
                 setMedicalCertificate(null);
               }}
-              className={`flex items-center gap-2 py-3 px-4 rounded-xl text-sm font-semibold transition-all duration-300 ${
-                activeSlip === slip.id
-                  ? "bg-yellow-400 text-black shadow-lg"
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300 hover:text-black"
-              }`}
+              className={`flex items-center gap-2 py-3 px-4 rounded-xl text-sm font-semibold transition-all duration-300 ${activeSlip === slip.id
+                ? "bg-yellow-400 text-black shadow-lg"
+                : "bg-gray-200 text-gray-700 hover:bg-gray-300 hover:text-black"
+                }`}
             >
               <slip.icon className="w-5 h-5" />
               {slip.label}
