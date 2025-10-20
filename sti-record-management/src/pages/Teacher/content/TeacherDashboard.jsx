@@ -13,7 +13,7 @@ export default function TeacherDashboard() {
     const fetchAnnouncements = async () => {
       setLoading(true);
       try {
-        const res = await axios.get("http://localhost:5000/content/announcement/get");
+        const res = await axios.get("/content/announcement/get");
         setAnnouncements(res.data.announcements);
       } catch (err) {
         setError("Failed to fetch announcements. Please check your network connection.");

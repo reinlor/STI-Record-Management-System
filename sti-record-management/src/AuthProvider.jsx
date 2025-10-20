@@ -18,8 +18,6 @@ const AuthProvider = ({ children }) => {
     loading: true,
   });
 
-  console.log(authData)
-
   const [toast, setToast] = useState({ show: false, message: "", type: "", notif: null });
   const [showTimeoutModal, setShowTimeoutModal] = useState(false);
   const activityTimer = useRef(null);

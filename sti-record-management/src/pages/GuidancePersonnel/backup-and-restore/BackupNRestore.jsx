@@ -288,7 +288,7 @@ function BackNRestore() {
           </div>
 
           <a 
-            href='http://localhost:5000/backup/auth'
+            href='http://127.0.0.1:5000/backup/auth'
             className="font-medium text-blue-600 dark:text-blue-500 underline" target="_blank">Backup not working? Verify now</a>
 
           {/* Pagination controls */}

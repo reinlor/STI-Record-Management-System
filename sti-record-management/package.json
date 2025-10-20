@@ -12,7 +12,7 @@
   "dependencies": {
     "@pdf-viewer/react": "^1.8.4",
     "@tailwindcss/vite": "^4.1.11",
-    "axios": "^1.10.0",
+    "axios": "^1.12.2",
     "chart.js": "^4.5.1",
     "firebase": "^11.9.1",
     "framer-motion": "^12.23.22",

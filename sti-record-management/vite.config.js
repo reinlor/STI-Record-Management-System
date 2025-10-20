@@ -6,27 +6,12 @@ export default defineConfig({
   plugins: [react()],
   base: "./",
   build: {
-    sourcemap: false, // Disable source maps for production builds
+    sourcemap: false,
   },
   server: {
     allowedHosts: ['sti-gorms.duckdns.org'],
     proxy: {
-      "/student": "http://localhost:5000",
-      "/slip": "http://localhost:5000",
-      "/referral": "http://localhost:5000",
-      "/cases": "http://localhost:5000",
-      "/teacher": "http://localhost:5000",
-      "/user": "http://localhost:5000",
-      "/exam": "http://localhost:5000",
-      "/email": "http://localhost:5000",
-      "/chartData": "http://localhost:5000",
-      "/backup": "http://localhost:5000",
-      "/restore": "http://localhost:5000",
-      "/content": "http://localhost:5000",
-      "/incidentReport": "http://localhost:5000",
-      "/notifications": "http://localhost:5000",
-      "/bulk-upload": "http://localhost:5000",
-      "/photo-to-text": "http://localhost:5000",
+       
     },
   },
 })

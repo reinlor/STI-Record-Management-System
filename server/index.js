@@ -1,4 +1,3 @@
-// filepath: c:\Users\eneil\Desktop\Mga System Ni Eneil\Record Management System\server\index.js
 const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
@@ -38,11 +37,13 @@ const surveyResponsesRoute = require("./firestore/main/routes/surveyResponseRout
 const summaryRoute = require("./modules/summary-generation/SummaryRoute");
 const backupRoutes = require("./firestore/backup/routes/backupRoute");
 const restoreRoutes = require("./firestore/backup/routes/restoreRoutes");
+const configRoutes = require("./firestore/main/routes/firebaseClientConfigRoute");
 
 const backupController = require("./firestore/backup/controller/backupController");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+const HOST = process.env.HOST || "127.0.0.1";
 
 // Security Middleware
 app.use(helmet());
@@ -74,16 +75,15 @@ app.use(cookieParser());
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 2000,
+  max: 1000,
   message: 'Too many authentication attempts, try again later.',
   standardHeaders: true,
   legacyHeaders: false
 });
 
-// general API limiter (more generous)
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 2000,
+  max: 1000,
   message: 'Too many requests, slow down.',
   standardHeaders: true,
   legacyHeaders: false
@@ -102,7 +102,6 @@ app.use("/referral", authMiddleware, referralRouter);
 app.use("/exam", authMiddleware, assessmentExam);
 app.use('/exam', authMiddleware, surveyResponsesRoute);
 app.use("/report", authMiddleware, assessmentReport);
-app.use("/backup", authMiddleware, backupRoute);
 app.use("/email", authMiddleware, emailRoute);
 app.use("/bulk-upload", authMiddleware, bulkUploadRoute);
 app.use("/batch-update", authMiddleware, batchUpdateRoute);
@@ -113,10 +112,11 @@ app.use("/content", authMiddleware, contentManagementRoute);
 app.use("/incidentReport", authMiddleware, incidentReportRoute);
 app.use("/notifications", authMiddleware, notificationRoute);
 app.use("/generate", authMiddleware, summaryRoute);
-app.use("/backup", authMiddleware, backupRoute);
-app.use("/api/backup", authMiddleware, backupRoutes);
+app.use("/backup", backupRoute);
+app.use("/api/backup", backupRoutes);
 app.use('/api/restore', authMiddleware, restoreRoutes);
 app.use('/restore', authMiddleware, restoreRoutes);
+app.use('/firebase', configRoutes);
 
 app.use([
   '/student', '/upload', '/cases', '/counseling', '/slip', '/teacher', '/referral',
@@ -126,12 +126,12 @@ app.use([
 ], apiLimiter);
 
 // Start the server
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+app.listen(PORT, HOST, () => {
+  console.log(`✅ Server running at http://${HOST}:${PORT}`);
 });
 
 // Cron Scheduler
-cron.schedule('0 0 * * *', async () => {
+cron.schedule('* * * * *', async () => {
   try {
     console.log('cron: checking backup schedule...');
     const scheduleDoc = await db.collection('backupSettings').doc('schedule').get();
@@ -207,7 +207,7 @@ cron.schedule('0 0 * * *', async () => {
   }
 });
 
-cron.schedule("* * * * *", async () => {
+cron.schedule("0 0 * * *", async () => {
   console.log("🕓 Cron: Checking for outdated pending slips...");
 
   try {
