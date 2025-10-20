@@ -57,7 +57,7 @@ function IncidentReportHistoryModal({ slip, onClose }) {
   const { attachmentUrl = [] } = slip;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-[9999]">
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[9999]">
       <div className="relative bg-white w-full max-w-[95vw] sm:max-w-xl lg:max-w-7xl rounded-lg shadow-xl p-4 sm:p-6 overflow-y-auto max-h-[90vh] animate-fadeIn custom-scrollbar outline-solid outline-2 outline-gray-300">
         {/* Header */}
         <div className="flex items-center justify-between mb-2">
@@ -338,7 +338,7 @@ function RequestSlipHistory() {
     const { proofUrl, excuseLetterUrl, guardianValidIDUrl, medicalCertificateUrl } = selectedSlip;
 
     return (
-      <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-40">
+      <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/40">
         <div className="relative bg-white w-full max-w-[95vw] sm:max-w-xl lg:max-w-7xl rounded-lg shadow-xl p-4 sm:p-6 overflow-y-auto max-h-[90vh] animate-fadeIn custom-scrollbar outline-solid outline-2 outline-gray-300">
           {/* Header */}
           <div className="flex items-center justify-between mb-4">

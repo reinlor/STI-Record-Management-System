@@ -489,7 +489,7 @@ function ReferralFormProcessing() {
 
       {/* Modal - Responsive */}
       {display && (
-        <div className="fixed inset-0 p-2 bg-black bg-opacity-40 flex items-center justify-center z-50 transition-opacity duration-300 ease-out opacity-100">
+        <div className="fixed inset-0 p-2 bg-black/40 flex items-center justify-center z-50 transition-opacity duration-300 ease-out opacity-100">
           <div className="bg-white w-full sm:max-w-350 lg:max-w-400 rounded-lg shadow-lg overflow-y-auto max-h-[92vh] p-6 sm:p-8 relative transform transition-all duration-300 ease-out scale-100 custom-scrollbar">
             {/* Modal Header */}
             <div className="flex items-center justify-between mb-4">
@@ -708,7 +708,7 @@ function ReferralFormProcessing() {
 
       {/* Confirmation Modal */}
       {showRedirectPrompt && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-xl p-6 w-[90%] max-w-md text-center">
             <h2 className="text-2xl font-bold text-[#0172bd] mb-4">Create Case Record?</h2>
             <p className="text-gray-700 mb-6">

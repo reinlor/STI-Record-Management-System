@@ -39,7 +39,7 @@ export default function ConsentModal({
 
   return (
   <>
-    {showForm ? (<div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-75 font-sans">
+    {showForm ? (<div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/75 font-sans">
       <div className="bg-white rounded-3xl shadow-3xl overflow-hidden max-w-5xl w-full mx-4 my-8 md:my-12">
         <div className="p-8 md:p-12 overflow-y-auto max-h-[80vh]">
           <div className="text-center mb-6">

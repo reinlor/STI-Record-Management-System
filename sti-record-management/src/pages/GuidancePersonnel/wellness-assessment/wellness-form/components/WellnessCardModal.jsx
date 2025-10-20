@@ -31,7 +31,7 @@ function WellnessCardModal({
     if (!display) return null;
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
             <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-md relative border-2 border-[#0172bd]">
                 {/* Close button */}
                 <button onClick={onClose} className="absolute top-3 right-3 text-[#0172bd] hover:text-blue-700 transition text-xl">

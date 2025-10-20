@@ -49,7 +49,7 @@ export default function AddViolationModal({
   };
 
   return (
-    <div className="flex fixed inset-0 z-50 items-center justify-center bg-black bg-opacity-40">
+    <div className="flex fixed inset-0 z-50 items-center justify-center bg-black/40">
       <div className="bg-white p-6 rounded-xl shadow-2xl w-full max-w-lg transform transition-all scale-100 ease-out duration-300">
         {/* Header */}
         <div className="flex justify-between items-center mb-4">

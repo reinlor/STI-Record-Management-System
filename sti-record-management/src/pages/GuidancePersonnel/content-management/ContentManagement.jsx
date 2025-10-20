@@ -557,7 +557,7 @@ export default function ContentManagement() {
 
             {/* Confirm modal (simple inline modal) */}
             {confirmModal.isOpen && (
-                <div className="fixed inset-0 z-60 flex items-center justify-center bg-black bg-opacity-40">
+                <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/40">
                     <div className="bg-white p-5 rounded-lg max-w-md w-full">
                         <h3 className="text-lg font-bold mb-2">{confirmModal.title}</h3>
                         <p className="text-sm text-gray-700 mb-4">{confirmModal.message}</p>

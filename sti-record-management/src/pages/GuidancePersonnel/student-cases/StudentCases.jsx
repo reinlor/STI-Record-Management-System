@@ -533,7 +533,7 @@ function StudentCases() {
 
             {/* Case Modal */}
             {selectedCaseId && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
                     <div
                         className="bg-white rounded-2xl shadow-2xl w-[98vw] max-w-[98vw] h-[98vh] max-h-[98vh]
             md:w-[90vw] md:max-w-[900px] md:h-[90vh] md:max-h-[900px]
