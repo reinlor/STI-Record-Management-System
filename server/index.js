@@ -119,11 +119,11 @@ app.use('/api/restore', authMiddleware, restoreRoutes);
 app.use('/restore', authMiddleware, restoreRoutes);
 
 app.use([
-    '/student','/upload','/cases','/counseling','/slip','/teacher','/referral',
-    '/exam','/report','/backup','/email','/bulk-upload','/batch-update',
-    '/chartData','/wellnessVersion','/photo-to-text','/content',
-    '/incidentReport','/notifications','/generate','/api/backup','/api/restore','/restore'
-  ], apiLimiter);
+  '/student', '/upload', '/cases', '/counseling', '/slip', '/teacher', '/referral',
+  '/exam', '/report', '/backup', '/email', '/bulk-upload', '/batch-update',
+  '/chartData', '/wellnessVersion', '/photo-to-text', '/content',
+  '/incidentReport', '/notifications', '/generate', '/api/backup', '/api/restore', '/restore'
+], apiLimiter);
 
 // Start the server
 app.listen(PORT, () => {
@@ -131,7 +131,7 @@ app.listen(PORT, () => {
 });
 
 // Cron Scheduler
-cron.schedule('* * * * *', async () => {
+cron.schedule('0 0 * * *', async () => {
   try {
     console.log('cron: checking backup schedule...');
     const scheduleDoc = await db.collection('backupSettings').doc('schedule').get();
@@ -204,5 +204,61 @@ cron.schedule('* * * * *', async () => {
     }
   } catch (err) {
     console.error('cron: unexpected error', err);
+  }
+});
+
+cron.schedule("* * * * *", async () => {
+  console.log("🕓 Cron: Checking for outdated pending slips...");
+
+  try {
+    const now = new Date();
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+    const processCollection = async (collectionName) => {
+      const ref = db.collection(collectionName);
+      const snapshot = await ref.where("status", "==", "Pending").get();
+
+      if (snapshot.empty) {
+        console.log(`✅ ${collectionName}: No pending documents found.`);
+        return 0;
+      }
+
+      const batch = db.batch();
+      let updatedCount = 0;
+
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+
+        const createdAt = data.timeCreated
+          ? (data.timeCreated.toDate
+            ? data.timeCreated.toDate()
+            : new Date(data.timeCreated))
+          : null;
+
+        if (createdAt && createdAt <= sevenDaysAgo) {
+          batch.update(doc.ref, { 
+            status: "Inactive" , 
+            processedDate: new Date()
+          });
+          updatedCount++;
+        }
+      });
+
+      if (updatedCount > 0) {
+        await batch.commit();
+      }
+
+      console.log(`🧾 ${collectionName}: Marked ${updatedCount} slips as Inactive.`);
+      return updatedCount;
+    };
+
+    const absentCount = await processCollection("absentSlips");
+    const incidentCount = await processCollection("incidentReport");
+
+    console.log(
+      `✅ Cron done: ${absentCount + incidentCount} total records marked as Inactive.`
+    );
+  } catch (err) {
+    console.error("❌ Cron error updating slips:", err);
   }
 });

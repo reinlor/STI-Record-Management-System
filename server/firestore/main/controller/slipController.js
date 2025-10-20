@@ -287,9 +287,9 @@ const updateSlipStatus = async (req, res) => {
   const { status, remarks, uid, name, studentName, pickUpDate } = req.body;
 
   const statusSchema = Joi.object({
-    status: Joi.string().valid("Approved", "Denied").required(),
+    status: Joi.string().valid("Approved", "Denied", "In Progress", "Denied", "Cancelled", "Inactive", "Resolved").required(),
     remarks: Joi.string().required(),
-    pickUpDate: Joi.date(),
+    pickUpDate: Joi.string(),
   });
 
   const { error } = statusSchema.validate({
@@ -324,7 +324,12 @@ const updateSlipStatus = async (req, res) => {
       return res.status(404).json({ error: "Slip not found." });
     }
 
-    const updateData = { status, remarks };
+    const updateData = { 
+      status, 
+      remarks, 
+      processedDate: new Date(),
+      processedBy: name
+    };
     
     if (pickUpDate) updateData.pickUpDate = pickUpDate;
     await docRef.update(updateData);

@@ -14,9 +14,9 @@ const ProtectedRoute = ({ children, requiredRole }) => {
   }
   
   if (Array.isArray(requiredRole)) {
-    if (!requiredRole.includes(authData.role)) {
-      return <Navigate to="/error401" replace />;
-    }
+    // if (!requiredRole.includes(authData.role)) {
+    //   return <Navigate to="/error401" replace />;
+    // }
   } else if (requiredRole) { 
     if (authData.role !== requiredRole) {
       return <Navigate to="/error401" replace />;

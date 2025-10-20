@@ -16,7 +16,8 @@ import {
   Clock,
   ChevronLeft,
   ChevronRight,
-  ClipboardList
+  ClipboardList,
+  Calendar
 } from 'lucide-react';
 
 import { ToastContainer, toast } from 'react-toastify';
@@ -146,6 +147,7 @@ function RequestSlip() {
   const [loading, setLoading] = useState(true);
 
   const [remarks, setRemarks] = useState("");
+  const [pickupDate, setPickupDate] = useState("");
 
   const ROW_COLOR_CLASSES = {
     RED: "bg-red-100",
@@ -165,14 +167,20 @@ function RequestSlip() {
 
   const handleStatusChange = async (slipType, slipId, status, slip) => {
     try {
-      console.log(remarks)
+      console.log(slipType)
+      console.log(pickupDate)
       const updatePayload = {
         status,
         remarks,
+        pickUpDate: pickupDate,
         name: authData?.user?.displayName ?? 'Admin',
         uid: slip.sid,
         studentName: slip.name
       };
+
+      if (!(slipType === 'Absent Slip')) {
+        delete updatePayload.pickUpDate;
+      }
 
       await axios.put(`/slip/update/${slipType}/${slipId}`, updatePayload);
 
@@ -285,7 +293,7 @@ function RequestSlip() {
 
   // --- Add sortBy state and logic ---
   const filteredSlipData = allSlipData
-    .filter((slip) => slip.status === "Pending")
+    .filter((slip) => slip.status === "Pending" || slip.status === "In Progress")
     .filter((slip) => {
       const nameMatch = String(slip.name || '').toLowerCase().includes(search.toLowerCase());
       const sidMatch = String(slip.sid || '').toLowerCase().includes(search.toLowerCase());
@@ -374,7 +382,8 @@ function RequestSlip() {
                           : "text-gray-600 font-bold",
                   },
                   { label: "Reason: ", value: slip.reason },
-                  { label: "Days Absent: ", value: slip.daysAbsent },
+                  { label: "Absent Day: ", value: `${slip.dateAbsent.replaceAll('-', '/')} - ${slip.dateAbsentEnd.replaceAll('-', '/')}` },
+                  { label: "Attachments: " },
                 ].map((item, i) => (
                   <div key={i} className="flex items-center flex-wrap">
                     <p className="font-bold text-[#0172bd] mr-5">{item.label}</p>
@@ -456,6 +465,28 @@ function RequestSlip() {
 
             {/* RIGHT PANEL */}
             <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-bold mb-1 text-[#0172bd]">Remarks</label>
+                <textarea
+                  className="border rounded px-3 py-2 w-full h-16 sm:h-20 resize-none text-xs sm:text-sm"
+                  value={remarks}
+                  onChange={e => setRemarks(e.target.value)}
+                  placeholder="Enter remarks here..."
+                />
+              </div>
+              <div className="relative">
+                <label className="block text-sm font-bold mb-1 text-[#0172bd]">Pickup Date</label>
+                <input
+                  type="date"
+                  value={pickupDate}
+                  onChange={e => setPickupDate(e.target.value)}
+                  id="pickupDate" name="pickupDate"
+                  className="border rounded px-3 py-2 w-full text-xs sm:text-sm"
+                />
+                <span className="absolute right-3 top-2.5 text-gray-400 cursor-pointer" onClick={() => document.getElementById("pickupDate")?.showPicker?.()} tabIndex={-1}>
+                  <Calendar className="w-5 h-5 mt-6" />
+                </span>
+              </div><hr />
               <div>
                 <label className="block text-sm font-bold mb-1 text-[#0172bd]">Send Email To</label>
                 <input
@@ -674,17 +705,17 @@ function RequestSlip() {
               {/* Action Buttons */}
               <div className="flex flex-col sm:flex-row gap-2 pt-6">
                 <button
-                  onClick={() => handleStatusChange(slip.typeOfSlip, slip._id, "Denied", slip)}
-                  className="flex-1 flex items-center justify-center gap-2 bg-[#dc3545] hover:bg-red-600 text-white px-4 py-2 rounded"
+                  onClick={() => handleStatusChange(slip.typeOfSlip, slip._id, "In Progress", slip)}
+                  className="flex-1 flex items-center justify-center gap-2 bg-[#0172bd] hover:bg-red-600 text-white px-4 py-2 rounded"
                 >
-                  Deny
+                  Update
                   <X className="w-4 h-4 object-cover rounded " />
                 </button>
                 <button
-                  onClick={() => handleStatusChange(slip.typeOfSlip, slip._id, "Approved", slip)}
+                  onClick={() => handleStatusChange(slip.typeOfSlip, slip._id, "Resolved", slip)}
                   className="flex-1 flex items-center justify-center gap-2 bg-[#28a745] hover:bg-green-500 text-white px-4 py-2 rounded"
                 >
-                  Approve
+                  Solved
                   <Check className="w-4 h-4 object-cover rounded " />
                 </button>
               </div>
@@ -702,6 +733,7 @@ function RequestSlip() {
         setSelectedSlip(foundSlip);
         setDisplay(true);
         setRemarks(foundSlip.remarks || "");
+        setPickupDate(foundSlip.pickupDate || "")
       } else if (foundSlip.typeOfSlip === "Incident Report") {
         setSelectedSlip(foundSlip);
         setDisplay(true);
@@ -719,6 +751,7 @@ function RequestSlip() {
     setDisplay(false);
     setSelectedSlip(null);
     setRemarks("");
+    setPickupDate("")
   };
 
   const displaySlipForm = () => {

@@ -1,5 +1,5 @@
 import React, { createContext, useState, useEffect, useRef } from "react";
-import { signOut, onAuthStateChanged, onIdTokenChanged } from "firebase/auth";
+import { signOut, onAuthStateChanged, onIdTokenChanged, browserLocalPersistence, setPersistence } from "firebase/auth";
 import { auth, db } from "./firebaseClient";
 import { doc, onSnapshot } from "firebase/firestore";
 import axios from "axios";
@@ -17,6 +17,8 @@ const AuthProvider = ({ children }) => {
     isAuthenticated: false,
     loading: true,
   });
+
+  console.log(authData)
 
   const [toast, setToast] = useState({ show: false, message: "", type: "", notif: null });
   const [showTimeoutModal, setShowTimeoutModal] = useState(false);
@@ -57,22 +59,26 @@ const AuthProvider = ({ children }) => {
   };
 
   const logout = async () => {
-    try {
-      await signOut(auth);
-      await axios.post("/user/logout", {}, { withCredentials: true });
-    } catch (err) {
-      console.error("Logout error:", err);
-    }
-    cleanupActivityListeners();
-    setAuthData({
-      user: null,
-      role: null,
-      uid: null,
-      displayName: null,
-      isAuthenticated: false,
-      loading: false,
-    });
-  };
+  try {
+    await signOut(auth);
+    await axios.post("/user/logout", {}, { withCredentials: true });
+
+    await setPersistence(auth, browserLocalPersistence);
+    await auth.signOut();
+  } catch (err) {
+    console.error("Logout error:", err);
+  }
+
+  cleanupActivityListeners();
+  setAuthData({
+    user: null,
+    role: null,
+    uid: null,
+    displayName: null,
+    isAuthenticated: false,
+    loading: false,
+  });
+};
 
   // Session check
   useEffect(() => {

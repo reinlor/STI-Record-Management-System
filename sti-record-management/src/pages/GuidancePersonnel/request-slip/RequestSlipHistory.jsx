@@ -45,12 +45,40 @@ function parseToMillis(dateInput) {
   return null;
 }
 
-function formatDate(dateInput) {
-  const ms = typeof dateInput === 'number' ? dateInput : parseToMillis(dateInput);
-  if (!ms) return '';
-  const d = new Date(ms);
-  return `${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getDate().toString().padStart(2, '0')}/${d.getFullYear()}`;
-}
+const parseToDate = (val) => {
+  if (!val) return null;
+
+  if (val.toDate && typeof val.toDate === "function") {
+    return val.toDate();
+  }
+
+  if (typeof val === "object" && val._seconds) {
+    return new Date(val._seconds * 1000);
+  }
+
+  const d = new Date(val);
+  return isNaN(d.getTime()) ? null : d;
+};
+
+
+const formatDate = (val) => {
+  const d = parseToDate(val);
+  if (!d) return "-";
+
+  try {
+    return new Intl.DateTimeFormat("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    }).format(d);
+  } catch (error) {
+    console.error("Date formatting error:", error);
+    return "N/A";
+  }
+};
 
 function IncidentReportHistoryModal({ slip, onClose }) {
   if (!slip) return null;
@@ -97,9 +125,9 @@ function IncidentReportHistoryModal({ slip, onClose }) {
                 </div>
                 <div>
                   <p className="font-bold text-[#0172bd]">Status:</p>
-                  <p className={`font-semibold break-all ${slip.status === "Approved"
+                  <p className={`font-semibold break-all ${slip.status === "Approved" || slip.status === "Resolved"
                     ? "text-green-600"
-                    : slip.status === "Denied"
+                    : slip.status === "Denied" || slip.status === "Cancelled"
                       ? "text-red-600"
                       : "text-gray-600"
                     }`}>{slip.status}</p>
@@ -140,26 +168,57 @@ function IncidentReportHistoryModal({ slip, onClose }) {
                   <p className="font-bold text-[#0172bd]">Date Of Incident:</p>
                   <p className="font-semibold text-black break-all">{slip.dateOfIncident}</p>
                 </div>
-                <div></div>
+                <div>
+                  <p className="font-bold text-[#0172bd]">Processed Date:</p>
+                  <p className="font-semibold text-black break-all">{formatDate(slip.processedDate)}</p>
+                </div>
+                <div>
+                  <p className="font-bold text-[#0172bd]">Processed By:</p>
+                  <p className="font-semibold text-black break-all">{slip.processedBy}</p>
+                </div>
               </div>
               {/* Narrative Report (full width) */}
-              <div className="md:col-span-2">
-                <p className="font-bold text-[#0172bd]">Narrative Report:</p>
-                <p className="font-semibold text-black break-all">{slip.narrativeReport}</p>
+              <div>
+                <label className="block text-sm font-bold mb-1 text-[#0172bd]">Narrative Report:</label>
+                <textarea
+                  className="border rounded px-3 py-2 w-full h-16 sm:h-20 resize-none text-xs sm:text-sm custom-scrollbar"
+                  value={slip.narrativeReport || ""}
+                  readOnly
+                />
               </div>
-              {/* Action Taken (full width) */}
-              <div className="md:col-span-2">
-                <p className="font-bold text-[#0172bd]">Action Taken:</p>
-                <p className="font-semibold text-black break-all">{slip.actionsTaken}</p>
+
+              <div>
+                <label className="block text-sm font-bold mb-1 text-[#0172bd]">Action Taken:</label>
+                <textarea
+                  className="border rounded px-3 py-2 w-full h-16 sm:h-20 resize-none text-xs sm:text-sm custom-scrollbar"
+                  value={slip.actionTaken || ""}
+                  readOnly
+                />
               </div>
             </div>
+
+          </div>
+          {/* RIGHT PANEL */}
+          <div className="space-y-4">
+
+            <div>
+              <label className="block text-sm font-bold mb-1 text-[#0172bd]">Remarks:</label>
+              <textarea
+                className="border rounded px-3 py-2 w-full h-16 sm:h-20 resize-none text-xs sm:text-sm custom-scrollbar"
+                value={slip.remarks || ""}
+                readOnly
+              />
+            </div>
+
             {/* Attachments Section */}
-            <div className="md:col-span-2 grid grid-cols-2 gap-6 mt-2">
+            <label className="block text-sm font-bold mb-1 text-[#0172bd]">Attachments:</label>
+            <div className="md:col-span-2 grid grid-cols-2 gap-6 mt-2 ">
+
               {attachmentUrl.length === 0 && (
                 <span className="text-gray-400">No attachments.</span>
               )}
               {attachmentUrl.map((url, idx) => (
-                <div key={idx} className="flex flex-col items-center">
+                <div key={idx} className="flex flex-col items-center border rounded-md border-black p-3">
                   <a href={url} target="_blank" rel="noopener noreferrer">
                     <img
                       src={url}
@@ -172,43 +231,6 @@ function IncidentReportHistoryModal({ slip, onClose }) {
                   </span>
                 </div>
               ))}
-            </div>
-          </div>
-          {/* RIGHT PANEL */}
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-bold mb-1 text-[#0172bd]">Remarks</label>
-              <textarea
-                className="border rounded px-3 py-2 w-full h-16 sm:h-20 resize-none text-xs sm:text-sm"
-                value={slip.remarks || ""}
-                readOnly
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-bold mb-1 text-[#0172bd]">Send Email To</label>
-              <input
-                type="text"
-                value={slip.email}
-                className="border rounded px-3 py-2 w-full text-xs sm:text-sm"
-                readOnly
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-bold mb-1 text-[#0172bd]">Subject</label>
-              <input
-                type="text"
-                value="Incident Report Status"
-                className="border rounded px-3 py-2 w-full text-xs sm:text-sm"
-                readOnly
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-bold mb-1 text-[#0172bd]">Email Body</label>
-              <textarea
-                className="border rounded px-3 py-2 w-full h-20 sm:h-24 resize-none text-xs sm:text-sm"
-                value={`Your Incident Report submitted on ${slip.timeCreatedFormatted} has been ${slip.status}.`}
-                readOnly
-              />
             </div>
           </div>
         </div>
@@ -225,6 +247,8 @@ function RequestSlipHistory() {
   const [loading, setLoading] = useState(true);
   const [showIncidentReportModal, setShowIncidentReportModal] = useState(false);
   const [incidentReportSlip, setIncidentReportSlip] = useState(null);
+  const [absentData, setAbsentData] = useState([]);
+  const [incidentData, setIncidentData] = useState([]);
 
   // PAGINATION STATE
   const [currentPage, setCurrentPage] = useState(1);
@@ -233,79 +257,72 @@ function RequestSlipHistory() {
   useEffect(() => {
     setLoading(true);
 
-    // Helper to map snapshot data
-    const mapSnapshot = (snapshot, collectionName) => {
-      return snapshot.docs.map((doc) => {
-        const data = doc.data();
-        const ms = parseToMillis(data.timeCreated);
-
-        return {
-          id: doc.id,
-          collection: collectionName, // optional: track source
-          ...data,
-          timeCreatedMs: ms,
-          timeCreatedFormatted: ms ? formatDate(ms) : '',
-        };
-      });
-    };
-
-    // Listeners for both collections
     const unsubscribeAbsent = onSnapshot(
       collection(db, "absentSlips"),
       (snapshot) => {
-        const absentData = mapSnapshot(snapshot, "absentSlips");
-
-        setSlipData((prev) => {
-          const incidentData = prev?.filter(item => item.collection === "incidentReport") || [];
-          const combined = [...absentData, ...incidentData];
-
-          // Filter and sort
-          const filtered = combined.filter(
-            (s) => s.status === "Approved" || s.status === "Denied"
-          );
-          filtered.sort((a, b) => (b.timeCreatedMs || 0) - (a.timeCreatedMs || 0));
-          return filtered;
+        const newAbsent = snapshot.docs.map((doc) => {
+          const data = doc.data();
+          const ms = parseToMillis(data.processedDate);
+          return {
+            id: doc.id,
+            collection: "absentSlips",
+            ...data,
+            processedDateMs: ms,
+            processedDateFormatted: ms ? formatDate(ms) : '',
+          };
         });
-
-        setLoading(false);
+        setAbsentData(newAbsent);
       },
       (error) => {
         console.error("Error fetching absent slips:", error);
-        setLoading(false);
       }
     );
+
 
     const unsubscribeIncident = onSnapshot(
       collection(db, "incidentReport"),
       (snapshot) => {
-        const incidentData = mapSnapshot(snapshot, "incidentReport");
-
-        setSlipData((prev) => {
-          const absentData = prev?.filter(item => item.collection === "absentSlips") || [];
-          const combined = [...absentData, ...incidentData];
-
-          // Filter and sort
-          const filtered = combined.filter(
-            (s) => s.status === "Approved" || s.status === "Denied"
-          );
-          filtered.sort((a, b) => (b.timeCreatedMs || 0) - (a.timeCreatedMs || 0));
-          return filtered;
+        const newIncident = snapshot.docs.map((doc) => {
+          const data = doc.data();
+          const ms = parseToMillis(data.processedDate);
+          return {
+            id: doc.id,
+            collection: "incidentReport",
+            ...data,
+            processedDateMs: ms,
+            processedDateFormatted: ms ? formatDate(ms) : '',
+          };
         });
-
-        setLoading(false);
+        setIncidentData(newIncident);
       },
       (error) => {
         console.error("Error fetching incident reports:", error);
-        setLoading(false);
       }
     );
 
-    // Cleanup on unmount
+
     return () => {
       unsubscribeAbsent();
       unsubscribeIncident();
     };
   }, []);
+
+  useEffect(() => {
+    const combined = [...absentData, ...incidentData].filter(
+      (s) =>
+        s.status === "Approved" ||
+        s.status === "Denied" ||
+        s.status === "Resolved" ||
+        s.status === "Cancelled" ||
+        s.status === "Inactive"
+    );
+
+    combined.sort((a, b) => (b.processedDateMs || 0) - (a.processedDateMs || 0));
+
+    setSlipData(combined);
+    setLoading(false);
+  }, [absentData, incidentData]);
+
 
   // PAGINATION LOGIC
   const filteredSlipData = slipData
@@ -325,10 +342,12 @@ function RequestSlipHistory() {
   );
 
   const colorStatusIndicator = (status) => {
-    if (status === 'Approved') {
+    if (status === 'Approved' || status === 'Resolved') {
       return <td className="text-green-600 font-bold px-2 py-2 text-sm lg:text-base">{status}</td>
-    } else {
+    } else if (status === "Cancelled" || status === "Denied") {
       return <td className="text-red-600 font-bold px-2 py-2 text-sm lg:text-base">{status}</td>
+    } else {
+      return <td className="text-gray-600 font-bold px-2 py-2 text-sm lg:text-base">{status}</td>
     }
   }
 
@@ -339,77 +358,84 @@ function RequestSlipHistory() {
 
     return (
       <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/40">
-        <div className="relative bg-white w-full max-w-[95vw] sm:max-w-xl lg:max-w-7xl rounded-lg shadow-xl p-4 sm:p-6 overflow-y-auto max-h-[90vh] animate-fadeIn custom-scrollbar outline-solid outline-2 outline-gray-300">
+        <div className="relative bg-white w-full max-w-[95vw] sm:max-w-xl lg:max-w-6xl rounded-2xl shadow-2xl p-6 overflow-y-auto max-h-[90vh] animate-fadeIn custom-scrollbar border-2 border-[#0172bd]">
           {/* Header */}
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-4 border-b pb-2">
             <div className="flex items-center gap-4">
-              <h2 className="text-2xl font-bold text-[#0172bd]">Request Slip Form</h2>
-              <span className="px-3 py-2 bg-gray-100 text-gray-800 text-md font-medium rounded">
+              <h2 className="text-2xl font-extrabold text-[#0172bd]">Absent Slip Details</h2>
+              <span className="px-3 py-1 bg-[#0172bd]/10 text-[#0172bd] text-sm font-semibold rounded-md">
                 {selectedSlip.typeOfSlip}
               </span>
             </div>
             <button
               onClick={() => setSelectedSlip(null)}
-              className="absolute right-5 top-5 text-[#0172bd] hover:text-blue-500 transition-transform hover:scale-110"
+              className="text-[#0172bd] hover:text-blue-500 transition-transform hover:scale-110"
             >
-              <X className="w-10 h-10 object-cover rounded" />
+              <X className="w-8 h-8" />
             </button>
           </div>
-          <hr className="mb-4" />
 
-          {/* Main content: Info left, Attachments right */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Info Left */}
+          {/* Info Section */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
             <div className="space-y-2">
-              <p><span className="font-bold text-[#0172bd]">Name:</span> {selectedSlip.name}</p>
-              <p><span className="font-bold text-[#0172bd]">Program:</span> {selectedSlip.program}</p>
-              <p><span className="font-bold text-[#0172bd]">Year and Section:</span> {selectedSlip.yearSection}</p>
-              <p><span className="font-bold text-[#0172bd]">Email:</span> {selectedSlip.email}</p>
-              <p>
-                <span className="font-bold text-[#0172bd]">Status:</span>{" "}
-                <span className={selectedSlip.status === 'Approved' ? 'text-green-600 font-bold' : 'text-red-600 font-bold'}>
-                  {selectedSlip.status}
-                </span>
-              </p>
-              <p><span className="font-bold text-[#0172bd]">Remarks:</span> {selectedSlip.remarks}</p>
-              <p><span className="font-bold text-[#0172bd]">Days Absent:</span> {selectedSlip.dateAbsent} to {selectedSlip.dateAbsentEnd}</p>
-              <p><span className="font-bold text-[#0172bd]">Date:</span> {selectedSlip.timeCreatedFormatted}</p>
+              <div className="bg-gray-50 border border-gray-300 rounded-lg p-3 shadow-sm">
+                <p><span className="font-bold text-[#0172bd]">Name:</span> {selectedSlip.name}</p>
+                <p><span className="font-bold text-[#0172bd]">Student ID:</span> {selectedSlip.sid}</p>
+                <p><span className="font-bold text-[#0172bd]">Program:</span> {selectedSlip.program}</p>
+                <p><span className="font-bold text-[#0172bd]">Year & Section:</span> {selectedSlip.section}</p>
+                <p><span className="font-bold text-[#0172bd]">Email:</span> {selectedSlip.email}</p>
+                <p>
+                  <span className="font-bold text-[#0172bd]">Status:</span>{" "}
+                  <span
+                    className={
+                      selectedSlip.status === "Approved"
+                        ? "text-green-600 font-bold"
+                        : selectedSlip.status === "Denied" || selectedSlip.status === "Cancelled" 
+                          ? "text-red-600 font-bold"
+                          : "text-gray-700 font-bold"
+                    }
+                  >
+                    {selectedSlip.status}
+                  </span>
+                </p>
+                <p><span className="font-bold text-[#0172bd]">Reason:</span> {selectedSlip.reason}</p>
+                <p><span className="font-bold text-[#0172bd]">Remarks:</span> {selectedSlip.remarks}</p>
+                <p><span className="font-bold text-[#0172bd]">Absent Duration:</span> {selectedSlip.dateAbsent.replaceAll('-', '/')} - {selectedSlip.dateAbsentEnd.replaceAll('-', '/')}</p>
+                <p><span className="font-bold text-[#0172bd]">Pickup Date:</span> {selectedSlip.pickUpDate}</p>
+                <p><span className="font-bold text-[#0172bd]">Creation Date:</span> {formatDate(selectedSlip.timeCreated)}</p>
+                <p><span className="font-bold text-[#0172bd]">Processed Date:</span> {formatDate(selectedSlip.processedDate)}</p>
+                <p><span className="font-bold text-[#0172bd]">Processed By:</span> {selectedSlip.processedBy}</p>
+              </div>
             </div>
 
-            {/* Attachments Right */}
+            {/* Attachments */}
             <div className="space-y-4">
-              <div className="grid grid-cols-1 gap-6">
-                {proofUrl && (
-                  <div className="flex flex-col items-center">
-                    <a href={proofUrl} target="_blank" rel="noopener noreferrer">
-                      <img src={proofUrl} alt="Proof" className="w-40 h-40 object-cover rounded" />
-                    </a>
-                    <span className="text-xs text-gray-600 mt-2 text-center">Proof of Transaction</span>
-                  </div>
-                )}
-                {excuseLetterUrl && (
-                  <div className="flex flex-col items-center">
-                    <a href={excuseLetterUrl} target="_blank" rel="noopener noreferrer">
-                      <img src={excuseLetterUrl} alt="Excuse Letter" className="w-40 h-40 object-cover rounded" />
-                    </a>
-                    <span className="text-xs text-gray-600 mt-2 text-center">Excuse Letter</span>
-                  </div>
-                )}
-                {medicalCertificateUrl && (
-                  <div className="flex flex-col items-center">
-                    <a href={medicalCertificateUrl} target="_blank" rel="noopener noreferrer">
-                      <img src={medicalCertificateUrl} alt="Medical" className="w-40 h-40 object-cover rounded" />
-                    </a>
-                    <span className="text-xs text-gray-600 mt-2 text-center">Medical Certificate</span>
-                  </div>
-                )}
-                {guardianValidIDUrl && (
-                  <div className="flex flex-col items-center">
-                    <a href={guardianValidIDUrl} target="_blank" rel="noopener noreferrer">
-                      <img src={guardianValidIDUrl} alt="Guardian ID" className="w-40 h-40 object-cover rounded" />
-                    </a>
-                    <span className="text-xs text-gray-600 mt-2 text-center">Guardian’s ID</span>
-                  </div>
+              <h3 className="text-lg font-bold text-[#0172bd] border-b pb-1">Attachments</h3>
+              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-6">
+                {[
+                  { label: "Proof of Transaction", url: selectedSlip.proofUrl },
+                  { label: "Excuse Letter", url: selectedSlip.excuseLetterUrl },
+                  { label: "Medical Certificate", url: selectedSlip.medicalCertificateUrl },
+                  { label: "Guardian’s ID", url: selectedSlip.guardianValidIDUrl },
+                ]
+                  .filter((a) => a.url && a.url !== "Empty")
+                  .map((a, idx) => (
+                    <div
+                      key={idx}
+                      className="flex flex-col items-center border border-gray-300 rounded-lg p-3 bg-gray-50 hover:shadow-md transition"
+                    >
+                      <a href={a.url} target="_blank" rel="noopener noreferrer">
+                        <img
+                          src={a.url}
+                          alt={a.label}
+                          className="w-36 h-36 object-cover rounded-md border border-[#0172bd]/30"
+                        />
+                      </a>
+                      <span className="text-xs text-gray-700 mt-2 font-semibold text-center">{a.label}</span>
+                    </div>
+                  ))}
+                {(!selectedSlip.proofUrl && !selectedSlip.excuseLetterUrl && !selectedSlip.medicalCertificateUrl && !selectedSlip.guardianValidIDUrl) && (
+                  <p className="text-gray-500 text-sm text-center col-span-full">No attachments available.</p>
                 )}
               </div>
             </div>
@@ -417,6 +443,7 @@ function RequestSlipHistory() {
         </div>
       </div>
     );
+
   }
 
   // Update table row open logic:
@@ -426,13 +453,8 @@ function RequestSlipHistory() {
       <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 lg:whitespace-nowrap font-semibold w-1/4">{slips.name}</td>
       <td className="px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">{slips.sid}</td>
       <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 lg:whitespace-nowrap">{slips.typeOfSlip}</td>
-      <td className="px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">{slips.timeCreatedFormatted}</td>
+      <td className="px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">{formatDate(slips.processedDate)}</td>
       {colorStatusIndicator(slips.status)}
-      {/* <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 break-words max-w-[120px] truncate align-middle" title={slips.reason}>
-        <span className="block overflow-hidden text-ellipsis whitespace-nowrap max-w-[140px]">
-          {slips.reason}
-        </span>
-      </td> */}
       <td className="px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">{slips.attachmentCount}</td>
       <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3">
         <button
@@ -501,9 +523,8 @@ function RequestSlipHistory() {
                 <th className="sticky bg-[#0172bd] top-0 z-10 px-2 sm:px-3 lg:px-4 py-2 sm:py-3 font-bold">Name</th>
                 <th className="sticky bg-[#0172bd] top-0 z-10 px-0 py-0 text-[0px]  w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">Student No.</th>
                 <th className="sticky bg-[#0172bd] top-0 z-10 px-2 sm:px-3 lg:px-4 py-2 sm:py-3 font-bold">Type of Slip</th>
-                <th className="sticky bg-[#0172bd] top-0 z-10 px-0 py-0 text-[0px]  w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">Date</th>
+                <th className="sticky bg-[#0172bd] top-0 z-10 px-0 py-0 text-[0px]  w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">Processed Date</th>
                 <th className="sticky bg-[#0172bd] top-0 z-10 px-0 py-0 text-[0px]  w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">Status</th>
-                {/* <th className="sticky bg-[#0172bd] top-0 z-10 px-2 sm:px-3 lg:px-4 py-2 sm:py-3 font-bold">Reason</th> */}
                 <th className="sticky bg-[#0172bd] top-0 z-10 px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">Attachments</th>
                 <th className="sticky bg-[#0172bd] top-0 z-10 px-2 sm:px-3 lg:px-4 py-2 sm:py-3"></th>
               </tr>

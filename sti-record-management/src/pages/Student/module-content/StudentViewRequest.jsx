@@ -509,7 +509,7 @@ export default function StudentViewRequest() {
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">{formatDate(row.processedDate)}</td>
                         {activeView === "Absent Slip" && (
-                          <td className="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">{formatDate(row.pickupDate)}</td>
+                          <td className="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">{row.pickUpDate}</td>
                         )}
                         <td className="px-6 py-4 text-sm">
                           <button
