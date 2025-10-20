@@ -64,6 +64,13 @@ function ReferralFormProcessing() {
   const [emailSubject, setEmailSubject] = useState();
   const [emailBody, setEmailBody] = useState();
 
+  const ROW_COLOR_CLASSES = {
+    RED: "bg-red-100",
+    YELLOW: "bg-yellow-100",
+    BLUE: "bg-blue-100",
+    WHITE: "bg-white",
+  };
+
   const formatDate = (timestamp) => {
     if (!timestamp) return "-";
     if (timestamp.seconds) {
@@ -89,21 +96,44 @@ function ReferralFormProcessing() {
   const [filterPriority, setFilterPriority] = useState("");
   const [sortBy, setSortBy] = useState("oldest"); // <-- Add sort state
 
-
   // For Color Indicator
-  const getDateDifference = (dateString) => {
-    if (!dateString) return 0;
-    const refDate = new Date(dateString);
-    const today = new Date();
-    const diffTime = today - refDate;
-    return Math.floor(diffTime / (1000 * 60 * 60 * 24)); // convert ms → days
+  const toMillisSafe = (input) => {
+    if (!input) return null;
+
+    if (typeof input === "number") return input > 1e12 ? input : input * 1000;
+    if (input instanceof Date) return input.getTime();
+
+    if (typeof input === "object" && typeof input.toDate === "function") {
+      try { return input.toDate().getTime(); } catch { }
+    }
+
+    if (typeof input === "object" && (input.seconds !== undefined || input._seconds !== undefined)) {
+      const sec = Number(input.seconds ?? input._seconds ?? 0);
+      const ns = Number(input.nanoseconds ?? input._nanoseconds ?? 0);
+      return sec * 1000 + Math.floor(ns / 1e6);
+    }
+
+    if (typeof input === "string") {
+      const parsed = Date.parse(input);
+      if (!isNaN(parsed)) return parsed;
+    }
+
+    return null;
+  };
+
+  const getDateDifference = (dateInput) => {
+    const ms = toMillisSafe(dateInput);
+    if (!ms) return 0;
+    const diff = Date.now() - ms;
+    if (diff < 0) return 0;
+    return Math.floor(diff / (1000 * 60 * 60 * 24));
   };
 
   const getRowColor = (days) => {
-    if (days >= 7) return "bg-red-100";       // + 7 days
-    if (days >= 4 && days <= 6) return "bg-yellow-100"; // 4–6 days
-    if (days >= 1 && days <= 3) return "bg-blue-100";   // 1–3 days
-    return "bg-white"; // today
+    if (days >= 8) return ROW_COLOR_CLASSES.RED;
+    if (days >= 4 && days <= 7) return ROW_COLOR_CLASSES.YELLOW;
+    if (days >= 1 && days <= 3) return ROW_COLOR_CLASSES.BLUE;
+    return ROW_COLOR_CLASSES.WHITE;
   };
 
 
@@ -385,10 +415,11 @@ function ReferralFormProcessing() {
               {pagedReferrals.length > 0 ? (
                 pagedReferrals.map((ref) => {
                   const days = getDateDifference(ref.preparedDate || ref.createdAt);
+                  const rowBgClass = getRowColor(days);
                   return (
                     <tr
                       key={ref.id}
-                      className={`hover:bg-gray-100 transition ${getRowColor(days)}`}
+                      className={`border-b transition-colors duration-150 ${rowBgClass} hover:brightness-95`}
                     >
                       <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 lg:whitespace-nowrap font-semibold w-1/4">
                         {ref.referredBy}

@@ -1,3 +1,4 @@
+// RequestSlip.jsx
 import React, { useState, useEffect, useContext } from "react";
 import { useNavigate } from "react-router";
 import axios from "axios";
@@ -35,7 +36,7 @@ const DATE_FILTER_OPTIONS = [
   { value: "year", label: "This Year" },
 ];
 
-// Helper for date filtering
+// Helper for date filtering, parse, format functions (kept same as original)
 function isWithinDate(ms, filter) {
   if (!ms) return false;
   const now = new Date();
@@ -69,7 +70,6 @@ function isWithinDate(ms, filter) {
 }
 
 function parseToMillis(dateInput) {
-  // Your existing date parsing logic
   if (!dateInput) return null;
 
   if (typeof dateInput === 'object' && typeof dateInput.toDate === 'function') {
@@ -102,11 +102,32 @@ function parseToMillis(dateInput) {
   return null;
 }
 
+/**
+ * formatDate
+ * Accepts a Date, ms number, Firestore timestamp-like object, or date string.
+ * Returns: "MonthName D, YYYY at H:MM:SS AM/PM" (e.g. "October 18, 2025 at 6:50:01 PM")
+ * Uses Asia/Manila timezone to produce consistent output (change if you want local timezone).
+ */
 function formatDate(dateInput) {
   const ms = typeof dateInput === 'number' ? dateInput : parseToMillis(dateInput);
   if (!ms) return '';
   const d = new Date(ms);
-  return `${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getDate().toString().padStart(2, '0')}/${d.getFullYear()}`;
+
+  // Use Intl to format parts consistently; then replace the comma before time with ' at '
+  // Example result from toLocaleString: "October 18, 2025, 6:50:01 PM"
+  const opts = {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true,
+    timeZone: 'Asia/Manila'
+  };
+  const localeStr = d.toLocaleString('en-US', opts);
+
+  return localeStr
 }
 
 function RequestSlip() {
@@ -126,6 +147,15 @@ function RequestSlip() {
 
   const [remarks, setRemarks] = useState("");
 
+  const ROW_COLOR_CLASSES = {
+    RED: "bg-red-100",
+    YELLOW: "bg-yellow-100",
+    BLUE: "bg-blue-100",
+    WHITE: "bg-white",
+  };
+
+  const MS_PER_DAY = 1000 * 60 * 60 * 24;
+
   if (!authData?.user?.access?.requestSlip) {
     const error401 = () => {
       navigate('/error401')
@@ -136,22 +166,13 @@ function RequestSlip() {
   const handleStatusChange = async (slipType, slipId, status, slip) => {
     try {
       console.log(remarks)
-      // Include remarks if Absent Slip
-      const updatePayload = slipType === "Absent Slip"
-        ? {
-          status,
-          remarks,
-          name: authData?.user?.displayName ?? 'Admin',
-          uid: slip.sid,
-          studentName: slip.name
-        }
-        : {
-          status,
-          remarks,
-          name: authData?.user?.displayName ?? 'Admin',
-          uid: slip.sid,
-          studentName: slip.name
-        };
+      const updatePayload = {
+        status,
+        remarks,
+        name: authData?.user?.displayName ?? 'Admin',
+        uid: slip.sid,
+        studentName: slip.name
+      };
 
       await axios.put(`/slip/update/${slipType}/${slipId}`, updatePayload);
 
@@ -165,7 +186,7 @@ function RequestSlip() {
 
       setAllSlipData((prev) =>
         prev.map((s) =>
-          s._id === slipId
+          (s._id === slipId || s.id === slipId)
             ? { ...s, status, ...(slipType === "Absent Slip" ? { remarks } : {}) }
             : s
         )
@@ -181,31 +202,54 @@ function RequestSlip() {
 
   useEffect(() => {
     setLoading(true);
-    const mapSnapshot = (snapshot) => {
+
+    const mapSnapshot = (snapshot, collectionName) => {
       return snapshot.docs.map((doc) => {
         const data = doc.data();
         const ms = parseToMillis(data.timeCreated);
 
+        let attachmentCount =
+          typeof data.attachmentCount === "number" ? data.attachmentCount : null;
+
+        if (attachmentCount === null) {
+          if (Array.isArray(data.attachmentUrl)) {
+            attachmentCount = data.attachmentUrl.length;
+          } else if (data.typeOfSlip === "Absent Slip") {
+            const possibleAttachments = [
+              data.proofUrl,
+              data.excuseLetterUrl,
+              data.guardianValidIDUrl,
+              data.medicalCertificateUrl,
+            ].filter(Boolean);
+            attachmentCount = possibleAttachments.length;
+          } else {
+            attachmentCount = 0;
+          }
+        }
+
         return {
           id: doc.id,
+          _id: doc.id,
           ...data,
+          collection: collectionName,
+          attachmentCount,
           timeCreatedMs: ms,
-          timeCreatedFormatted: ms ? formatDate(ms) : '',
+          timeCreatedFormatted: ms ? formatDate(ms) : "",
         };
       });
     };
 
+
     const unsubscribeAbsent = onSnapshot(
       collection(db, "absentSlips"),
       (snapshot) => {
-        const absentData = mapSnapshot(snapshot);
-
-        setAllSlipData((prev) => {
-          const combined = [...absentData, ...(prev?.filter(item => item.collection === "incidentReport") || [])];
-          combined.sort((a, b) => (b.timeCreatedMs || 0) - (a.timeCreatedMs || 0));
-          return combined;
+        const absentData = mapSnapshot(snapshot, "absentSlips");
+        setAllSlipData((prev = []) => {
+          const incidentPrev = prev.filter((i) => i.collection === "incidentReport");
+          return [...absentData, ...incidentPrev].sort(
+            (a, b) => (b.timeCreatedMs || 0) - (a.timeCreatedMs || 0)
+          );
         });
-
         setLoading(false);
       },
       (error) => {
@@ -217,14 +261,13 @@ function RequestSlip() {
     const unsubscribeIncident = onSnapshot(
       collection(db, "incidentReport"),
       (snapshot) => {
-        const incidentData = mapSnapshot(snapshot).map(item => ({ ...item, collection: "incidentReport" }));
-
-        setAllSlipData((prev) => {
-          const combined = [...incidentData, ...(prev?.filter(item => item.collection !== "incidentReport") || [])];
-          combined.sort((a, b) => (b.timeCreatedMs || 0) - (a.timeCreatedMs || 0));
-          return combined;
+        const incidentData = mapSnapshot(snapshot, "incidentReport");
+        setAllSlipData((prev = []) => {
+          const absentPrev = prev.filter((i) => i.collection === "absentSlips");
+          return [...incidentData, ...absentPrev].sort(
+            (a, b) => (b.timeCreatedMs || 0) - (a.timeCreatedMs || 0)
+          );
         });
-
         setLoading(false);
       },
       (error) => {
@@ -272,7 +315,6 @@ function RequestSlip() {
     currentPage * rowsPerPage
   );
 
-
   // --- Modal logic ---
   const [showStudentReportModal, setShowStudentReportModal] = useState(false);
   const [studentReportSlip, setStudentReportSlip] = useState(null);
@@ -285,8 +327,8 @@ function RequestSlip() {
   function StudentReportModal({ slip, onClose }) {
     if (!slip) return null;
 
-    // Destructure URLs here, where selectedSlip is guaranteed to exist
-    const { proofUrl, excuseLetterUrl, guardianValidIDUrl, medicalCertificateUrl } = selectedSlip;
+    // destructure from prop 'slip' (was incorrectly using selectedSlip)
+    const { proofUrl, excuseLetterUrl, guardianValidIDUrl, medicalCertificateUrl } = slip;
 
     return (
       <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-[9999]">
@@ -297,11 +339,11 @@ function RequestSlip() {
             <div className="flex items-center gap-4">
               <h2 className="text-2xl font-bold text-[#0172bd]">Request Slip Form</h2>
               <span className="px-3 py-2 bg-gray-100 text-gray-800 text-md font-medium rounded">
-                {selectedSlip.typeOfSlip}
+                {slip.typeOfSlip}
               </span>
             </div>
             <button
-              onClick={closeModal}
+              onClick={onClose}
               className="text-2xl text-[#0172bd] hover:scale-110 hover:text-blue-500"
             >
               <X className="w-10 h-10 object-cover rounded " />
@@ -316,23 +358,23 @@ function RequestSlip() {
               <div className="space-y-2">
                 {/* Info Section */}
                 {[
-                  { label: "Name: ", value: selectedSlip.name },
-                  { label: "Program: ", value: selectedSlip.program },
-                  { label: "Date: ", value: selectedSlip.timeCreatedFormatted || formatDate(selectedSlip.timeCreated) },
-                  { label: "Year & Section: ", value: selectedSlip.yearSection || "4A" },
-                  { label: "Email: ", value: selectedSlip.email },
+                  { label: "Name: ", value: slip.name },
+                  { label: "Program: ", value: slip.program },
+                  { label: "Date: ", value: slip.timeCreatedFormatted || formatDate(slip.timeCreated) },
+                  { label: "Year & Section: ", value: slip.yearSection || "4A" },
+                  { label: "Email: ", value: slip.email },
                   {
                     label: "Status: ",
-                    value: selectedSlip.status,
+                    value: slip.status,
                     className:
-                      selectedSlip.status === "Approved"
+                      slip.status === "Approved"
                         ? "text-green-600 font-bold"
-                        : selectedSlip.status === "Rejected"
+                        : slip.status === "Rejected"
                           ? "text-red-600 font-bold"
                           : "text-gray-600 font-bold",
                   },
-                  { label: "Reason: ", value: selectedSlip.reason },
-                  { label: "Days Absent: ", value: selectedSlip.daysAbsent },
+                  { label: "Reason: ", value: slip.reason },
+                  { label: "Days Absent: ", value: slip.daysAbsent },
                 ].map((item, i) => (
                   <div key={i} className="flex items-center flex-wrap">
                     <p className="font-bold text-[#0172bd] mr-5">{item.label}</p>
@@ -418,7 +460,7 @@ function RequestSlip() {
                 <label className="block text-sm font-bold mb-1 text-[#0172bd]">Send Email To</label>
                 <input
                   type="text"
-                  value={selectedSlip.email}
+                  value={slip.email}
                   className="border rounded px-3 py-2 w-full text-xs sm:text-sm"
                   readOnly
                 />
@@ -443,7 +485,7 @@ function RequestSlip() {
               {/* Action Buttons: always at the bottom, full width on mobile */}
               <div className="flex flex-col sm:flex-row gap-2 pt-6">
                 <button
-                  onClick={() => handleStatusChange(selectedSlip.typeOfSlip, selectedSlip._id, "Denied", selectedSlip)}
+                  onClick={() => handleStatusChange(slip.typeOfSlip, slip._id, "Denied", slip)}
                   className="flex-1 flex items-center justify-center gap-2 bg-[#dc3545] hover:bg-red-600 text-white px-4 py-2 rounded"
                 >
                   Deny
@@ -451,7 +493,7 @@ function RequestSlip() {
                 </button>
 
                 <button
-                  onClick={() => handleStatusChange(selectedSlip.typeOfSlip, selectedSlip._id, "Approved", selectedSlip)}
+                  onClick={() => handleStatusChange(slip.typeOfSlip, slip._id, "Approved", slip)}
                   className="flex-1 flex items-center justify-center gap-2 bg-[#28a745] hover:bg-green-500 text-white px-4 py-2 rounded"
                 >
                   Approve
@@ -469,7 +511,6 @@ function RequestSlip() {
   function IncidentReportModal({ slip, onClose, remarks, setRemarks, body, setBody, handleStatusChange }) {
     if (!slip) return null;
 
-    // Destructure attachments if available
     const { attachmentUrl = [] } = slip;
 
     return (
@@ -499,7 +540,6 @@ function RequestSlip() {
               <div className="space-y-2">
                 {/* Info Section */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 border border-gray-300 p-2 rounded-md text-sm">
-                  {/* Row 1 */}
                   <div>
                     <p className="font-bold text-[#0172bd]">Name:</p>
                     <p className="font-semibold text-black break-all">{slip.name}</p>
@@ -508,7 +548,6 @@ function RequestSlip() {
                     <p className="font-bold text-[#0172bd]">Program & Section:</p>
                     <p className="font-semibold text-black break-all">{`${slip.program} ${slip.section}`}</p>
                   </div>
-                  {/* Row 2 */}
                   <div>
                     <p className="font-bold text-[#0172bd]">Student ID:</p>
                     <p className="font-semibold text-black break-all">{slip.sid}</p>
@@ -522,7 +561,6 @@ function RequestSlip() {
                         : "text-gray-600"
                       }`}>{slip.status}</p>
                   </div>
-                  {/* Row 3 */}
                   <div>
                     <p className="font-bold text-[#0172bd]">Date:</p>
                     <p className="font-semibold text-black break-all">{slip.timeCreatedFormatted || formatDate(slip.timeCreated)}</p>
@@ -531,7 +569,6 @@ function RequestSlip() {
                     <p className="font-bold text-[#0172bd]">Type of Slip:</p>
                     <p className="font-semibold text-black break-all">{slip.typeOfSlip}</p>
                   </div>
-                  {/* Row 4 */}
                   <div>
                     <p className="font-bold text-[#0172bd]">Email:</p>
                     <p className="font-semibold text-black break-all">{slip.email}</p>
@@ -540,7 +577,6 @@ function RequestSlip() {
                     <p className="font-bold text-[#0172bd]">Witness Name:</p>
                     <p className="font-semibold text-black break-all">{slip.witnessName}</p>
                   </div>
-                  {/* Row 5 */}
                   <div>
                     <p className="font-bold text-[#0172bd]">Witness Contact:</p>
                     <p className="font-semibold text-black break-all">{slip.witnessContact}</p>
@@ -549,7 +585,6 @@ function RequestSlip() {
                     <p className="font-bold text-[#0172bd]">Person Involved:</p>
                     <p className="font-semibold text-black break-all">{slip.personInvolved}</p>
                   </div>
-                  {/* Row 6 */}
                   <div>
                     <p className="font-bold text-[#0172bd]">Location Of Incident:</p>
                     <p className="font-semibold text-black break-all">{slip.locationOfIncident}</p>
@@ -558,24 +593,23 @@ function RequestSlip() {
                     <p className="font-bold text-[#0172bd]">Incident Time:</p>
                     <p className="font-semibold text-black break-all">{slip.incidentTime}</p>
                   </div>
-                  {/* Row 7 */}
                   <div>
                     <p className="font-bold text-[#0172bd]">Date Of Incident:</p>
                     <p className="font-semibold text-black break-all">{slip.dateOfIncident}</p>
                   </div>
                   <div></div>
-
                 </div>
 
-                {/* Row 8: Narrative Report (full width) */}
+                {/* Narrative Report (full width) */}
                 <div className="md:col-span-2">
                   <p className="font-bold text-[#0172bd]">Narrative Report:</p>
                   <p className="font-semibold text-black break-all">{slip.narrativeReport}</p>
                 </div>
-                {/* Row 9: Action Taken (full width) */}
+
+                {/* Action Taken (handle either actionTaken or actionsTaken) */}
                 <div className="md:col-span-2">
                   <p className="font-bold text-[#0172bd]">Action Taken:</p>
-                  <p className="font-semibold text-black break-all">{slip.actionsTaken}</p>
+                  <p className="font-semibold text-black break-all">{slip.actionTaken || slip.actionsTaken}</p>
                 </div>
               </div>
 
@@ -662,7 +696,7 @@ function RequestSlip() {
   }
 
   const openSlip = (id) => {
-    const foundSlip = allSlipData.find((slip) => slip._id === id);
+    const foundSlip = allSlipData.find((slip) => slip._id === id || slip.id === id);
     if (foundSlip) {
       if (foundSlip.typeOfSlip === "Absent Slip") {
         setSelectedSlip(foundSlip);
@@ -677,11 +711,10 @@ function RequestSlip() {
         setShowStudentReportModal(true);
       }
     } else {
-      console.error("Slip not found in local data");
+      console.error("Slip not found in local data for id:", id);
     }
   };
 
-  // Reset remarks when closing modal
   const closeModal = () => {
     setDisplay(false);
     setSelectedSlip(null);
@@ -709,11 +742,6 @@ function RequestSlip() {
         <StudentReportModal
           slip={selectedSlip}
           onClose={closeModal}
-          remarks={remarks}
-          setRemarks={setRemarks}
-          body={body}
-          setBody={setBody}
-          handleStatusChange={handleStatusChange}
         />
       );
     }
@@ -724,18 +752,16 @@ function RequestSlip() {
   const toMillisSafe = (input) => {
     if (input == null) return null;
 
-    // if you already computed timeCreatedMs on slips, return that number
     if (typeof input === "number") {
-      // assume it's milliseconds if large, otherwise seconds -> convert to ms
       return input > 1e12 ? input : input * 1000;
     }
 
-    // Date instance
     if (input instanceof Date) return input.getTime();
 
-    // Firestore Timestamp object with toDate()
     if (typeof input === "object" && typeof input.toDate === "function") {
-      try { return input.toDate().getTime(); } catch { }
+      try {
+        return input.toDate().getTime();
+      } catch (e) { /* fallthrough */ }
     }
 
     if (typeof input === "object" && (input.seconds !== undefined || input._seconds !== undefined)) {
@@ -747,33 +773,33 @@ function RequestSlip() {
     if (typeof input === "string") {
       const parsed = Date.parse(input);
       if (!isNaN(parsed)) return parsed;
-
       const cleaned = input.replace(/\s+at\s+/i, " ").replace(/\s*UTC.*$/i, "").trim();
       const parsed2 = Date.parse(cleaned);
       if (!isNaN(parsed2)) return parsed2;
-
       return null;
     }
 
     return null;
   };
 
+
   const getDateDifference = (dateInput) => {
     const ms = typeof dateInput === 'object' && dateInput?.timeCreatedMs
       ? dateInput.timeCreatedMs
       : toMillisSafe(dateInput);
 
-    if (!ms) return 0;
+    if (!ms || isNaN(ms)) return 0;
     const diff = Date.now() - Number(ms);
-    if (diff < 0) return 0;
-    return Math.floor(diff / (1000 * 60 * 60 * 24));
+    if (diff <= 0) return 0;
+    return Math.floor(diff / MS_PER_DAY);
   };
 
   const getRowColor = (days) => {
-    if (days >= 7) return "bg-red-100";
-    if (days >= 4 && days <= 6) return "bg-yellow-100";
-    if (days >= 1 && days <= 3) return "bg-blue-100";
-    return "bg-white";
+    if (typeof days !== "number" || days <= 0) return ROW_COLOR_CLASSES.WHITE;
+    if (days >= 8) return ROW_COLOR_CLASSES.RED;
+    if (days >= 4) return ROW_COLOR_CLASSES.YELLOW;
+    if (days >= 1) return ROW_COLOR_CLASSES.BLUE;
+    return ROW_COLOR_CLASSES.WHITE;
   };
 
   if (loading) {
@@ -813,7 +839,7 @@ function RequestSlip() {
             </div>
             <div className="flex items-center gap-1">
               <div className="w-4 h-4 bg-yellow-100 border border-gray-400"></div>
-              <span className="text-sm text-gray-600">4 - 6 days</span>
+              <span className="text-sm text-gray-600">4 - 7 days</span>
             </div>
             <div className="flex items-center gap-1">
               <div className="w-4 h-4 bg-blue-100 border border-gray-400"></div>
@@ -903,7 +929,6 @@ function RequestSlip() {
                 <th className="sticky bg-[#0172bd] top-0 z-10 px-2 sm:px-3 lg:px-4 py-2 sm:py-3 font-bold">Type of Slip</th>
                 <th className="sticky bg-[#0172bd] top-0 z-10 px-0 py-0 text-[0px]  w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">Date</th>
                 <th className="sticky bg-[#0172bd] top-0 z-10 px-0 py-0 text-[0px]  w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">Status</th>
-                {/* <th className="sticky bg-[#0172bd] top-0 z-10 px-2 sm:px-3 lg:px-4 py-2 sm:py-3 font-bold">Reason</th> */}
                 <th className="sticky bg-[#0172bd] top-0 z-10 px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">Attachments</th>
                 <th className="sticky bg-[#0172bd] top-0 z-10 px-2 sm:px-3 lg:px-4 py-2 sm:py-3"></th>
               </tr>
@@ -912,11 +937,12 @@ function RequestSlip() {
               {pagedSlipData.length > 0 ? (
                 pagedSlipData.map((slips) => {
                   const days = getDateDifference(slips.timeCreatedMs ?? slips.timeCreated);
+                  const rowBgClass = getRowColor(days);
 
                   return (
                     <tr
                       key={slips.id}
-                      className={`hover:bg-gray-50 transition border-b ${getRowColor(days)}`}
+                      className={`hover:bg-gray-50 transition border-b ${rowBgClass}`}
                     >
                       <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 lg:whitespace-nowrap font-semibold w-1/4">{slips.name}</td>
                       <td className="px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">{slips.sid}</td>
@@ -925,7 +951,6 @@ function RequestSlip() {
                         {slips.timeCreatedFormatted || formatDate(slips.timeCreated)}
                       </td>
 
-                      {/* STATUS badge unchanged */}
                       <td className={`px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto font-semibold ${slips.status === "Approved"
                         ? "text-green-600"
                         : slips.status === "Rejected"
@@ -958,9 +983,6 @@ function RequestSlip() {
                 </tr>
               }
             </tbody>
-
-
-
           </table>
         </div>
         {/* Pagination controls - OUTSIDE the scrollable table */}
