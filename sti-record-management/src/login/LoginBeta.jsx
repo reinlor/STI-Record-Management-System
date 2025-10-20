@@ -1,5 +1,5 @@
 import React, { useContext, useState, useEffect } from "react";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { signInWithEmailAndPassword, onAuthStateChanged } from "firebase/auth";
 import { auth } from "../firebaseClient";
 import { ToastContainer, toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
@@ -65,38 +65,41 @@ function LoginBeta() {
 
   // Check if a login cookie exist then proceeds to login
   useEffect(() => {
-    const checkSession = async () => {
-      try {
-        const response = await axios.get("/user/me", { withCredentials: true });
-        const userData = response.data.user;
-        const userRole = userData.role;
-        const userDisplayName = userData.displayName;
+    const unsub = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        const token = await user.getIdToken();
+        axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
-        login(userData, userRole, userDisplayName);
+        try {
+          const userDoc = await axios.get(`/user/get/${user.uid}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          const userData = userDoc.data;
+          login(userData, userData.role, userData.displayName);
 
-        if (userRole === "Admin" || userRole === "Disciplinary" || userRole === "Super Admin") {
-          navigate("/guidance", { replace: true });
-        } else if (userRole === "Teacher") {
-          navigate("/educator", { replace: true });
-        } else if (userRole === "Student") {
-          navigate("/pupil", { replace: true });
-        } else {
-          navigate("/", { replace: true });
+          if (["Admin", "Disciplinary", "Super Admin"].includes(userData.role)) {
+            navigate("/guidance", { replace: true });
+          } else if (userData.role === "Teacher") {
+            navigate("/educator", { replace: true });
+          } else if (userData.role === "Student") {
+            navigate("/pupil", { replace: true });
+          } else {
+            navigate("/", { replace: true });
+          }
+        } catch (err) {
+          console.error("Failed to fetch user data:", err);
         }
-      } catch (error) {
-        console.log("No active session, stay on login.");
-      } finally {
-        setCheckingSession(false);
       }
-    };
-
-    checkSession();
+      setCheckingSession(false);
+    });
+    return () => unsub();
   }, [login, navigate]);
+
 
   if (checkingSession) {
     return (
       <div className="flex items-center justify-center h-screen w-screen bg-white">
-        <LoadingDots/>
+        <LoadingDots />
       </div>
     );
   }
@@ -111,28 +114,22 @@ function LoginBeta() {
 
     try {
       const userCredential = await signInWithEmailAndPassword(auth, schoolId, password);
+
       const user = userCredential.user;
-      const idToken = await user.getIdToken();
+      const token = await user.getIdToken();
 
-      const response = await axios.post(
-        "/user/authenticate",
-        { idToken },
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${idToken}`,
-          },
-          withCredentials: true,
-          timeout: 7000,
-        }
-      );
+      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
-      const { user: userData } = response.data;
+      const userDoc = await axios.get(`/user/get/${user.uid}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const userData = userDoc.data;
       const userRole = userData.role;
       const userDisplayName = userData.displayName;
 
       setLoading(false);
-      setAttempts(0); // reset attempts after success
+      setAttempts(0);
       toast.success("Welcome!");
 
       login(userData, userRole, userDisplayName);
@@ -150,13 +147,12 @@ function LoginBeta() {
       setLoading(false);
       console.error("Login Error:", error.code);
 
-      // Handle different errors
       if (error.code === "ECONNABORTED" || error.message.includes("Network Error")) {
         setErrorMsg("Server unreachable. Please try again later.");
       } else if (error.response) {
         setErrorMsg(error.response.data.error || "Authentication failed.");
-      } 
-      else if (error.code === 'auth/user-disabled'){
+      }
+      else if (error.code === 'auth/user-disabled') {
         setErrorMsg('Account is Disabled')
       }
       else {

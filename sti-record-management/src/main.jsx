@@ -4,18 +4,19 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.jsx'
 import { auth } from './firebaseClient';
-import { onAuthStateChanged } from 'firebase/auth';
+import { onAuthStateChanged, onIdTokenChanged } from 'firebase/auth';
+import axios from 'axios';
 
-
-onAuthStateChanged(auth, (user) => {
+onAuthStateChanged(auth, async (user) => {
   if (user) {
-    const minimal = {
-      uid: user.uid,
-      email: user.email,
-    };
-    try { localStorage.setItem('currentUser', JSON.stringify(minimal)); } catch (e) {  }
+    const token = await user.getIdToken();
+    axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+
+    const minimal = { uid: user.uid, email: user.email };
+    localStorage.setItem("currentUser", JSON.stringify(minimal));
   } else {
-    try { localStorage.removeItem('currentUser'); } catch (e) {  }
+    delete axios.defaults.headers.common["Authorization"];
+    localStorage.removeItem("currentUser");
   }
 });
 
