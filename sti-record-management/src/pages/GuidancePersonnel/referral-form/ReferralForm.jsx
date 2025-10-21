@@ -26,6 +26,7 @@ const PRIORITY_LEVELS = [
 const STATUS_OPTIONS = [
   { value: "", label: "All Status" },
   { value: "Pending", label: "Pending" },
+
   { value: "In Progress", label: "In Progress" },
 ];
 
@@ -40,11 +41,10 @@ function ReferralFormProcessing() {
   const navigate = useNavigate();
 
   const [display, setDisplay] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true); 
 
   const [isUpdating, setIsUpdating] = useState(false);
   const [updateToastId, setUpdateToastId] = useState(null);
-
 
   const [showRedirectPrompt, setShowRedirectPrompt] = useState(false);
   const [resolvedReferralData, setResolvedReferralData] = useState(null);
@@ -52,17 +52,16 @@ function ReferralFormProcessing() {
   const [referralData, setReferralData] = useState([]);
 
   const [selectedReferral, setSelectedReferral] = useState(null);
-
   const [search, setSearch] = useState("");
 
   // Editable Fields
-  const [priorityLevel, setPriorityLevel] = useState();
-  const [action, setAction] = useState();
-  const [counselorNote, setCounselorNote] = useState();
-  const [remarks, setRemarks] = useState();
-  const [emailTo, setEmailTo] = useState();
-  const [emailSubject, setEmailSubject] = useState();
-  const [emailBody, setEmailBody] = useState();
+  const [priorityLevel, setPriorityLevel] = useState("");
+  const [action, setAction] = useState("");
+  const [counselorNote, setCounselorNote] = useState("");
+  const [remarks, setRemarks] = useState("");
+  const [emailTo, setEmailTo] = useState("");
+  const [emailSubject, setEmailSubject] = useState("");
+  const [emailBody, setEmailBody] = useState(""); 
 
   const ROW_COLOR_CLASSES = {
     RED: "bg-red-100",
@@ -72,8 +71,11 @@ function ReferralFormProcessing() {
   };
 
   const formatDate = (timestamp) => {
+
     if (!timestamp) return "-";
+
     if (timestamp.seconds) {
+
       return new Date(timestamp.seconds * 1000).toLocaleString("en-US", {
         month: "long",
         day: "numeric",
@@ -106,18 +108,15 @@ function ReferralFormProcessing() {
     if (typeof input === "object" && typeof input.toDate === "function") {
       try { return input.toDate().getTime(); } catch { }
     }
-
     if (typeof input === "object" && (input.seconds !== undefined || input._seconds !== undefined)) {
       const sec = Number(input.seconds ?? input._seconds ?? 0);
       const ns = Number(input.nanoseconds ?? input._nanoseconds ?? 0);
       return sec * 1000 + Math.floor(ns / 1e6);
     }
-
     if (typeof input === "string") {
       const parsed = Date.parse(input);
       if (!isNaN(parsed)) return parsed;
     }
-
     return null;
   };
 
@@ -136,7 +135,6 @@ function ReferralFormProcessing() {
     return ROW_COLOR_CLASSES.WHITE;
   };
 
-
   useEffect(() => {
     setIsLoading(true);
 
@@ -147,10 +145,10 @@ function ReferralFormProcessing() {
           id: doc.id,
           ...doc.data(),
         }));
-
         setReferralData(list);
         setIsLoading(false);
       },
+
       (error) => {
         console.error("Error fetching referral list:", error);
         setIsLoading(false);
@@ -162,16 +160,18 @@ function ReferralFormProcessing() {
 
   const openForm = async (ref) => {
     console.log(ref);
-    setPriorityLevel(ref.levelOfPriority);
-    setSelectedReferral(ref);
-    setDisplay(true);
+    setPriorityLevel(ref.levelOfPriority || "");
     setCounselorNote(ref.counselorNote || "");
     setRemarks(ref.remarks || "");
+    setAction(ref.initialAction || "")
     setEmailTo(ref.email || "");
     setEmailSubject("Referral Submission");
-    setAction(ref.initialAction || "")
     setEmailBody("Your submitted referral status has been updated");
+    setSelectedReferral(ref);
+    setDisplay(true);
   };
+
+ 
 
   const closeForm = () => {
     setDisplay(false); // Hide the modal
@@ -179,9 +179,7 @@ function ReferralFormProcessing() {
   };
   const handleUpdate = async (newStatus) => {
     if (!selectedReferral) return;
-
     setIsUpdating(true);
-
     const toastId = toast.loading("Updating referral — please wait...");
 
     try {
@@ -198,7 +196,6 @@ function ReferralFormProcessing() {
         uid: selectedReferral.employeeID,
         receivedBy: authData?.user?.displayName ?? "Admin",
       };
-
       const emailData = {
         to: emailTo,
         subject: emailSubject,
@@ -207,10 +204,9 @@ function ReferralFormProcessing() {
 
       await axios.put(`/referral/update/${selectedReferral.id}`, updatedData);
       await axios.post(`/email/send`, emailData);
-
       closeForm();
 
-      // ✅ Update toast to success
+      //   Update toast to success
       toast.update(toastId, {
         render: `Referral status updated to "${newStatus}"!`,
         type: "success",
@@ -226,7 +222,8 @@ function ReferralFormProcessing() {
     } catch (error) {
       console.error("Error updating referral:", error);
 
-      // ✅ Update toast to error (using the same toastId)
+
+      //   Update toast to error (using the same toastId)
       toast.update(toastId, {
         render: "Error updating referral.",
         type: "error",
@@ -238,8 +235,6 @@ function ReferralFormProcessing() {
       setIsUpdating(false);
     }
   };
-
-
 
   // filter logic with status and priority
   const filtered = referralData.filter(
@@ -278,9 +273,13 @@ function ReferralFormProcessing() {
     return <Navigate to="/error401" replace />
   }
 
+ 
+
   if (isLoading) {
     return <LoadingDots />
   }
+
+ 
 
   return (
     <div className="bg-gray-100 h-full p-3">
@@ -297,7 +296,6 @@ function ReferralFormProcessing() {
       />
 
       <div className="bg-white shadow-md p-4 rounded-lg overflow-y-auto h-full">
-
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-4 gap-3">
           <div className="text-left">
@@ -305,7 +303,6 @@ function ReferralFormProcessing() {
               <FileEdit className="h-10 w-10 text-[#0172bd]" />
               <p className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[#0172bd] mb-2">Referral Form Processing</p>
             </div>
-
             <p className="text-gray-500 text-sm sm:text-base">View pending Referral Forms</p>
           </div>
 
@@ -341,6 +338,7 @@ function ReferralFormProcessing() {
                 <Clock className="w-5 h-5 object-cover rounded" />
               </button>
             )}
+
             <div className="relative w-full sm:w-64">
               <input
                 type="text"
@@ -396,7 +394,6 @@ function ReferralFormProcessing() {
             </select>
           </div>
         </div>
-
         {/* Table Section */}
         <div className="bg-white rounded-lg shadow-md overflow-x-auto custom-scrollbar h-auto relative">
           <table className="w-full text-left">
@@ -428,8 +425,8 @@ function ReferralFormProcessing() {
                       <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 break-words max-w-[120px] truncate align-middle">{ref.reasonForReferral}</td>
                       <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 lg:whitespace-nowrap">{ref.studentName}</td>
                       <td className="px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">{formatDate(ref.preparedDate)}</td>
-                      <td className={`px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto font-semibold ${ref.status === 'Resolved' ? 'text-green-600' : 'text-gray-600'
-                        }`}>
+                      <td 
+                        className={`px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto font-semibold ${ref.status === 'Resolved' ? 'text-green-600' : 'text-gray-600'}`}>
                         {ref.status}
                       </td>
                       {authData?.user?.access?.referralForm && (
@@ -454,9 +451,8 @@ function ReferralFormProcessing() {
               )}
             </tbody>
           </table>
-
-
         </div>
+
         {/* Pagination controls - OUTSIDE the scrollable table */}
         <div className="w-full flex justify-center lg:justify-end items-center mt-2 pr-0 lg:pr-2">
           <nav className="flex items-center space-x-1">
@@ -494,10 +490,8 @@ function ReferralFormProcessing() {
             {/* Modal Header */}
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-2xl font-bold text-[#0172bd]">Referral Form</h2>
-
               <div className="flex items-center gap-4">
-
-                {/* --- PRIORITY DROPDOWN LEFT OF STATUS --- */}
+{/* --- PRIORITY DROPDOWN LEFT OF STATUS --- */}
                 <select
                   className="px-3 py-1 rounded-lg font-semibold text-xs sm:text-sm bg-gray-100 text-[#0172bd] hover:bg-blue-100"
                   value={priorityLevel || ""}
@@ -508,9 +502,10 @@ function ReferralFormProcessing() {
                     <option key={opt.value} value={opt.value}>{opt.label}</option>
                   ))}
                 </select>
+
                 {/* --- STATUS --- */}
                 {selectedReferral && (
-                  <span
+                  <span 
                     className={`font-semibold text-lg ${selectedReferral.status === 'Resolved' ? 'text-[#28a745]' : 'text-gray-500'}`}
                   >
                     Status: {selectedReferral.status}
@@ -532,7 +527,6 @@ function ReferralFormProcessing() {
                 <div className="space-y-4">
                   {/* Info fields in two-column grid, keeping order */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 border border-gray-300 p-2 rounded-md">
-
                     <p>
                       <strong className="text-[#0172bd]">School Year:</strong>{" "}
                       <span className="text-black">{selectedReferral.schoolYear || "-"}</span>
@@ -546,6 +540,7 @@ function ReferralFormProcessing() {
                       <strong className="text-[#0172bd]">Grade Level:</strong>{" "}
                       <span className="text-black">{selectedReferral.gradeLevel || "-"}</span>
                     </p>
+
                     <p>
                       <strong className="text-[#0172bd]">Referred By:</strong>{" "}
                       <span className="text-black">{selectedReferral.referredBy || "-"}</span>
@@ -561,26 +556,33 @@ function ReferralFormProcessing() {
                       <span className="text-black">{selectedReferral.studentName || "-"}</span>
                     </p>
 
+ 
+
                     <p>
                       <strong className="text-[#0172bd]">Program and Section:</strong>{" "}
                       <span className="text-black">{selectedReferral.program || "-"}</span>
                     </p>
+
                     <p>
                       <strong className="text-[#0172bd]">Level of Priority:</strong>{" "}
                       <span className="text-black">{selectedReferral.levelOfPriority || "-"}</span>
                     </p>
+
                     <p>
                       <strong className="text-[#0172bd]">Category:</strong>{" "}
                       <span className="text-black">{selectedReferral.counselingTypeCategory || "-"}</span>
                     </p>
+
                     <p>
                       <strong className="text-[#0172bd]">Violation/Case:</strong>{" "}
                       <span className="text-black">{selectedReferral.violation || "-"}</span>
                     </p>
+
                     <p>
                       <strong className="text-[#0172bd]">Prepared Date:</strong>{" "}
                       <span className="text-black">{formatDate(selectedReferral.preparedDate) || "-"}</span>
                     </p>
+
                     <p>
                       <strong className="text-[#0172bd]">Feedback Date:</strong>{" "}
                       <span className="text-black">{formatDate(selectedReferral.feedBackDate) || "-"}</span>
@@ -610,12 +612,11 @@ function ReferralFormProcessing() {
                   <p className="font-bold text-[#0172bd]">Counselor’s Initial Action:<span className="text-red-700">*</span></p>
                   <textarea
                     value={action}
-                    onChange={(e) => { setAction(e.target.value) }}
+                    onChange={(e) => setAction(e.target.value)}
                     className="w-full border border-gray-300 rounded-md p-3 mt-1 resize-y bg-[#f3f4f6] text-black focus:outline-none focus:ring-1 focus:ring-[#0172bd]"
                     placeholder="Investigates the case, Develop an action plan, etc..."
                     rows={5}
                   />
-
                 </div>
 
                 {/* Right Column */}
@@ -628,7 +629,7 @@ function ReferralFormProcessing() {
                       rows={2}
                       placeholder="Only admin can see the notes added here"
                       value={counselorNote}
-                      onChange={(e) => { setCounselorNote(e.target.value) }}
+                      onChange={(e) => setCounselorNote(e.target.value)}
                     />
 
                     <p className="font-bold text-[#0172bd]">Remarks:</p>
@@ -637,7 +638,7 @@ function ReferralFormProcessing() {
                       rows={2}
                       placeholder="Add remarks here..."
                       value={remarks}
-                      onChange={(e) => { setRemarks(e.target.value) }}
+                      onChange={(e) => setRemarks(e.target.value)}
                     />
 
                     <p className="font-bold text-[#0172bd] text-xl">Email Notification</p>
@@ -651,9 +652,10 @@ function ReferralFormProcessing() {
                           placeholder=" "
                           className="flex-grow border border-gray-300 bg-[#f3f4f6] rounded-md p-2 focus:outline-none focus:ring-1 focus:ring-blue-500"
                           value={emailTo}
-                          onChange={(e) => { setEmailTo(e.target.value) }}
+                          onChange={(e) => setEmailTo(e.target.value)}
                         />
                       </div>
+
                       <div className="flex items-center gap-2 flex-1">
                         <p className="font-bold text-[#0172bd] flex-shrink-0">Subject:</p>
                         <input
@@ -661,7 +663,7 @@ function ReferralFormProcessing() {
                           placeholder="Referral Form Update"
                           className="flex-grow border border-gray-300 bg-[#f3f4f6] rounded-md p-2 focus:outline-none focus:ring-1 focus:ring-blue-500"
                           value={emailSubject}
-                          onChange={(e) => { setEmailSubject(e.target.value) }}
+                          onChange={(e) => setEmailSubject(e.target.value)}
                         />
                       </div>
                     </div>
@@ -673,7 +675,7 @@ function ReferralFormProcessing() {
                         className="w-full border border-gray-300 bg-[#f3f4f6] rounded-md p-2 resize-y focus:outline-none focus:ring-2 focus:ring-blue-500"
                         rows={4}
                         value={emailBody}
-                        onChange={(e) => { setEmailBody(e.target.value) }}
+                        onChange={(e) => setEmailBody(e.target.value)}
                       />
                     </div>
 
@@ -754,7 +756,6 @@ function ReferralFormProcessing() {
           </div>
         </div>
       )}
-
     </div>
   );
 }

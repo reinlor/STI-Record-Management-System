@@ -1,4 +1,3 @@
-// RequestSlip.jsx
 import React, { useState, useEffect, useContext } from "react";
 import { useNavigate } from "react-router";
 import axios from "axios";
@@ -129,6 +128,400 @@ function formatDate(dateInput) {
   const localeStr = d.toLocaleString('en-US', opts);
 
   return localeStr
+}
+
+function StudentReportModal({ slip, onClose, remarks, setRemarks, pickupDate, setPickupDate, body, setBody, handleStatusChange }) {
+  if (!slip) return null;
+
+  // destructure from prop 'slip' (was incorrectly using selectedSlip)
+  const { proofUrl, excuseLetterUrl, guardianValidIDUrl, medicalCertificateUrl } = slip;
+
+  return (
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[9999]">
+      <div className="bg-white w-full sm:max-w-350 lg:max-w-400 rounded-lg shadow-lg overflow-y-auto max-h-[92vh] p-6 sm:p-8 relative transform transition-all duration-300 ease-out scale-100 custom-scrollbar">
+
+        {/* header */}
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-4">
+            <h2 className="text-2xl font-bold text-[#0172bd]">Request Slip Form</h2>
+            <span className="px-3 py-2 bg-gray-100 text-gray-800 text-md font-medium rounded">
+              {slip.typeOfSlip}
+            </span>
+          </div>
+          <button
+            onClick={onClose}
+            className="text-2xl text-[#0172bd] hover:scale-110 hover:text-blue-500"
+          >
+            <X className="w-10 h-10 object-cover rounded " />
+          </button>
+        </div>
+        <hr className="mb-4" />
+
+        {/* Responsive grid: stack on mobile, side-by-side on desktop */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-8">
+          {/* LEFT PANEL */}
+          <div className="space-y-6">
+            <div className="space-y-2">
+              {/* Info Section */}
+              {[
+                { label: "Name: ", value: slip.name },
+                { label: "Program: ", value: slip.program },
+                { label: "Date: ", value: slip.timeCreatedFormatted || formatDate(slip.timeCreated) },
+                { label: "Year & Section: ", value: slip.yearSection || "4A" },
+                { label: "Email: ", value: slip.email },
+                {
+                  label: "Status: ",
+                  value: slip.status,
+                  className:
+                    slip.status === "Approved"
+                      ? "text-green-600 font-bold"
+                      : slip.status === "Rejected"
+                        ? "text-red-600 font-bold"
+                        : "text-gray-600 font-bold",
+                },
+                { label: "Reason: ", value: slip.reason },
+                { label: "Absent Day: ", value: `${slip.dateAbsent.replaceAll('-', '/')} - ${slip.dateAbsentEnd.replaceAll('-', '/')}` },
+                { label: "Attachments: " },
+              ].map((item, i) => (
+                <div key={i} className="flex items-center flex-wrap">
+                  <p className="font-bold text-[#0172bd] mr-5">{item.label}</p>
+                  <p className={`font-semibold ${item.className || "text-black"} break-all`}>
+                    {item.value}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            {/* Attachments Section */}
+            <div className="grid grid-cols-2 gap-6">
+              {/* Proof of Transaction */}
+              {proofUrl && (
+                <div className="flex flex-col items-center">
+                  <a href={proofUrl} target="_blank" rel="noopener noreferrer">
+                    <img
+                      src={proofUrl}
+                      alt="Proof of Transaction"
+                      className="w-24 h-24 object-cover rounded"
+                    />
+                  </a>
+                  <span className="text-xs text-[#0172bd] mt-2 text-center">
+                    Proof of Transaction
+                  </span>
+                </div>
+              )}
+
+              {/* Excuse Letter */}
+              {excuseLetterUrl && (
+                <div className="flex flex-col items-center">
+                  <a href={excuseLetterUrl} target="_blank" rel="noopener noreferrer">
+                    <img
+                      src={excuseLetterUrl}
+                      alt="Excuse Letter"
+                      className="w-24 h-24 object-cover rounded"
+                    />
+                  </a>
+                  <span className="text-xs text-[#0172bd] mt-2 text-center">
+                    Excuse Letter
+                  </span>
+                </div>
+              )}
+
+              {/* Medical Certificate */}
+              {medicalCertificateUrl && (
+                <div className="flex flex-col items-center">
+                  <a href={medicalCertificateUrl} target="_blank" rel="noopener noreferrer">
+                    <img
+                      src={medicalCertificateUrl}
+                      alt="Medical Certificate"
+                      className="w-24 h-24 object-cover rounded"
+                    />
+                  </a>
+                  <span className="text-xs text-[#0172bd] mt-2 text-center">
+                    Medical Certificate
+                  </span>
+                </div>
+              )}
+
+              {/* Guardian’s ID */}
+              {guardianValidIDUrl && (
+                <div className="flex flex-col items-center">
+                  <a href={guardianValidIDUrl} target="_blank" rel="noopener noreferrer">
+                    <img
+                      src={guardianValidIDUrl}
+                      alt="Guardian’s ID"
+                      className="w-24 h-24 object-cover rounded"
+                    />
+                  </a>
+                  <span className="text-xs text-[#0172bd] mt-2 text-center">
+                    Guardian’s ID
+                  </span>
+                </div>
+              )}
+            </div>
+
+          </div>
+
+          {/* RIGHT PANEL */}
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-bold mb-1 text-[#0172bd]">Remarks</label>
+              <textarea
+                className="border rounded px-3 py-2 w-full h-16 sm:h-20 resize-none text-xs sm:text-sm"
+                value={remarks}
+                onChange={e => setRemarks(e.target.value)}
+                placeholder="Enter remarks here..."
+              />
+            </div>
+            <div className="relative">
+              <label className="block text-sm font-bold mb-1 text-[#0172bd]">Pickup Date</label>
+              <input
+                type="date"
+                value={pickupDate}
+                onChange={e => setPickupDate(e.target.value)}
+                id="pickupDate" name="pickupDate"
+                className="border rounded px-3 py-2 w-full text-xs sm:text-sm"
+              />
+              <span className="absolute right-3 top-2.5 text-gray-400 cursor-pointer" onClick={() => document.getElementById("pickupDate")?.showPicker?.()} tabIndex={-1}>
+                <Calendar className="w-5 h-5 mt-6" />
+              </span>
+            </div><hr />
+            <div>
+              <label className="block text-sm font-bold mb-1 text-[#0172bd]">Send Email To</label>
+              <input
+                type="text"
+                value={slip.email}
+                className="border rounded px-3 py-2 w-full text-xs sm:text-sm"
+                readOnly
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-bold mb-1 text-[#0172bd]">Subject</label>
+              <input
+                type="text"
+                defaultValue="Requested Slip Form Status"
+                className="border rounded px-3 py-2 w-full text-xs sm:text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-bold mb-1 text-[#0172bd]">Body</label>
+              <textarea
+                className="border rounded px-3 py-2 w-full h-20 sm:h-24 resize-none text-xs sm:text-sm"
+                value={body}
+                onChange={(e) => setBody(e.target.value)}
+              />
+            </div>
+
+            {/* Action Buttons: always at the bottom, full width on mobile */}
+            <div className="flex flex-col sm:flex-row gap-2 pt-6">
+              <button
+                onClick={() => handleStatusChange(slip.typeOfSlip, slip._id, "Denied", slip)}
+                className="flex-1 flex items-center justify-center gap-2 bg-[#dc3545] hover:bg-red-600 text-white px-4 py-2 rounded"
+              >
+                Deny
+                <img src={closeW} alt="closeW" className="w-4 h-4 object-cover rounded " />
+              </button>
+
+              <button
+                onClick={() => handleStatusChange(slip.typeOfSlip, slip._id, "Approved", slip)}
+                className="flex-1 flex items-center justify-center gap-2 bg-[#28a745] hover:bg-green-500 text-white px-4 py-2 rounded"
+              >
+                Approve
+                <img src={checkW} alt="checkW" className="w-4 h-4 object-cover rounded " />
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  );
+}
+
+function IncidentReportModal({ slip, onClose, remarks, setRemarks, body, setBody, handleStatusChange }) {
+  if (!slip) return null;
+
+  const { attachmentUrl = [] } = slip;
+
+  return (
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[9999]">
+      <div className="bg-white w-full sm:max-w-350 lg:max-w-400 rounded-lg shadow-lg overflow-y-auto max-h-[92vh] p-6 sm:p-8 relative transform transition-all duration-300 ease-out scale-100 custom-scrollbar">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-4">
+            <h2 className="text-2xl font-bold text-[#0172bd]">Incident Report</h2>
+            <span className="px-3 py-2 bg-gray-100 text-gray-800 text-md font-medium rounded">
+              {slip.typeOfSlip}
+            </span>
+          </div>
+          <button
+            onClick={onClose}
+            className="text-2xl text-[#0172bd] hover:scale-110 hover:text-blue-500"
+          >
+            <X className="w-10 h-10 object-cover rounded " />
+          </button>
+        </div>
+        <hr className="mb-4" />
+
+        {/* Responsive grid: stack on mobile, side-by-side on desktop */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 text-sm">
+          {/* LEFT PANEL */}
+          <div className="space-y-6">
+            <div className="space-y-2">
+              {/* Info Section */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 border border-gray-300 p-2 rounded-md text-sm">
+                <div>
+                  <p className="font-bold text-[#0172bd]">Name:</p>
+                  <p className="font-semibold text-black break-all">{slip.name}</p>
+                </div>
+                <div>
+                  <p className="font-bold text-[#0172bd]">Program & Section:</p>
+                  <p className="font-semibold text-black break-all">{`${slip.program} ${slip.section}`}</p>
+                </div>
+                <div>
+                  <p className="font-bold text-[#0172bd]">Student ID:</p>
+                  <p className="font-semibold text-black break-all">{slip.sid}</p>
+                </div>
+                <div>
+                  <p className="font-bold text-[#0172bd]">Status:</p>
+                  <p className={`font-semibold break-all ${slip.status === "Approved"
+                    ? "text-green-600"
+                    : slip.status === "Rejected"
+                      ? "text-red-600"
+                      : "text-gray-600"
+                    }`}>{slip.status}</p>
+                </div>
+                <div>
+                  <p className="font-bold text-[#0172bd]">Date:</p>
+                  <p className="font-semibold text-black break-all">{slip.timeCreatedFormatted || formatDate(slip.timeCreated)}</p>
+                </div>
+                <div>
+                  <p className="font-bold text-[#0172bd]">Type of Slip:</p>
+                  <p className="font-semibold text-black break-all">{slip.typeOfSlip}</p>
+                </div>
+                <div>
+                  <p className="font-bold text-[#0172bd]">Email:</p>
+                  <p className="font-semibold text-black break-all">{slip.email}</p>
+                </div>
+                <div>
+                  <p className="font-bold text-[#0172bd]">Witness Name:</p>
+                  <p className="font-semibold text-black break-all">{slip.witnessName}</p>
+                </div>
+                <div>
+                  <p className="font-bold text-[#0172bd]">Witness Contact:</p>
+                  <p className="font-semibold text-black break-all">{slip.witnessContact}</p>
+                </div>
+                <div>
+                  <p className="font-bold text-[#0172bd]">Person Involved:</p>
+                  <p className="font-semibold text-black break-all">{slip.personInvolved}</p>
+                </div>
+                <div>
+                  <p className="font-bold text-[#0172bd]">Location Of Incident:</p>
+                  <p className="font-semibold text-black break-all">{slip.locationOfIncident}</p>
+                </div>
+                <div>
+                  <p className="font-bold text-[#0172bd]">Incident Time:</p>
+                  <p className="font-semibold text-black break-all">{slip.incidentTime}</p>
+                </div>
+                <div>
+                  <p className="font-bold text-[#0172bd]">Date Of Incident:</p>
+                  <p className="font-semibold text-black break-all">{slip.dateOfIncident}</p>
+                </div>
+                <div></div>
+              </div>
+
+              {/* Narrative Report (full width) */}
+              <div className="md:col-span-2">
+                <p className="font-bold text-[#0172bd]">Narrative Report:</p>
+                <p className="font-semibold text-black break-all">{slip.narrativeReport}</p>
+              </div>
+
+              {/* Action Taken (handle either actionTaken or actionsTaken) */}
+              <div className="md:col-span-2">
+                <p className="font-bold text-[#0172bd]">Action Taken:</p>
+                <p className="font-semibold text-black break-all">{slip.actionTaken || slip.actionsTaken}</p>
+              </div>
+            </div>
+
+            {/* Attachments Section */}
+            <div className="md:col-span-2 grid grid-cols-2 gap-6 mt-2">
+              {attachmentUrl.length === 0 && (
+                <span className="text-gray-400">No attachments.</span>
+              )}
+              {attachmentUrl.map((url, idx) => (
+                <div key={idx} className="flex flex-col items-center">
+                  <a href={url} target="_blank" rel="noopener noreferrer">
+                    <img
+                      src={url}
+                      alt={`Attachment ${idx + 1}`}
+                      className="w-30 h-30 object-cover rounded"
+                    />
+                  </a>
+                  <span className="text-xs text-[#0172bd] mt-2 text-center">
+                    Attachment {idx + 1}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* RIGHT PANEL */}
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-bold mb-1 text-[#0172bd]">Remarks</label>
+              <textarea
+                className="border rounded px-3 py-2 w-full h-16 sm:h-20 resize-none text-xs sm:text-sm"
+                value={remarks}
+                onChange={e => setRemarks(e.target.value)}
+                placeholder="Enter remarks here..."
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-bold mb-1 text-[#0172bd]">Send Email To</label>
+              <input
+                type="text"
+                value={slip.email}
+                className="border rounded px-3 py-2 w-full text-xs sm:text-sm"
+                readOnly
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-bold mb-1 text-[#0172bd]">Subject</label>
+              <input
+                type="text"
+                defaultValue="Incident Report Status"
+                className="border rounded px-3 py-2 w-full text-xs sm:text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-bold mb-1 text-[#0172bd]">Email Body</label>
+              <textarea
+                className="border rounded px-3 py-2 w-full h-20 sm:h-24 resize-none text-xs sm:text-sm"
+                value={body}
+                onChange={(e) => setBody(e.target.value)}
+              />
+            </div>
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row gap-2 pt-6">
+              <button
+                onClick={() => handleStatusChange(slip.typeOfSlip, slip._id, "In Progress", slip)}
+                className="flex-1 flex items-center justify-center gap-2 bg-[#0172bd] hover:bg-red-600 text-white px-4 py-2 rounded"
+              >
+                Update
+                <X className="w-4 h-4 object-cover rounded " />
+              </button>
+              <button
+                onClick={() => handleStatusChange(slip.typeOfSlip, slip._id, "Resolved", slip)}
+                className="flex-1 flex items-center justify-center gap-2 bg-[#28a745] hover:bg-green-500 text-white px-4 py-2 rounded"
+              >
+                Solved
+                <Check className="w-4 h-4 object-cover rounded " />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function RequestSlip() {
@@ -332,400 +725,6 @@ function RequestSlip() {
     setStudentReportSlip(null);
   };
 
-  function StudentReportModal({ slip, onClose }) {
-    if (!slip) return null;
-
-    // destructure from prop 'slip' (was incorrectly using selectedSlip)
-    const { proofUrl, excuseLetterUrl, guardianValidIDUrl, medicalCertificateUrl } = slip;
-
-    return (
-      <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[9999]">
-        <div className="bg-white w-full sm:max-w-350 lg:max-w-400 rounded-lg shadow-lg overflow-y-auto max-h-[92vh] p-6 sm:p-8 relative transform transition-all duration-300 ease-out scale-100 custom-scrollbar">
-
-          {/* header */}
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-4">
-              <h2 className="text-2xl font-bold text-[#0172bd]">Request Slip Form</h2>
-              <span className="px-3 py-2 bg-gray-100 text-gray-800 text-md font-medium rounded">
-                {slip.typeOfSlip}
-              </span>
-            </div>
-            <button
-              onClick={onClose}
-              className="text-2xl text-[#0172bd] hover:scale-110 hover:text-blue-500"
-            >
-              <X className="w-10 h-10 object-cover rounded " />
-            </button>
-          </div>
-          <hr className="mb-4" />
-
-          {/* Responsive grid: stack on mobile, side-by-side on desktop */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-8">
-            {/* LEFT PANEL */}
-            <div className="space-y-6">
-              <div className="space-y-2">
-                {/* Info Section */}
-                {[
-                  { label: "Name: ", value: slip.name },
-                  { label: "Program: ", value: slip.program },
-                  { label: "Date: ", value: slip.timeCreatedFormatted || formatDate(slip.timeCreated) },
-                  { label: "Year & Section: ", value: slip.yearSection || "4A" },
-                  { label: "Email: ", value: slip.email },
-                  {
-                    label: "Status: ",
-                    value: slip.status,
-                    className:
-                      slip.status === "Approved"
-                        ? "text-green-600 font-bold"
-                        : slip.status === "Rejected"
-                          ? "text-red-600 font-bold"
-                          : "text-gray-600 font-bold",
-                  },
-                  { label: "Reason: ", value: slip.reason },
-                  { label: "Absent Day: ", value: `${slip.dateAbsent.replaceAll('-', '/')} - ${slip.dateAbsentEnd.replaceAll('-', '/')}` },
-                  { label: "Attachments: " },
-                ].map((item, i) => (
-                  <div key={i} className="flex items-center flex-wrap">
-                    <p className="font-bold text-[#0172bd] mr-5">{item.label}</p>
-                    <p className={`font-semibold ${item.className || "text-black"} break-all`}>
-                      {item.value}
-                    </p>
-                  </div>
-                ))}
-              </div>
-
-              {/* Attachments Section */}
-              <div className="grid grid-cols-2 gap-6">
-                {/* Proof of Transaction */}
-                {proofUrl && (
-                  <div className="flex flex-col items-center">
-                    <a href={proofUrl} target="_blank" rel="noopener noreferrer">
-                      <img
-                        src={proofUrl}
-                        alt="Proof of Transaction"
-                        className="w-24 h-24 object-cover rounded"
-                      />
-                    </a>
-                    <span className="text-xs text-[#0172bd] mt-2 text-center">
-                      Proof of Transaction
-                    </span>
-                  </div>
-                )}
-
-                {/* Excuse Letter */}
-                {excuseLetterUrl && (
-                  <div className="flex flex-col items-center">
-                    <a href={excuseLetterUrl} target="_blank" rel="noopener noreferrer">
-                      <img
-                        src={excuseLetterUrl}
-                        alt="Excuse Letter"
-                        className="w-24 h-24 object-cover rounded"
-                      />
-                    </a>
-                    <span className="text-xs text-[#0172bd] mt-2 text-center">
-                      Excuse Letter
-                    </span>
-                  </div>
-                )}
-
-                {/* Medical Certificate */}
-                {medicalCertificateUrl && (
-                  <div className="flex flex-col items-center">
-                    <a href={medicalCertificateUrl} target="_blank" rel="noopener noreferrer">
-                      <img
-                        src={medicalCertificateUrl}
-                        alt="Medical Certificate"
-                        className="w-24 h-24 object-cover rounded"
-                      />
-                    </a>
-                    <span className="text-xs text-[#0172bd] mt-2 text-center">
-                      Medical Certificate
-                    </span>
-                  </div>
-                )}
-
-                {/* Guardian’s ID */}
-                {guardianValidIDUrl && (
-                  <div className="flex flex-col items-center">
-                    <a href={guardianValidIDUrl} target="_blank" rel="noopener noreferrer">
-                      <img
-                        src={guardianValidIDUrl}
-                        alt="Guardian’s ID"
-                        className="w-24 h-24 object-cover rounded"
-                      />
-                    </a>
-                    <span className="text-xs text-[#0172bd] mt-2 text-center">
-                      Guardian’s ID
-                    </span>
-                  </div>
-                )}
-              </div>
-
-            </div>
-
-            {/* RIGHT PANEL */}
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-bold mb-1 text-[#0172bd]">Remarks</label>
-                <textarea
-                  className="border rounded px-3 py-2 w-full h-16 sm:h-20 resize-none text-xs sm:text-sm"
-                  value={remarks}
-                  onChange={e => setRemarks(e.target.value)}
-                  placeholder="Enter remarks here..."
-                />
-              </div>
-              <div className="relative">
-                <label className="block text-sm font-bold mb-1 text-[#0172bd]">Pickup Date</label>
-                <input
-                  type="date"
-                  value={pickupDate}
-                  onChange={e => setPickupDate(e.target.value)}
-                  id="pickupDate" name="pickupDate"
-                  className="border rounded px-3 py-2 w-full text-xs sm:text-sm"
-                />
-                <span className="absolute right-3 top-2.5 text-gray-400 cursor-pointer" onClick={() => document.getElementById("pickupDate")?.showPicker?.()} tabIndex={-1}>
-                  <Calendar className="w-5 h-5 mt-6" />
-                </span>
-              </div><hr />
-              <div>
-                <label className="block text-sm font-bold mb-1 text-[#0172bd]">Send Email To</label>
-                <input
-                  type="text"
-                  value={slip.email}
-                  className="border rounded px-3 py-2 w-full text-xs sm:text-sm"
-                  readOnly
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-bold mb-1 text-[#0172bd]">Subject</label>
-                <input
-                  type="text"
-                  defaultValue="Requested Slip Form Status"
-                  className="border rounded px-3 py-2 w-full text-xs sm:text-sm"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-bold mb-1 text-[#0172bd]">Body</label>
-                <textarea
-                  className="border rounded px-3 py-2 w-full h-20 sm:h-24 resize-none text-xs sm:text-sm"
-                  value={body}
-                  onChange={(e) => setBody(e.target.value)}
-                />
-              </div>
-
-              {/* Action Buttons: always at the bottom, full width on mobile */}
-              <div className="flex flex-col sm:flex-row gap-2 pt-6">
-                <button
-                  onClick={() => handleStatusChange(slip.typeOfSlip, slip._id, "Denied", slip)}
-                  className="flex-1 flex items-center justify-center gap-2 bg-[#dc3545] hover:bg-red-600 text-white px-4 py-2 rounded"
-                >
-                  Deny
-                  <img src={closeW} alt="closeW" className="w-4 h-4 object-cover rounded " />
-                </button>
-
-                <button
-                  onClick={() => handleStatusChange(slip.typeOfSlip, slip._id, "Approved", slip)}
-                  className="flex-1 flex items-center justify-center gap-2 bg-[#28a745] hover:bg-green-500 text-white px-4 py-2 rounded"
-                >
-                  Approve
-                  <img src={checkW} alt="checkW" className="w-4 h-4 object-cover rounded " />
-                </button>
-              </div>
-            </div>
-          </div>
-
-        </div>
-      </div>
-    );
-  }
-
-  function IncidentReportModal({ slip, onClose, remarks, setRemarks, body, setBody, handleStatusChange }) {
-    if (!slip) return null;
-
-    const { attachmentUrl = [] } = slip;
-
-    return (
-      <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[9999]">
-        <div className="bg-white w-full sm:max-w-350 lg:max-w-400 rounded-lg shadow-lg overflow-y-auto max-h-[92vh] p-6 sm:p-8 relative transform transition-all duration-300 ease-out scale-100 custom-scrollbar">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-4">
-              <h2 className="text-2xl font-bold text-[#0172bd]">Incident Report</h2>
-              <span className="px-3 py-2 bg-gray-100 text-gray-800 text-md font-medium rounded">
-                {slip.typeOfSlip}
-              </span>
-            </div>
-            <button
-              onClick={onClose}
-              className="text-2xl text-[#0172bd] hover:scale-110 hover:text-blue-500"
-            >
-              <X className="w-10 h-10 object-cover rounded " />
-            </button>
-          </div>
-          <hr className="mb-4" />
-
-          {/* Responsive grid: stack on mobile, side-by-side on desktop */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 text-sm">
-            {/* LEFT PANEL */}
-            <div className="space-y-6">
-              <div className="space-y-2">
-                {/* Info Section */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 border border-gray-300 p-2 rounded-md text-sm">
-                  <div>
-                    <p className="font-bold text-[#0172bd]">Name:</p>
-                    <p className="font-semibold text-black break-all">{slip.name}</p>
-                  </div>
-                  <div>
-                    <p className="font-bold text-[#0172bd]">Program & Section:</p>
-                    <p className="font-semibold text-black break-all">{`${slip.program} ${slip.section}`}</p>
-                  </div>
-                  <div>
-                    <p className="font-bold text-[#0172bd]">Student ID:</p>
-                    <p className="font-semibold text-black break-all">{slip.sid}</p>
-                  </div>
-                  <div>
-                    <p className="font-bold text-[#0172bd]">Status:</p>
-                    <p className={`font-semibold break-all ${slip.status === "Approved"
-                      ? "text-green-600"
-                      : slip.status === "Rejected"
-                        ? "text-red-600"
-                        : "text-gray-600"
-                      }`}>{slip.status}</p>
-                  </div>
-                  <div>
-                    <p className="font-bold text-[#0172bd]">Date:</p>
-                    <p className="font-semibold text-black break-all">{slip.timeCreatedFormatted || formatDate(slip.timeCreated)}</p>
-                  </div>
-                  <div>
-                    <p className="font-bold text-[#0172bd]">Type of Slip:</p>
-                    <p className="font-semibold text-black break-all">{slip.typeOfSlip}</p>
-                  </div>
-                  <div>
-                    <p className="font-bold text-[#0172bd]">Email:</p>
-                    <p className="font-semibold text-black break-all">{slip.email}</p>
-                  </div>
-                  <div>
-                    <p className="font-bold text-[#0172bd]">Witness Name:</p>
-                    <p className="font-semibold text-black break-all">{slip.witnessName}</p>
-                  </div>
-                  <div>
-                    <p className="font-bold text-[#0172bd]">Witness Contact:</p>
-                    <p className="font-semibold text-black break-all">{slip.witnessContact}</p>
-                  </div>
-                  <div>
-                    <p className="font-bold text-[#0172bd]">Person Involved:</p>
-                    <p className="font-semibold text-black break-all">{slip.personInvolved}</p>
-                  </div>
-                  <div>
-                    <p className="font-bold text-[#0172bd]">Location Of Incident:</p>
-                    <p className="font-semibold text-black break-all">{slip.locationOfIncident}</p>
-                  </div>
-                  <div>
-                    <p className="font-bold text-[#0172bd]">Incident Time:</p>
-                    <p className="font-semibold text-black break-all">{slip.incidentTime}</p>
-                  </div>
-                  <div>
-                    <p className="font-bold text-[#0172bd]">Date Of Incident:</p>
-                    <p className="font-semibold text-black break-all">{slip.dateOfIncident}</p>
-                  </div>
-                  <div></div>
-                </div>
-
-                {/* Narrative Report (full width) */}
-                <div className="md:col-span-2">
-                  <p className="font-bold text-[#0172bd]">Narrative Report:</p>
-                  <p className="font-semibold text-black break-all">{slip.narrativeReport}</p>
-                </div>
-
-                {/* Action Taken (handle either actionTaken or actionsTaken) */}
-                <div className="md:col-span-2">
-                  <p className="font-bold text-[#0172bd]">Action Taken:</p>
-                  <p className="font-semibold text-black break-all">{slip.actionTaken || slip.actionsTaken}</p>
-                </div>
-              </div>
-
-              {/* Attachments Section */}
-              <div className="md:col-span-2 grid grid-cols-2 gap-6 mt-2">
-                {attachmentUrl.length === 0 && (
-                  <span className="text-gray-400">No attachments.</span>
-                )}
-                {attachmentUrl.map((url, idx) => (
-                  <div key={idx} className="flex flex-col items-center">
-                    <a href={url} target="_blank" rel="noopener noreferrer">
-                      <img
-                        src={url}
-                        alt={`Attachment ${idx + 1}`}
-                        className="w-30 h-30 object-cover rounded"
-                      />
-                    </a>
-                    <span className="text-xs text-[#0172bd] mt-2 text-center">
-                      Attachment {idx + 1}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* RIGHT PANEL */}
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-bold mb-1 text-[#0172bd]">Remarks</label>
-                <textarea
-                  className="border rounded px-3 py-2 w-full h-16 sm:h-20 resize-none text-xs sm:text-sm"
-                  value={remarks}
-                  onChange={e => setRemarks(e.target.value)}
-                  placeholder="Enter remarks here..."
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-bold mb-1 text-[#0172bd]">Send Email To</label>
-                <input
-                  type="text"
-                  value={slip.email}
-                  className="border rounded px-3 py-2 w-full text-xs sm:text-sm"
-                  readOnly
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-bold mb-1 text-[#0172bd]">Subject</label>
-                <input
-                  type="text"
-                  defaultValue="Incident Report Status"
-                  className="border rounded px-3 py-2 w-full text-xs sm:text-sm"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-bold mb-1 text-[#0172bd]">Email Body</label>
-                <textarea
-                  className="border rounded px-3 py-2 w-full h-20 sm:h-24 resize-none text-xs sm:text-sm"
-                  value={body}
-                  onChange={(e) => setBody(e.target.value)}
-                />
-              </div>
-              {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row gap-2 pt-6">
-                <button
-                  onClick={() => handleStatusChange(slip.typeOfSlip, slip._id, "In Progress", slip)}
-                  className="flex-1 flex items-center justify-center gap-2 bg-[#0172bd] hover:bg-red-600 text-white px-4 py-2 rounded"
-                >
-                  Update
-                  <X className="w-4 h-4 object-cover rounded " />
-                </button>
-                <button
-                  onClick={() => handleStatusChange(slip.typeOfSlip, slip._id, "Resolved", slip)}
-                  className="flex-1 flex items-center justify-center gap-2 bg-[#28a745] hover:bg-green-500 text-white px-4 py-2 rounded"
-                >
-                  Solved
-                  <Check className="w-4 h-4 object-cover rounded " />
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   const openSlip = (id) => {
     const foundSlip = allSlipData.find((slip) => slip._id === id || slip.id === id);
     if (foundSlip) {
@@ -775,6 +774,13 @@ function RequestSlip() {
         <StudentReportModal
           slip={selectedSlip}
           onClose={closeModal}
+          remarks={remarks}
+          setRemarks={setRemarks}
+          pickupDate={pickupDate}
+          setPickupDate={setPickupDate}
+          body={body}
+          setBody={setBody}
+          handleStatusChange={handleStatusChange}
         />
       );
     }
@@ -1051,7 +1057,17 @@ function RequestSlip() {
       {/* Modals */}
       {displaySlipForm()}
       {showStudentReportModal && (
-        <StudentReportModal slip={studentReportSlip} onClose={closeStudentReportModal} />
+        <StudentReportModal 
+          slip={studentReportSlip} 
+          onClose={closeStudentReportModal} 
+          remarks={remarks}
+          setRemarks={setRemarks}
+          pickupDate={pickupDate}
+          setPickupDate={setPickupDate}
+          body={body}
+          setBody={setBody}
+          handleStatusChange={handleStatusChange}
+        />
       )}
     </div>
   );
