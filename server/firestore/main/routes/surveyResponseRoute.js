@@ -4,8 +4,9 @@ const controller = require("../controller/surveyResponseController");
 const { getSurveyResponsesCollection } = require("../models/surveyResponseModel");
 
 router.post("/submit", controller.submitSurvey);
-router.get("/summary/getAll", controller.getAllSummaries);
-router.get("/summary/get/:surveyName", controller.getSurveySummary);
+router.get("/getAll", controller.getAllSummaries);
+router.get("/get/:surveyName", controller.getSurveySummary);
+router.get("/getRaw/:surveyName", controller.getRawResponses);
 
 // ✅ Check if a student has already answered
 router.get("/check/:surveyName/:studentId", async (req, res) => {

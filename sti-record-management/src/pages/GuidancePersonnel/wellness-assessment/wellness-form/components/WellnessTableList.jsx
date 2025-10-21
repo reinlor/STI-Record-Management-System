@@ -3,7 +3,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-function WellnessTableList({ data, refreshData, themes }) {
+function WellnessTableList({ data, refreshData, themes, surveyName }) {
     const [editingQuestion, setEditingQuestion] = useState(null);
     const [editText, setEditText] = useState("");
     const [editCategory, setEditCategory] = useState("");
@@ -52,7 +52,10 @@ function WellnessTableList({ data, refreshData, themes }) {
                     : q
             );
 
-            await axios.put("/exam/update", { surveyName, questions: updatedQuestions });
+            await axios.put("/exam/survey/update", { 
+                surveyName, 
+                updates: { questions: updatedQuestions } 
+            });
 
             toast.success("Question updated successfully!");
             setEditingQuestion(null);
@@ -104,7 +107,7 @@ function WellnessTableList({ data, refreshData, themes }) {
                                             <select
                                                 value={editCategory}
                                                 onChange={(e) => setEditCategory(e.target.value)}
-                                                className="border rounded px-3 py-2 w-full"
+                                                className="border rounded px-3 py-2 w-full hover:cursor-pointer"
                                             >
                                                 <option value="">Select category</option>
                                                 {Object.keys(groupedData).map((cat) => (
@@ -129,7 +132,7 @@ function WellnessTableList({ data, refreshData, themes }) {
                                             <select
                                                 value={editTheme}
                                                 onChange={(e) => setEditTheme(e.target.value)}
-                                                className="border rounded px-3 py-2 w-full"
+                                                className="border rounded px-3 py-2 w-full hover:cursor-pointer"
                                             >
                                                 <option value="">Select Theme</option>
                                                 {themes.map((t) => (
@@ -142,13 +145,13 @@ function WellnessTableList({ data, refreshData, themes }) {
                                             <div className="flex gap-2">
                                                 <button
                                                     onClick={handleSaveEdit}
-                                                    className="px-3 py-1 bg-green-600 text-white rounded"
+                                                    className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 cursor-pointer"
                                                 >
                                                     Save
                                                 </button>
                                                 <button
                                                     onClick={() => setEditingQuestion(null)}
-                                                    className="px-3 py-1 bg-gray-400 text-white rounded"
+                                                    className="px-3 py-1 bg-gray-400 text-white rounded hover:bg-gray-500 cursor-pointer"
                                                 >
                                                     Cancel
                                                 </button>
@@ -193,13 +196,13 @@ function WellnessTableList({ data, refreshData, themes }) {
                                                             )?.themeName || ""
                                                         );
                                                     }}
-                                                    className="text-blue-600 hover:underline"
+                                                    className="text-blue-600 hover:underline cursor-pointer"
                                                 >
                                                     Edit
                                                 </button>
                                                 <button
                                                     onClick={() => handleDeleteQuestion(res.question)}
-                                                    className="text-red-600 hover:underline"
+                                                    className="text-red-600 hover:underline cursor-pointer"
                                                 >
                                                     Delete
                                                 </button>

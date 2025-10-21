@@ -1,5 +1,6 @@
 // AssessmentExamController.js
 const { getAssessmentExamCollection } = require("../models/assessmentExamModel");
+const { getContentManagementCollection } = require("../models/contentManagementModel");
 const Joi = require("joi");
 const admin = require("firebase-admin");
 
@@ -158,39 +159,28 @@ const deleteLikertTheme = async (req, res) => {
   }
 };
 
-/**
- * -------------------------
- * Survey (multi-survey) APIs
- * Structure inside assessmentForm doc:
- * {
- *   surveys: {
- *     "<surveyName>": {
- *       description: String,
- *       questions: [ ... ],
- *       isReleased: Boolean,
- *       totalScore: Number
- *     },
- *     ...
- *   }
- * }
- * -------------------------
- */
-
 // Create a new survey
 // POST /exam/survey/create
 // body: { surveyName, description (optional) }
 const createSurvey = async (req, res) => {
   try {
-    const { surveyName, description = "" } = req.body;
+    const { surveyName, description = "", processedBy = "Admin" } = req.body;
     if (!surveyName) return res.status(400).send({ error: "surveyName is required" });
 
     const docRef = getAssessmentFormDocRef();
     const doc = await docRef.get();
 
+    // Logic to get current school year
+    const schoolPeriodDoc = await getContentManagementCollection().doc("schoolPeriod").get();
+    let currentSchoolYear = "";
+    if (schoolPeriodDoc.exists) {
+      currentSchoolYear = schoolPeriodDoc.data().schoolYear || "";
+    }
+
     if (!doc.exists) {
       // create document with surveys object
       const surveys = {
-        [surveyName]: { description, questions: [], isReleased: false, totalScore: 0 },
+        [surveyName]: { description, questions: [], isReleased: false, totalScore: 0, processedBy, timeCreated: new Date(), schoolYear: currentSchoolYear },
       };
       await docRef.set({ surveys });
       return res.status(201).send({ message: "Survey created", survey: surveys[surveyName] });
@@ -200,7 +190,7 @@ const createSurvey = async (req, res) => {
       if (surveys[surveyName]) {
         return res.status(409).send({ error: "Survey with this name already exists" });
       }
-      surveys[surveyName] = { description, questions: [], isReleased: false, totalScore: 0 };
+      surveys[surveyName] = { description, questions: [], isReleased: false, totalScore: 0, processedBy, timeCreated: new Date(), schoolYear: currentSchoolYear };
       await docRef.update({ surveys });
       return res.status(201).send({ message: "Survey created", survey: surveys[surveyName] });
     }
@@ -209,6 +199,35 @@ const createSurvey = async (req, res) => {
     res.status(500).send({ error: err.message });
   }
 };
+
+// GET /exam/questions/databank
+const getQuestionDatabank = async (req, res) => {
+  try {
+    const data = await getAssessmentFormData();
+    if (!data) return res.status(200).send({ questions: [] });
+
+    const surveys = data.surveys || {};
+    const aggregated = [];
+
+    Object.entries(surveys).forEach(([surveyName, meta]) => {
+      const qs = Array.isArray(meta.questions) ? meta.questions : [];
+      qs.forEach((q) => {
+        aggregated.push({
+          surveyName,
+          category: q.category || "",
+          question: q.question || "",
+          options: q.options || [],
+        });
+      });
+    });
+
+    res.status(200).send({ questions: aggregated });
+  } catch (err) {
+    console.error("getQuestionDatabank:", err);
+    res.status(500).send({ error: err.message });
+  }
+};
+
 
 // Get all surveys
 // GET /exam/survey/getAll
@@ -313,6 +332,7 @@ const addAssessmentExam = async (req, res) => {
     const docRef = getAssessmentFormDocRef();
     const doc = await docRef.get();
 
+
     if (!doc.exists) {
       // create doc and survey
       const totalScore = calculateTotalScore(questions);
@@ -323,6 +343,8 @@ const addAssessmentExam = async (req, res) => {
 
     const data = doc.data();
     const surveys = data.surveys || {};
+
+
 
     if (!surveys[surveyName]) {
       // create survey
@@ -457,4 +479,5 @@ module.exports = {
   updateLikertTheme,
   editLikertTheme,
   deleteLikertTheme,
+  getQuestionDatabank
 };

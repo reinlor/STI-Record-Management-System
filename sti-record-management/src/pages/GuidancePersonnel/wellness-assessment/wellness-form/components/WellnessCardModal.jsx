@@ -34,7 +34,7 @@ function WellnessCardModal({
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
             <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-md relative border-2 border-[#0172bd]">
                 {/* Close button */}
-                <button onClick={onClose} className="absolute top-3 right-3 text-[#0172bd] hover:text-blue-700 transition text-xl">
+                <button onClick={onClose} className="absolute top-3 right-3 text-[#0172bd] hover:text-blue-700 transition text-xl cursor-pointer">
                     ✕
                 </button>
                 <h2 className="text-xl font-bold text-[#0172bd] mb-4">{isAdd ? "Create Survey" : "Survey Details"}</h2>
@@ -70,11 +70,11 @@ function WellnessCardModal({
                         {!isAdd ? (
                             <p className="mt-1 text-gray-900">{localDesc}</p>
                         ) : (
-                            <input
-                                type="text"
+                            <textarea
+                                rows="5"
                                 value={localDesc}
                                 onChange={(e) => setLocalDesc(e.target.value)}
-                                className="mt-1 w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                                className="mt-1 w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 resize-none custom-scrollbar"
                                 placeholder="Enter description"
                             />
                         )}
@@ -87,14 +87,14 @@ function WellnessCardModal({
                                 type="button"
                                 onClick={onClose}
                                 disabled={loading}
-                                className="px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition"
+                                className="px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition cursor-pointer"
                             >
                                 Cancel
                             </button>
                             <button
                                 type="submit"
                                 disabled={loading || !localName}
-                                className="px-4 py-2 rounded-lg bg-green-500 text-white hover:bg-green-600 transition"
+                                className="px-4 py-2 rounded-lg bg-green-500 text-white hover:bg-green-600 transition cursor-pointer"
                             >
                                 {loading ? "Creating..." : "Create"}
                             </button>

@@ -37,7 +37,7 @@ export default function SurveyForm({ surveyName }) {
         const uid = auth.currentUser?.uid;
         if (uid) {
           const checkRes = await axios.get(
-            `/exam/check/${encodeURIComponent(surveyName)}/${uid}`
+            `/exam-response/check/${encodeURIComponent(surveyName)}/${uid}`
           );
           if (!mounted) return;
           setHasAnswered(Boolean(checkRes.data.hasAnswered));
@@ -69,7 +69,7 @@ export default function SurveyForm({ surveyName }) {
   if (hasAnswered) {
     return (
       <div className="p-6 bg-white rounded-xl shadow text-center">
-        <h2 className="text-xl font-semibold text-green-600">✅ Survey Completed</h2>
+        <h2 className="text-xl font-bold text-blue-600">Survey Completed</h2>
         <p className="text-gray-600 mt-2">
           You’ve already submitted this survey. Thank you!
         </p>
@@ -138,7 +138,7 @@ export default function SurveyForm({ surveyName }) {
             : null,
       }));
 
-      await axios.post("/exam/submit", {
+      await axios.post("/exam-response/submit", {
         surveyName,
         responses: payload,
         studentId: auth.currentUser?.uid,
@@ -238,7 +238,7 @@ export default function SurveyForm({ surveyName }) {
               onClick={() =>
                 setCurrentCategoryIndex((prev) => Math.max(0, prev - 1))
               }
-              className="py-2.5 px-6 bg-gray-200 text-gray-700 font-semibold rounded-xl shadow-lg hover:bg-gray-300 transform transition-all duration-200"
+              className="py-2.5 px-6 bg-gray-200 text-gray-700 font-semibold rounded-xl shadow-lg hover:bg-gray-300 transform transition-all duration-200 cursor-pointer"
             >
               Previous
             </button>
@@ -253,7 +253,7 @@ export default function SurveyForm({ surveyName }) {
                   Math.min(categories.length - 1, prev + 1)
                 )
               }
-              className="py-2.5 px-6 bg-[#0B5793] text-white font-semibold rounded-xl shadow-lg hover:bg-[#3473A4] transform transition-all duration-200"
+              className="py-2.5 px-6 bg-[#0B5793] text-white font-semibold rounded-xl shadow-lg hover:bg-[#3473A4] transform transition-all duration-200 cursor-pointer"
             >
               Next
             </button>
@@ -264,7 +264,7 @@ export default function SurveyForm({ surveyName }) {
               className={`py-2.5 px-6 bg-yellow-400 text-black font-semibold rounded-xl shadow-lg hover:bg-yellow-500 transform transition-all duration-200
                 ${isSubmitting
                   ? "bg-gray-400 text-gray-600 cursor-not-allowed"
-                  : ""
+                  : "cursor-pointer"
                 }`}
             >
               {isSubmitting ? (

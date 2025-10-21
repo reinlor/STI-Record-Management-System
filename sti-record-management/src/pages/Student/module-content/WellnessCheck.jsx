@@ -64,7 +64,7 @@ export default function WellnessCheck({ setSelected }) {
               disabled={!wellnessLink}
               onClick={() => window.open(wellnessLink, "_blank")}
               className={`${wellnessLink
-                ? "bg-blue-600 hover:bg-blue-700"
+                ? "bg-blue-600 hover:bg-blue-700 cursor-pointer"
                 : "bg-gray-400 cursor-not-allowed"
                 } text-white font-medium px-5 py-2 rounded-lg self-start mt-auto transition-colors duration-200`}
             >
@@ -87,7 +87,7 @@ export default function WellnessCheck({ setSelected }) {
                 </p>
                 <button
                   onClick={() => setSelected(survey.name)}
-                  className="bg-green-600 hover:bg-green-700 text-white font-medium px-5 py-2 rounded-lg self-start mt-auto transition-colors duration-200"
+                  className="bg-green-600 hover:bg-green-700 text-white font-medium px-5 py-2 rounded-lg self-start mt-auto transition-colors duration-200 cursor-pointer"
                 >
                   Answer Survey
                 </button>

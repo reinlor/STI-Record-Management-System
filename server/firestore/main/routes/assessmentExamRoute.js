@@ -17,6 +17,7 @@ const {
   updateLikertTheme,
   editLikertTheme,
   deleteLikertTheme,
+  getQuestionDatabank
 } = require("../controller/assessmentExamController");
 
 // Survey-level routes
@@ -38,5 +39,8 @@ router.get("/theme/get", getLikertTheme);
 router.put("/theme/update", updateLikertTheme);  // append a theme
 router.put("/theme/edit", editLikertTheme);      // replace a theme by name
 router.delete("/theme/delete", deleteLikertTheme);
+
+// Databank lul
+router.get('/questions/databank', getQuestionDatabank);
 
 module.exports = router;

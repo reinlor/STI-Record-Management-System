@@ -139,8 +139,30 @@ const getSurveySummary = async (req, res) => {
     }
 };
 
+const getRawResponses = async (req, res) => {
+    try {
+        const { surveyName } = req.params;
+        if (!surveyName) return res.status(400).json({ error: 'surveyName param is required' });
+
+        const qSnap = await getSurveyResponsesCollection().where('surveyName', '==', surveyName).get();
+        const responses = [];
+        qSnap.forEach((doc) => {
+            const d = doc.data();
+            responses.push({
+                studentId: d.studentId,
+                responses: d.responses || [],
+            });
+        });
+        return res.status(200).json({ responses });
+    } catch (err) {
+        console.error('getRawResponses:', err);
+        return res.status(500).json({ error: err.message });
+    }
+};
+
 module.exports = {
     submitSurvey,
     getAllSummaries,
     getSurveySummary,
+    getRawResponses
 };

@@ -17,19 +17,44 @@ function WellnessForm({ surveyName, surveyData, themes, refreshData, onBack }) {
     }
 
     return (
-        <div className="flex flex-col gap-6 bg-gray-100 h-screen py-2 overflow-hidden">
+        <div className="flex flex-col gap-4 sm:gap-6 bg-gray-100 min-h-screen py-3 px-2 sm:px-4 overflow-hidden">
             {/* Back button */}
             <button
                 onClick={onBack}
-                className="self-start px-4 py-2  rounded-lg shadow-md hover:bg-blue-500 bg-[#0172bd] text-white font-semibold"
+                className="self-start px-4 py-2 rounded-lg shadow-md hover:bg-blue-500 bg-[#0172bd] cursor-pointer text-white font-semibold transition-colors"
             >
                 ← Back to Surveys
             </button>
 
-            <div className="flex flex-col md:flex-row gap-6">
+            {/* Content Container */}
+            <div
+                className="
+          flex flex-col
+          md:flex-row
+          gap-4 sm:gap-6
+          w-full
+          h-full
+          overflow-hidden
+        "
+            >
                 {/* Main Table List */}
-                <div className="w-full md:w-2/3 bg-white rounded-2xl p-4 sm:p-6 overflow-y-auto custom-scrollbar border border-gray-200 shadow-lg max-h-[70vh] md:max-h-[80vh]">
-                    <h2 className="text-lg sm:text-xl font-bold mb-4 text-[#0172bd]">{surveyName}</h2>
+                <div
+                    className="
+            flex-1
+            bg-white
+            rounded-2xl
+            p-3 sm:p-6
+            border border-gray-200
+            shadow-lg
+            overflow-y-auto
+            custom-scrollbar
+            max-h-[70vh] md:max-h-[80vh]
+            min-h-[50vh]
+          "
+                >
+                    <h2 className="text-lg sm:text-xl font-bold mb-4 text-[#0172bd] break-words">
+                        {surveyName} <span></span>
+                    </h2>
                     <WellnessTableList
                         data={surveyData.questions || []}
                         refreshData={refreshData}
@@ -39,7 +64,21 @@ function WellnessForm({ surveyName, surveyData, themes, refreshData, onBack }) {
                 </div>
 
                 {/* Content Manager */}
-                <div className="w-full md:w-1/3 bg-white rounded-2xl shadow-md p-4 sm:p-6 mt-4 md:mt-0 overflow-auto custom-scrollbar max-h-[70vh] md:max-h-[80vh] border border-gray-200">
+                <div
+                    className="
+            w-full
+            md:w-[35%]
+            bg-white
+            rounded-2xl
+            shadow-md
+            p-3 sm:p-6
+            border border-gray-200
+            overflow-y-auto
+            custom-scrollbar
+            max-h-[70vh] md:max-h-[80vh]
+            min-h-[50vh]
+          "
+                >
                     <WellnessContentManager
                         data={surveyData.questions || []}
                         theme={themes}

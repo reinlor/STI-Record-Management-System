@@ -51,7 +51,7 @@ function WellnessAssessment() {
         <>
           <div className="flex gap-2">
           <button
-            className="px-4 py-2 bg-[#0172bd] text-white hover:bg-blue-500 flex items-center justify-center gap-2 rounded-lg"
+            className="px-4 py-2 bg-[#0172bd] text-white hover:bg-blue-500 flex items-center justify-center gap-2 rounded-lg cursor-pointer"
             onClick={() => setActiveMode("summary")}
           >
             Summary

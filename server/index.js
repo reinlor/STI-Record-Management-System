@@ -1,18 +1,27 @@
+// ============================================
+// 🧩 Core Imports
+// ============================================
 const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
-const helmet = require('helmet');
-const rateLimit = require('express-rate-limit');
+const helmet = require("helmet");
+const rateLimit = require("express-rate-limit");
 require("dotenv").config();
-const authMiddleware = require('./authentication');
-const securityHeaders = require('./securityHeader');
+const cron = require("node-cron");
+const axios = require("axios");
 
+// ============================================
+// 🔒 Internal Modules
+// ============================================
+const authMiddleware = require("./authentication");
+const securityHeaders = require("./securityHeader");
 const { admin } = require("./firebase");
 const db = admin.firestore();
+const backupController = require("./firestore/backup/controller/backupController");
 
-const cron = require('node-cron');
-const axios = require('axios');
-
+// ============================================
+// 📦 Route Imports
+// ============================================
 const userRoute = require("./firestore/main/routes/userRoute");
 const studentRoute = require("./firestore/main/routes/studentRoute");
 const uploadRoute = require("./firestore/main/routes/uploadRoute");
@@ -35,229 +44,203 @@ const incidentReportRoute = require("./firestore/main/routes/incidentReportRoute
 const notificationRoute = require("./firestore/main/routes/notificationRoute");
 const surveyResponsesRoute = require("./firestore/main/routes/surveyResponseRoute");
 const summaryRoute = require("./modules/summary-generation/SummaryRoute");
-const backupRoutes = require("./firestore/backup/routes/backupRoute");
 const restoreRoutes = require("./firestore/backup/routes/restoreRoutes");
 const configRoutes = require("./firestore/main/routes/firebaseClientConfigRoute");
+const surveySummary = require("./firestore/main/routes/surveyResponseRoute");
 
-const backupController = require("./firestore/backup/controller/backupController");
-
+// ============================================
+// ⚙️ Express Initialization
+// ============================================
 const app = express();
 const PORT = process.env.PORT || 5000;
 const HOST = process.env.HOST || "127.0.0.1";
 
-// Security Middleware
+// ============================================
+// 🧱 Middleware Setup
+// ============================================
 app.use(helmet());
-
-// Rate limiting
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes gar
-  max: 100, // 100 requests per windowMs 😏
-  message: 'Too many requests from this IP, please try again later.'
-});
-app.use(limiter);
-
-// custom security headers
-if (process.env.NODE_ENV === 'production') {
-  app.set('trust proxy', 1);
-  app.use(securityHeaders);
-}
-
-// Middleware
-app.use(cors({
-  origin: process.env.CLIENT_URL || "http://localhost:5173",
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
+// ============================================
+// 🌐 CORS Configuration
+// ============================================
+const corsOptions = {
+  origin: ["http://localhost:5173", "http://127.0.0.1:5173"],
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+};
+app.use(cors(corsOptions));
+
+// ============================================
+// 🧰 Rate Limiting (Separated by Purpose)
+// ============================================
+
+// Authentication limiter
 const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 1000,
-  message: 'Too many authentication attempts, try again later.',
+  windowMs: 5 * 60 * 1000,
+  max: 40,
+  message: "Too many login attempts. Please try again later.",
   standardHeaders: true,
-  legacyHeaders: false
+  legacyHeaders: false,
 });
 
+// Public route limiter (for /firebase/config)
+const publicLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 60,
+  message: "Too many requests to public endpoint.",
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Main API limiter
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 1000,
-  message: 'Too many requests, slow down.',
+  max: process.env.NODE_ENV === "production" ? 1000 : 10000,
+  message: "Too many requests, please slow down.",
   standardHeaders: true,
-  legacyHeaders: false
+  legacyHeaders: false,
 });
 
+// Global fallback limiter (very lenient)
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 2000,
+  message: "Too many requests globally.",
+});
 
-// Routes
-app.use('/user', authLimiter, authMiddleware, userRoute);
-app.use("/student", authMiddleware, studentRoute);
-app.use("/upload", authMiddleware, uploadRoute);
-app.use("/cases", authMiddleware, studentCaseRoute);
-app.use("/counseling", authMiddleware, counselingRoute);
-app.use("/slip", authMiddleware, slipRoute);
-app.use("/teacher", authMiddleware, teacherRoute);
-app.use("/referral", authMiddleware, referralRouter);
-app.use("/exam", authMiddleware, assessmentExam);
-app.use('/exam', authMiddleware, surveyResponsesRoute);
-app.use("/report", authMiddleware, assessmentReport);
-app.use("/email", authMiddleware, emailRoute);
-app.use("/bulk-upload", authMiddleware, bulkUploadRoute);
-app.use("/batch-update", authMiddleware, batchUpdateRoute);
-app.use("/chartData", authMiddleware, chartDataRoute);
-app.use("/wellnessVersion", authMiddleware, assessmentVersionHistory);
-app.use('/photo-to-text', authMiddleware, demoOCRRoute);
-app.use("/content", authMiddleware, contentManagementRoute);
-app.use("/incidentReport", authMiddleware, incidentReportRoute);
-app.use("/notifications", authMiddleware, notificationRoute);
-app.use("/generate", authMiddleware, summaryRoute);
-app.use("/backup", backupRoute);
-app.use("/api/backup", backupRoutes);
-app.use('/api/restore', authMiddleware, restoreRoutes);
-app.use('/restore', authMiddleware, restoreRoutes);
-app.use('/firebase', configRoutes);
+// Safe Route Mount Helper
+function safeUseRoute(path, ...middlewares) {
+  try {
+    if (typeof path !== "string" || !path.startsWith("/")) {
+      throw new Error(`Invalid route path: ${path}`);
+    }
+    console.log(`🔍 Attempting to mount route: ${path}`);
+    app.use(path, ...middlewares);
+    console.log(`✅ Successfully mounted route: ${path}`);
+  } catch (err) {
+    console.error(`❌ Error mounting route at '${path}':`, err.message);
+    console.warn(`⚠️ Skipping problematic route: ${path}`);
+  }
+}
 
-app.use([
-  '/student', '/upload', '/cases', '/counseling', '/slip', '/teacher', '/referral',
-  '/exam', '/report', '/backup', '/email', '/bulk-upload', '/batch-update',
-  '/chartData', '/wellnessVersion', '/photo-to-text', '/content',
-  '/incidentReport', '/notifications', '/generate', '/api/backup', '/api/restore', '/restore'
-], apiLimiter);
+// 🚏 Route Mounting
 
-// Start the server
+// Public routes (no auth)
+safeUseRoute("/firebase", cors(corsOptions), publicLimiter, configRoutes);
+
+// Authenticated routes
+app.use("/user", authLimiter, authMiddleware, userRoute);
+app.use("/student", apiLimiter, authMiddleware, studentRoute);
+app.use("/cases", apiLimiter, authMiddleware, studentCaseRoute);
+app.use("/slip", apiLimiter, authMiddleware, slipRoute);
+app.use("/email", apiLimiter, authMiddleware, emailRoute);
+app.use("/photo-to-text", apiLimiter, authMiddleware, demoOCRRoute);
+app.use("/referral", apiLimiter, authMiddleware, referralRouter);
+
+// Wellness-related routes
+safeUseRoute("/exam", authMiddleware, apiLimiter, assessmentExam);
+safeUseRoute("/exam-response", authMiddleware, apiLimiter, surveyResponsesRoute);
+safeUseRoute("/report", authMiddleware, apiLimiter, assessmentReport);
+safeUseRoute("/wellnessVersion", authMiddleware, apiLimiter, assessmentVersionHistory);
+safeUseRoute("/summary", authMiddleware, apiLimiter, surveyResponsesRoute);
+
+// Data & content
+safeUseRoute("/content", authMiddleware, apiLimiter, contentManagementRoute);
+safeUseRoute("/chartData", authMiddleware, apiLimiter, chartDataRoute);
+safeUseRoute("/notifications", authMiddleware, apiLimiter, notificationRoute);
+safeUseRoute("/incidentReport", authMiddleware, apiLimiter, incidentReportRoute);
+
+// File management and misc
+safeUseRoute("/upload", apiLimiter, uploadRoute);
+safeUseRoute("/teacher", apiLimiter, teacherRoute);
+safeUseRoute("/counseling", apiLimiter, counselingRoute);
+safeUseRoute("/bulk-upload", apiLimiter, bulkUploadRoute);
+safeUseRoute("/batch-update", apiLimiter, batchUpdateRoute);
+
+// Reports, summaries, backups
+safeUseRoute("/generate", authMiddleware, apiLimiter, summaryRoute);
+safeUseRoute("/backup", apiLimiter, backupRoute);
+safeUseRoute("/api/backup", apiLimiter, backupRoute);
+safeUseRoute("/api/restore", apiLimiter, restoreRoutes);
+safeUseRoute("/restore", apiLimiter, restoreRoutes);
+
+// Global fallback limiter
+app.use(globalLimiter);
+
+// Server Startup
 app.listen(PORT, HOST, () => {
   console.log(`✅ Server running at http://${HOST}:${PORT}`);
 });
 
-// Cron Scheduler
-cron.schedule('* * * * *', async () => {
-  try {
-    console.log('cron: checking backup schedule...');
-    const scheduleDoc = await db.collection('backupSettings').doc('schedule').get();
+// CRON SCHEDULERS
 
-    if (!scheduleDoc.exists) {
-      // Balik if walang schedule
-      return;
-    }
+cron.schedule("* * * * *", async () => {
+  try {
+    console.log("cron: checking backup schedule...");
+    const scheduleDoc = await db.collection("backupSettings").doc("schedule").get();
+    if (!scheduleDoc.exists) return;
 
     const { schedule, nextBackup } = scheduleDoc.data() || {};
+    if (!schedule || schedule === "none") return;
 
-    if (!schedule || schedule === 'none') {
-      // Balik pag wala o naka set manual
-      return;
-    }
-
-    if (!nextBackup) {
-      const now = new Date();
-      let newNext = new Date();
-      switch (schedule) {
-        case '3hours': newNext.setHours(now.getHours() + 3); break;
-        case '12hours': newNext.setHours(now.getHours() + 12); break;
-        case 'daily': newNext.setDate(now.getDate() + 1); break;
-        case 'weekly': newNext.setDate(now.getDate() + 7); break;
-        default: newNext = null;
-      }
-      if (newNext) {
-        await db.collection('backupSettings').doc('schedule').update({ nextBackup: newNext.toISOString() });
-        console.log('cron: nextBackup initialized to', newNext.toISOString());
-      }
-      return;
-    }
-
-    const next = new Date(nextBackup);
     const now = new Date();
+    let next = nextBackup ? new Date(nextBackup) : null;
 
-    if (now >= next) {
-      console.log(`cron: time reached. Running backup (schedule ${schedule})`);
+    if (!next || now >= next) {
+      console.log(`cron: Running backup (${schedule})`);
       const result = await backupController.runBackup();
+
       if (result.success) {
         const newNext = new Date();
         switch (schedule) {
-          case '3hours':
-            newNext.setHours(newNext.getHours() + 3);
-            break;
-          case '12hours':
-            newNext.setHours(newNext.getHours() + 12);
-            break;
-          case 'daily':
-            newNext.setDate(newNext.getDate() + 1);
-            break;
-          case 'weekly':
-            newNext.setDate(newNext.getDate() + 7);
-            break;
-          default:
-            await db.collection('backupSettings').doc('schedule').update({ nextBackup: null });
-            console.log('cron: unknown schedule, set nextBackup null');
-            return;
+          case "3hours": newNext.setHours(now.getHours() + 3); break;
+          case "12hours": newNext.setHours(now.getHours() + 12); break;
+          case "daily": newNext.setDate(now.getDate() + 1); break;
+          case "weekly": newNext.setDate(now.getDate() + 7); break;
+          default: return;
         }
-
-        await db.collection('backupSettings').doc('schedule').update({
-          nextBackup: newNext.toISOString(),
-        });
-
-        console.log('cron: backup success, next scheduled at', newNext.toISOString());
+        await db.collection("backupSettings").doc("schedule").update({ nextBackup: newNext.toISOString() });
+        console.log("cron: backup success, next at", newNext.toISOString());
       } else {
-        console.error('cron: backup failed:', result.error);
+        console.error("cron: backup failed:", result.error);
       }
-    } else {
     }
   } catch (err) {
-    console.error('cron: unexpected error', err);
+    console.error("cron: unexpected error", err);
   }
 });
 
 cron.schedule("0 0 * * *", async () => {
   console.log("🕓 Cron: Checking for outdated pending slips...");
-
   try {
     const now = new Date();
     const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const collections = ["absentSlips", "incidentReport"];
 
-    const processCollection = async (collectionName) => {
-      const ref = db.collection(collectionName);
+    for (const name of collections) {
+      const ref = db.collection(name);
       const snapshot = await ref.where("status", "==", "Pending").get();
-
-      if (snapshot.empty) {
-        console.log(`✅ ${collectionName}: No pending documents found.`);
-        return 0;
-      }
+      if (snapshot.empty) continue;
 
       const batch = db.batch();
       let updatedCount = 0;
 
       snapshot.forEach((doc) => {
         const data = doc.data();
-
-        const createdAt = data.timeCreated
-          ? (data.timeCreated.toDate
-            ? data.timeCreated.toDate()
-            : new Date(data.timeCreated))
-          : null;
-
+        const createdAt = data.timeCreated?.toDate ? data.timeCreated.toDate() : new Date(data.timeCreated);
         if (createdAt && createdAt <= sevenDaysAgo) {
-          batch.update(doc.ref, { 
-            status: "Inactive" , 
-            processedDate: new Date()
-          });
+          batch.update(doc.ref, { status: "Inactive", processedDate: new Date() });
           updatedCount++;
         }
       });
 
-      if (updatedCount > 0) {
-        await batch.commit();
-      }
-
-      console.log(`🧾 ${collectionName}: Marked ${updatedCount} slips as Inactive.`);
-      return updatedCount;
-    };
-
-    const absentCount = await processCollection("absentSlips");
-    const incidentCount = await processCollection("incidentReport");
-
-    console.log(
-      `✅ Cron done: ${absentCount + incidentCount} total records marked as Inactive.`
-    );
+      if (updatedCount > 0) await batch.commit();
+      console.log(`🧾 ${name}: Marked ${updatedCount} slips as Inactive.`);
+    }
   } catch (err) {
     console.error("❌ Cron error updating slips:", err);
   }
