@@ -1,6 +1,7 @@
 const { Timestamp } = require("firebase-admin/firestore");
 const cloudinary = require("../../../config/cloudinary.js");
 const streamifier = require("streamifier");
+const admin = require('firebase-admin');
 
 const {
   getContentManagementCollection,
@@ -44,9 +45,9 @@ const violationCategoryUpdateSchema = Joi.object({
 });
 
 const updateSchoolPeriodSchema = Joi.object({
-  schoolYear: Joi.string().required().empty(""),
-  seniorHigh: Joi.string().required().empty(""),
-  tertiary: Joi.string().required().empty(""),
+  schoolYear: Joi.string().optional().empty(""),
+  seniorHigh: Joi.string().optional().empty(""),
+  tertiary: Joi.string().optional().empty(""),
 });
 
 // Controller function for adding announcement

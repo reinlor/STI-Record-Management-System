@@ -4,8 +4,8 @@ export default function ProgramsPanel({
   tertiaryPrograms,
   shsStrands,
   handleAddProgram,
-  onEditProgram, 
-  onDeleteProgram, 
+  onEditProgram,
+  onDeleteProgram,
 }) {
   const renderProgramList = (list, type) => (
     <div className="flex flex-col space-y-2 h-full overflow-y-auto custom-scrollbar">
@@ -43,9 +43,9 @@ export default function ProgramsPanel({
   );
 
   return (
-    <div className="bg-white p-4 rounded-xl shadow-lg flex-1 flex flex-col h-full">
+    <div className="bg-white p-4 rounded-xl shadow-lg flex-1 flex flex-col h-full overflow-y-auto custom-scrollbar">
       <div className="flex flex-col md:flex-row gap-4 h-full">
-        
+
         {/* Tertiary Programs */}
         <div className="flex-1 flex flex-col bg-gray-50 rounded-xl shadow-md p-4 h-full">
           <div className="flex items-center gap-2 mb-2">

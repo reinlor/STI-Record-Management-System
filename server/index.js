@@ -48,35 +48,27 @@ const restoreRoutes = require("./firestore/backup/routes/restoreRoutes");
 const configRoutes = require("./firestore/main/routes/firebaseClientConfigRoute");
 const surveySummary = require("./firestore/main/routes/surveyResponseRoute");
 
-// ============================================
-// ⚙️ Express Initialization
-// ============================================
 const app = express();
 const PORT = process.env.PORT || 5000;
 const HOST = process.env.HOST || "127.0.0.1";
 
-// ============================================
-// 🧱 Middleware Setup
-// ============================================
 app.use(helmet());
 app.use(cookieParser());
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
-// ============================================
-// 🌐 CORS Configuration
-// ============================================
 const corsOptions = {
-  origin: ["http://localhost:5173", "http://127.0.0.1:5173"],
+  origin: [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "https://sti-gorms.duckdns.org",
+  ],
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
 };
 app.use(cors(corsOptions));
 
-// ============================================
-// 🧰 Rate Limiting (Separated by Purpose)
-// ============================================
 
 // Authentication limiter
 const authLimiter = rateLimit({

@@ -8,7 +8,7 @@ export default function AnnouncementPanel({
   handlePostAnnouncement,
 }) {
   return (
-    <div className="bg-white p-4 rounded-xl shadow-lg flex flex-col h-full">
+    <div className="bg-white p-4 rounded-xl shadow-lg flex flex-col h-full overflow-y-auto custom-scrollbar">
       {/* Header */}
       <div className="flex items-center gap-2">
         <h2 className="text-2xl font-bold text-[#0172bd]">Announcement</h2>

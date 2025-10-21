@@ -66,7 +66,6 @@ export default function ContentManagement() {
     const [schoolYearData, setSchoolYearData] = useState();
     const [tempSchoolYearData, setTempSchoolYearData] = useState({ ...schoolYearData });
     const [isLoading, setIsLoading] = useState(true);
-
     // Mock API endpoint
     const API = "/content";
 
@@ -83,7 +82,6 @@ export default function ContentManagement() {
             try {
                 const response = await axios.get(`${API}/getAll`);
                 // keep previous behavior for announcement/programs/etc
-                console.log(response.data);
                 setAnnouncements(response.data[0].announcement.messages);
                 setShsStrands(response.data[3].programStrand.strand);
                 setTertiaryPrograms(response.data[3].programStrand.program);
@@ -392,9 +390,8 @@ export default function ContentManagement() {
 
     const handleSetSchoolYear = async () => {
         try {
-            console.log(tempSchoolYearData)
-            await axios.put(`${API}/schoolPeriod/update`, tempSchoolYearData)
-            setSchoolYearData(tempSchoolYearData);
+            await axios.put(`${API}/schoolPeriod/update`, schoolYearData)
+            setSchoolYearData(schoolYearData);
             showToast("School year and academic period successfully updated!", "success");
         } catch (error) {
             console.error("Error updating school year:", error);
@@ -530,8 +527,8 @@ export default function ContentManagement() {
                 )}
                 {activePanel === PANEL.SCHOOL_YEAR && (
                     <SchoolYearPanel
-                        tempSchoolYearData={tempSchoolYearData}
-                        setTempSchoolYearData={setTempSchoolYearData}
+                        tempSchoolYearData={schoolYearData}
+                        setTempSchoolYearData={setSchoolYearData}
                         schoolYearData={schoolYearData}
                         handleSetSchoolYear={handleSetSchoolYear}
                     />

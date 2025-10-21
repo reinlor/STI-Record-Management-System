@@ -28,9 +28,11 @@ export default function SchoolYearPanel({
               }
               className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#0172bd]"
             >
-              <option>2024-2025</option>
-              <option>2025-2026</option>
-              <option>2026-2027</option>
+              <option value=''>Select School Year</option>
+              <option value='2025-2026'>2025-2026</option>
+              <option value='2026-2027'>2026-2027</option>
+              <option value='2028-2029'>2027-2028</option>
+              <option value='2029-2030'>2029-2030</option>
             </select>
           </div>
 
@@ -44,8 +46,9 @@ export default function SchoolYearPanel({
               }
               className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#0172bd]"
             >
-              <option>1st Semester</option>
-              <option>2nd Semester</option>
+              <option value="">Select Semester</option>
+              <option value="1st Semester">1st Semester</option>
+              <option value="2nd Semester">2nd Semester</option>
             </select>
           </div>
 
@@ -59,10 +62,11 @@ export default function SchoolYearPanel({
               }
               className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#0172bd]"
             >
-              <option>1st Quarter</option>
-              <option>2nd Quarter</option>
-              <option>3rd Quarter</option>
-              <option>4th Quarter</option>
+              <option value=''>Select Quarter</option>
+              <option value='1st Quarter'>1st Quarter</option>
+              <option value='2nd Quarter'>2nd Quarter</option>
+              <option value='3rd Quarter'>3rd Quarter</option>
+              <option value='4th Quarter'>4th Quarter</option>
             </select>
           </div>
         </div>

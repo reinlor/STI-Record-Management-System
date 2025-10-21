@@ -49,8 +49,11 @@ export default function AddViolationModal({
   };
 
   return (
-    <div className="flex fixed inset-0 z-50 items-center justify-center bg-black/40">
-      <div className="bg-white p-6 rounded-xl shadow-2xl w-full max-w-lg transform transition-all scale-100 ease-out duration-300">
+    <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center bg-black/40">
+      <div 
+        className="bg-white p-6 rounded-none sm:rounded-xl shadow-2xl w-full h-full sm:h-auto sm:w-auto sm:max-w-lg transform transition-all scale-100 ease-out duration-300 sm:max-h-[90vh] overflow-y-auto custom-scrollbar"
+        style={{ WebkitOverflowScrolling: 'touch' }}
+      >
         {/* Header */}
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-xl font-bold text-[#0172bd]">
@@ -130,7 +133,7 @@ export default function AddViolationModal({
               </div>
 
               {/* List */}
-              <div className="mt-3">
+              <div className="mt-3 max-h-32 overflow-y-auto custom-scrollbar">
                 {(newViolation.violations || []).length > 0 ? (
                   <ul className="list-disc ml-6 text-sm text-gray-700">
                     {newViolation.violations.map((it, idx) => (
