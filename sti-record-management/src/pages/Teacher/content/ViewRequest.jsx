@@ -270,7 +270,7 @@ export default function ViewRequest({ referralData = [], isLoading = false }) {
               </button>
               <button
                 onClick={() => clearFilters()}
-                className="px-3 py-2 bg-red-50 text-red-700 border border-red-100 rounded-lg text-sm hover:bg-red-100 whitespace-nowrap"
+                className="px-3 py-2 bg-red-50 text-red-700 border border-red-100 rounded-lg text-sm hover:bg-red-100 whitespace-nowrap cursor-pointer"
                 title="Clear all filters"
               >
                 Clear filters
@@ -285,7 +285,7 @@ export default function ViewRequest({ referralData = [], isLoading = false }) {
               <button
                 id="status-select"
                 onClick={() => setShowStatusDropdown(!showStatusDropdown)}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2 bg-white text-sm text-left flex items-center justify-between focus:ring-2 focus:ring-yellow-400"
+                className="w-full border border-gray-300 rounded-lg px-4 py-2 bg-white text-sm text-left flex items-center justify-between focus:ring-2 focus:ring-yellow-400 cursor-pointer"
               >
                 {filters.status.length > 0 ? filters.status.join(", ") : "All"}
                 <ChevronDown size={16} className={`transform transition-transform ${showStatusDropdown ? 'rotate-180' : 'rotate-0'}`} />
@@ -315,7 +315,7 @@ export default function ViewRequest({ referralData = [], isLoading = false }) {
                 id="date-range-select"
                 value={filters.dateRange}
                 onChange={(e) => setFilters((p) => ({ ...p, dateRange: e.target.value }))}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2 bg-white text-sm focus:ring-2 focus:ring-yellow-400"
+                className="w-full border border-gray-300 rounded-lg px-4 py-2 bg-white text-sm focus:ring-2 focus:ring-yellow-400 cursor-pointer"
               >
                 <option value="All">All Dates</option>
                 <option value="Today">Today</option>
@@ -332,7 +332,7 @@ export default function ViewRequest({ referralData = [], isLoading = false }) {
                 id="sort-select"
                 value={sortOption}
                 onChange={(e) => setSortOption(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2 bg-white text-sm focus:ring-2 focus:ring-yellow-400"
+                className="w-full border border-gray-300 rounded-lg px-4 py-2 bg-white text-sm focus:ring-2 focus:ring-yellow-400 cursor-pointer"
               >
                 <option value="Newest First">Newest First</option>
                 <option value="Oldest First">Oldest First</option>
@@ -363,7 +363,7 @@ export default function ViewRequest({ referralData = [], isLoading = false }) {
                 {s}
                 <button
                   onClick={() => toggleStatusFilter(s)}
-                  className="ml-1 text-green-700 font-bold"
+                  className="ml-1 text-green-700 font-bold cursor-pointer"
                   aria-label={`remove status ${s}`}
                 >
                   <X size={12} />
@@ -377,7 +377,7 @@ export default function ViewRequest({ referralData = [], isLoading = false }) {
                   : filters.dateRange}
                 <button
                   onClick={() => setFilters((p) => ({ ...p, dateRange: "All", customStart: "", customEnd: "" }))}
-                  className="ml-1 text-blue-700 font-bold"
+                  className="ml-1 text-blue-700 font-bold cursor-pointer"
                 >
                   <X size={12} />
                 </button>
@@ -422,7 +422,7 @@ export default function ViewRequest({ referralData = [], isLoading = false }) {
                         </td>
                         <td className="px-6 py-4 text-sm">
                           <button
-                            className="py-2 px-4 bg-yellow-400 text-black font-semibold rounded-lg shadow hover:bg-yellow-500 transition-colors"
+                            className="py-2 px-4 bg-yellow-400 text-black font-semibold rounded-lg shadow hover:bg-yellow-500 transition-colors cursor-pointer"
                             onClick={() => setSelectedRow(row)}
                           >
                             View

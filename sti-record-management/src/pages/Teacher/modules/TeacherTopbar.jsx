@@ -54,7 +54,7 @@ const TeacherTopbar = ({
             <button
               key={mod.id}
               onClick={() => setSelected(mod.id)}
-              className={`py-2 px-3 lg:px-4 rounded-md transition-colors whitespace-nowrap text-sm lg:text-base ${
+              className={`py-2 px-3 lg:px-4 rounded-md transition-colors whitespace-nowrap text-sm lg:text-base cursor-pointer ${
                 selected === mod.id
                   ? "bg-[#3473A4] text-white font-bold"
                   : "hover:bg-[#3473A4]"
@@ -88,14 +88,14 @@ const TeacherTopbar = ({
                   onOpenChangePassword();
                   setIsDropdownOpen(false);
                 }}
-                className="flex items-center gap-3 w-full px-4 py-2 text-sm text-[#39310F] hover:bg-[#E8E9EF] transition-colors duration-150"
+                className="flex items-center gap-3 w-full px-4 py-2 text-sm text-[#39310F] hover:bg-[#E8E9EF] transition-colors duration-150 cursor-pointer"
               >
                 <KeyRound className="w-4 h-4 text-[#0B5793]" />
                 <span>Change Password</span>
               </button>
               <button
                 onClick={onLogout}
-                className="flex items-center gap-3 w-full px-4 py-2 text-sm text-[#39310F] hover:bg-red-500 hover:text-white transition-colors duration-150"
+                className="flex items-center gap-3 w-full px-4 py-2 text-sm text-[#39310F] hover:bg-red-500 hover:text-white transition-colors duration-150 cursor-pointer"
               >
                 <LogOut className="w-4 h-4" />
                 <span>Logout</span>

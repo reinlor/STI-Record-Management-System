@@ -244,7 +244,7 @@ function SubmitReferralForm({ teacher = {}, onCancel }) {
             name="violation"
             value={referral.violation || ""}
             onChange={(e) => handleReferralForm(e, "violation")}
-            className="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-800 focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition-all duration-200"
+            className="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-800 focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition-all duration-200 cursor-pointer"
             required
           >
             <option value="">Select a Violation</option>
@@ -275,7 +275,7 @@ function SubmitReferralForm({ teacher = {}, onCancel }) {
         name="counselingTypeCategory"
         value={referral.counselingTypeCategory || ""}
         onChange={(e) => handleReferralForm(e, "counselingTypeCategory")}
-        className="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-800 focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition-all duration-200"
+        className="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-800 focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition-all duration-200 cursor-pointer"
         required
       >
         <option value="">Select a Category</option>
@@ -527,7 +527,7 @@ function SubmitReferralForm({ teacher = {}, onCancel }) {
           <div className="md:col-span-2 flex justify-end gap-4 pt-6 border-t border-gray-200">
             <button
               type="button"
-              className="py-2.5 px-6 bg-gray-200 rounded-xl hover:bg-gray-300 transition-all"
+              className="py-2.5 px-6 bg-gray-200 rounded-xl hover:bg-gray-300 transition-all cursor-pointer"
               onClick={onCancel}
               disabled={isSubmitting}
             >
@@ -535,7 +535,7 @@ function SubmitReferralForm({ teacher = {}, onCancel }) {
             </button>
             <button
               type="submit"
-              className={`py-2.5 px-6 rounded-xl transition-all flex items-center justify-center gap-2 ${
+              className={`py-2.5 px-6 rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer ${
                 isSubmitting
                   ? "bg-yellow-300 cursor-not-allowed"
                   : "bg-yellow-400 hover:bg-yellow-500"

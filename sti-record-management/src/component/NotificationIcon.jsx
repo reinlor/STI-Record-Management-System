@@ -85,7 +85,7 @@ const NotificationIcon = ({ setSelected }) => {
     <div ref={dropdownRef} className="relative z-50">
       <button
         onClick={toggleDropdown}
-        className="p-2 text-gray-300 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-[#F4D03F] rounded-full relative"
+        className="p-2 text-gray-300 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-[#F4D03F] rounded-full relative cursor-pointer"
         aria-label="Notifications"
       >
         <Bell className="w-6 h-6" />
