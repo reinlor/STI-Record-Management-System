@@ -30,8 +30,7 @@ import PageNotFound from './pages/Others/PageNotFound.jsx';
 import UnauthorizeAccess from './pages/Others/UnauthorizeAccess.jsx';
 
 // For toast
-import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+
 
 import {
   Chart as ChartJS,
@@ -73,17 +72,6 @@ function App() {
   return (
     <Router>
       <AuthProvider>
-        <ToastContainer
-          position="top-right"
-          autoClose={3000}
-          hideProgressBar={false}
-          newestOnTop
-          closeOnClick
-          pauseOnFocusLoss
-          draggable
-          pauseOnHover
-          theme="colored"
-        />
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<LoginBeta />} />

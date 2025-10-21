@@ -1,7 +1,7 @@
 import React, { useContext, useState, useEffect } from "react";
 import { signInWithEmailAndPassword, onAuthStateChanged } from "firebase/auth";
 import { auth } from "../firebaseClient";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { AuthContext } from "../AuthProvider.jsx";
@@ -249,7 +249,7 @@ function LoginBeta() {
                 A password reset link will be sent to your email. Check your spam folder too!
               </p>
               <button
-                className="w-full py-3 bg-[#0172B9] text-white font-semibold rounded-xl hover:bg-[#00426b] focus:outline-none focus:ring-2 focus:ring-[#FFFC6C] transition-all duration-300 ease-in-out transform hover:scale-105 disabled:bg-gray-400 disabled:transform-none"
+                className="w-full py-3 bg-[#0172B9] text-white font-semibold rounded-xl hover:bg-[#00426b] focus:outline-none focus:ring-2 focus:ring-[#FFFC6C] transition-all duration-300 ease-in-out transform hover:scale-105 disabled:bg-gray-400 disabled:transform-none cursor-pointer"
                 type="submit"
                 disabled={loading}
               >
@@ -262,7 +262,7 @@ function LoginBeta() {
                   setErrorMsg("");
                   setSchoolId("");
                 }}
-                className="mt-6 text-sm text-[#0172B9] font-medium hover:underline transition-colors duration-200"
+                className="mt-6 text-sm text-[#0172B9] font-medium hover:underline transition-colors duration-200 cursor-pointer"
               >
                 Back to Login
               </button>
@@ -295,7 +295,7 @@ function LoginBeta() {
                   <button
                     type="button"
                     onClick={togglePasswordVisibility}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700 focus:outline-none"
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700 focus:outline-none cursor-pointer"
                   >
                     {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                   </button>
@@ -309,7 +309,7 @@ function LoginBeta() {
                     setErrorMsg("");
                     setPassword("");
                   }}
-                  className="text-sm text-[#0172B9] font-medium hover:underline transition-colors duration-200"
+                  className="text-sm text-[#0172B9] font-medium hover:underline transition-colors duration-200 cursor-pointer"
                 >
                   Forgot Password?
                 </button>
@@ -317,7 +317,7 @@ function LoginBeta() {
               <button
                 className="w-full py-3 bg-[#0172B9] text-white font-semibold rounded-xl hover:bg-[#00426b] 
                 focus:outline-none focus:ring-2 focus:ring-[#FFFC6C] transition-all duration-300 ease-in-out 
-                transform hover:scale-105 disabled:bg-gray-400 disabled:transform-none"
+                transform hover:scale-105 disabled:bg-gray-400 disabled:transform-none cursor-pointer"
                 type="submit"
                 disabled={loading || cooldown > 0}
               >
@@ -328,7 +328,6 @@ function LoginBeta() {
           )}
         </div>
       </div>
-      <ToastContainer />
     </div>
   );
 }

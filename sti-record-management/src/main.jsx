@@ -6,6 +6,8 @@ import App from './App.jsx';
 import { onAuthStateChanged } from 'firebase/auth';
 import axios from 'axios';
 import { initializeFirebase } from './firebaseClient';
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 // Set axios defaults before any requests
 axios.defaults.baseURL = import.meta.env.VITE_API_URL;
@@ -17,7 +19,7 @@ const root = createRoot(document.getElementById('root'));
 async function startApp() {
   try {
     const { auth } = await initializeFirebase();
-    
+
     // Set up auth state listener
     onAuthStateChanged(auth, async (user) => {
       if (user) {
@@ -41,6 +43,11 @@ async function startApp() {
     root.render(
       <StrictMode>
         <App />
+        <ToastContainer
+          position="top-right"
+          autoClose={3000}
+          hideProgressBar={false}
+        />
       </StrictMode>
     );
   } catch (error) {

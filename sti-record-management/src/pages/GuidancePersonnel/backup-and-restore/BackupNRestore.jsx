@@ -1,7 +1,7 @@
 import React, { useContext, useState, useEffect } from "react";
 import { Navigate } from "react-router-dom";
 import axios from "axios";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import {
   RefreshCcw,
@@ -174,7 +174,6 @@ function BackNRestore() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <ToastContainer position="top-right" autoClose={4000} />
 
       <div className="bg-white w-full max-w-4xl rounded-2xl shadow-lg p-6 sm:p-10 flex flex-col gap-6">
         {/* Header */}

@@ -1,17 +1,19 @@
 import React, { useState } from "react";
-import { X, Eye, EyeOff } from "lucide-react"; // Import X, Eye, and EyeOff icons
+import { X, Eye, EyeOff } from "lucide-react";
 import { auth } from "../firebaseClient.js";
 import {
   EmailAuthProvider,
   reauthenticateWithCredential,
   updatePassword,
 } from "firebase/auth";
+import { toast } from "react-toastify";
 
 const ChangePasswordModal = ({ isOpen, onClose }) => {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [reEnterNewPassword, setReEnterNewPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   // State for showing/hiding passwords
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
@@ -33,52 +35,53 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
     }
 
     const user = auth.currentUser;
-    const credential = EmailAuthProvider.credential(
-      user.email,
-      currentPassword
-    );
+    const credential = EmailAuthProvider.credential(user.email, currentPassword);
 
     try {
+      setLoading(true);
+
       await reauthenticateWithCredential(user, credential);
       await updatePassword(user, newPassword);
-      
+
+      toast.success("Password changed successfully!");
       onClose();
-      
-      // Clearing the form fields
+
+      // Clear fields after success
       setCurrentPassword("");
       setNewPassword("");
       setReEnterNewPassword("");
       setError("");
-
-      //Reset show/hide password states
       setShowCurrentPassword(false);
       setShowNewPassword(false);
       setShowReEnterNewPassword(false);
-
     } catch (error) {
       console.error("Error changing password:", error);
       setError("Failed to change password. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
-  if (!isOpen) {
-    return null;
-  }
+  if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-gray-600/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 shadow-xl w-full max-w-sm relative">
+    <div className="fixed inset-0 bg-gray-600/50 flex items-center justify-center z-[9999]">
+      <div className="bg-white text-gray-800 rounded-lg p-6 shadow-xl w-full max-w-sm relative">
+        {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute top-3 right-3 text-gray-500 hover:text-gray-800 transition-colors duration-200 p-1 rounded-full hover:bg-gray-100"
+          className="absolute top-3 right-3 text-gray-500 hover:text-gray-800 transition-colors duration-200 p-1 rounded-full hover:bg-gray-100 cursor-pointer"
           aria-label="Close modal"
         >
-          <X className="w-5 h-5" /> {/* Lucide X icon */}
+          <X className="w-5 h-5" />
         </button>
+
         <h2 className="text-2xl font-semibold text-gray-800 mb-6">
           Change Password
         </h2>
+
         <form onSubmit={handleSubmit}>
+          {/* Current Password */}
           <div className="mb-4">
             <label
               className="block text-gray-700 text-sm font-medium mb-2"
@@ -98,7 +101,7 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
               <button
                 type="button"
                 onClick={() => setShowCurrentPassword((prev) => !prev)}
-                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700 cursor-pointer"
                 aria-label={
                   showCurrentPassword ? "Hide password" : "Show password"
                 }
@@ -112,6 +115,7 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
             </div>
           </div>
 
+          {/* New Password */}
           <div className="mb-4">
             <label
               className="block text-gray-700 text-sm font-medium mb-2"
@@ -131,7 +135,7 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
               <button
                 type="button"
                 onClick={() => setShowNewPassword((prev) => !prev)}
-                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700 cursor-pointer"
                 aria-label={showNewPassword ? "Hide password" : "Show password"}
               >
                 {showNewPassword ? (
@@ -143,6 +147,7 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
             </div>
           </div>
 
+          {/* Re-enter New Password */}
           <div className="mb-6">
             <label
               className="block text-gray-700 text-sm font-medium mb-2"
@@ -162,7 +167,7 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
               <button
                 type="button"
                 onClick={() => setShowReEnterNewPassword((prev) => !prev)}
-                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700 cursor-pointer"
                 aria-label={
                   showReEnterNewPassword ? "Hide password" : "Show password"
                 }
@@ -176,21 +181,28 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
             </div>
           </div>
 
+          {/* Error message */}
           {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
 
+          {/* Buttons */}
           <div className="flex justify-end space-x-3">
             <button
               type="button"
               onClick={onClose}
-              className="px-5 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors duration-200"
+              disabled={loading}
+              className="px-5 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="py-2.5 px-6 bg-yellow-400 text-black font-semibold rounded-xl shadow-lg hover:bg-yellow-500 hover:-translate-y-0.5 transform transition-all duration-200"
+              disabled={loading}
+              className={`py-2.5 px-6 bg-yellow-400 text-black font-semibold rounded-xl shadow-lg transform transition-all duration-200 cursor-pointer ${loading
+                  ? "opacity-70 cursor-not-allowed"
+                  : "hover:bg-yellow-500 hover:-translate-y-0.5"
+                }`}
             >
-              Confirm
+              {loading ? "Updating..." : "Confirm"}
             </button>
           </div>
         </form>

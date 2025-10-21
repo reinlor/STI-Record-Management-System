@@ -70,7 +70,6 @@ export default function StudentHomepage() {
 
   return (
     <div className="relative min-h-screen text-black bg-white bg-[url('/grid.svg')] bg-repeat">
-      <ToastContainer />
       <ConsentModal
         isFirstLogin={authData.user.isFirstLogin}
         id={authData.user.uid}
