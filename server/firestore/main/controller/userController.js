@@ -95,6 +95,12 @@ const updateUser = async (req, res) => {
     }
     const studentRef = getUserCollection().doc(uid);
 
+    if (updates.isArchived){
+      await admin.auth().updateUser(uid, { disabled: true });
+    } else {
+      await admin.auth().updateUser(uid, { disabled: false });
+    }
+
     const doc = await studentRef.get();
     if (!doc.exists) {
       return res.status(404).json({ error: "Student not found" });

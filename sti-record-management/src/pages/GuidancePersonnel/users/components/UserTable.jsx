@@ -35,15 +35,15 @@ export default function UserTable({
                 <td className="px-1 py-1 break-words w-1/4 max-w-[120px] text-gray-500">{displayAccess(user.access)}</td>
                 <td className="px-1 py-1 w-1/4 align-middle">
                   <div className="flex items-center justify-end space-x-2 h-full mr-5">
-                    <button onClick={() => handleEditInfo(user)} className="text-[#0172bd] hover:text-blue-600 transition">
+                    <button onClick={() => handleEditInfo(user)} className="text-[#0172bd] hover:text-blue-600 transition cursor-pointer">
                       <EllipsisVertical className="w-6 h-6" />
                     </button>
                     {showArchived ? (
-                      <button onClick={() => handleRestoreUser(user)} className="text-[#28a745] hover:text-green-500 transition items-center justify-center">
+                      <button onClick={() => handleRestoreUser(user)} className="text-[#28a745] hover:text-green-500 transition items-center justify-center cursor-pointer">
                         <Archive className="w-6 h-6" />
                       </button>
                     ) : (
-                      <button onClick={() => handleArchiveUser(user)} className="text-[#dc3545] hover:text-red-700 transition items-center justify-center">
+                      <button onClick={() => handleArchiveUser(user)} className="text-[#dc3545] hover:text-red-700 transition items-center justify-center cursor-pointer">
                         <Archive className="w-6 h-6" />
                       </button>
                     )}

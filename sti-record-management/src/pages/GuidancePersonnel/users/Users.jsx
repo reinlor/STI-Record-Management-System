@@ -368,7 +368,7 @@ export default function Users() {
 
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 w-full sm:w-auto">
               <button
-                className="flex-1 flex items-center justify-center space-x-2 bg-[#0172bd] text-white font-semibold py-2 px-2 rounded-lg shadow-md hover:bg-blue-500 transition duration-150 ease-in-out text-xs sm:text-base"
+                className="flex-1 flex items-center justify-center space-x-2 bg-[#0172bd] text-white font-semibold py-2 px-2 rounded-lg shadow-md hover:bg-blue-500 transition duration-150 ease-in-out text-xs sm:text-base cursor-pointer"
                 onClick={() => setShowAddUserModal(true)}
               >
                 <span>Add User</span>
@@ -376,7 +376,7 @@ export default function Users() {
               </button>
 
               <button
-                className={`flex-1 flex items-center justify-center space-x-2 font-semibold py-2 px-2 rounded-lg shadow-md transition duration-150 ease-in-out text-xs sm:text-base ${showArchived ? 'bg-[#28a745] text-white hover:bg-green-500' : 'bg-[#dc3545] text-white hover:bg-red-600'}`}
+                className={`flex-1 flex items-center justify-center space-x-2 font-semibold py-2 px-2 rounded-lg shadow-md transition duration-150 ease-in-out text-xs sm:text-base cursor-pointer ${showArchived ? 'bg-[#28a745] text-white hover:bg-green-500' : 'bg-[#dc3545] text-white hover:bg-red-600'}`}
                 onClick={() => setShowArchived(!showArchived)}
               >
                 <span>{showArchived ? 'Show Active' : 'Show Archived'}</span>

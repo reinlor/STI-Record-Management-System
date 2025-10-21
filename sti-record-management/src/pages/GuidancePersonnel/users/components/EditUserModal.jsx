@@ -1,9 +1,12 @@
+// EditUserModal.jsx
+
 import React from 'react';
 import Modal from './Modal';
 import { X, Check } from 'lucide-react';
 import { accessPermissions } from './AccessUtils';
 
-export default function EditUserModal({ isOpen, onClose, editedUser, handleUserAccessToggle, handleSaveChanges }) {
+export default function EditUserModal({ isOpen, onClose, editedUser, handleUserAccessToggle,
+  handleSaveChanges }) {
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Edit User Information">
       {editedUser && (
@@ -86,14 +89,14 @@ export default function EditUserModal({ isOpen, onClose, editedUser, handleUserA
           <div className="flex justify-end space-x-4 mt-6">
             <button
               onClick={onClose}
-              className="flex items-center justify-center space-x-2 bg-[#dc3545] hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-150 ease-in-out"
+              className="flex items-center justify-center space-x-2 bg-[#dc3545] hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-150 ease-in-out cursor-pointer"
             >
               <X className="w-5 h-5" />
               <span>Cancel</span>
             </button>
             <button
               onClick={handleSaveChanges}
-              className="flex items-center justify-center space-x-2 bg-[#28a745] hover:bg-green-500 text-white font-semibold py-2 px-4 rounded-lg transition duration-150 ease-in-out"
+              className="flex items-center justify-center space-x-2 bg-[#28a745] hover:bg-green-500 text-white font-semibold py-2 px-4 rounded-lg transition duration-150 ease-in-out cursor-pointer"
             >
               <Check className="w-5 h-5" />
               <span>Save Changes</span>
@@ -103,4 +106,4 @@ export default function EditUserModal({ isOpen, onClose, editedUser, handleUserA
       )}
     </Modal>
   );
-}
+} 

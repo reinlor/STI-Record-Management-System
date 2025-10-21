@@ -1,6 +1,8 @@
+// AddUserModal.jsx
+
 import React, { useState, useEffect } from 'react';
 import Modal from './Modal';
-import { X, Check } from 'lucide-react';
+import { X, Check, Eye, EyeOff } from 'lucide-react';
 import { accessPermissions } from './AccessUtils';
 
 export default function AddUserModal({
@@ -13,10 +15,12 @@ export default function AddUserModal({
     handleCreateUser,
     initialNewUserAccess,
 }) {
-    // we handle adminPosition and customRole locally, then pass derived values to parent via handleRoleSelect
-    const [topRole, setTopRole] = useState(''); // 'Admin' or 'Teacher'
-    const [adminPosition, setAdminPosition] = useState(''); // 'Disciplinary' | 'Other'
+    // we handle adminPosition and customRole locally, then pass derived values to parent via 
+    handleRoleSelect
+    const [topRole, setTopRole] = useState(''); // 'Admin' or 'Teacher' 
+    const [adminPosition, setAdminPosition] = useState(''); // 'Disciplinary' | 'Other' 
     const [customAdminPosition, setCustomAdminPosition] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
 
     useEffect(() => {
         if (!isOpen) {
@@ -28,16 +32,16 @@ export default function AddUserModal({
 
     const onTopRoleChange = (value) => {
         setTopRole(value);
-        // if Teacher, immediately set position => Teacher
+        // if Teacher, immediately set position => Teacher 
         if (value === 'Teacher') {
             setAdminPosition('');
             setCustomAdminPosition('');
             handleRoleSelect('Teacher', 'Teacher');
         } else if (value === 'Admin') {
-            // default Admin with position 'Admin' until adminPosition chosen
+            // default Admin with position 'Admin' until adminPosition chosen 
             handleRoleSelect('Admin', 'Admin');
         } else {
-            // nothing selected
+            // nothing selected 
             handleRoleSelect('', '');
         }
     };
@@ -45,10 +49,10 @@ export default function AddUserModal({
     const onAdminPositionChange = (value) => {
         setAdminPosition(value);
         if (value === 'Other') {
-            // wait for custom input
+            // wait for custom input 
             handleRoleSelect('Admin', '');
         } else {
-            // Disciplinary
+            // Disciplinary 
             handleRoleSelect('Admin', value);
         }
     };
@@ -79,7 +83,7 @@ export default function AddUserModal({
                             name="employeeNumber"
                             value={newUser.employeeNumber}
                             onChange={handleAddUserChange}
-                            className="mt-1 block w-full h-8 rounded-md shadow-sm focus:ring focus:ring-[#0172bd] hover:bg-gray-100"
+                            className="mt-1 block w-full h-8 rounded-md shadow-sm focus:ring focus:ring[#0172bd] hover:bg-gray-100"
                         />
                     </div>
 
@@ -89,13 +93,14 @@ export default function AddUserModal({
                             name="role"
                             value={topRole}
                             onChange={(e) => onTopRoleChange(e.target.value)}
-                            className="mt-1 block w-full h-8 rounded-md shadow-sm focus:ring focus:ring-[#0172bd] hover:bg-gray-100"
+                            className="mt-1 block w-full h-8 rounded-md shadow-sm focus:ring focus:ring-[#0172bd] hover:bg-gray-100 cursor-pointer"
                         >
                             <option value="">Select role</option>
                             <option value="Admin">Admin</option>
                             <option value="Teacher">Teacher</option>
                         </select>
-                        <p className="text-xs text-gray-500 mt-1">If Admin is selected, choose Admin position below (Disciplinary or Other).</p>
+                        <p className="text-xs text-gray-500 mt-1">If Admin is selected, choose Admin position
+                            below (Disciplinary or Other).</p>
                     </div>
 
                     <div>
@@ -108,6 +113,18 @@ export default function AddUserModal({
                             className="mt-1 block w-full h-8 rounded-md shadow-sm border-blue-300 focus:ring focus:ring-[#0172bd] hover:bg-gray-100"
                         />
                     </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-[#0172bd]">Default Password</label>
+                        <div className="mt-1 flex items-center">
+                            <span className="block w-full h-8 rounded-md shadow-sm border-blue-300 focus:ring focus:ring-[#0172bd] hover:bg-gray-100 px-3 py-1 bg-gray-50 text-gray-900">
+                                {showPassword ? '123456' : '******'}
+                            </span>
+                            <button type="button" onClick={() => setShowPassword(!showPassword)} className="ml-2 text-gray-600 hover:text-gray-800 cursor-pointer">
+                                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
                 {/* Admin position selector — only show if Admin selected */}
@@ -118,7 +135,8 @@ export default function AddUserModal({
                             name="adminPosition"
                             value={adminPosition}
                             onChange={(e) => onAdminPositionChange(e.target.value)}
-                            className="mt-1 block w-1/2 h-8 rounded-md shadow-sm focus:ring focus:ring-[#0172bd] hover:bg-gray-100"
+                            className="mt-1 block w-1/2 h-8 rounded-md shadow-sm focus:ring focus:ring-
+[#0172bd] hover:bg-gray-100"
                         >
                             <option value="">Select admin position (optional)</option>
                             <option value="Disciplinary">Disciplinary</option>
@@ -131,7 +149,8 @@ export default function AddUserModal({
                                 placeholder="Enter custom role name (e.g., Registrar)"
                                 value={customAdminPosition}
                                 onChange={onCustomAdminPositionInput}
-                                className="mt-2 block w-1/2 h-8 rounded-md shadow-sm border-blue-300 focus:ring focus:ring-[#0172bd] hover:bg-gray-100"
+                                className="mt-2 block w-1/2 h-8 rounded-md shadow-sm border-blue-300 focus:ring 
+focus:ring-[#0172bd] hover:bg-gray-100"
                             />
                         )}
                     </div>
@@ -192,14 +211,14 @@ export default function AddUserModal({
                 <div className="flex justify-end space-x-4 mt-6">
                     <button
                         onClick={onClose}
-                        className="flex items-center justify-center space-x-2 bg-[#dc3545] hover:bg-red-600  text-white font-semibold py-2 px-4 rounded-lg transition duration-150 ease-in-out"
+                        className="flex items-center justify-center space-x-2 bg-[#dc3545] hover:bg-red-700  text-white font-semibold py-2 px-4 rounded-lg transition duration-150 ease-in-out cursor-pointer"
                     >
                         <span>Cancel</span>
                         <X className="w-5 h-5" />
                     </button>
                     <button
                         onClick={handleCreateUser}
-                        className="flex items-center justify-center space-x-2 bg-[#28a745] hover:bg-green-500 text-white font-semibold py-2 px-4 rounded-lg  transition duration-150 ease-in-out"
+                        className="flex items-center justify-center space-x-2 bg-[#28a745] hover:bg-green-500 text-white font-semibold py-2 px-4 rounded-lg  transition duration-150 ease-in-out cursor-pointer"
                     >
                         <span>Create</span>
                         <Check className="w-5 h-5" />
@@ -208,4 +227,4 @@ export default function AddUserModal({
             </div>
         </Modal>
     );
-}
+} 

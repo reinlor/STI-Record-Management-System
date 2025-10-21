@@ -9,12 +9,12 @@ export default function Modal({ isOpen, onClose, title, children }) {
       <div className="bg-white rounded-lg shadow-xl z-60 max-w-2xl w-full p-6 mx-4">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-2xl font-bold text-[#0172bd]">{title}</h3>
-          <button onClick={onClose} className=" hover:bg-gray-100 rounded-lg">
+          <button onClick={onClose} className=" hover:bg-gray-100 rounded-lg cursor-pointer">
             <X className="w-10 h-10 text-[#0172bd]" />
           </button>
         </div>
-        <div>{children}</div>
+        <div className="overflow-y-auto max-h-[80vh] custom-scrollbar">{children}</div>
       </div>
     </div>
   );
-}
+} 
