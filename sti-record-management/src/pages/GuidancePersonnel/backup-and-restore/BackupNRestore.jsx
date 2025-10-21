@@ -1,8 +1,9 @@
 import React, { useContext, useState, useEffect } from "react";
-import { Navigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { AuthContext } from '../../../AuthProvider.jsx';
 import {
   RefreshCcw,
   Clock,
@@ -15,11 +16,6 @@ import LoadingDots from "../../../component/Loading";
 import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
 import { db } from "../../../firebaseClient.js";
 
-const AuthContext = React.createContext({
-  authData: { user: { access: { backupRestore: { canView: true } } } },
-  logout: () => { },
-});
-
 function BackNRestore() {
   const { authData } = useContext(AuthContext);
   const [schedule, setSchedule] = useState("none");
@@ -28,6 +24,7 @@ function BackNRestore() {
   const [isExporting, setIsExporting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isRestoring, setIsRestoring] = useState(false);
+  const navigate = useNavigate()
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -159,18 +156,19 @@ function BackNRestore() {
     }
   };
 
-  if (!authData?.user?.access?.backupRestore) {
-    return <Navigate to="/error401" replace />;
-  }
-
+  
   if (isLoading) {
     return <LoadingDots />;
   }
-
+  
   // 🧮 Pagination logic
   const totalPages = Math.ceil(logs.length / logsPerPage);
   const startIndex = (currentPage - 1) * logsPerPage;
   const currentLogs = logs.slice(startIndex, startIndex + logsPerPage);
+
+  if (!authData?.user?.access?.backupRestore) {
+    return navigate("/error401");
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">

@@ -49,12 +49,12 @@ export default function Sidebar() {
             { label: "Dashboard", path: "/guidance" },
             access.studentRecords?.canView ? { label: "Student Records", path: "/guidance/student-records" } : null,
             access.studentCases?.canView ? { label: "Student Cases", path: "/guidance/student-cases" } : null,
-            access.userManagement?.canView ? { label: "Users", path: "/guidance/users" } : null,
+            access.userManagement? { label: "Users", path: "/guidance/users" } : null,
             access.requestSlip ? { label: "Request Slips", path: "/guidance/request-slip" } : null,
             access.referralForm ? { label: "Referral Forms", path: "/guidance/referral-form" } : null,
             access.backupRestore ? { label: "Back Up and Restore", path: "/guidance/back-n-restore" } : null,
             access.wellness ? { label: "Wellness Assessment", path: "/guidance/wellness" } : null,
-            {label: "Content Manager", path: "/guidance/content-management" },
+            access.contentManagement ? {label: "Content Manager", path: "/guidance/content-management" } : null,
             {label: "Offenses List", path: "/guidance/offenses" },
         ].filter(Boolean);
     }
