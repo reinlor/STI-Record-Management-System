@@ -36,14 +36,12 @@ const emptyTemplate = () => ({
         middleName: '',
         lastName: '',
         suffix: '',
-        name: '',
         nickname: '',
         section: '',
         academicLevel: '',
         nationality: 'Filipino',
         gender: '',
         status: '',
-        birthPlace: '',
         birthday: '',
         religion: '',
         program: ''
@@ -60,36 +58,45 @@ const emptyTemplate = () => ({
         }
     },
     familyBackground: {
-        fatherInfo: { name: '' },
-        motherInfo: { name: '' },
-        guardian: { name: '' },
+        fatherInfo: { name: '', nationality: '', religion: '', occupation: '' },
+        motherInfo: { name: '', nationality: '', religion: '', occupation: '' },
+        guardian: { name: '', contactNo: '' },
         emergency: { name: '', contactNo: '' },
+        siblings: [],
+        statusOfParent: ''
     },
 });
+
+const isValidEmail = (email) => {
+  if (!email) return false;
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+};
 
 const PhotoToTextModal = ({ visible, onClose, onOCRSuccess }) => {
     const [loading, setLoading] = useState(false);
     const [ocrData, setOcrData] = useState(null);
     const [activeTab, setActiveTab] = useState('profile');
+    const [isSaving, setIsSaving] = useState(false);
     const { authData } = useContext(AuthContext);
 
     if (!visible) return null;
 
     const validateRequired = (data) => {
         const missing = [];
-        if (!data) return { valid: false, missing: ['scan-image'] };
+        if (!data) return { valid: false, missing: ['Please scan an image'] };
         const sid = (data.sid || '').toString().trim();
         const sp = data.studentProfile || {};
         const ci = data.contactInfo || {};
 
-        if (!sid) missing.push('sid');
-        if (!sp.lastName || !sp.firstName) missing.push('studentProfile.name');
-        if (!sp.academicLevel) missing.push('studentProfile.academicLevel');
-        if (!sp.program) missing.push('studentProfile.program');
-        if (!sp.birthday) missing.push('studentProfile.birthday');
-        if (!sp.gender) missing.push('studentProfile.gender');
-        if (!ci.email) missing.push('contactInfo.email');
-        if (!ci.contactNo) missing.push('contactInfo.contactNo');
+        if (!sid) missing.push('Student ID is required');
+        if (!sp.lastName || !sp.firstName) missing.push('First and Last Name are required');
+        if (!sp.academicLevel) missing.push('Academic Level is required');
+        if (!sp.program) missing.push('Program is required');
+        if (!sp.birthday) missing.push('Birthdate is required');
+        if (!sp.gender) missing.push('Gender is required');
+        if (!ci.email) missing.push('Email is required');
+        else if (!isValidEmail(ci.email)) missing.push('Email format is incorrect');
+        if (!ci.contactNo) missing.push('Mobile is required');
 
         return { valid: missing.length === 0, missing };
     };
@@ -127,9 +134,12 @@ const PhotoToTextModal = ({ visible, onClose, onOCRSuccess }) => {
                         fatherInfo: { ...emptyTemplate().familyBackground.fatherInfo, ...(base.familyBackground?.fatherInfo || {}) },
                         motherInfo: { ...emptyTemplate().familyBackground.motherInfo, ...(base.familyBackground?.motherInfo || {}) },
                         guardian: { ...emptyTemplate().familyBackground.guardian, ...(base.familyBackground?.guardian || {}) },
-                        emergency: { ...emptyTemplate().familyBackground.emergency, ...(base.familyBackground?.emergency || {}) }
+                        emergency: { ...emptyTemplate().familyBackground.emergency, ...(base.familyBackground?.emergency || {}) },
+                        siblings: base.familyBackground?.siblings || [],
+                        statusOfParent: base.familyBackground?.statusOfParent || ''
                     },
-                    _raw: res.data.raw || {}
+                    _raw: res.data.raw || {},
+                    _extra: base._extra || {}
                 };
                 setOcrData(ensure);
                 setActiveTab('profile');
@@ -159,7 +169,12 @@ const PhotoToTextModal = ({ visible, onClose, onOCRSuccess }) => {
     };
 
     const handleSave = async () => {
+        if (!requiredCheck.valid) {
+            toast.error(`Invalid fields: ${requiredCheck.missing.join(', ')}`);
+            return;
+        }
         try {
+            setIsSaving(true);
             const archived = (ocrData?.sid?.toString()?.toLowerCase()?.includes('prd')) ?? false;
             const final = {
                 ...ocrData,
@@ -178,12 +193,14 @@ const PhotoToTextModal = ({ visible, onClose, onOCRSuccess }) => {
             setTimeout(() => {
                 setOcrData(null);
                 setActiveTab('profile');
-                setLoading(false);
+                setIsSaving(false);
                 if (typeof onOCRSuccess === 'function') onOCRSuccess(final);
                 if (typeof onClose === 'function') onClose();
             }, 2000);
         } catch (err) {
-            toast.error(`Error creating student: ${err?.message || ''}`);
+            setIsSaving(false);
+            const errorMessage = err.response?.data?.error || err.message || 'An unknown error occurred';
+            toast.error(`Error creating student: ${errorMessage}`);
         }
     };
 
@@ -300,6 +317,18 @@ const PhotoToTextModal = ({ visible, onClose, onOCRSuccess }) => {
                                         <option value="Female">Female</option>
                                     </select>
                                 </div>
+                                <div>
+                                    <label className="text-sm">Status</label>
+                                    <NestedInput value={ocrData.studentProfile.status} onChange={(v) => setNested('studentProfile.status', v)} />
+                                </div>
+                                <div>
+                                    <label className="text-sm">Religion</label>
+                                    <NestedInput value={ocrData.studentProfile.religion} onChange={(v) => setNested('studentProfile.religion', v)} />
+                                </div>
+                                <div>
+                                    <label className="text-sm">Nationality</label>
+                                    <NestedInput value={ocrData.studentProfile.nationality} onChange={(v) => setNested('studentProfile.nationality', v)} />
+                                </div>
                             </div>
                         )}
 
@@ -309,7 +338,21 @@ const PhotoToTextModal = ({ visible, onClose, onOCRSuccess }) => {
                                     <label className="text-sm">
                                         Email<span className='text-red-700'>*</span> <span className="text-gray-500">(Required)</span>
                                     </label>
-                                    <NestedInput value={ocrData.contactInfo.email} onChange={(v) => setNested('contactInfo.email', v)} />
+                                    {ocrData._extra?.emails && ocrData._extra.emails.length > 1 ? (
+                                        <select
+                                            value={ocrData.contactInfo.email}
+                                            onChange={(e) => setNested('contactInfo.email', e.target.value)}
+                                            className="w-full border px-2 py-1 rounded"
+                                        >
+                                            {ocrData._extra.emails.map((em) => (
+                                                <option key={em} value={em}>
+                                                    {em}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    ) : (
+                                        <NestedInput value={ocrData.contactInfo.email} onChange={(v) => setNested('contactInfo.email', v)} />
+                                    )}
                                 </div>
                                 <div>
                                     <label className="text-sm">
@@ -325,26 +368,95 @@ const PhotoToTextModal = ({ visible, onClose, onOCRSuccess }) => {
                                     <label className="text-sm">Permanent Address</label>
                                     <NestedInput value={ocrData.contactInfo.address.permanentAddress} onChange={(v) => setNested('contactInfo.address.permanentAddress', v)} />
                                 </div>
+                                <div className="col-span-2">
+                                    <label className="text-sm">Provincial Address</label>
+                                    <NestedInput value={ocrData.contactInfo.address.provincialAddress} onChange={(v) => setNested('contactInfo.address.provincialAddress', v)} />
+                                </div>
                             </div>
                         )}
 
                         {activeTab === 'family' && (
                             <div className="grid grid-cols-2 gap-4">
+                                <div className="col-span-2 font-bold">Father's Information</div>
                                 <div>
-                                    <label className="text-sm">Father's Name</label>
+                                    <label className="text-sm">Name</label>
                                     <NestedInput value={ocrData.familyBackground.fatherInfo?.name} onChange={(v) => setNested('familyBackground.fatherInfo.name', v)} />
                                 </div>
                                 <div>
-                                    <label className="text-sm">Mother's Name</label>
+                                    <label className="text-sm">Nationality</label>
+                                    <NestedInput value={ocrData.familyBackground.fatherInfo?.nationality} onChange={(v) => setNested('familyBackground.fatherInfo.nationality', v)} />
+                                </div>
+                                <div>
+                                    <label className="text-sm">Religion</label>
+                                    <NestedInput value={ocrData.familyBackground.fatherInfo?.religion} onChange={(v) => setNested('familyBackground.fatherInfo.religion', v)} />
+                                </div>
+                                <div>
+                                    <label className="text-sm">Occupation</label>
+                                    <NestedInput value={ocrData.familyBackground.fatherInfo?.occupation} onChange={(v) => setNested('familyBackground.fatherInfo.occupation', v)} />
+                                </div>
+                                <div className="col-span-2 font-bold">Mother's Information</div>
+                                <div>
+                                    <label className="text-sm">Name</label>
                                     <NestedInput value={ocrData.familyBackground.motherInfo?.name} onChange={(v) => setNested('familyBackground.motherInfo.name', v)} />
                                 </div>
                                 <div>
-                                    <label className="text-sm">Guardian</label>
+                                    <label className="text-sm">Nationality</label>
+                                    <NestedInput value={ocrData.familyBackground.motherInfo?.nationality} onChange={(v) => setNested('familyBackground.motherInfo.nationality', v)} />
+                                </div>
+                                <div>
+                                    <label className="text-sm">Religion</label>
+                                    <NestedInput value={ocrData.familyBackground.motherInfo?.religion} onChange={(v) => setNested('familyBackground.motherInfo.religion', v)} />
+                                </div>
+                                <div>
+                                    <label className="text-sm">Occupation</label>
+                                    <NestedInput value={ocrData.familyBackground.motherInfo?.occupation} onChange={(v) => setNested('familyBackground.motherInfo.occupation', v)} />
+                                </div>
+                                <div className="col-span-2 font-bold">Guardian</div>
+                                <div>
+                                    <label className="text-sm">Name</label>
                                     <NestedInput value={ocrData.familyBackground.guardian?.name} onChange={(v) => setNested('familyBackground.guardian.name', v)} />
                                 </div>
                                 <div>
-                                    <label className="text-sm">Emergency Contact</label>
+                                    <label className="text-sm">Contact No</label>
+                                    <NestedInput value={ocrData.familyBackground.guardian?.contactNo} onChange={(v) => setNested('familyBackground.guardian.contactNo', v)} />
+                                </div>
+                                <div className="col-span-2 font-bold">Emergency Contact</div>
+                                <div>
+                                    <label className="text-sm">Name</label>
+                                    <NestedInput value={ocrData.familyBackground.emergency?.name} onChange={(v) => setNested('familyBackground.emergency.name', v)} />
+                                </div>
+                                <div>
+                                    <label className="text-sm">Contact No</label>
                                     <NestedInput value={ocrData.familyBackground.emergency?.contactNo} onChange={(v) => setNested('familyBackground.emergency.contactNo', v)} />
+                                </div>
+                                <div className="col-span-2">
+                                    <label className="text-sm">Status of Parents</label>
+                                    <select
+                                        value={ocrData.familyBackground.statusOfParent}
+                                        onChange={(e) => setNested('familyBackground.statusOfParent', e.target.value)}
+                                        className="w-full border px-2 py-1 rounded"
+                                    >
+                                        <option value="">Select Status</option>
+                                        <option value="Married">Married</option>
+                                        <option value="Divorced">Divorced</option>
+                                        <option value="Separated">Separated</option>
+                                        <option value="Widowed/Widower">Widowed/Widower</option>
+                                        <option value="Remarried">Remarried</option>
+                                        <option value="Single Parent">Single Parent</option>
+                                    </select>
+                                </div>
+                                <div className="col-span-2">
+                                    <label className="text-sm">Siblings (comma separated)</label>
+                                    <input
+                                        value={(ocrData.familyBackground.siblings || []).join(', ')}
+                                        onChange={(e) =>
+                                            setNested(
+                                                'familyBackground.siblings',
+                                                e.target.value.split(',').map((s) => s.trim()).filter(Boolean)
+                                            )
+                                        }
+                                        className="w-full border px-2 py-1 rounded"
+                                    />
                                 </div>
                             </div>
                         )}
@@ -361,14 +473,20 @@ const PhotoToTextModal = ({ visible, onClose, onOCRSuccess }) => {
                             </div>
                         )}
 
+                        {!requiredCheck.valid && (
+                            <div className="text-red-500 mb-2">
+                                Please fill in the following: {requiredCheck.missing.join(', ')}
+                            </div>
+                        )}
+
                         <div className="flex justify-end gap-2 mt-6">
                             <button onClick={() => { setOcrData(null); setActiveTab('profile'); }} className="px-4 py-2 rounded bg-gray-100">Scan Again</button>
                             <button
                                 onClick={handleSave}
-                                disabled={!requiredCheck.valid}
-                                className={`px-4 py-2 rounded ${requiredCheck.valid ? 'bg-[#0172bd] text-white' : 'bg-gray-300 text-gray-600'} flex items-center gap-2`}
+                                disabled={!requiredCheck.valid || isSaving}
+                                className={`px-4 py-2 rounded flex items-center gap-2 ${!requiredCheck.valid || isSaving ? 'bg-gray-300 text-gray-600 cursor-not-allowed' : 'bg-[#0172bd] text-white cursor-pointer'}`}
                             >
-                                <Check className="w-4 h-4" /> Save & Use
+                                <Check className="w-4 h-4" /> {isSaving ? 'Saving...' : 'Save & Use'}
                             </button>
                         </div>
                     </>

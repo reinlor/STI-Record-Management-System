@@ -80,8 +80,24 @@ const normalizeDate = (raw) => {
     return parsed;
   }
 
-  console.warn('⚠️ Unrecognized birthday format:', raw);
+  console.warn('  Unrecognized birthday format:', raw);
   return '';
+};
+
+// Roman to integer for year
+const romanToInt = (s) => {
+  if (!s) return 0;
+  s = s.toUpperCase();
+  const map = { I: 1, V: 5, X: 10 };
+  let num = 0;
+  for (let i = 0; i < s.length; i++) {
+    if (i < s.length - 1 && map[s[i]] < map[s[i + 1]]) {
+      num -= map[s[i]];
+    } else {
+      num += map[s[i]];
+    }
+  }
+  return num;
 };
 
 // Name Splitter (Pascal Case)
@@ -204,25 +220,31 @@ const parseKeyValuePairs = (blocks) => {
 
 // Mapping ng mga fields
 const FIELD_MAPPINGS = [
-  { patterns: [/student\s*id/i, /\bsid\b/i, /id\s*no/i], path: 'sid' },
+  { patterns: [/student\s*id/i, /\bsid\b/i, /id\s*no/i, /student no/i], path: 'sid' },
   { patterns: [/^(?:student\s*)?name\s*[:\-]?\s*$/i, /\bfull\s*name\b/i], path: 'studentProfile.name' },
+  { patterns: [/surname/i], path: 'studentProfile.lastName' },
+  { patterns: [/first name/i], path: 'studentProfile.firstName' },
+  { patterns: [/m\.i\./i], path: 'studentProfile.middleName' },
   { patterns: [/nickname/i, /alias/i], path: 'studentProfile.nickname' },
   { patterns: [/section/i], path: 'studentProfile.section' },
   { patterns: [/academic\s*level|year\s*level/i], path: 'studentProfile.academicLevel' },
   { patterns: [/nationality/i], path: 'studentProfile.nationality' },
   { patterns: [/gender/i], path: 'studentProfile.gender' },
   { patterns: [/status(?! of parent)/i], path: 'studentProfile.status' },
-  { patterns: [/\bbirth\s*place\b|\bplace\s*of\s*birth\b/i], path: 'studentProfile.birthPlace' },
   { patterns: [/birthday|birthdate|date[\s\-_:]*of[\s\-_:]*birth[:.]?|dob/i], path: 'studentProfile.birthday' },
   { patterns: [/religion/i], path: 'studentProfile.religion' },
   { patterns: [/program|course|degree/i], path: 'studentProfile.program' },
   { patterns: [/email/i], path: 'contactInfo.email' },
-  { patterns: [/contact\s*no|contact number|mobile/i], path: 'contactInfo.contactNo' },
-  { patterns: [/address/i], path: 'contactInfo.address.currentAddress' },
-  { patterns: [/name\s*of\s*father/i], path: 'familyBackground.fatherInfo.name' },
-  { patterns: [/name\s*of\s*mother/i], path: 'familyBackground.motherInfo.name' },
-  { patterns: [/guardian.*name/i], path: 'familyBackground.guardian.name' },
-  { patterns: [/emergency contact/i], path: 'familyBackground.emergency.contactNo' },
+  { patterns: [/contact\s*no|contact number|mobile|cellular number/i], path: 'contactInfo.contactNo' },
+  { patterns: [/present address/i], path: 'contactInfo.address.currentAddress' },
+  { patterns: [/permanent address/i], path: 'contactInfo.address.permanentAddress' },
+  { patterns: [/provincial address/i], path: 'contactInfo.address.provincialAddress' },
+  { patterns: [/name\s*of\s*father/i, /father's name/i], path: 'familyBackground.fatherInfo.name' },
+  { patterns: [/name\s*of\s*mother/i, /mother's name/i], path: 'familyBackground.motherInfo.name' },
+  { patterns: [/guardian.*name/i, /name of guardian/i], path: 'familyBackground.guardian.name' },
+  { patterns: [/contact number of parent\/s or guardian\/s/i], path: 'familyBackground.guardian.contactNo' },
+  { patterns: [/in case of emergency, please contact/i], path: 'familyBackground.emergency.name' },
+  { patterns: [/contact #/i, /emergency contact/i], path: 'familyBackground.emergency.contactNo' },
 ];
 
 const mapToStudentSchema = (mergedKV, allLines) => {
@@ -230,7 +252,7 @@ const mapToStudentSchema = (mergedKV, allLines) => {
     sid: '',
     studentProfile: {},
     contactInfo: { address: {} },
-    familyBackground: { fatherInfo: {}, motherInfo: {}, guardian: {}, emergency: {} },
+    familyBackground: { fatherInfo: {}, motherInfo: {}, guardian: {}, emergency: {}, siblings: [], statusOfParent: '' },
     _extra: {}
   };
 
@@ -264,23 +286,132 @@ const mapToStudentSchema = (mergedKV, allLines) => {
     if (em) out.contactInfo.email = em[1];
   }
 
+  // Handle multiple emails
+  const email1 = mergedKV['Email add 1']?.trim();
+  const email2 = mergedKV['Email add 2']?.trim();
+  const emails = [];
+  if (email1) emails.push(email1);
+  if (email2) emails.push(email2);
+  if (emails.length > 0) {
+    out.contactInfo.email = emails[0];
+    if (emails.length > 1) {
+      out._extra.emails = emails;
+    }
+  }
+
   if (!out.studentProfile.name) {
     const nm = joined.match(/Name[:\s\-]*([A-Z][A-Za-z'\-\. ]{2,80})/i);
     if (nm) out.studentProfile.name = nm[1].trim();
   }
 
-  // PascalCase
-  if (out.studentProfile.name)
+  // Split name only if direct fields are not set
+  if (out.studentProfile.name && (!out.studentProfile.firstName || !out.studentProfile.lastName)) {
     Object.assign(out.studentProfile, splitNameSmart(out.studentProfile.name));
+  }
+  delete out.studentProfile.name; // Not needed in final schema
+
   out.studentProfile.nickname = toPascalCase(out.studentProfile.nickname);
   out.familyBackground.fatherInfo.name = toPascalCase(out.familyBackground.fatherInfo.name);
   out.familyBackground.motherInfo.name = toPascalCase(out.familyBackground.motherInfo.name);
   out.familyBackground.guardian.name = toPascalCase(out.familyBackground.guardian.name);
+  out.familyBackground.emergency.name = toPascalCase(out.familyBackground.emergency.name);
+
+  // Normalize gender
+  let gender = out.studentProfile.gender?.toUpperCase() || '';
+  if (gender === 'F' || gender === 'FEMALE') out.studentProfile.gender = 'Female';
+  else if (gender === 'M' || gender === 'MALE') out.studentProfile.gender = 'Male';
 
   // program and section
   const secData = normalizeProgramAndSection(out.studentProfile.section || '');
   if (!out.studentProfile.program) out.studentProfile.program = secData.program;
   out.studentProfile.section = secData.section;
+
+  // Section logic with year and semester
+  const yearRaw = mergedKV['Year'] || '';
+  let yearNum = 0;
+  if (/^\d+$/.test(yearRaw)) {
+    yearNum = parseInt(yearRaw);
+  } else {
+    yearNum = romanToInt(yearRaw);
+  }
+  let sem = 0;
+  if (mergedKV['1st'] === 'X') sem = 1;
+  else if (mergedKV['2nd'] === 'X') sem = 2;
+  if (yearNum > 0 && sem > 0) {
+    out.studentProfile.section = `${yearNum}.${sem}`;
+  }
+
+  // Status of parents
+  const statusOptions = ['Married', 'Divorced', 'Separated', 'Widowed/Widower', 'Remarried', 'Single Parent'];
+  for (const opt of statusOptions) {
+    if (mergedKV[opt] === 'X') {
+      out.familyBackground.statusOfParent = opt;
+      break;
+    }
+  }
+
+  // Parse family from lines
+  const familyIdx = allLines.findIndex(l => l.toLowerCase().includes('family background'));
+  if (familyIdx !== -1) {
+    const familyLines = allLines.slice(familyIdx);
+    // Father
+    const fatherNameIdx = familyLines.findIndex(l => l.toLowerCase().includes("father's name"));
+    if (fatherNameIdx !== -1) {
+      const fatherName = familyLines[fatherNameIdx + 1]?.trim();
+      if (fatherName) out.familyBackground.fatherInfo.name = toPascalCase(fatherName);
+      let nrIdx = fatherNameIdx + 2; // skip age
+      while (nrIdx < familyLines.length && !familyLines[nrIdx].toLowerCase().includes('nationality/religion')) nrIdx++;
+      if (nrIdx < familyLines.length) {
+        const nrVal = familyLines[nrIdx + 1]?.trim() || '';
+        const [nat, rel] = nrVal.split('/').map(s => s.trim());
+        out.familyBackground.fatherInfo.nationality = toPascalCase(nat);
+        out.familyBackground.fatherInfo.religion = toPascalCase(rel);
+        let occIdx = nrIdx + 2;
+        while (occIdx < familyLines.length && !familyLines[occIdx].toLowerCase().includes('occupation')) occIdx++;
+        if (occIdx < familyLines.length) {
+          const occVal = familyLines[occIdx + 1]?.trim() || '';
+          out.familyBackground.fatherInfo.occupation = toPascalCase(occVal);
+        }
+      }
+    }
+    // Mother
+    const motherNameIdx = familyLines.findIndex(l => l.toLowerCase().includes("mother's name"));
+    if (motherNameIdx !== -1) {
+      const motherName = familyLines[motherNameIdx + 1]?.trim();
+      if (motherName) out.familyBackground.motherInfo.name = toPascalCase(motherName);
+      let nrIdx = motherNameIdx + 2;
+      while (nrIdx < familyLines.length && !familyLines[nrIdx].toLowerCase().includes('nationality/religion')) nrIdx++;
+      if (nrIdx < familyLines.length) {
+        const nrVal = familyLines[nrIdx + 1]?.trim() || '';
+        const [nat, rel] = nrVal.split('/').map(s => s.trim());
+        out.familyBackground.motherInfo.nationality = toPascalCase(nat);
+        out.familyBackground.motherInfo.religion = toPascalCase(rel);
+        let occIdx = nrIdx + 2;
+        while (occIdx < familyLines.length && !familyLines[occIdx].toLowerCase().includes('occupation')) occIdx++;
+        if (occIdx < familyLines.length) {
+          const occVal = familyLines[occIdx + 1]?.trim() || '';
+          out.familyBackground.motherInfo.occupation = toPascalCase(occVal);
+        }
+      }
+    }
+    // Siblings
+    const siblingIdx = familyLines.findIndex(l => l.toLowerCase().includes('sibling order'));
+    if (siblingIdx !== -1) {
+      const nameHeaderIdx = familyLines.findIndex((l, i) => i > siblingIdx && l.toLowerCase().includes('name'));
+      if (nameHeaderIdx !== -1) {
+        let siblings = [];
+        let i = nameHeaderIdx + 1;
+        while (i < familyLines.length && !familyLines[i].toLowerCase().includes('in case of emergency') && familyLines[i].trim()) {
+          const line = familyLines[i].trim();
+          if (/^[a-zA-Z\s\.'\-]+$/.test(line) && line.length > 2) {
+            siblings.push(toPascalCase(line));
+          }
+          i++;
+        }
+        out.familyBackground.siblings = siblings;
+      }
+    }
+  }
 
   delete out.studentProfile.age;
 
@@ -296,7 +427,6 @@ exports.ocrUpload = async (req, res) => {
     const mergedKV = {};
     const allLines = [];
 
-
     for (const f of req.files) {
       const bytes = fs.readFileSync(f.path);
       const cmd = new AnalyzeDocumentCommand({
@@ -311,7 +441,6 @@ exports.ocrUpload = async (req, res) => {
       blocks.forEach(b => { if (b.BlockType === 'LINE' && b.Text) allLines.push(b.Text); });
       try { fs.unlinkSync(f.path); } catch { }
     }
-
 
     const parsed = mapToStudentSchema(mergedKV, allLines);
 

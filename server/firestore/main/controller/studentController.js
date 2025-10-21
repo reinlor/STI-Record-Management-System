@@ -16,7 +16,7 @@ const studentSchema = Joi.object({
     name: Joi.string().optional(),
     firstName: Joi.string().required(),
     lastName: Joi.string().required(),
-    middleName: Joi.string().required(),
+    middleName: Joi.string().optional(),
     suffix: Joi.string().empty('').optional(),
     nickname: Joi.string().empty('').optional(),
     section: Joi.string().empty('').optional(),
@@ -168,7 +168,7 @@ const updateSchema = Joi.object({
 
   contactInfo: Joi.object({
     email: Joi.string().email().empty('').optional(),
-    contactNo: Joi.string().pattern(new RegExp('^[a-zA-Z0-9]{3,30}$')).empty('').optional(),
+    contactNo: Joi.string().empty('').optional(), //.pattern(new RegExp('^[a-zA-Z0-9]{3,30}$'))
     homeNo: Joi.string().empty('').optional(),
     workNo: Joi.string().empty('').optional(),
     address: Joi.object({
