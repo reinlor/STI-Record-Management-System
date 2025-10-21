@@ -54,7 +54,6 @@ export default function TeacherHomepage() {
       return;
     }
     const teacherID = authData.user?.uid;
-    console.log(teacherID)
 
     // Set up the listener and store the unsubscribe function
     const unsubscribe = setupRealtimeReferralListener(teacherID);
@@ -90,7 +89,7 @@ export default function TeacherHomepage() {
         );
       case "notifications":
         return authData && (
-          <NotificationsPage uid={authData.user.uid} />
+          <NotificationsPage uid={authData.user.uid} userType='teacher'/>
         );
       default:
         return (

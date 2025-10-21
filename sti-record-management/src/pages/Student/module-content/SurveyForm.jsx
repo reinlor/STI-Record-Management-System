@@ -174,7 +174,7 @@ export default function SurveyForm({ surveyName }) {
 
   return (
     <div className="min-h-screen bg-[#E8E9EF] flex flex-col items-center p-4 font-sans">
-      <ToastContainer />
+      {/* <ToastContainer /> */}
 
       <div className="max-w-3xl w-full mx-auto space-y-6">
         {/* Header Card */}

@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
+import { AuthContext } from '../AuthProvider.jsx';
 import { Bell, Check, X, ClipboardList, Clock, ChevronLeft, ChevronRight } from "lucide-react";
 import { doc, onSnapshot, updateDoc } from "firebase/firestore";
 import { db } from "../firebaseClient";
@@ -35,13 +36,15 @@ const getVisiblePageNumbers = (currentPage, totalPages, maxVisible = 5) => {
 };
 
 const NotificationsPage = ({ uid }) => {
+  const { authData } = useContext(AuthContext);
   const [notifications, setNotifications] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const role = authData?.user?.role.toLowerCase() || 'student'
 
   useEffect(() => {
     setIsLoading(true);
     if (!uid) return;
-    const docRef = doc(db, "notification", "student");
+    const docRef = doc(db, "notification", role);
 
     // Subscribe in real-time
     const unsubscribe = onSnapshot(docRef, (snapshot) => {
@@ -80,7 +83,7 @@ const NotificationsPage = ({ uid }) => {
   };
 
   const toggleReadStatus = async (id) => {
-    const docRef = doc(db, "notification", "student");
+    const docRef = doc(db, "notification", role);
     const updated = notifications.map((n) =>
       n.notifID === id ? { ...n, isRead: !n.isRead } : n
     );

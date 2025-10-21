@@ -9,6 +9,7 @@ const NotificationIcon = ({ setSelected }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const uid = authData?.user?.uid
+  const role = authData?.user?.role.toLowerCase() || 'student'
 
   const dropdownRef = useRef(null);
 
@@ -18,7 +19,7 @@ const NotificationIcon = ({ setSelected }) => {
 
   const markAllAsRead = async () => {
     if (!uid) return;
-    const docRef = doc(db, "notification", "student");
+    const docRef = doc(db, "notification", role);
 
     const updated = notifications.map((n) => ({ ...n, isRead: true }));
     await updateDoc(docRef, { [uid]: updated });
@@ -26,7 +27,7 @@ const NotificationIcon = ({ setSelected }) => {
 
   const handleNotificationClick = async (id) => {
     if (!uid) return;
-    const docRef = doc(db, "notification", "student");
+    const docRef = doc(db, "notification", role);
     const updated = notifications.map((n) =>
       n.notifID === id ? { ...n, isRead: true } : n
     );
@@ -45,13 +46,12 @@ const NotificationIcon = ({ setSelected }) => {
 
   useEffect(() => {
     if (!uid) return;
-    const docRef = doc(db, "notification", "student");
+    const docRef = doc(db, "notification", role);
 
     const unsubscribe = onSnapshot(docRef, (snapshot) => {
       if (snapshot.exists()) {
         const data = snapshot.data();
         setNotifications(data[uid] || []);
-        console.log(data)
       }
     });
 
@@ -173,7 +173,7 @@ const NotificationIcon = ({ setSelected }) => {
 
           <div className="px-4 py-2 mt-2">
             <button
-              className="block w-full text-center text-[#0B5793] font-semibold hover:text-[#3473A4]"
+              className="block w-full text-center text-[#0B5793] font-semibold hover:text-[#3473A4] cursor-pointer"
               onClick={() => {
                 setSelected("notifications");
                 setIsDropdownOpen(false);

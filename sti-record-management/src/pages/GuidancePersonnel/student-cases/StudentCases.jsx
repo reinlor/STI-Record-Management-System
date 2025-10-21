@@ -353,7 +353,6 @@ function StudentCases() {
 
     return (
         <div className="bg-gray-100 h-full flex flex-col pb-3">
-            <ToastContainer position="top-right" autoClose={4000} />
 
             <div className="bg-white rounded-xl shadow-lg mx-2 sm:mx-4 flex-1 flex flex-col p-2 sm:p-6" style={{ maxWidth: "100vw" }}>
                 {/* Header */}

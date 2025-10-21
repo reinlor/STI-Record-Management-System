@@ -69,7 +69,7 @@ const TeacherTopbar = ({
       {/* Right Section */}
       <div className="flex items-center gap-2">
         {authData && authData.user && (
-          <NotificationIcon setSelected={setSelected} uid={authData.user.uid} />
+          <NotificationIcon setSelected={setSelected} uid={authData.user.uid} userType="teacher"/>
         )}
         {/* Settings Dropdown (PC only) */}
         <div ref={containerRef} className="relative hidden sm:block">
