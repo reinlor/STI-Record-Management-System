@@ -1,7 +1,7 @@
 import React, { useContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { toast } from "react-toastify";
+import { ToastContainer ,toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { AuthContext } from '../../../AuthProvider.jsx';
 import {
@@ -156,11 +156,11 @@ function BackNRestore() {
     }
   };
 
-  
+
   if (isLoading) {
     return <LoadingDots />;
   }
-  
+
   // 🧮 Pagination logic
   const totalPages = Math.ceil(logs.length / logsPerPage);
   const startIndex = (currentPage - 1) * logsPerPage;
@@ -172,7 +172,11 @@ function BackNRestore() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+      />
       <div className="bg-white w-full max-w-4xl rounded-2xl shadow-lg p-6 sm:p-10 flex flex-col gap-6">
         {/* Header */}
         <div className="flex items-center gap-3 border-b pb-4">
@@ -284,7 +288,7 @@ function BackNRestore() {
             </table>
           </div>
 
-          <a 
+          <a
             href='http://127.0.0.1:5000/backup/auth'
             className="font-medium text-blue-600 dark:text-blue-500 underline" target="_blank">Backup not working? Verify now</a>
 

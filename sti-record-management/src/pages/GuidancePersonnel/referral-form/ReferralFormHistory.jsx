@@ -232,13 +232,13 @@ function ReferralFormHistory() {
           <table className="w-full text-left">
             <thead>
               <tr className="bg-[#0172bd] text-white">
-                <th className="sticky top-0 z-10 bg-[#0172bd] px-2 sm:px-3 lg:px-4 py-2 sm:py-3 font-bold">Name</th>
-                <th className="sticky top-0 z-10 bg-[#0172bd] px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto font-bold whitespace-nowrap">Employee No.</th>
-                <th className="sticky top-0 z-10 bg-[#0172bd] px-2 sm:px-3 lg:px-4 py-2 sm:py-3 font-bold">Violation</th>
-                <th className="sticky top-0 z-10 bg-[#0172bd] px-2 sm:px-3 lg:px-4 py-2 sm:py-3 font-bold">Referred Student</th>
-                <th className="sticky top-0 z-10 bg-[#0172bd] px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto font-bold whitespace-nowrap">Date</th>
-                <th className="sticky top-0 z-10 bg-[#0172bd] px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto font-bold whitespace-nowrap">Status</th>
-                <th className="sticky top-0 z-10 bg-[#0172bd] px-2 sm:px-3 lg:px-4 py-2 sm:py-3 font-bold"></th>
+                <th className="sticky top-0 bg-[#0172bd] px-2 sm:px-3 lg:px-4 py-2 sm:py-3 font-bold">Name</th>
+                <th className="sticky top-0 bg-[#0172bd] px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto font-bold whitespace-nowrap">Employee No.</th>
+                <th className="sticky top-0 bg-[#0172bd] px-2 sm:px-3 lg:px-4 py-2 sm:py-3 font-bold">Violation</th>
+                <th className="sticky top-0 bg-[#0172bd] px-2 sm:px-3 lg:px-4 py-2 sm:py-3 font-bold">Referred Student</th>
+                <th className="sticky top-0 bg-[#0172bd] px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto font-bold whitespace-nowrap">Date</th>
+                <th className="sticky top-0 bg-[#0172bd] px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto font-bold whitespace-nowrap">Status</th>
+                <th className="sticky top-0 bg-[#0172bd] px-2 sm:px-3 lg:px-4 py-2 sm:py-3 font-bold"></th>
               </tr>
             </thead>
             <tbody>

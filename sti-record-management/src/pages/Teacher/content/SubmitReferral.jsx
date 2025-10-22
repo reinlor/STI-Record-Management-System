@@ -250,10 +250,10 @@ function SubmitReferralForm({ teacher = {}, onCancel }) {
             <option value="">Select a Violation</option>
             {referral.counselingTypeCategory !== ""
               ? violations.map((violation, index) => (
-                  <option key={index} value={violation}>
-                    {violation}
-                  </option>
-                ))
+                <option key={index} value={violation}>
+                  {violation}
+                </option>
+              ))
               : null}
           </select>
         </div>
@@ -295,6 +295,11 @@ function SubmitReferralForm({ teacher = {}, onCancel }) {
 
   return (
     <div className="min-h-screen flex flex-col items-center py-12 px-4 bg-gray-100 font-sans">
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+      />
       <div className="bg-white rounded-2xl shadow-xl p-8 w-full container mx-auto border border-gray-200">
         <div className="mb-8 pb-4 border-b border-gray-200">
           <h2 className="text-3xl font-extrabold text-gray-800 mb-2">
@@ -331,11 +336,10 @@ function SubmitReferralForm({ teacher = {}, onCancel }) {
               </label>
               <input
                 type="text"
-                className={`w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-800 transition-colors duration-500 ${
-                  highlightedFields.studentName
+                className={`w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-800 transition-colors duration-500 ${highlightedFields.studentName
                     ? "bg-yellow-100 animate-pulse"
                     : ""
-                }`}
+                  }`}
                 value={referral.studentName || ""}
                 onChange={(e) => handleReferralForm(e, "studentName")}
                 required
@@ -350,11 +354,10 @@ function SubmitReferralForm({ teacher = {}, onCancel }) {
               <div className="relative">
                 <input
                   type="text"
-                  className={`w-full p-3 border rounded-lg pr-10 ${
-                    studentNotFound
+                  className={`w-full p-3 border rounded-lg pr-10 ${studentNotFound
                       ? "border-red-400 bg-red-50 text-red-700"
                       : "border-gray-300 bg-gray-50 text-gray-800"
-                  }`}
+                    }`}
                   value={referral.sid || ""}
                   onChange={(e) => handleReferralForm(e, "sid")}
                   placeholder="Enter student number and wait to auto-fill details"
@@ -425,11 +428,10 @@ function SubmitReferralForm({ teacher = {}, onCancel }) {
               </label>
               <input
                 type="text"
-                className={`w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-800 transition-colors duration-500 ${
-                  highlightedFields.programSection
+                className={`w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-800 transition-colors duration-500 ${highlightedFields.programSection
                     ? "bg-yellow-100 animate-pulse"
                     : ""
-                }`}
+                  }`}
                 value={referral.programSection || ""}
                 onChange={(e) => handleReferralForm(e, "programSection")}
                 required
@@ -438,11 +440,10 @@ function SubmitReferralForm({ teacher = {}, onCancel }) {
 
             {/* Gender */}
             <div
-              className={`transition-colors duration-500 ${
-                highlightedFields.gender
+              className={`transition-colors duration-500 ${highlightedFields.gender
                   ? "bg-yellow-100 animate-pulse rounded-lg p-2"
                   : ""
-              }`}
+                }`}
             >
               <label className="block text-gray-700 font-medium mb-1">
                 Gender: <span className="text-red-500">*</span>
@@ -535,11 +536,10 @@ function SubmitReferralForm({ teacher = {}, onCancel }) {
             </button>
             <button
               type="submit"
-              className={`py-2.5 px-6 rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer ${
-                isSubmitting
+              className={`py-2.5 px-6 rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer ${isSubmitting
                   ? "bg-yellow-300 cursor-not-allowed"
                   : "bg-yellow-400 hover:bg-yellow-500"
-              }`}
+                }`}
               disabled={isSubmitting}
             >
               {isSubmitting ? (

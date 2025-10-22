@@ -52,52 +52,64 @@ export default function ViewRequest({ referralData = [], isLoading = false }) {
   // helpers: normalize incoming time values to Date
   const parseToDate = (val) => {
     if (!val) return null;
+
     if (typeof val === "object" && val._seconds) {
       return new Date(val._seconds * 1000);
     }
+
+    if (typeof val.toDate === 'function') {
+      return val.toDate();
+    }
+
+    if (typeof val === 'string') {
+      val = val.trim();
+      const match = val.match(/^([A-Za-z]+) (\d+), (\d+) at (\d+):(\d+):(\d+)\s*([AP]M) UTC\+8$/);
+      if (match) {
+        const monthName = match[1];
+        const day = parseInt(match[2], 10);
+        const year = parseInt(match[3], 10);
+        let hour = parseInt(match[4], 10);
+        const minute = parseInt(match[5], 10);
+        const second = parseInt(match[6], 10);
+        const ampm = match[7];
+
+        const monthMap = {
+          'January': 0, 'February': 1, 'March': 2, 'April': 3, 'May': 4, 'June': 5,
+          'July': 6, 'August': 7, 'September': 8, 'October': 9, 'November': 10, 'December': 11
+        };
+
+        const month = monthMap[monthName];
+        if (month === undefined) return null;
+
+        if (ampm === 'PM' && hour < 12) hour += 12;
+        if (ampm === 'AM' && hour === 12) hour = 0;
+
+        // Adjust for UTC+8 by subtracting 8 hours
+        hour -= 8;
+
+        const date = new Date(Date.UTC(year, month, day, hour, minute, second));
+        return date;
+      }
+    }
+
     const d = new Date(val);
     return isNaN(d.getTime()) ? null : d;
   };
 
   const formatDate = (timestamp) => {
-    if (!timestamp) return "N/A";
-
-    if (typeof timestamp.toDate === 'function') {
-      const date = timestamp.toDate();
-
-      if (isNaN(date.getTime())) {
-        return "Invalid Date";
-      }
-
-      return new Intl.DateTimeFormat('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-      }).format(date);
-    }
-
-    try {
-      const date = new Date(timestamp);
-
-      if (isNaN(date.getTime())) {
-        return "Invalid Date";
-      }
-
-      return new Intl.DateTimeFormat('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-      }).format(date);
-    } catch (error) {
-      console.error("Date formatting error:", error);
+    const date = parseToDate(timestamp);
+    if (!date || isNaN(date.getTime())) {
       return "N/A";
     }
+
+    return new Intl.DateTimeFormat('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    }).format(date);
   };
 
   // Helper for text truncation
@@ -340,7 +352,7 @@ export default function ViewRequest({ referralData = [], isLoading = false }) {
             </div>
           </div>
           {/* Custom date range inputs */}
-          {filters.dateRange === "Custom" && showFilters && (
+          {filters.dateRange === "Custom" && (showFilters || windowWidth >= 640) && (
             <div className="flex flex-col md:flex-row gap-4 mb-4">
               <input
                 type="date"
