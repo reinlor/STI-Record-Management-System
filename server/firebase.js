@@ -1,5 +1,5 @@
 const firebase = require("firebase-admin");
-require("dotenv").config();
+require("dotenv").config({ path: "/etc/myapp.env" });
 
 // Main Database
 const admin = firebase.initializeApp({

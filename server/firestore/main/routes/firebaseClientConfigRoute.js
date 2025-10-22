@@ -4,6 +4,8 @@ const router = express.Router();
 
 // Endpoint to get non-sensitive Firebase config
 router.get('/config', (req, res) => {
+  console.log('FIREBASE_PROJECT_ID:', process.env.FIREBASE_PROJECT_ID);
+  console.log('All env vars:', process.env);  // Optional: logs all for debugging
   res.json({
     apiKey: process.env.FIREBASE_API_KEY,
     authDomain: process.env.FIREBASE_AUTH_DOMAIN,

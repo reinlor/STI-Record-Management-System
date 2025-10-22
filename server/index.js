@@ -1,6 +1,4 @@
-// ============================================
-// 🧩 Core Imports
-// ============================================
+
 const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
@@ -10,18 +8,12 @@ require("dotenv").config();
 const cron = require("node-cron");
 const axios = require("axios");
 
-// ============================================
-// 🔒 Internal Modules
-// ============================================
 const authMiddleware = require("./authentication");
 const securityHeaders = require("./securityHeader");
 const { admin } = require("./firebase");
 const db = admin.firestore();
 const backupController = require("./firestore/backup/controller/backupController");
 
-// ============================================
-// 📦 Route Imports
-// ============================================
 const userRoute = require("./firestore/main/routes/userRoute");
 const studentRoute = require("./firestore/main/routes/studentRoute");
 const uploadRoute = require("./firestore/main/routes/uploadRoute");
@@ -122,7 +114,7 @@ function safeUseRoute(path, ...middlewares) {
 // 🚏 Route Mounting
 
 // Public routes (no auth)
-safeUseRoute("/firebase", cors(corsOptions), publicLimiter, configRoutes);
+safeUseRoute("/firebase", publicLimiter, configRoutes);
 
 // Authenticated routes
 app.use("/user", authLimiter, authMiddleware, userRoute);

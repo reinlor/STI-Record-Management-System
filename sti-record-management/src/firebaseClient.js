@@ -8,7 +8,7 @@ let db;
 
 async function initializeFirebase() {
   try {
-    const response = await axios.get('/firebase/config');
+    const response = await axios.get(`${import.meta.env.VITE_API_URL}/firebase/config`);
     const firebaseConfig = response.data;
 
     const app = initializeApp(firebaseConfig);

@@ -17,7 +17,7 @@ import GuidanceWellnessGeneration from './pages/GuidancePersonnel/wellness-asses
 import GuidanceContentManagement from './pages/GuidancePersonnel/content-management/ContentManagement.jsx'
 import GuidanceNotificationPage from './component/GuidanceNotificationPage.jsx';
 import GuidanceOffenses from './pages/GuidancePersonnel/offenses/OffensesList.jsx';
-import OffensesTab from "./pages/GuidancePersonnel/offenses/OffensesTab";
+import OffensesTab from "./pages/GuidancePersonnel/offenses/OffensesList.jsx";
 import ContentManagement from "./pages/GuidancePersonnel/content-management/ContentManagement";
 import Users from "./pages/GuidancePersonnel/users/Users";
 import BackupNRestore from "./pages/GuidancePersonnel/backup-and-restore/BackupNRestore";
