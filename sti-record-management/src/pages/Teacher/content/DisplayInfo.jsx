@@ -19,37 +19,29 @@ export default function DisplayInfo({ data, onClose }) {
   const formatDate = (timestamp) => {
     if (!timestamp) return "N/A";
 
-    if (typeof timestamp.toDate === 'function') {
+    if (typeof timestamp.toDate === "function") {
       const date = timestamp.toDate();
-
-      if (isNaN(date.getTime())) {
-        return "Invalid Date";
-      }
-
-      return new Intl.DateTimeFormat('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
+      if (isNaN(date.getTime())) return "Invalid Date";
+      return new Intl.DateTimeFormat("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
       }).format(date);
     }
 
     try {
       const date = new Date(timestamp);
-
-      if (isNaN(date.getTime())) {
-        return "Invalid Date";
-      }
-
-      return new Intl.DateTimeFormat('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
+      if (isNaN(date.getTime())) return "Invalid Date";
+      return new Intl.DateTimeFormat("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
       }).format(date);
     } catch (error) {
       console.error("Date formatting error:", error);
@@ -67,10 +59,6 @@ export default function DisplayInfo({ data, onClose }) {
       toast.success("Referral successfully cancelled!", {
         position: "top-right",
         autoClose: 1500,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
       });
       setTimeout(() => {
         onClose();
@@ -79,10 +67,6 @@ export default function DisplayInfo({ data, onClose }) {
       toast.error("Failed to cancel referral. Please try again.", {
         position: "top-right",
         autoClose: 2500,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
       });
     } finally {
       setIsCancelling(false);
@@ -92,25 +76,26 @@ export default function DisplayInfo({ data, onClose }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm bg-black/40 animate-fade-in-backdrop">
       <ToastContainer theme="light" />
-      <div className="relative flex flex-col bg-white rounded-3xl shadow-2xl w-full max-w-full md:max-w-3xl lg:max-w-5xl xl:max-w-6xl animate-fade-in border border-gray-200">
-        {/* Close Button */}
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Close"
-          className="absolute top-4 right-4 z-50 text-gray-500 hover:text-gray-900 transition-colors duration-200"
-        >
-          <X size={26} />
-        </button>
 
-        {/* Header with Prominent Status */}
+      <div className="relative flex flex-col bg-white rounded-3xl shadow-2xl w-full max-w-full md:max-w-3xl lg:max-w-5xl xl:max-w-6xl animate-fade-in border border-gray-200 max-h-[90vh] overflow-hidden">
+        {/* Header (sticky) - close button inside header so it stays visible) */}
         <div className="sticky top-0 bg-white border-b border-gray-100 text-center p-6 md:p-8 rounded-t-3xl z-20">
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close"
+            className="absolute top-4 right-4 z-30 text-gray-500 hover:text-gray-900 transition-colors duration-200 cursor-pointer"
+          >
+            <X size={26} />
+          </button>
+
           <h2 className="text-2xl md:text-3xl lg:text-4xl font-extrabold text-gray-800 tracking-tight">
             Referral Details
           </h2>
           <p className="text-gray-500 mt-2 text-sm md:text-base">
             Detailed information about the student referral.
           </p>
+
           {/* Status Badge */}
           <div className="flex justify-center mt-5">
             <div
@@ -125,8 +110,8 @@ export default function DisplayInfo({ data, onClose }) {
           </div>
         </div>
 
-        {/* Main Content Grid with Scrolling */}
-        <div className="overflow-y-auto custom-scrollbar px-6 md:px-10 py-6 max-h-[70vh]">
+        {/* Main Content Grid with internal scrolling */}
+        <div className="overflow-y-auto custom-scrollbar px-6 md:px-10 py-6 flex-1">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Left Column (Referral & Student Info) */}
             <div className="lg:col-span-2 space-y-8">
@@ -154,7 +139,13 @@ export default function DisplayInfo({ data, onClose }) {
                   <h3 className="font-bold text-gray-700 text-xl">Student Information</h3>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 text-sm text-gray-700">
-                  {renderField("Student Name", data.studentName || [data.studentProfile?.firstName, data.studentProfile?.middleName, data.studentProfile?.lastName, data.studentProfile?.suffix].filter(Boolean).join(' '))}
+                  {renderField(
+                    "Student Name",
+                    data.studentName ||
+                      [data.studentProfile?.firstName, data.studentProfile?.middleName, data.studentProfile?.lastName, data.studentProfile?.suffix]
+                        .filter(Boolean)
+                        .join(" ")
+                  )}
                   {renderField("Program", data.program)}
                   {renderField("Gender", data.gender)}
                   <div className="space-y-1 md:col-span-1">
@@ -174,9 +165,7 @@ export default function DisplayInfo({ data, onClose }) {
                 </div>
                 <div className="space-y-6">
                   <div>
-                    <p className="text-gray-500 text-sm font-medium">
-                      Reason for Referral
-                    </p>
+                    <p className="text-gray-500 text-sm font-medium">Reason for Referral</p>
                     <div className="bg-white p-4 rounded-xl border border-gray-200 whitespace-pre-wrap break-words min-h-[100px] mt-1">
                       <p className="font-semibold text-gray-900 text-base">
                         {data.reasonForReferral || "No reason provided."}
@@ -184,9 +173,7 @@ export default function DisplayInfo({ data, onClose }) {
                     </div>
                   </div>
                   <div>
-                    <p className="text-gray-500 text-sm font-medium">
-                      Actions Taken Before Referral
-                    </p>
+                    <p className="text-gray-500 text-sm font-medium">Actions Taken Before Referral</p>
                     <div className="bg-white p-4 rounded-xl border border-gray-200 whitespace-pre-wrap break-words min-h-[100px] mt-1">
                       <p className="font-semibold text-gray-900 text-base">
                         {data.actionTaken || "No actions listed."}
@@ -237,18 +224,11 @@ export default function DisplayInfo({ data, onClose }) {
             <button
               onClick={handleCancelReferral}
               disabled={isCancelling || cancelSuccess}
-              className={`px-8 py-3 rounded-lg font-semibold shadow transition-colors text-white ${cancelSuccess
-                ? "bg-green-500"
-                : isCancelling
-                  ? "bg-gray-400"
-                  : "bg-red-500 hover:bg-red-600"
-                }`}
+              className={`px-8 py-3 rounded-lg font-semibold shadow transition-colors text-white cursor-pointer disabled:cursor-not-allowed ${
+                cancelSuccess ? "bg-green-500" : isCancelling ? "bg-gray-400" : "bg-red-500 hover:bg-red-600"
+              }`}
             >
-              {isCancelling
-                ? "Cancelling..."
-                : cancelSuccess
-                  ? "Cancelled!"
-                  : "Cancel Referral"}
+              {isCancelling ? "Cancelling..." : cancelSuccess ? "Cancelled!" : "Cancel Referral"}
             </button>
           </div>
         )}
@@ -269,19 +249,10 @@ export default function DisplayInfo({ data, onClose }) {
           from { opacity: 0; }
           to { opacity: 1; }
         }
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 8px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: transparent;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background-color: #d1d5db;
-          border-radius: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background-color: #9ca3af;
-        }
+        .custom-scrollbar::-webkit-scrollbar { width: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #d1d5db; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background-color: #9ca3af; }
       `}</style>
     </div>
   );

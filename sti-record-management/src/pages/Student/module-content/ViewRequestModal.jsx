@@ -84,19 +84,17 @@ export default function ViewRequestModal({ data, onClose }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm bg-black/40 animate-fade-in-backdrop">
       <ToastContainer theme="light" />
 
-      <div className="relative flex flex-col bg-white rounded-3xl shadow-2xl w-full max-w-full md:max-w-3xl lg:max-w-5xl xl:max-w-6xl animate-fade-in border border-gray-200">
-        {/* Close Button */}
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Close"
-          className="absolute top-4 right-4 z-50 text-gray-500 hover:text-gray-900 transition-colors duration-200"
-        >
-          <X size={26} />
-        </button>
-
-        {/* Header */}
-        <div className="sticky top-0 bg-white border-b border-gray-100 text-center p-6 md:p-8 rounded-t-3xl z-20">
+      <div className="relative flex flex-col bg-white rounded-3xl shadow-2xl w-full max-w-full md:max-w-3xl lg:max-w-5xl xl:max-w-6xl animate-fade-in border border-gray-200 max-h-[90vh] overflow-hidden">
+        {/* Header (sticky) - close button moved inside header so it stays visible when content scrolls) */}
+        <div className="sticky top-0 bg-white border-b border-gray-100 text-center p-6 md:p-8 rounded-t-3xl z-30">
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close"
+            className="absolute top-4 right-4 z-40 text-gray-500 hover:text-gray-900 transition-colors duration-200 cursor-pointer"
+          >
+            <X size={26} />
+          </button>
           <h2 className="text-2xl md:text-3xl lg:text-4xl font-extrabold text-gray-800 tracking-tight">
             Request Slip Details
           </h2>
@@ -118,8 +116,8 @@ export default function ViewRequestModal({ data, onClose }) {
           </div>
         </div>
 
-        {/* Scrollable Content */}
-        <div className="overflow-y-auto custom-scrollbar px-6 md:px-10 py-6 max-h-[70vh]">
+        {/* Scrollable Content (fills remaining modal space) */}
+        <div className="overflow-y-auto custom-scrollbar px-6 md:px-10 py-6 flex-1">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
             {/* Left Content */}
             <div className="lg:col-span-2 space-y-6 md:space-y-8">
@@ -229,7 +227,7 @@ export default function ViewRequestModal({ data, onClose }) {
                           href={data.excuseLetterUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="block text-blue-600 underline break-all font-semibold"
+                          className="block text-blue-600 underline break-all font-semibold cursor-pointer"
                         >
                           Excuse Letter
                         </a>
@@ -239,7 +237,7 @@ export default function ViewRequestModal({ data, onClose }) {
                           href={data.guardianValidIDUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="block text-blue-600 underline break-all font-semibold"
+                          className="block text-blue-600 underline break-all font-semibold cursor-pointer"
                         >
                           Guardian ID
                         </a>
@@ -249,7 +247,7 @@ export default function ViewRequestModal({ data, onClose }) {
                           href={data.medicalCertificateUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="block text-blue-600 underline break-all font-semibold"
+                          className="block text-blue-600 underline break-all font-semibold cursor-pointer"
                         >
                           Medical Certificate
                         </a>
@@ -264,7 +262,7 @@ export default function ViewRequestModal({ data, onClose }) {
                         href={file}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="block text-blue-600 underline break-all font-semibold"
+                        className="block text-blue-600 underline break-all font-semibold cursor-pointer"
                       >
                         Evidence {idx + 1}
                       </a>
@@ -284,7 +282,7 @@ export default function ViewRequestModal({ data, onClose }) {
             <button
               onClick={handleCancelRequest}
               disabled={isCancelling || cancelSuccess}
-              className={`px-8 py-3 rounded-lg font-semibold shadow transition-colors text-white ${
+              className={`px-8 py-3 rounded-lg font-semibold shadow transition-colors text-white cursor-pointer disabled:cursor-not-allowed ${
                 cancelSuccess
                   ? "bg-green-500"
                   : isCancelling
