@@ -15,13 +15,18 @@ import { db } from "../../firebaseClient.js";
 
 export default function TeacherHomepage() {
   const { authData, logout } = useContext(AuthContext);
-  const [selected, setSelected] = useState("dashboard");
   const [referralData, setReferralData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] = useState(false);
 
+  const [selected, setSelected] = useState(() => {
+    const savedPage = sessionStorage.getItem("selectedPage");
+
+    return savedPage || "dashboard";
+  });
+
   const setupRealtimeReferralListener = (teacherID) => {
-    if (!teacherID) return () => { }; 
+    if (!teacherID) return () => { };
 
     setIsLoading(true);
 
@@ -44,9 +49,14 @@ export default function TeacherHomepage() {
       setReferralData([]);
       setIsLoading(false);
     });
-
+    
+    setIsLoading(false)
     return unsubscribe;
   };
+
+  useEffect(() => {
+    sessionStorage.setItem("selectedPage", selected);
+  }, [selected]);
 
   useEffect(() => {
     if (!authData) {
@@ -89,7 +99,7 @@ export default function TeacherHomepage() {
         );
       case "notifications":
         return authData && (
-          <NotificationsPage uid={authData.user.uid} userType='teacher'/>
+          <NotificationsPage uid={authData.user.uid} userType='teacher' />
         );
       default:
         return (

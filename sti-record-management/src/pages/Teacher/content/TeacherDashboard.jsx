@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { Megaphone } from "lucide-react";
 import axios from "axios";
 import LoadingDots from "../../../component/Loading";
+import { db } from "../../../firebaseClient";
+import { doc, onSnapshot } from "firebase/firestore";
 
 export default function TeacherDashboard() {
   const [announcements, setAnnouncements] = useState([]);
@@ -10,19 +12,54 @@ export default function TeacherDashboard() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchAnnouncements = async () => {
-      setLoading(true);
-      try {
-        const res = await axios.get("/content/announcement/get");
-        setAnnouncements(res.data.announcements);
-      } catch (err) {
-        setError("Failed to fetch announcements. Please check your network connection.");
-        console.error("Error fetching announcements:", err);
-      } finally {
-        setLoading(false);
+    setLoading(true)
+    const announcementRef = doc(db, "content", "announcement");
+    const unsubAnnouncements = onSnapshot(
+      announcementRef,
+      (docSnap) => {
+        if (docSnap.exists()) {
+          let msgs = docSnap.data().messages || [];
+
+          // Convert Firestore Timestamps
+          msgs = msgs.map((m) => {
+            let date = null;
+            if (m.timeCreated?.toDate) {
+              date = m.timeCreated.toDate();
+            } else if (m.timeCreated instanceof Date) {
+              date = m.timeCreated;
+            } else {
+              date = new Date();
+            }
+            return { ...m, timeCreated: date };
+          });
+
+          // Filter: keep only announcements within 30 days
+          const now = new Date();
+          const validMsgs = msgs.filter((m) => {
+            const diffDays = (now - m.timeCreated) / (1000 * 60 * 60 * 24);
+            return diffDays <= 30;
+          });
+
+          // Sort: latest first
+          validMsgs.sort((a, b) => b.timeCreated - a.timeCreated);
+
+          setAnnouncements(validMsgs);
+        } else {
+          setAnnouncements([]);
+        }
+
+        setLoading(false)
+
+        return () => {
+          unsubAnnouncements();
+        }
+      },
+      (err) => {
+        console.error("Announcement listener error:", err);
+        setError("Failed to fetch announcements.");
+        setLoading(false)
       }
-    };
-    fetchAnnouncements();
+    );
   }, []);
 
   const toggleExpand = (index) => {

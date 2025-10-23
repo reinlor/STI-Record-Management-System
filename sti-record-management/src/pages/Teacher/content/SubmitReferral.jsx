@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 import { Loader2 } from "lucide-react";
 import LoadingDots from "../../../component/Loading";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-// Debounce helper
+// Debounce
 const useDebounce = (value, delay) => {
   const [debouncedValue, setDebouncedValue] = useState(value);
 
@@ -16,6 +16,7 @@ const useDebounce = (value, delay) => {
 
   return debouncedValue;
 };
+
 function SubmitReferralForm({ teacher = {}, onCancel }) {
   const [referral, setReferral] = useState({});
   const [isLoading, setIsLoading] = useState(true);
@@ -25,9 +26,10 @@ function SubmitReferralForm({ teacher = {}, onCancel }) {
   const [allViolations, setAllViolations] = useState({});
   const [isStudentLoading, setIsStudentLoading] = useState(false);
   const [studentNotFound, setStudentNotFound] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false); // NEW
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [studentSuggestions, setStudentSuggestions] = useState([]);
+  const [isSelecting, setIsSelecting] = useState(false);
 
-  // Track recently auto-filled fields for highlight animation
   const [highlightedFields, setHighlightedFields] = useState({});
   const highlightField = (field) => {
     setHighlightedFields((prev) => ({ ...prev, [field]: true }));
@@ -40,7 +42,20 @@ function SubmitReferralForm({ teacher = {}, onCancel }) {
     }, 1500);
   };
 
-  const debouncedStudentID = useDebounce(referral.sid || "", 500);
+  const debouncedStudentName = useDebounce(referral.studentName || "", 500);
+
+  // Name formatter typa shit
+  const formatFullName = (profile = {}) => {
+    const { firstName = "", middleName = "", lastName = "", suffix = "" } = profile;
+    return [
+      `${lastName || ""}${lastName ? "," : ""}`,
+      [firstName, middleName, suffix].filter(Boolean).join(" ")
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .replace(/\s+/g, " ")
+      .trim();
+  };
 
   // Fetch school period and violation categories
   useEffect(() => {
@@ -128,28 +143,21 @@ function SubmitReferralForm({ teacher = {}, onCancel }) {
   // Auto-fill student data
   useEffect(() => {
     const fetchStudentData = async () => {
-      if (!debouncedStudentID) return;
+      if (isSelecting) return; 
+
+      if (!debouncedStudentName || debouncedStudentName.length < 3) {
+        setStudentSuggestions([]);
+        setStudentNotFound(false);
+        return;
+      }
       setIsStudentLoading(true);
       setStudentNotFound(false);
+      setStudentSuggestions([]);
 
       try {
-        const { data } = await axios.get(`/student/get/${debouncedStudentID}`);
-        if (data?.studentProfile) {
-          const { firstName, middleName, lastName, suffix } = data.studentProfile;
-          const updates = {
-            studentName: [firstName, middleName, lastName, suffix].filter(Boolean).join(' ') || "",
-            programSection:
-              data.studentProfile.program && data.studentProfile.section
-                ? `${data.studentProfile.program} ${data.studentProfile.section}`
-                : "",
-            gender: data.studentProfile.gender || "",
-            gradeLevel: data.studentProfile.academicLevel || "",
-          };
-
-          setReferral((prev) => ({ ...prev, ...updates }));
-
-          // highlight each updated field
-          Object.keys(updates).forEach((field) => highlightField(field));
+        const { data } = await axios.get(`/student/search?name=${debouncedStudentName}`);
+        if (Array.isArray(data) && data.length > 0) {
+          setStudentSuggestions(data);
         } else {
           setStudentNotFound(true);
         }
@@ -162,7 +170,33 @@ function SubmitReferralForm({ teacher = {}, onCancel }) {
     };
 
     fetchStudentData();
-  }, [debouncedStudentID]);
+  }, [debouncedStudentName]); 
+
+
+  // selecting a student from dropdown
+  const handleSelectStudent = (student) => {
+    const profile = student.studentProfile || {};
+    const fullName = formatFullName(profile);
+
+    setIsSelecting(true);
+
+    const updates = {
+      studentName: fullName,
+      sid: student.sid,
+      programSection: `${profile.program || ""} ${profile.section || ""}`.trim(),
+      gender: profile.gender || "",
+      gradeLevel: profile.academicLevel || "",
+    };
+
+    setReferral((prev) => ({ ...prev, ...updates }));
+
+    Object.keys(updates).forEach((field) => highlightField(field));
+    setStudentSuggestions([]);
+    setStudentNotFound(false);
+
+    setTimeout(() => setIsSelecting(false), 700);
+  };
+
 
   // Generic input handler
   const handleReferralForm = (event, name) => {
@@ -205,11 +239,7 @@ function SubmitReferralForm({ teacher = {}, onCancel }) {
 
     try {
       await axios.post("/referral/add", referralData);
-
-      toast.success(
-        `Referral for ${referralData.studentName} has been submitted!`
-      );
-
+      toast.success(`Referral for ${referralData.studentName} has been submitted!`);
       setReferral((prev) => ({
         id: prev.id,
         schoolYear: prev.schoolYear,
@@ -219,7 +249,6 @@ function SubmitReferralForm({ teacher = {}, onCancel }) {
         preparedDate: prev.preparedDate,
         status: prev.status,
       }));
-
     } catch (error) {
       console.error(error);
       toast.error(`Failed to submit referral: ${error.message}`);
@@ -233,10 +262,7 @@ function SubmitReferralForm({ teacher = {}, onCancel }) {
     if (violations.length > 0) {
       return (
         <div>
-          <label
-            htmlFor="violation"
-            className="block text-gray-700 font-medium mb-1"
-          >
+          <label htmlFor="violation" className="block text-gray-700 font-medium mb-1">
             Violation: <span className="text-red-500">*</span>
           </label>
           <select
@@ -261,13 +287,9 @@ function SubmitReferralForm({ teacher = {}, onCancel }) {
     }
   };
 
-  // Category dropdown
   const handleCategoryDropDown = () => (
     <div>
-      <label
-        htmlFor="counselingTypeCategory"
-        className="block text-gray-700 font-medium mb-1"
-      >
+      <label htmlFor="counselingTypeCategory" className="block text-gray-700 font-medium mb-1">
         Counseling Type/Category: <span className="text-red-500">*</span>
       </label>
       <select
@@ -288,35 +310,46 @@ function SubmitReferralForm({ teacher = {}, onCancel }) {
     </div>
   );
 
+  const suggestionsList = useMemo(() => {
+    return studentSuggestions.map((student, index) => {
+      const profile = student.studentProfile || {};
+      return (
+        <li
+          key={index}
+          className="p-3 hover:bg-yellow-50 cursor-pointer border-b last:border-b-0"
+          onClick={() => handleSelectStudent(student)}
+        >
+          <div className="font-medium">
+            {formatFullName(profile)}
+          </div>
+          <div className="text-sm text-gray-600">SID: {student.sid}</div>
+          <div className="text-sm text-gray-600">Level: {profile.academicLevel}</div>
+        </li>
+      );
+    });
+  }, [studentSuggestions]);
+
   // Global loading
-  if (isLoading) {
-    return <LoadingDots />;
-  }
+  if (isLoading) return <LoadingDots />;
 
   return (
     <div className="min-h-screen flex flex-col items-center py-12 px-4 bg-gray-100 font-sans">
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-      />
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
       <div className="bg-white rounded-2xl shadow-xl p-8 w-full container mx-auto border border-gray-200">
         <div className="mb-8 pb-4 border-b border-gray-200">
           <h2 className="text-3xl font-extrabold text-gray-800 mb-2">
             Student Referral Form
           </h2>
           <p className="text-gray-600 text-lg">
-            Please fill out the details below to refer a student for counseling
-            or assistance.
+            Please fill out the details below to refer a student for counseling or assistance.
           </p>
         </div>
 
-        <form
-          onSubmit={handleSubmit}
-          className="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-8"
-        >
+        {/* 🧠 Main form */}
+        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-8">
           {/* Left column */}
           <div className="space-y-6">
+            {/* School Year */}
             <div>
               <label className="block text-gray-700 font-medium mb-1">
                 School Year: <span className="text-red-500">*</span>
@@ -334,33 +367,17 @@ function SubmitReferralForm({ teacher = {}, onCancel }) {
               <label className="block text-gray-700 font-medium mb-1">
                 Student Name: <span className="text-red-500">*</span>
               </label>
-              <input
-                type="text"
-                className={`w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-800 transition-colors duration-500 ${highlightedFields.studentName
-                    ? "bg-yellow-100 animate-pulse"
-                    : ""
-                  }`}
-                value={referral.studentName || ""}
-                onChange={(e) => handleReferralForm(e, "studentName")}
-                required
-              />
-            </div>
-
-            {/* Student Number */}
-            <div>
-              <label className="block text-gray-700 font-medium mb-1">
-                Student Number: <span className="text-red-500">*</span>
-              </label>
               <div className="relative">
                 <input
                   type="text"
                   className={`w-full p-3 border rounded-lg pr-10 ${studentNotFound
-                      ? "border-red-400 bg-red-50 text-red-700"
-                      : "border-gray-300 bg-gray-50 text-gray-800"
+                    ? "border-red-400 bg-red-50 text-red-700"
+                    : "border-gray-300 bg-gray-50 text-gray-800"
+                    } transition-colors duration-500 ${highlightedFields.studentName ? "bg-yellow-100 animate-pulse" : ""
                     }`}
-                  value={referral.sid || ""}
-                  onChange={(e) => handleReferralForm(e, "sid")}
-                  placeholder="Enter student number and wait to auto-fill details"
+                  value={referral.studentName || ""}
+                  onChange={(e) => handleReferralForm(e, "studentName")}
+                  placeholder="Enter student name and wait to search"
                   required
                 />
                 {isStudentLoading && (
@@ -369,11 +386,36 @@ function SubmitReferralForm({ teacher = {}, onCancel }) {
                   </div>
                 )}
               </div>
+
+              {/* Suggestions */}
               {studentNotFound && (
                 <p className="mt-1 text-sm text-red-600">
-                  Student not found in records.
+                  No students found matching the name.
                 </p>
               )}
+              {studentSuggestions.length > 0 && (
+                <ul className="border border-gray-300 rounded-lg mt-2 bg-white shadow-md max-h-60 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200 scrollbar-thumb-rounded">
+                  {suggestionsList}
+                </ul>
+              )}
+            </div>
+
+            {/* Student Number */}
+            <div>
+              <label className="block text-gray-700 font-medium mb-1">
+                Student Number: <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                className={`w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-800 transition-colors duration-500 ${highlightedFields.sid
+                  ? "bg-yellow-100 animate-pulse"
+                  : ""
+                  }`}
+                value={referral.sid || ""}
+                onChange={(e) => handleReferralForm(e, "sid")}
+                placeholder="Will be auto-filled on selection"
+                required
+              />
             </div>
 
             {/* Level */}
@@ -429,8 +471,8 @@ function SubmitReferralForm({ teacher = {}, onCancel }) {
               <input
                 type="text"
                 className={`w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-800 transition-colors duration-500 ${highlightedFields.programSection
-                    ? "bg-yellow-100 animate-pulse"
-                    : ""
+                  ? "bg-yellow-100 animate-pulse"
+                  : ""
                   }`}
                 value={referral.programSection || ""}
                 onChange={(e) => handleReferralForm(e, "programSection")}
@@ -441,8 +483,8 @@ function SubmitReferralForm({ teacher = {}, onCancel }) {
             {/* Gender */}
             <div
               className={`transition-colors duration-500 ${highlightedFields.gender
-                  ? "bg-yellow-100 animate-pulse rounded-lg p-2"
-                  : ""
+                ? "bg-yellow-100 animate-pulse rounded-lg p-2"
+                : ""
                 }`}
             >
               <label className="block text-gray-700 font-medium mb-1">
@@ -537,8 +579,8 @@ function SubmitReferralForm({ teacher = {}, onCancel }) {
             <button
               type="submit"
               className={`py-2.5 px-6 rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer ${isSubmitting
-                  ? "bg-yellow-300 cursor-not-allowed"
-                  : "bg-yellow-400 hover:bg-yellow-500"
+                ? "bg-yellow-300 cursor-not-allowed"
+                : "bg-yellow-400 hover:bg-yellow-500"
                 }`}
               disabled={isSubmitting}
             >

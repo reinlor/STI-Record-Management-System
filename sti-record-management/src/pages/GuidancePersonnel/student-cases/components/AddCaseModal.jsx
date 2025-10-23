@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { X, Check, Upload } from 'lucide-react';
 import axios, { all } from "axios";
-import Loading from "../../../../component/Loading"
+import Loading from "../../../../component/Loading";
 
 const AddCaseModal = ({ visible, onClose, newCaseForm, onChange, onSave, isButtonSubmitting }) => {
     if (!visible) return null;
@@ -9,12 +9,13 @@ const AddCaseModal = ({ visible, onClose, newCaseForm, onChange, onSave, isButto
     const [violations, setViolations] = useState([]);
     const [searchResults, setSearchResults] = useState([]);
     const [isSearching, setIsSearching] = useState(false);
-    const [isLoading, setIsLoading] = useState(true)
+    const [isLoading, setIsLoading] = useState(true);
     const [priorityLevels, setPriorityLevels] = useState({});
 
     const [categories, setCategories] = useState([
         'Academic Misconduct', 'Disruptive Behavior', 'Property and Vandalism', 'Technology Misuse',
-        'Substance Abuse', 'Safety and Security', 'Non-compliance with School Rules', 'Others']);
+        'Substance Abuse', 'Safety and Security', 'Non-compliance with School Rules', 'Others'
+    ]);
 
     const [allViolations, setAllViolations] = useState({
         'Academic Misconduct': ['Cheating', 'Plagiarism', 'Fabrication', 'Facilitating academic dishonesty'],
@@ -25,7 +26,7 @@ const AddCaseModal = ({ visible, onClose, newCaseForm, onChange, onSave, isButto
         'Safety and Security': ['Possession of weapons', 'Failure to follow safety procedures', 'Endangerment of others', 'Trespassing'],
         'Non-compliance with School Rules': ['Tardiness', 'Truancy', 'Dress code violations', 'Disobedience to school staff'],
         'Others': [],
-    })
+    });
 
     useEffect(() => {
         const fetchCategories = async () => {
@@ -48,10 +49,6 @@ const AddCaseModal = ({ visible, onClose, newCaseForm, onChange, onSave, isButto
                 setAllViolations(newAllViolations);
                 setPriorityLevels(newPriorityLevels);
 
-                console.log("New Categories:", newCategories);
-                console.log("New All Violations:", newAllViolations);
-                console.log("New Priority Levels:", newPriorityLevels);
-
             } catch (error) {
                 console.error("Error fetching data:", error);
             } finally {
@@ -67,6 +64,20 @@ const AddCaseModal = ({ visible, onClose, newCaseForm, onChange, onSave, isButto
         setViolations(selectedViolations);
     }, [newCaseForm.counselingTypeCategory]);
 
+    // 🔹 Helper: format full name as "LastName, FirstName MiddleName Suffix"
+    const formatFullName = (profile = {}) => {
+        const { firstName = "", middleName = "", lastName = "", suffix = "" } = profile;
+        return [
+            `${lastName || ""}${lastName ? "," : ""}`,
+            [firstName, middleName, suffix].filter(Boolean).join(" ")
+        ]
+            .filter(Boolean)
+            .join(" ")
+            .replace(/\s+/g, " ")
+            .trim();
+    };
+
+    // 🔹 Fetch students for autofill
     const fetchStudents = async (query) => {
         if (!query || query.length < 2) {
             setSearchResults([]);
@@ -98,11 +109,15 @@ const AddCaseModal = ({ visible, onClose, newCaseForm, onChange, onSave, isButto
         debouncedFetch(e.target.value);
     };
 
+    // 🔹 When a student is selected from search
     const handleSelectStudent = (student) => {
         setSearchResults([]);
-        onChange({ name: "studentName", value: student.studentProfile.name });
+        const profile = student.studentProfile || {};
+        const fullName = formatFullName(profile);
+
+        onChange({ name: "studentName", value: fullName });
         onChange({ name: "studentId", value: student.sid });
-        onChange({ name: "programSection", value: `${student.studentProfile.program} ${student.studentProfile.section}` });
+        onChange({ name: "programSection", value: `${profile.program || ''} ${profile.section || ''}`.trim() });
     };
 
     const handleViolationInput = () => {
@@ -190,7 +205,7 @@ const AddCaseModal = ({ visible, onClose, newCaseForm, onChange, onSave, isButto
                                                 onClick={() => handleSelectStudent(student)}
                                                 className="px-3 py-2 cursor-pointer hover:bg-blue-100"
                                             >
-                                                {student.studentProfile.name}
+                                                {formatFullName(student.studentProfile)}
                                             </li>
                                         ))}
                                     </ul>
@@ -289,7 +304,6 @@ const AddCaseModal = ({ visible, onClose, newCaseForm, onChange, onSave, isButto
                         disabled={isButtonSubmitting}
                     >
                         {isButtonSubmitting ? 'Submitting...' : <>Add Case <Check className="w-8 h-8 ml-2" /></>}
-
                     </button>
                 </div>
             </div>

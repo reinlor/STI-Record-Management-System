@@ -722,20 +722,100 @@ const restoreStudent = async (req, res) => {
 
 const searchStudent = async (req, res) => {
   try {
-    const { name } = req.query;
-    if (!name) return res.json([]);
+    const raw = (req.query.name || "").trim();
+    if (!raw || raw.length < 2) return res.json([]);
 
-    const snapshot = await getStudentCollection()
-      .where("studentProfile.name", ">=", name)
-      .where("studentProfile.name", "<=", name + "\uf8ff")
-      .get();
+    const collection = getStudentCollection(); 
 
-    const students = snapshot.docs.map(doc => doc.data());
-    res.json(students);
+    const variants = new Set();
+    variants.add(raw);
+    variants.add(raw[0]?.toUpperCase() + raw.slice(1));
+    variants.add(raw.split(/\s+/).map((w, i) => i === 0 ? (w[0]?.toUpperCase() + w.slice(1)) : w).join(" "));
+
+    const fields = [
+      "studentProfile.firstName",
+      "studentProfile.middleName",
+      "studentProfile.lastName",
+      "studentProfile.suffix",
+      "studentProfile.name"
+    ];
+
+    const studentsMap = new Map();
+
+    const promises = [];
+    for (const field of fields) {
+      for (const v of variants) {
+        promises.push(
+          collection
+            .where(field, ">=", v)
+            .where(field, "<=", v + "\uf8ff")
+            .limit(50)
+            .get()
+            .catch(() => ({ empty: true, docs: [] })) 
+        );
+      }
+    }
+
+    const snapshots = await Promise.all(promises);
+
+    snapshots.forEach(snapshot => {
+      if (!snapshot || snapshot.empty) return;
+      snapshot.docs.forEach(doc => {
+        const id = doc.id;
+        if (!studentsMap.has(id)) {
+          studentsMap.set(id, { id, ...doc.data() });
+        }
+      });
+    });
+
+    const qLower = raw.toLowerCase();
+    const matched = [];
+    for (const [, data] of studentsMap) {
+      const profile = data.studentProfile || {};
+
+      const candidates = [];
+      // split fields
+      ["firstName", "middleName", "lastName", "suffix", "name"].forEach(k => {
+        if (profile[k]) candidates.push(String(profile[k]));
+      });
+      const joinedParts = [profile.lastName, profile.firstName, profile.middleName, profile.suffix]
+        .filter(Boolean)
+        .join(" ");
+      if (joinedParts) candidates.push(joinedParts);
+
+      const isMatch = candidates.some(c => c.toLowerCase().startsWith(qLower));
+      if (!isMatch) continue;
+
+      const formatted = [
+        `${profile.lastName || ""}${profile.lastName ? "," : ""}`,
+        [profile.firstName, profile.middleName, profile.suffix].filter(Boolean).join(" ")
+      ].filter(Boolean).join(" ").replace(/\s+/g, " ").trim();
+
+      data.studentProfile = {
+        ...profile,
+        fullName: formatted
+      };
+
+      matched.push(data);
+    }
+
+    matched.sort((a, b) => {
+      const pa = a.studentProfile || {}, pb = b.studentProfile || {};
+      const la = (pa.lastName || "").toLowerCase();
+      const lb = (pb.lastName || "").toLowerCase();
+      if (la !== lb) return la.localeCompare(lb);
+      const fa = (pa.firstName || "").toLowerCase();
+      const fb = (pb.firstName || "").toLowerCase();
+      return fa.localeCompare(fb);
+    });
+
+    res.json(matched);
   } catch (error) {
-    console.error(error);
+    console.error("searchStudent error:", error);
     res.status(500).json({ message: "Search failed" });
   }
-}
+};
+
+
 
 module.exports = { addStudent, getStudents, updateStudent, getStudent, getActiveStudent, getArchivedStudent, archiveStudent, restoreStudent, searchStudent };
