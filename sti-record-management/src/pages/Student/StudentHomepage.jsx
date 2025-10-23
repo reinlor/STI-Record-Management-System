@@ -69,7 +69,10 @@ export default function StudentHomepage() {
   };
 
   return (
-    <div className="relative min-h-screen text-black bg-white bg-[url('/grid.svg')] bg-repeat">
+    <div className="relative w-full max-w-full box-border min-h-screen text-black bg-white bg-[url('/grid.svg')] bg-repeat overflow-x-hidden">
+      {/* guard against overflow on smallest devices */}
+      <style>{`html, body, #root { overflow-x: hidden; }`}</style>
+
       <ConsentModal
         isFirstLogin={authData.user.isFirstLogin}
         id={authData.user.uid}
@@ -82,9 +85,12 @@ export default function StudentHomepage() {
           onOpenChangePassword={() => setIsChangePasswordModalOpen(true)}
         />
       </div>
-      <div className="px-0 w-full">
+
+      {/* keep page content padded on very small screens but never wider than viewport */}
+      <div className="px-4 sm:px-0 w-full max-w-full box-border overflow-hidden">
         {renderModule()}
       </div>
+
       <ChangePasswordModal
         isOpen={isChangePasswordModalOpen}
         onClose={() => setIsChangePasswordModalOpen(false)}

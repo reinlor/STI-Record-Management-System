@@ -42,21 +42,21 @@ const StudentTopBar = ({
   };
 
   return (
-    <div className="bg-[#0B5793] text-white flex items-center justify-between px-4 py-4 relative shadow-lg">
+    <div className="bg-[#0B5793] text-white flex items-center justify-between px-4 py-4 relative shadow-lg w-full box-border">
       {/* Left Section (Logo + Nav) */}
-      <div className="flex items-center">
-        <span className="text-2xl sm:text-3xl font-bold mr-3 sm:mr-6">
+      <div className="flex items-center min-w-0">
+        <span className="text-2xl sm:text-3xl font-bold mr-3 sm:mr-6 flex-shrink-0">
           <span className="text-[#F4D03F]">STI</span>{" "}
           <span className="text-white">GORMS</span>
         </span>
 
-        {/* Desktop Menu (show starting from sm: screens) */}
-        <div className="hidden sm:flex space-x-1 lg:space-x-2 font-medium">
+        {/* Desktop Menu (show starting from md: screens) */}
+        <div className="hidden md:flex space-x-1 lg:space-x-2 font-medium overflow-x-auto">
           {modules.map((mod) => (
             <button
               key={mod.id}
               onClick={() => setSelected(mod.id)}
-              className={`py-2 px-3 lg:px-4 rounded-md transition-colors whitespace-nowrap text-sm lg:text-base ${selected === mod.id
+              className={`py-2 px-3 lg:px-4 rounded-md transition-colors whitespace-nowrap text-sm lg:text-base flex-shrink-0 ${selected === mod.id
                   ? "bg-[#3473A4] text-white font-bold"
                   : "hover:bg-[#3473A4] cursor-pointer"
                 }`}
@@ -68,12 +68,12 @@ const StudentTopBar = ({
       </div>
 
       {/* Right Section */}
-      <div className="flex items-center gap-2">
-        <div className="hover: cursor-pointer">
+      <div className="flex items-center gap-2 flex-shrink-0">
+        <div className="cursor-pointer hover:text-white">
           <NotificationIcon setSelected={setSelected} uid={authData.user.uid} />
         </div>
         {/* Settings Dropdown (PC only) */}
-        <div ref={containerRef} className="relative hidden sm:block">
+        <div ref={containerRef} className="relative hidden md:block">
           <button
             className="p-2 text-gray-300 hover:text-white transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#F4D03F] rounded-full"
             onClick={() => setIsDropdownOpen((open) => !open)}
@@ -105,9 +105,9 @@ const StudentTopBar = ({
           )}
         </div>
 
-        {/* Mobile Hamburger (only visible on xs) */}
+        {/* Mobile Hamburger (visible below md) */}
         <button
-          className="sm:hidden p-2 text-gray-300 hover:text-white"
+          className="md:hidden p-2 text-gray-300 hover:text-white"
           onClick={() => setIsMobileMenuOpen((prev) => !prev)}
         >
           {isMobileMenuOpen ? (
@@ -118,9 +118,9 @@ const StudentTopBar = ({
         </button>
       </div>
 
-      {/* Mobile Menu Panel */}
+      {/* Mobile Menu Panel (visible below md) */}
       {isMobileMenuOpen && (
-        <div className="absolute top-full left-0 w-full bg-white text-[#607D8D] flex flex-col items-start px-4 py-3 space-y-2 sm:hidden z-30 shadow-lg animate-fade-in-down">
+        <div className="absolute top-full left-0 right-0 w-screen bg-white text-[#607D8D] flex flex-col items-start px-4 py-3 space-y-2 md:hidden z-30 shadow-lg animate-fade-in-down">
           {modules.map((mod) => (
             <button
               key={mod.id}
