@@ -322,60 +322,76 @@ export default function ProfileView() {
       },
       "Contact Information": {
         icon: <Phone className={iconClass} />,
-        data: [
+        data: [],
+        subsections: [
           {
-            label: "Mobile Number",
-            value: student.contactInfo?.contactNo || "",
-            type: "tel",
-            path: "contactInfo.contactNo",
+            title: "Contact",
+            fields: [
+              {
+                label: "Mobile Number",
+                value: student.contactInfo?.contactNo || "",
+                type: "tel",
+                path: "contactInfo.contactNo",
+              },
+              {
+                label: "Home Number",
+                value: student.contactInfo?.homeNo || "",
+                type: "tel",
+                path: "contactInfo.homeNo",
+              },
+              {
+                label: "Work Number",
+                value: student.contactInfo?.workNo || "",
+                type: "tel",
+                path: "contactInfo.workNo",
+              },
+              {
+                label: "Email",
+                value: student.contactInfo?.email || "",
+                type: "email",
+                path: "contactInfo.email",
+              },
+            ],
           },
           {
-            label: "Email",
-            value: student.contactInfo?.email || "",
-            type: "email",
-            path: "contactInfo.email",
+            title: "Address",
+            fields: [
+              {
+                label: "Current Address",
+                value: student.contactInfo?.address?.currentAddress || "",
+                type: "text",
+                path: "contactInfo.address.currentAddress",
+              },
+              {
+                label: "Permanent Address",
+                value: student.contactInfo?.address?.permanentAddress || "",
+                type: "text",
+                path: "contactInfo.address.permanentAddress",
+              },
+              {
+                label: "Provincial Address",
+                value: student.contactInfo?.address?.provincialAddress || "",
+                type: "text",
+                path: "contactInfo.address.provincialAddress",
+              },
+            ],
           },
           {
-            label: "Home Number",
-            value: student.contactInfo?.homeNo || "",
-            type: "tel",
-            path: "contactInfo.homeNo",
-          },
-          {
-            label: "Current Address",
-            value: student.contactInfo?.address?.currentAddress || "",
-            type: "text",
-            path: "contactInfo.address.currentAddress",
-          },
-          {
-            label: "Permanent Address",
-            value: student.contactInfo?.address?.permanentAddress || "",
-            type: "text",
-            path: "contactInfo.address.permanentAddress",
-          },
-          {
-            label: "Provincial Address",
-            value: student.contactInfo?.address?.provincialAddress || "",
-            type: "text",
-            path: "contactInfo.address.provincialAddress",
-          },
-          {
-            label: "Work Number",
-            value: student.contactInfo?.workNo || "",
-            type: "tel",
-            path: "contactInfo.workNo",
-          },
-          {
-            label: "Emergency Contact Name",
-            value: student.familyBackground?.emergency?.name || "",
-            type: "text",
-            path: "familyBackground.emergency.name",
-          },
-          {
-            label: "Emergency Contact Number",
-            value: student.familyBackground?.emergency?.contactNo || "",
-            type: "tel",
-            path: "familyBackground.emergency.contactNo",
+            title: "Emergency Contact",
+            fields: [
+              {
+                label: "Emergency Contact Name",
+                value: student.familyBackground?.emergency?.name || "",
+                type: "text",
+                path: "familyBackground.emergency.name",
+              },
+              {
+                label: "Emergency Contact Number",
+                value: student.familyBackground?.emergency?.contactNo || "",
+                type: "tel",
+                path: "familyBackground.emergency.contactNo",
+              },
+            ],
           },
         ],
       },
