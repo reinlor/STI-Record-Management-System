@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useRef, useEffect } from "react";
 import DisplayInfo from "./DisplayInfo";
-import { Search, Loader2, X, ChevronDown, Filter, ChevronUp } from "lucide-react";
+import { Search, Loader2, X, ChevronDown, Filter, ChevronUp, ChevronLeft, ChevronRight } from "lucide-react";
 import { getStatusClasses } from "../../Student/components/statusClasses";
 import LoadingDots from "../../../component/Loading";
 
@@ -229,6 +229,23 @@ export default function ViewRequest({ referralData = [], isLoading = false }) {
     setSortOption("Newest First");
   };
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const rowsPerPage = 10;
+
+  // Reset page when filters/search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filters, search]);
+
+  // Paginated data
+  const paginatedData = useMemo(() => {
+    const startIdx = (currentPage - 1) * rowsPerPage;
+    return processedData.slice(startIdx, startIdx + rowsPerPage);
+  }, [processedData, currentPage]);
+
+  const totalPages = Math.ceil(processedData.length / rowsPerPage);
+
   return (
     <div className="min-h-screen flex flex-col items-center py-12 px-4 bg-gray-100 font-sans">
       <style>
@@ -401,6 +418,7 @@ export default function ViewRequest({ referralData = [], isLoading = false }) {
             {isLoading ? (
               <LoadingDots />
             ) : (
+              <>
               <table className="min-w-full text-left table-auto divide-y divide-gray-200">
                 <thead className="bg-white sticky top-0 z-10">
                   <tr>
@@ -414,8 +432,8 @@ export default function ViewRequest({ referralData = [], isLoading = false }) {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {processedData.length > 0 ? (
-                    processedData.map((row, idx) => (
+                  {paginatedData.length > 0 ? (
+                    paginatedData.map((row, idx) => (
                       <tr
                         key={idx}
                         className="bg-white border-b hover:bg-yellow-50 transition-colors"
@@ -451,6 +469,75 @@ export default function ViewRequest({ referralData = [], isLoading = false }) {
                   )}
                 </tbody>
               </table>
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+                <div className="flex justify-center items-center gap-2 py-4">
+                  <button
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className={`flex items-center gap-1 px-3 py-2 rounded-lg border transition-all duration-150 ${
+                      currentPage === 1
+                        ? "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200"
+                        : "bg-white text-gray-700 hover:bg-yellow-100 border-gray-300 cursor-pointer"
+                    }`}
+                    aria-label="Previous page"
+                  >
+                    <ChevronLeft size={18} />
+                    <span className="hidden sm:inline">Prev</span>
+                  </button>
+                  <div className="flex gap-1">
+                    {Array.from({ length: totalPages }, (_, i) => {
+                      // Show first, last, current, and neighbors
+                      if (
+                        i === 0 ||
+                        i === totalPages - 1 ||
+                        Math.abs(i + 1 - currentPage) <= 1
+                      ) {
+                        return (
+                          <button
+                            key={i + 1}
+                            onClick={() => setCurrentPage(i + 1)}
+                            className={`px-3 py-2 rounded-lg font-semibold border transition-all duration-150 ${
+                              currentPage === i + 1
+                                ? "bg-yellow-400 text-black border-yellow-400 shadow cursor-pointer"
+                                : "bg-white text-gray-700 hover:bg-yellow-100 border-gray-300 cursor-pointer"
+                            }`}
+                            aria-current={currentPage === i + 1 ? "page" : undefined}
+                          >
+                            {i + 1}
+                          </button>
+                        );
+                      }
+                      // Dots for skipped pages
+                      if (
+                        (i === 1 && currentPage > 3) ||
+                        (i === totalPages - 2 && currentPage < totalPages - 2)
+                      ) {
+                        return (
+                          <span key={`dots-${i}`} className="px-2 py-2 text-gray-400 select-none">
+                            ...
+                          </span>
+                        );
+                      }
+                      return null;
+                    })}
+                  </div>
+                  <button
+                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    className={`flex items-center gap-1 px-3 py-2 rounded-lg border transition-all duration-150 ${
+                      currentPage === totalPages
+                        ? "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200"
+                        : "bg-white text-gray-700 hover:bg-yellow-100 border-gray-300 cursor-pointer"
+                    }`}
+                    aria-label="Next page"
+                  >
+                    <span className="hidden sm:inline">Next</span>
+                    <ChevronRight size={18} />
+                  </button>
+                </div>
+              )}
+              </>
             )}
           </div>
         </div>

@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState, useContext, useRef } from "react";
 import axios from "axios";
 import ViewRequestModal from "./ViewRequestModal";
 import { getStatusClasses } from "../components/statusClasses";
-import { Search, Loader2, X, ChevronDown, Filter, FileText, AlertTriangle } from "lucide-react";
+import { Search, Loader2, X, ChevronDown, Filter, FileText, AlertTriangle, ChevronLeft, ChevronRight } from "lucide-react";
 import { AuthContext } from "../../../AuthProvider.jsx";
 import LoadingDots from "../../../component/Loading.jsx";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
@@ -31,6 +31,10 @@ export default function StudentViewRequest() {
     customEnd: "",
   });
   const [sortOption, setSortOption] = useState("Newest First");
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const rowsPerPage = 10;
 
   // REF for the status dropdown to detect outside clicks
   const dropdownRef = useRef(null);
@@ -284,6 +288,19 @@ export default function StudentViewRequest() {
     setSortOption("Newest First");
   };
 
+  // Reset page when filters/search/view changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filters, search, activeView]);
+
+  // Paginated data
+  const paginatedData = useMemo(() => {
+    const startIdx = (currentPage - 1) * rowsPerPage;
+    return processedData.slice(startIdx, startIdx + rowsPerPage);
+  }, [processedData, currentPage]);
+
+  const totalPages = Math.ceil(processedData.length / rowsPerPage);
+
   return (
     <div className="min-h-screen flex flex-col items-center py-12 px-4 bg-gray-100 font-sans">
       <div className="w-full max-w-screen-2xl">
@@ -314,7 +331,7 @@ export default function StudentViewRequest() {
               {/* Toggle filter button for mobile view */}
               <button
                 onClick={() => setShowFilters(!showFilters)}
-                className="px-3 py-2 bg-gray-100 text-gray-700 border border-gray-200 rounded-lg text-sm hover:bg-gray-200 sm:hidden flex items-center gap-2 whitespace-nowrap"
+                className="px-3 py-2 bg-gray-100 text-gray-700 border border-gray-200 rounded-lg text-sm hover:bg-gray-200 sm:hidden flex items-center gap-2 whitespace-nowrap cursor-pointer"
               >
                 <Filter size={16} />
                 Filters
@@ -322,7 +339,7 @@ export default function StudentViewRequest() {
 
               <button
                 onClick={() => clearFilters()}
-                className="px-3 py-2 bg-red-50 text-red-700 border border-red-100 rounded-lg text-sm hover:bg-red-100 whitespace-nowrap"
+                className="px-3 py-2 bg-red-50 text-red-700 border border-red-100 rounded-lg text-sm hover:bg-red-100 whitespace-nowrap cursor-pointer"
                 title="Clear all filters"
               >
                 Clear filters
@@ -334,7 +351,7 @@ export default function StudentViewRequest() {
           <div className="flex flex-wrap gap-2 mb-8">
             <button
               onClick={() => setActiveView("Absent Slip")}
-              className={`flex items-center gap-2 py-3 px-4 rounded-xl text-sm font-semibold transition-all duration-300 ${activeView === "Absent Slip"
+              className={`flex items-center gap-2 py-3 px-4 rounded-xl text-sm font-semibold transition-all duration-300 cursor-pointer ${activeView === "Absent Slip"
                 ? "bg-yellow-400 text-black shadow-lg"
                 : "bg-gray-200 text-gray-700 hover:bg-gray-300 hover:text-black"
                 }`}
@@ -344,7 +361,7 @@ export default function StudentViewRequest() {
             </button>
             <button
               onClick={() => setActiveView("Incident Report")}
-              className={`flex items-center gap-2 py-3 px-4 rounded-xl text-sm font-semibold transition-all duration-300 ${activeView === "Incident Report"
+              className={`flex items-center gap-2 py-3 px-4 rounded-xl text-sm font-semibold transition-all duration-300 cursor-pointer ${activeView === "Incident Report"
                 ? "bg-yellow-400 text-black shadow-lg"
                 : "bg-gray-200 text-gray-700 hover:bg-gray-300 hover:text-black"
                 }`}
@@ -363,7 +380,7 @@ export default function StudentViewRequest() {
               <button
                 id="status-select"
                 onClick={() => setShowStatusDropdown(!showStatusDropdown)}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2 bg-white text-sm text-left flex items-center justify-between focus:ring-2 focus:ring-yellow-400"
+                className="w-full border border-gray-300 rounded-lg px-4 py-2 bg-white text-sm text-left flex items-center justify-between focus:ring-2 focus:ring-yellow-400 cursor-pointer"
               >
                 {filters.statuses.length > 0 ? filters.statuses.join(", ") : "All"}
                 <ChevronDown size={16} className={`transform transition-transform ${showStatusDropdown ? 'rotate-180' : 'rotate-0'}`} />
@@ -377,7 +394,7 @@ export default function StudentViewRequest() {
                           type="checkbox"
                           checked={filters.statuses.includes(status)}
                           onChange={() => toggleStatusFilter(status)}
-                          className="w-4 h-4 text-yellow-400 focus:ring-yellow-400 rounded"
+                          className="w-4 h-4 text-yellow-400 focus:ring-yellow-400 rounded cursor-pointer"
                         />
                         <span>{status}</span>
                       </label>
@@ -394,7 +411,7 @@ export default function StudentViewRequest() {
                 id="date-range-select"
                 value={filters.dateRange}
                 onChange={(e) => setFilters((p) => ({ ...p, dateRange: e.target.value }))}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2 bg-white text-sm focus:ring-2 focus:ring-yellow-400"
+                className="w-full border border-gray-300 rounded-lg px-4 py-2 bg-white text-sm focus:ring-2 focus:ring-yellow-400 cursor-pointer"
               >
                 <option value="All">All Dates</option>
                 <option value="Today">Today</option>
@@ -412,7 +429,7 @@ export default function StudentViewRequest() {
                 id="sort-select"
                 value={sortOption}
                 onChange={(e) => setSortOption(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2 bg-white text-sm focus:ring-2 focus:ring-yellow-400"
+                className="w-full border border-gray-300 rounded-lg px-4 py-2 bg-white text-sm focus:ring-2 focus:ring-yellow-400 cursor-pointer"
               >
                 <option value="Newest First">Newest First</option>
                 <option value="Oldest First">Oldest First</option>
@@ -445,7 +462,7 @@ export default function StudentViewRequest() {
                 {s}
                 <button
                   onClick={() => toggleStatusFilter(s)}
-                  className="ml-1 text-green-700 font-bold"
+                  className="ml-1 text-green-700 font-bold cursor-pointer"
                   aria-label={`remove status ${s}`}
                 >
                   <X size={12} />
@@ -473,6 +490,7 @@ export default function StudentViewRequest() {
             {loading ? (
               <LoadingDots />
             ) : (
+              <>
               <table className="min-w-full text-left table-auto divide-y divide-gray-200">
                 <thead className="bg-white sticky top-0 z-10">
                   <tr>
@@ -488,8 +506,8 @@ export default function StudentViewRequest() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {processedData.length > 0 ? (
-                    processedData.map((row, idx) => (
+                  {paginatedData.length > 0 ? (
+                    paginatedData.map((row, idx) => (
                       <tr key={idx} className="bg-white border-b hover:bg-yellow-50 transition-colors">
                         <td className="px-6 py-4 text-sm font-medium text-gray-900 whitespace-nowrap">{row.typeOfSlip}</td>
                         <td className="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">{formatDate(row.timeCreated)}</td>
@@ -514,7 +532,7 @@ export default function StudentViewRequest() {
                         <td className="px-6 py-4 text-sm">
                           <button
                             onClick={() => setSelectedRow(row)}
-                            className="py-2 px-4 bg-yellow-400 text-black rounded-lg font-semibold shadow hover:bg-yellow-500 transition-colors"
+                            className="py-2 px-4 bg-yellow-400 text-black rounded-lg font-semibold shadow hover:bg-yellow-500 transition-colors cursor-pointer"
                           >
                             View
                           </button>
@@ -530,6 +548,75 @@ export default function StudentViewRequest() {
                   )}
                 </tbody>
               </table>
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+                <div className="flex justify-center items-center gap-2 py-4">
+                  <button
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className={`flex items-center gap-1 px-3 py-2 rounded-lg border transition-all duration-150 ${
+                      currentPage === 1
+                        ? "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200"
+                        : "bg-white text-gray-700 hover:bg-yellow-100 border-gray-300 cursor-pointer"
+                    }`}
+                    aria-label="Previous page"
+                  >
+                    <ChevronLeft size={18} />
+                    <span className="hidden sm:inline">Prev</span>
+                  </button>
+                  <div className="flex gap-1">
+                    {Array.from({ length: totalPages }, (_, i) => {
+                      // Show first, last, current, and neighbors
+                      if (
+                        i === 0 ||
+                        i === totalPages - 1 ||
+                        Math.abs(i + 1 - currentPage) <= 1
+                      ) {
+                        return (
+                          <button
+                            key={i + 1}
+                            onClick={() => setCurrentPage(i + 1)}
+                            className={`px-3 py-2 rounded-lg font-semibold border transition-all duration-150 ${
+                              currentPage === i + 1
+                                ? "bg-yellow-400 text-black border-yellow-400 shadow cursor-pointer"
+                                : "bg-white text-gray-700 hover:bg-yellow-100 border-gray-300 cursor-pointer"
+                            }`}
+                            aria-current={currentPage === i + 1 ? "page" : undefined}
+                          >
+                            {i + 1}
+                          </button>
+                        );
+                      }
+                      // Dots for skipped pages
+                      if (
+                        (i === 1 && currentPage > 3) ||
+                        (i === totalPages - 2 && currentPage < totalPages - 2)
+                      ) {
+                        return (
+                          <span key={`dots-${i}`} className="px-2 py-2 text-gray-400 select-none">
+                            ...
+                          </span>
+                        );
+                      }
+                      return null;
+                    })}
+                  </div>
+                  <button
+                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    className={`flex items-center gap-1 px-3 py-2 rounded-lg border transition-all duration-150 ${
+                      currentPage === totalPages
+                        ? "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200"
+                        : "bg-white text-gray-700 hover:bg-yellow-100 border-gray-300 cursor-pointer"
+                    }`}
+                    aria-label="Next page"
+                  >
+                    <span className="hidden sm:inline">Next</span>
+                    <ChevronRight size={18} />
+                  </button>
+                </div>
+              )}
+              </>
             )}
           </div>
         </div>
