@@ -124,7 +124,7 @@ export default function StudentRequestSlip() {
       form.append("typeOfSlip", "Absent Slip");
       form.append("dateAbsentEnd", formData.dateAbsentEnd);
       form.append("dateAbsent", formData.dateAbsent);
-      form.append("reason", absentReason); //Reason of Absence nilagay ko nalang reason para gumana to sa backend 
+      form.append("reason", absentReason);
 
       const absentDays = getAbsentDays();
 
@@ -135,7 +135,9 @@ export default function StudentRequestSlip() {
           setIsLoading(false);
           return;
         }
+        // NEW ORDER: Excuse Letter → Guardian ID → Medical Certificate
         form.append("attachments", excuseLetter.file);
+        form.append("attachments", parentID.file);
         if (absentDays >= 3) {
           if (!medicalCertificate) {
             toast.error("Medical Certificate is required for 3 or more days of Health-Related absence.");
@@ -144,13 +146,13 @@ export default function StudentRequestSlip() {
           }
           form.append("attachments", medicalCertificate.file);
         }
-        form.append("attachments", parentID.file);
       } else if (absentReason === "Non-Health-Related") {
         if (!excuseLetter || !parentID) {
           toast.error("Excuse Letter and Parent's/Guardian's ID are required.");
           setIsLoading(false);
           return;
         }
+        // NEW ORDER: Excuse Letter → Guardian ID
         form.append("attachments", excuseLetter.file);
         form.append("attachments", parentID.file);
       } else {
@@ -647,12 +649,21 @@ export default function StudentRequestSlip() {
                 Attachments
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Excuse Letter */}
                 {renderFileUpload(
                   excuseLetter,
                   setExcuseLetter,
                   "Excuse Letter",
                   "Upload a signed excuse letter from your parent/guardian. Required for all absences."
                 )}
+                {/* Guardian ID */}
+                {renderFileUpload(
+                  parentID,
+                  setParentID,
+                  "Parent's/Guardian's ID",
+                  "Upload a clear photo of your parent’s/guardian’s valid ID with visible signature. Required to verify the excuse letter."
+                )}
+                {/* Medical Certificate (only for Health-Related) */}
                 {absentReason === "Health-Related" && (
                   renderFileUpload(
                     medicalCertificate,
@@ -660,12 +671,6 @@ export default function StudentRequestSlip() {
                     "Medical Certificate (required if 3+ consecutive days)",
                     "Upload a medical certificate from a licensed doctor if absent for 3 or more consecutive days."
                   )
-                )}
-                {renderFileUpload(
-                  parentID,
-                  setParentID,
-                  "Parent's/Guardian's ID",
-                  "Upload a clear photo of your parent’s/guardian’s valid ID with visible signature. Required to verify the excuse letter."
                 )}
                 {absentReason === "Non-Health-Related" && (
                   <div className="hidden md:block"></div>

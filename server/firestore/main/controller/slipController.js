@@ -44,35 +44,36 @@ const addAbsentSlip = async (req, res) => {
       guardianValidIDUrl = "";
 
     if (req.files && req.files.length > 0) {
+      // NEW ORDER: [0] Excuse Letter, [1] Guardian ID, [2] Medical Certificate
       if (req.files[0]) {
         const result = await cloudinary.uploader.upload(req.files[0].path, {
           folder: "slip-attachments",
         });
         excuseLetterUrl = result.secure_url;
-        uploadedPublicIds.push(result.public_id); // Track for cleanup in case of error
+        uploadedPublicIds.push(result.public_id);
         fs.unlinkSync(req.files[0].path);
       }
       if (req.files[1]) {
         const result = await cloudinary.uploader.upload(req.files[1].path, {
           folder: "slip-attachments",
         });
-        medicalCertificateUrl = result.secure_url;
+        guardianValidIDUrl = result.secure_url;
         uploadedPublicIds.push(result.public_id);
         fs.unlinkSync(req.files[1].path);
       }
       if (!req.files[1]) {
-        medicalCertificateUrl = "Empty";
+        guardianValidIDUrl = "Empty";
       }
       if (req.files[2]) {
         const result = await cloudinary.uploader.upload(req.files[2].path, {
           folder: "slip-attachments",
         });
-        guardianValidIDUrl = result.secure_url;
+        medicalCertificateUrl = result.secure_url;
         uploadedPublicIds.push(result.public_id);
         fs.unlinkSync(req.files[2].path);
       }
       if (!req.files[2]) {
-        guardianValidIDUrl = "Empty";
+        medicalCertificateUrl = "Empty";
       }
     }
 

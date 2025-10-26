@@ -222,7 +222,8 @@ export default function ViewRequestModal({ data, onClose }) {
                 <div className="space-y-2 text-sm text-gray-700 max-h-[150px] overflow-y-auto pr-2 -mr-2 custom-scrollbar">
                   {isAbsentSlip && hasAbsentAttachments ? (
                     <>
-                      {data.excuseLetterUrl && (
+                      {/* Excuse Letter */}
+                      {data.excuseLetterUrl && data.excuseLetterUrl !== "Empty" && (
                         <a
                           href={data.excuseLetterUrl}
                           target="_blank"
@@ -232,7 +233,8 @@ export default function ViewRequestModal({ data, onClose }) {
                           Excuse Letter
                         </a>
                       )}
-                      {data.guardianValidIDUrl && (
+                      {/* Guardian ID */}
+                      {data.guardianValidIDUrl && data.guardianValidIDUrl !== "Empty" && (
                         <a
                           href={data.guardianValidIDUrl}
                           target="_blank"
@@ -242,7 +244,8 @@ export default function ViewRequestModal({ data, onClose }) {
                           Guardian ID
                         </a>
                       )}
-                      {data.medicalCertificateUrl && (
+                      {/* Medical Certificate */}
+                      {data.medicalCertificateUrl && data.medicalCertificateUrl !== "Empty" && (
                         <a
                           href={data.medicalCertificateUrl}
                           target="_blank"
