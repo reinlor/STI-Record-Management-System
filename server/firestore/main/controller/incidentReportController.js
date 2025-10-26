@@ -20,7 +20,7 @@ const incidentReportSchema = Joi.object({
   incidentTime: Joi.string().required().empty(""),
   locationOfIncident: Joi.string().required().empty(""),
   personInvolved: Joi.string().required().allow("").empty(""),
-  witnessName: Joi.string().required().allow("").empty(""),
+  witnessName: Joi.string().optional().empty(""),
   witnessContact: Joi.string().optional().allow("").empty(""),
   narrativeReport: Joi.string().required().empty(""),
   actionTaken: Joi.string().required().empty(""),
