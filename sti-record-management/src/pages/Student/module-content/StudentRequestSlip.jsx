@@ -245,7 +245,7 @@ export default function StudentRequestSlip() {
             <button
               type="button"
               onClick={() => document.getElementById(fileId).click()}
-              className="py-2.5 px-6 bg-yellow-400 text-black font-semibold rounded-lg shadow-md hover:bg-yellow-500 hover:-translate-y-0.5 transform transition-all duration-300"
+              className="py-2.5 px-6 bg-yellow-400 text-black font-semibold rounded-lg shadow-md hover:bg-yellow-500 hover:-translate-y-0.5 transform transition-all duration-300 cursor-pointer"
             >
               <div className="flex items-center space-x-2">
                 <Upload className="w-5 h-5" />
@@ -318,7 +318,7 @@ export default function StudentRequestSlip() {
                 setParentID(null);
                 setMedicalCertificate(null);
               }}
-              className={`flex items-center gap-2 py-3 px-4 rounded-xl text-sm font-semibold transition-all duration-300 ${activeSlip === slip.id
+              className={`flex items-center gap-2 py-3 px-4 rounded-xl text-sm font-semibold transition-all duration-300 cursor-pointer ${activeSlip === slip.id
                   ? "bg-yellow-400 text-black shadow-lg"
                   : "bg-gray-200 text-gray-700 hover:bg-gray-300 hover:text-black"
                 }`}
@@ -384,7 +384,7 @@ export default function StudentRequestSlip() {
                       name="dateAbsent"
                       value={formData.dateAbsent}
                       onChange={handleChange}
-                      className={inputClasses}
+                      className={`${inputClasses} cursor-pointer`}
                       required
                     />
                   </div>
@@ -398,7 +398,7 @@ export default function StudentRequestSlip() {
                       name="dateAbsentEnd"
                       value={formData.dateAbsentEnd}
                       onChange={handleChange}
-                      className={inputClasses}
+                      className={`${inputClasses} cursor-pointer`}
                       required
                     />
                   </div>
@@ -411,7 +411,7 @@ export default function StudentRequestSlip() {
                   <select
                     value={absentReason}
                     onChange={(e) => setAbsentReason(e.target.value)}
-                    className="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-800 focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition-all duration-200"
+                    className={`${inputClasses} cursor-pointer`}
                     required
                   >
                     <option value="">Select Reason</option>
@@ -711,13 +711,13 @@ export default function StudentRequestSlip() {
                 setIncidentEvidence([]);
                 setAbsentReason("");
               }}
-              className="py-2.5 px-6 bg-gray-200 rounded-xl text-gray-800 font-semibold shadow-sm hover:bg-gray-300"
+              className="py-2.5 px-6 bg-gray-200 rounded-xl text-gray-800 font-semibold shadow-sm hover:bg-gray-300 cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="py-2.5 px-6 bg-yellow-400 text-black font-semibold rounded-xl shadow-lg hover:bg-yellow-500 hover:-translate-y-0.5 transform transition-all duration-200"
+              className="py-2.5 px-6 bg-yellow-400 text-black font-semibold rounded-xl shadow-lg hover:bg-yellow-500 hover:-translate-y-0.5 transform transition-all duration-200 cursor-pointer"
               disabled={isLoading}
             >
               {isLoading ? "Submitting..." : "Submit"}

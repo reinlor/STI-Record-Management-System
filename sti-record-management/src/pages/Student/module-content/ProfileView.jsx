@@ -1135,7 +1135,7 @@ export default function ProfileView() {
                   <button
                     type="button"
                     onClick={() => handleHealthAdd("hospitalized")}
-                    className="flex items-center text-yellow-700 hover:text-yellow-900 text-sm font-medium"
+                    className="flex items-center text-yellow-700 hover:text-yellow-900 text-sm font-medium cursor-pointer"
                   >
                     <PlusCircle className="w-4 h-4 mr-1" />
                     Add Entry
@@ -1185,7 +1185,7 @@ export default function ProfileView() {
                           <button
                             type="button"
                             onClick={() => handleHealthRemove("hospitalized", idx)}
-                            className="text-red-500 hover:text-red-700 text-sm flex items-center"
+                            className="text-red-500 hover:text-red-700 text-sm flex items-center cursor-pointer"
                             title="Remove Entry"
                           >
                             <Trash2 className="w-4 h-4 mr-1" />
@@ -1206,7 +1206,7 @@ export default function ProfileView() {
                   </div>
                 ))}
                 {isEditing && healthEdit.hospitalized?.length === 0 && (
-                  <div className="text-gray-400 italic p-4 text-center">Click 'Add Entry' to begin.</div>
+                  <div className="text-gray-400 italic p-4 text-center cursor-pointer">Click 'Add Entry' to begin.</div>
                 )}
               </div>
             </div>
@@ -1220,7 +1220,7 @@ export default function ProfileView() {
                   <button
                     type="button"
                     onClick={() => handleHealthAdd("operation")}
-                    className="flex items-center text-yellow-700 hover:text-yellow-900 text-sm font-medium"
+                    className="flex items-center text-yellow-700 hover:text-yellow-900 text-sm font-medium cursor-pointer"
                   >
                     <PlusCircle className="w-4 h-4 mr-1" />
                     Add Entry
@@ -1250,7 +1250,7 @@ export default function ProfileView() {
                         <button
                           type="button"
                           onClick={() => handleHealthRemove("operation", idx)}
-                          className="text-red-500 hover:text-red-700 p-2 rounded-full hover:bg-red-100"
+                          className="text-red-500 hover:text-red-700 p-2 rounded-full hover:bg-red-100 cursor-pointer"
                           title="Remove Entry"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -1262,7 +1262,7 @@ export default function ProfileView() {
                   </div>
                 ))}
                 {isEditing && healthEdit.operation?.length === 0 && (
-                  <div className="text-gray-400 italic p-4 text-center">Click 'Add Entry' to begin.</div>
+                  <div className="text-gray-400 italic p-4 text-center cursor-pointer">Click 'Add Entry' to begin.</div>
                 )}
               </div>
             </div>
@@ -1286,7 +1286,7 @@ export default function ProfileView() {
                       <button
                         type="button"
                         onClick={() => handleHealthAdd(key)}
-                        className="flex items-center text-yellow-700 hover:text-yellow-900 text-sm font-medium"
+                        className="flex items-center text-yellow-700 hover:text-yellow-900 text-sm font-medium cursor-pointer"
                       >
                         <PlusCircle className="w-4 h-4 mr-1" />
                         {field.addLabel}
@@ -1314,7 +1314,7 @@ export default function ProfileView() {
                             <button
                               type="button"
                               onClick={() => handleHealthRemove(key, idx)}
-                              className="text-red-500 hover:text-red-700 p-2 rounded-full hover:bg-red-100"
+                              className="text-red-500 hover:text-red-700 p-2 rounded-full hover:bg-red-100 cursor-pointer"
                               title="Remove Entry"
                             >
                               <Trash2 className="w-4 h-4" />
@@ -1453,7 +1453,7 @@ export default function ProfileView() {
                       <button
                         type="button"
                         onClick={() => handleMedicalCertRemove(idx)}
-                        className="text-red-500 hover:text-red-700 p-2 rounded-full hover:bg-red-100"
+                        className="text-red-500 hover:text-red-700 p-2 rounded-full hover:bg-red-100 cursor-pointer"
                         title="Remove File"
                       >
                         <X className="w-4 h-4" />
@@ -1504,7 +1504,7 @@ export default function ProfileView() {
                       <button
                         type="button"
                         onClick={() => handleInterestsRemove(key, idx)}
-                        className="text-red-500 hover:text-red-700 p-2 rounded-full hover:bg-red-100"
+                        className="text-red-500 hover:text-red-700 p-2 rounded-full hover:bg-red-100 cursor-pointer"
                         title="Remove Entry"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -1519,7 +1519,7 @@ export default function ProfileView() {
                 <button
                   type="button"
                   onClick={() => handleInterestsAdd(key)}
-                  className="flex items-center text-yellow-700 hover:text-yellow-900 text-sm font-medium mt-2"
+                  className="flex items-center text-yellow-700 hover:text-yellow-900 text-sm font-medium mt-2 cursor-pointer"
                 >
                   <PlusCircle className="w-4 h-4 mr-1" />
                   Add Entry
@@ -1629,7 +1629,7 @@ export default function ProfileView() {
                   <button
                     type="button"
                     onClick={() => handleArrayFieldRemove(key, idx)}
-                    className="text-red-500 hover:text-red-700 p-2 rounded-full hover:bg-red-100"
+                    className="text-red-500 hover:text-red-700 p-2 rounded-full hover:bg-red-100 cursor-pointer"
                     title="Remove Entry"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -1644,7 +1644,7 @@ export default function ProfileView() {
             <button
               type="button"
               onClick={() => handleArrayFieldAdd(key)}
-              className="flex items-center text-yellow-700 hover:text-yellow-900 text-sm font-medium mt-2"
+              className="flex items-center text-yellow-700 hover:text-yellow-900 text-sm font-medium mt-2 cursor-pointer"
             >
               <PlusCircle className="w-4 h-4 mr-1" />
               Add Entry
@@ -1713,7 +1713,7 @@ export default function ProfileView() {
             <button
               type="button"
               onClick={() => handleHealthAdd(key)}
-              className="flex items-center text-yellow-700 hover:text-yellow-900 text-sm font-medium"
+              className="flex items-center text-yellow-700 hover:text-yellow-900 text-sm font-medium cursor-pointer"
             >
               <PlusCircle className="w-4 h-4 mr-1" />
               {field.addLabel}
@@ -1741,7 +1741,7 @@ export default function ProfileView() {
                   <button
                     type="button"
                     onClick={() => handleHealthRemove(key, idx)}
-                    className="text-red-500 hover:text-red-700 p-2 rounded-full hover:bg-red-100"
+                    className="text-red-500 hover:text-red-700 p-2 rounded-full hover:bg-red-100 cursor-pointer"
                     title="Remove Entry"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -1845,7 +1845,7 @@ export default function ProfileView() {
           {!isEditing && (
             <button
               onClick={() => setIsEditing(true)}
-              className="flex items-center justify-center text-black font-semibold px-5 py-2 rounded-xl border-none bg-yellow-400 shadow-md hover:bg-yellow-500 hover:shadow-lg hover:-translate-y-0.5 transform transition-all duration-200 text-sm self-start sm:self-center"
+              className="flex items-center justify-center text-black font-semibold px-5 py-2 rounded-xl border-none bg-yellow-400 shadow-md hover:bg-yellow-500 hover:shadow-lg hover:-translate-y-0.5 transform transition-all duration-200 text-sm self-start sm:self-center cursor-pointer"
             >
               <Pencil className="w-4 h-4 mr-2" />
               <span>Edit</span>
@@ -1858,20 +1858,20 @@ export default function ProfileView() {
             <button
               onClick={
                 selectedCategory === "Health" ? handleHealthCancel :
-                  selectedCategory === "Interests and Hobbies" ? handleInterestsCancel :
-                    handleCancelEdit
+                selectedCategory === "Interests and Hobbies" ? handleInterestsCancel :
+                handleCancelEdit
               }
-              className="bg-gray-200 hover:bg-gray-300 font-semibold text-gray-800 px-6 py-2 rounded-xl text-sm shadow-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-400"
+              className="bg-gray-200 hover:bg-gray-300 font-semibold text-gray-800 px-6 py-2 rounded-xl text-sm shadow-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-400 cursor-pointer"
             >
               Cancel
             </button>
             <button
               onClick={
                 selectedCategory === "Health" ? handleHealthSave :
-                  selectedCategory === "Interests and Hobbies" ? handleInterestsSave :
-                    handleSave
+                selectedCategory === "Interests and Hobbies" ? handleInterestsSave :
+                handleSave
               }
-              className="bg-yellow-400 font-semibold text-black px-6 py-2 rounded-xl text-sm shadow-md hover:bg-yellow-500 hover:shadow-lg hover:-translate-y-0.5 transform transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+              className="bg-yellow-400 font-semibold text-black px-6 py-2 rounded-xl text-sm shadow-md hover:bg-yellow-500 hover:shadow-lg hover:-translate-y-0.5 transform transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-yellow-400 cursor-pointer"
             >
               Save
             </button>
@@ -1899,16 +1899,18 @@ export default function ProfileView() {
                     setSelectedCategory(categoryName);
                     setIsEditing(false);
                   }}
-                  className={`w-full text-left py-3 px-4 rounded-xl font-medium flex items-center text-sm shadow-sm hover:shadow-lg hover:-translate-y-0.5 transform transition-all duration-200 ${selectedCategory === categoryName
-                    ? "bg-yellow-400 text-black shadow-lg"
-                    : "text-gray-700 hover:bg-gray-200 hover:text-black"
-                    }`}
+                  className={`w-full text-left py-3 px-4 rounded-xl font-medium flex items-center text-sm shadow-sm hover:shadow-lg hover:-translate-y-0.5 transform transition-all duration-200 cursor-pointer ${
+                    selectedCategory === categoryName
+                      ? "bg-yellow-400 text-black shadow-lg"
+                      : "text-gray-700 hover:bg-gray-200 hover:text-black"
+                  }`}
                 >
                   {React.cloneElement(categories[categoryName].icon, {
-                    className: `w-5 h-5 mr-3 transition-colors duration-200 ${selectedCategory === categoryName
-                      ? "text-black"
-                      : "text-gray-600"
-                      }`,
+                    className: `w-5 h-5 mr-3 transition-colors duration-200 ${
+                      selectedCategory === categoryName
+                        ? "text-black"
+                        : "text-gray-600"
+                    }`,
                   })}
                   {categoryName}
                 </button>
