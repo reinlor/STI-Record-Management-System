@@ -69,15 +69,9 @@ export default function StudentHomepage() {
   };
 
   return (
-    <div className="relative w-full max-w-full box-border min-h-screen text-black bg-white bg-[url('/grid.svg')] bg-repeat overflow-x-hidden">
-      {/* guard against overflow on smallest devices */}
-      <style>{`html, body, #root { overflow-x: hidden; }`}</style>
-
-      <ConsentModal
-        isFirstLogin={authData.user.isFirstLogin}
-        id={authData.user.uid}
-      />
-      <div className="sticky top-0 z-50">
+    <div className="min-h-screen w-full bg-gray-100 bg-[url('/grid.svg')] bg-repeat">
+      {/* Sticky TopBar */}
+      <div className="sticky top-0 z-50 bg-[#0B5793]">
         <StudentTopBar
           selected={selected}
           setSelected={setSelected}
@@ -86,11 +80,16 @@ export default function StudentHomepage() {
         />
       </div>
 
-      {/* keep page content padded on very small screens but never wider than viewport */}
-      <div className="px-4 sm:px-0 w-full max-w-full box-border overflow-hidden">
+      {/* Main Content */}
+      <div className="px-4 sm:px-0 w-full max-w-full box-border">
         {renderModule()}
       </div>
 
+      {/* Modals */}
+      <ConsentModal
+        isFirstLogin={authData.user.isFirstLogin}
+        id={authData.user.uid}
+      />
       <ChangePasswordModal
         isOpen={isChangePasswordModalOpen}
         onClose={() => setIsChangePasswordModalOpen(false)}
