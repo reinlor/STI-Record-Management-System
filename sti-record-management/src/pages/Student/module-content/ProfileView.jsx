@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useMemo, useContext } from "react";
+import React, { useState, useMemo, useEffect, useContext } from "react";
+import { Menu, X } from "lucide-react";
+import { ToastContainer } from "react-toastify";
 import axios from "axios";
-import { Info, School, Users, Briefcase, Lightbulb, HeartPulse, Pencil, Lock, Phone, UserRound, Leaf, PlusCircle, Trash2, X } from "lucide-react";
+import { Info, School, Users, Briefcase, Lightbulb, HeartPulse, Pencil, Lock, Phone, UserRound, Leaf, PlusCircle, Trash2 } from "lucide-react";
 import { AuthContext } from "../../../AuthProvider.jsx";
 import LoadingDots from "../../../component/Loading.jsx";
-import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "../../../firebaseClient";
@@ -1881,44 +1882,104 @@ export default function ProfileView() {
     );
   }
 
-  // Main layout: sidebar for categories, main area for content
-  return (
-    <div className="flex flex-col lg:flex-row w-full min-h-screen font-sans p-4 sm:p-6 bg-gray-100 antialiased text-gray-900 gap-8">
-      <ToastContainer />
-      <div className="w-full lg:w-64 lg:min-w-[256px] p-4 sm:p-6 bg-white rounded-2xl shadow-xl flex-shrink-0">
-        <h2 className="text-3xl font-bold text-gray-800 tracking-tight">
-          Profile
-        </h2>
-        <hr className="my-4 border-gray-200" />
-        <nav className="-mt-1">
-          <ul className="space-y-2">
-            {Object.keys(categories).map((categoryName) => (
-              <li key={categoryName}>
-                <button
-                  onClick={() => {
-                    setSelectedCategory(categoryName);
-                    setIsEditing(false);
-                  }}
-                  className={`w-full text-left py-3 px-4 rounded-xl font-medium flex items-center text-sm shadow-sm hover:shadow-lg hover:-translate-y-0.5 transform transition-all duration-200 cursor-pointer ${
+  // Sidebar open state for mobile/tablet
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Sidebar JSX (same as before, but extracted for reuse)
+  const sidebar = (
+    <aside className="w-full max-w-[260px] p-4 sm:p-6 bg-white rounded-2xl shadow-xl flex-shrink-0 z-50">
+      <h2 className="text-3xl font-bold text-gray-800 tracking-tight">
+        Profile
+      </h2>
+      <hr className="my-4 border-gray-200" />
+      <nav className="-mt-1">
+        <ul className="space-y-2">
+          {Object.keys(categories).map((categoryName) => (
+            <li key={categoryName}>
+              <button
+                onClick={() => {
+                  setSelectedCategory(categoryName);
+                  setIsEditing(false);
+                  setSidebarOpen(false); // Close sidebar on select (mobile)
+                }}
+                className={`w-full text-left py-3 px-4 rounded-xl font-medium flex items-center text-sm shadow-sm hover:shadow-lg hover:-translate-y-0.5 transform transition-all duration-200 cursor-pointer ${
+                  selectedCategory === categoryName
+                    ? "bg-yellow-400 text-black shadow-lg"
+                    : "text-gray-700 hover:bg-gray-200 hover:text-black"
+                }`}
+              >
+                {React.cloneElement(categories[categoryName].icon, {
+                  className: `w-5 h-5 mr-3 transition-colors duration-200 ${
                     selectedCategory === categoryName
-                      ? "bg-yellow-400 text-black shadow-lg"
-                      : "text-gray-700 hover:bg-gray-200 hover:text-black"
-                  }`}
-                >
-                  {React.cloneElement(categories[categoryName].icon, {
-                    className: `w-5 h-5 mr-3 transition-colors duration-200 ${
-                      selectedCategory === categoryName
-                        ? "text-black"
-                        : "text-gray-600"
-                    }`,
-                  })}
-                  {categoryName}
-                </button>
-              </li>
-            ))}
-          </ul>
-        </nav>
-      </div>
+                      ? "text-black"
+                      : "text-gray-600"
+                  }`,
+                })}
+                {categoryName}
+              </button>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    </aside>
+  );
+
+  // Main layout
+  return (
+    <div className="flex flex-col lg:flex-row w-full min-h-screen font-sans p-4 sm:p-6 bg-gray-100 antialiased text-gray-900 gap-8 relative">
+      <ToastContainer />
+
+      {/* Burger button for mobile/tablet (fixed bottom left, not in topbar) */}
+      <button
+        className="lg:hidden fixed bottom-6 left-6 z-[100] bg-yellow-400 rounded-full p-3 shadow-lg flex items-center justify-center cursor-pointer border-2 border-white"
+        onClick={() => setSidebarOpen(true)}
+        aria-label="Open sidebar"
+        style={{ boxShadow: "0 4px 24px 0 rgba(0,0,0,0.10)" }}
+      >
+        <Menu className="w-7 h-7 text-black" />
+      </button>
+
+      {/* Sidebar: hidden on mobile/tablet, visible on desktop */}
+      <div className="hidden lg:block">{sidebar}</div>
+
+      {/* Mobile/Tablet Sidebar Drawer */}
+      {sidebarOpen && (
+        <>
+          {/* Blurred overlay */}
+          <div
+            className="fixed inset-0 z-[99] bg-black/10 backdrop-blur-sm transition-all"
+            onClick={() => setSidebarOpen(false)}
+          />
+          {/* Drawer */}
+          <aside
+            className="fixed left-0 top-0 h-full w-[85vw] max-w-[260px] bg-white z-[100] shadow-2xl rounded-r-2xl flex flex-col animate-slide-in"
+            style={{ boxShadow: "0 8px 32px 0 rgba(0,0,0,0.18)" }}
+          >
+            {/* Close button */}
+            <button
+              className="absolute top-4 right-4 text-gray-700 hover:text-black cursor-pointer"
+              onClick={() => setSidebarOpen(false)}
+              aria-label="Close sidebar"
+            >
+              <X className="w-6 h-6" />
+            </button>
+            <div className="pt-8 pb-4 px-2">{sidebar}</div>
+          </aside>
+          {/* Animation for sliding in */}
+          <style>
+            {`
+              @keyframes slideIn {
+                from { transform: translateX(-100%); }
+                to { transform: translateX(0); }
+              }
+              .animate-slide-in {
+                animation: slideIn 0.25s cubic-bezier(0.4,0,0.2,1);
+              }
+            `}
+          </style>
+        </>
+      )}
+
       <div className="flex-1 min-w-0">{content}</div>
     </div>
   );
