@@ -11,6 +11,7 @@ const axios = require("axios");
 const authMiddleware = require("./authentication");
 const securityHeaders = require("./securityHeader");
 const { admin } = require("./firebase");
+const { getFirestore, Timestamp } = require('firebase-admin/firestore');
 const db = admin.firestore();
 const backupController = require("./firestore/backup/controller/backupController");
 
@@ -210,7 +211,10 @@ cron.schedule("0 0 * * *", async () => {
 
     for (const name of collections) {
       const ref = db.collection(name);
-      const snapshot = await ref.where("status", "==", "Pending").get();
+      const snapshot = await ref
+        .where("status", "==", "Pending")
+        .get();
+
       if (snapshot.empty) continue;
 
       const batch = db.batch();
@@ -218,8 +222,25 @@ cron.schedule("0 0 * * *", async () => {
 
       snapshot.forEach((doc) => {
         const data = doc.data();
-        const createdAt = data.timeCreated?.toDate ? data.timeCreated.toDate() : new Date(data.timeCreated);
-        if (createdAt && createdAt <= sevenDaysAgo) {
+        const timeCreated = data.timeCreated;
+
+        let createdDate;
+        if (timeCreated instanceof Timestamp) {
+          createdDate = timeCreated.toDate();
+        } else if (typeof timeCreated === 'string') {
+          createdDate = new Date(timeCreated);
+          if (isNaN(createdDate.getTime())) {
+            console.warn(`Invalid date string for doc ${doc.id}: ${timeCreated}`);
+            return;
+          }
+        } else if (timeCreated && typeof timeCreated === 'object' && '_seconds' in timeCreated && '_nanoseconds' in timeCreated) {
+          createdDate = new Date(timeCreated._seconds * 1000 + timeCreated._nanoseconds / 1e6);
+        } else {
+          console.warn(`Unsupported timeCreated format for doc ${doc.id}`);
+          return; 
+        }
+
+        if (createdDate <= sevenDaysAgo) {
           batch.update(doc.ref, { status: "Inactive", processedDate: new Date() });
           updatedCount++;
         }

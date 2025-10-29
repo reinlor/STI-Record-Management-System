@@ -611,11 +611,19 @@ function StudentList() {
             {/* Top bar */}
             <div className="flex items-center gap-2 p-4 pb-2">
                 <div className="flex items-center gap-2">
-                    <button className={`flex items-center px-4 py-2 rounded-lg font-semibold transition ${activeLevel === "shs" ? "bg-[#0172bd] text-white shadow" : "bg-white text-[#0172bd] hover:bg-blue-100"} `} onClick={() => setActiveLevel("shs")}>
+                    <button className={`flex items-center px-4 py-2 rounded-lg font-semibold transition ${activeLevel === "shs" ? "bg-[#0172bd] text-white shadow" : "bg-white text-[#0172bd] hover:bg-blue-100"} `} 
+                        onClick={() => {
+                            setActiveLevel("shs")
+                            setCurrentPage(1)
+                            }}>
                         Senior High School
                         <Building className="w-5 h-5 ml-2" />
                     </button>
-                    <button className={`flex items-center px-4 py-2 rounded-lg font-semibold transition ${activeLevel === "college" ? "bg-[#0172bd] text-white shadow" : "bg-white text-[#0172bd] hover:bg-blue-100"} `} onClick={() => setActiveLevel("college")}>
+                    <button className={`flex items-center px-4 py-2 rounded-lg font-semibold transition ${activeLevel === "college" ? "bg-[#0172bd] text-white shadow" : "bg-white text-[#0172bd] hover:bg-blue-100"} `} 
+                        onClick={() => {
+                            setActiveLevel("college")
+                            setCurrentPage(1)
+                        }}>
                         College
                         <GraduationCap className="w-6 h-6 ml-2" />
                     </button>
@@ -831,7 +839,7 @@ function StudentList() {
                                             {/* Student ID (large screens only) */}
                                             <td className={tableCellClass + " hidden lg:table-cell"}>{student.sid}</td>
                                             {/* Name */}
-                                            <td className={tableCellClass}>{profile?.lastName}, {profile?.firstName} {profile?.lastName} {profile?.suffix}</td>
+                                            <td className={tableCellClass}>{profile?.lastName}, {profile?.firstName} {profile?.middleName} {profile?.suffix}</td>
                                             {/* Gender (large screens only) */}
                                             <td className={tableCellClass + " hidden lg:table-cell"}>{profile.gender}</td>
                                             {/* Program & Section */}
