@@ -101,9 +101,9 @@ export default function Sidebar() {
             </button>
             <div className="p-2 bg-[#1a1a2e]">
             <aside className={`
-                fixed left-0 top-0 h-full w-[220px] bg-[#1a1a2e] z-50 transition-transform duration-300 shadow-md text-white flex flex-col ease-in-out 
+                fixed left-0 top-0 h-screen w-[220px] bg-[#1a1a2e] z-50 transition-transform duration-300 shadow-md text-white flex flex-col ease-in-out 
                 ${isOpen ? 'translate-x-0' : '-translate-x-full'}
-                md:static md:h-auto md:shadow-none md:translate-x-0 overflow-y-auto
+                md:static md:h-auto md:shadow-none md:translate-x-0
             `}>
                 <div className="font-bold text-[1.1rem] py-[16px] px-5 border-b border-[#757575] bg-[#1a1a2e]">
                     {panelName} Panel
