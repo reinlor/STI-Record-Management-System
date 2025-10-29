@@ -21,7 +21,7 @@ import {
 export default function Sidebar() {
     const { authData = {}, logout } = useContext(AuthContext);
     const navigate = useNavigate();
-    const [isOpen, setIsOpen] = useState(window.innerWidth >= 768); 
+    const [isOpen, setIsOpen] = useState(window.innerWidth >= 1280); // changed from 1024 to 1280
     let menuPages = [];
     let panelName = '';
     const access = authData?.user?.access ?? null;
@@ -63,7 +63,7 @@ export default function Sidebar() {
 
     // Responsive: close sidebar on small screens
     const handleResize = () => {
-        if (window.innerWidth < 768) setIsOpen(false);
+        if (window.innerWidth < 1280) setIsOpen(false); // changed from 1024 to 1280
         else setIsOpen(true);
     };
 
@@ -80,7 +80,7 @@ export default function Sidebar() {
             <button
                 className={`fixed bottom-4 left-4 z-[100] rounded-md px-3 py-2 text-lg cursor-pointer shadow-md transition
                     ${isOpen ? 'bg-white' : 'bg-white/30'}
-                    md:hidden`}
+                    xl:hidden`} // changed from lg:hidden to xl:hidden
                 onClick={() => setIsOpen(!isOpen)}
                 aria-label={isOpen ? "Close sidebar" : "Open sidebar"}
             >
@@ -103,7 +103,7 @@ export default function Sidebar() {
             <aside className={`
                 fixed left-0 top-0 h-screen w-[220px] bg-[#1a1a2e] z-50 transition-transform duration-300 shadow-md text-white flex flex-col ease-in-out 
                 ${isOpen ? 'translate-x-0' : '-translate-x-full'}
-                md:static md:h-auto md:shadow-none md:translate-x-0
+                xl:static xl:h-auto xl:shadow-none xl:translate-x-0
                 overflow-y-auto max-h-screen
             `}>
                 <div className="font-bold text-[1.1rem] py-[16px] px-5 border-b border-[#757575] bg-[#1a1a2e]">
@@ -116,7 +116,7 @@ export default function Sidebar() {
                             className="px-5 py-[14px] cursor-pointer text-white transition bg-none border-none text-[1rem] hover:bg-yellow-400 flex items-center rounded-lg "
                             onClick={() => {
                                 navigate(page.path);
-                                if (window.innerWidth < 768) setIsOpen(false); // auto-close on mobile
+                                if (window.innerWidth < 1280) setIsOpen(false); // auto-close on iPad Mini landscape & below
                             }}
                         >
                             {iconMap[page.label]}
