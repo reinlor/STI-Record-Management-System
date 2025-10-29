@@ -104,7 +104,7 @@ function SummaryReport({ allData, slipData, leaderboardData }) {
             const percentage = ((topViolation[1] / totalViolations) * 100).toFixed(1);
             report += `• A total of ${totalViolations} violation(s) were recorded. The most frequent violation is "${topViolation[0]}", making up ${percentage}% (${topViolation[1]} cases).\n`;
             if (topViolator) {
-                report += `• The top violator is ${topViolator.name} with ${topViolator.violations} recorded case(s).\n\n`;
+                report += `•  ${topViolator.name} has the most violation recorded with ${topViolator.violations} recorded case(s).\n\n`;
             }
         } else {
             report += "• No violations recorded this school year.\n\n";

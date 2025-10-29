@@ -38,7 +38,7 @@ function Leaderboard({ leaderboardData, availableYears = [], onChangeYear }) {
     return (
         <div className="col-span-1 md:col-span-1 row-span-1 bg-white rounded-lg border border-gray-300 p-4 shadow-sm flex flex-col min-h-[400px]">
             <h2 className="text-lg font-bold mb-2 text-[#0172bd] flex justify-between items-center">
-                <span>Top Violators</span>
+                <span>Violation Overview</span>
                 <select
                     className="text-sm border border-gray-300 rounded-md px-2 py-1 focus:outline-none"
                     value={localSchoolYear || ""}
