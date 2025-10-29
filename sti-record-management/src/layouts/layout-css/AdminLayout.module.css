@@ -2,7 +2,7 @@
   display: flex;
   min-height: 100vh;
   height: 100vh;
-  overflow: hidden;
+  overflow: visible; /* allow fixed sidebar to size correctly on mobile */
 }
 
 .headerArea {
@@ -32,4 +32,12 @@
   padding: 0;
   box-shadow: 0 2px 8px rgba(0,0,0,0.05);
   margin: 0;
+}
+
+/* Sidebar overflow handling */
+aside {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  max-height: 100dvh;
+  box-sizing: border-box;
 }
