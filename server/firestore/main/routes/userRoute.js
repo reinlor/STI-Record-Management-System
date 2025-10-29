@@ -19,7 +19,6 @@ router.post("/create", addUser);                  // Add a user
 router.delete("/:id", deleteUser);                // Delete a user by ID
 router.put("/update/:uid", updateUser);           // Update a user by UID (changed param to uid + method to PUT)
 router.post("/authenticate", authenticateUser);   // Authenticate user (changed to POST)
-router.post("/reset-password", resetPassword);    // Reset user password
 router.post("/logout", logoutUser);               // clear user logins
 router.get("/me", getSessionUser);                // get user session
 

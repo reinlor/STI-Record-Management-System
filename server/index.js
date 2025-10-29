@@ -40,6 +40,8 @@ const restoreRoutes = require("./firestore/backup/routes/restoreRoutes");
 const configRoutes = require("./firestore/main/routes/firebaseClientConfigRoute");
 const surveySummary = require("./firestore/main/routes/surveyResponseRoute");
 
+const userController = require("./firestore/main/controller/userController")
+
 const app = express();
 const PORT = process.env.PORT || 5000;
 const HOST = process.env.HOST || "127.0.0.1";
@@ -118,10 +120,11 @@ safeUseRoute("/firebase", publicLimiter, configRoutes);
 
 // Authenticated routes
 app.use("/user", authLimiter, authMiddleware, userRoute);
+app.use("/reset-password", apiLimiter, userController.resetPassword)
 app.use("/student", apiLimiter, authMiddleware, studentRoute);
 app.use("/cases", apiLimiter, authMiddleware, studentCaseRoute);
 app.use("/slip", apiLimiter, authMiddleware, slipRoute);
-app.use("/email", apiLimiter, authMiddleware, emailRoute);
+app.use("/email", apiLimiter, emailRoute);
 app.use("/photo-to-text", apiLimiter, authMiddleware, demoOCRRoute);
 app.use("/referral", apiLimiter, authMiddleware, referralRouter);
 

@@ -179,7 +179,7 @@ function LoginBeta() {
     setErrorMsg("");
 
     try {
-      const resetResponse = await axios.post(`/user/reset-password`, {
+      const resetResponse = await axios.post(`/reset-password`, {
         email: schoolId,
       });
 
