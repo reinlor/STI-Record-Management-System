@@ -240,7 +240,7 @@ function ReferralFormProcessing() {
   const filtered = referralData.filter(
     (ref) =>
       (filterStatus === "" || ref.status === filterStatus) &&
-      (filterPriority === "" || ref.priority === filterPriority) &&
+      (filterPriority === "" || String(ref.levelOfPriority || "") === String(filterPriority)) &&
       (
         ref.referredBy?.toLowerCase().includes(search.toLowerCase()) ||
         ref.studentName?.toLowerCase().includes(search.toLowerCase())
@@ -249,13 +249,9 @@ function ReferralFormProcessing() {
 
   // Sort logic
   const sorted = [...filtered].sort((a, b) => {
-    const aDate = new Date(a.preparedDate || a.createdAt || 0).getTime();
-    const bDate = new Date(b.preparedDate || b.createdAt || 0).getTime();
-    if (sortBy === "newest") {
-      return bDate - aDate;
-    } else {
-      return aDate - bDate;
-    }
+    const aMs = toMillisSafe(a.preparedDate ?? a.createdAt ?? 0) || 0;
+    const bMs = toMillisSafe(b.preparedDate ?? b.createdAt ?? 0) || 0;
+    return sortBy === "newest" ? bMs - aMs : aMs - bMs;
   });
 
   // Remove resolved from display
@@ -342,7 +338,7 @@ function ReferralFormProcessing() {
             <div className="relative w-full sm:w-64">
               <input
                 type="text"
-                placeholder="Name/ ID"
+                placeholder="Name of Referrer or Student"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="w-full border border-gray-300 rounded-lg px-4 py-2 pr-10 focus:outline-none focus:ring-1 focus:ring-[#0172bd]"
@@ -607,16 +603,16 @@ function ReferralFormProcessing() {
                       className="w-full border border-gray-300 rounded-md p-3 mt-1 resize-y bg-[#f3f4f6] text-black focus:outline-none focus:ring-1 focus:ring-[#0172bd]"
                       rows={2}
                     />
-                  </div>
 
-                  <p className="font-bold text-[#0172bd]">Counselor’s Initial Action:<span className="text-red-700">*</span></p>
-                  <textarea
-                    value={action}
-                    onChange={(e) => setAction(e.target.value)}
-                    className="w-full border border-gray-300 rounded-md p-3 mt-1 resize-y bg-[#f3f4f6] text-black focus:outline-none focus:ring-1 focus:ring-[#0172bd]"
-                    placeholder="Investigates the case, Develop an action plan, etc..."
-                    rows={5}
-                  />
+                    <p className="font-bold text-[#0172bd]">Counselor’s Initial Action:<span className="text-red-700">*</span></p>
+                    <textarea
+                      value={action}
+                      onChange={(e) => setAction(e.target.value)}
+                      className="w-full border border-gray-300 rounded-md p-3 mt-1 resize-y bg-[#f3f4f6] text-black focus:outline-none focus:ring-1 focus:ring-[#0172bd]"
+                      placeholder="Investigates the case, Develop an action plan, etc..."
+                      rows={5}
+                    />
+                  </div>
                 </div>
 
                 {/* Right Column */}
