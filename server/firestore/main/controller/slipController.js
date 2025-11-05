@@ -1,5 +1,5 @@
 const Joi = require("joi");
-const { Timestamp } = require("firebase-admin").firestore;
+const { Timestamp } = require('firebase-admin/firestore');
 
 const cloudinary = require("../../../config/cloudinary.js");
 const fs = require("fs");
@@ -28,7 +28,7 @@ const absentSlipSchema = Joi.object({
   guardianValidIDUrl: Joi.string().required(),
   attachmentCount: Joi.number().required(),
   status: Joi.string().required(),
-  timeCreated: Joi.date().required(),
+  timeCreated: Joi.required(),
   dateAbsent: Joi.string().required(),
   dateAbsentEnd: Joi.string().required(),
   remarks: Joi.string().optional().allow(""),
@@ -86,7 +86,7 @@ const addAbsentSlip = async (req, res) => {
       guardianValidIDUrl,
       attachmentCount: req.files ? req.files.length : 0,
       status: "Pending",
-      timeCreated: new Date(),
+      timeCreated: Timestamp.fromDate(new Date()),
       dateAbsent: req.body.dateAbsent,
       dateAbsentEnd: req.body.dateAbsentEnd,
       remarks: "",
@@ -140,7 +140,7 @@ const addAbsentSlip = async (req, res) => {
     }
 
     const newAdminNotification = {
-      date: new Date(),
+      date: Timestamp.fromDate(new Date()),
       from: "Student",
       isRead: false,
       notifID: `adminRequest-${existingAdminNotification.length + 1}`,
@@ -352,7 +352,7 @@ const updateSlipStatus = async (req, res) => {
     }
 
     const newStudentNotification = {
-      date: new Date(),
+      date: Timestamp.fromDate(new Date()),
       from: name,
       isRead: false,
       notifID: `SR-${uid}-${existingNotifications.length + 1}`,
@@ -361,7 +361,7 @@ const updateSlipStatus = async (req, res) => {
     };
 
     const newAdminNotification = {
-      date: new Date(),
+      date: Timestamp.fromDate(new Date()),
       from: name,
       isRead: false,
       notifID: `adminRequest-${existingAdminNotification.length + 1}`,

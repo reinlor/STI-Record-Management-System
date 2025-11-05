@@ -3,6 +3,7 @@ const { getAssessmentExamCollection } = require("../models/assessmentExamModel")
 const { getContentManagementCollection } = require("../models/contentManagementModel");
 const Joi = require("joi");
 const admin = require("firebase-admin");
+const { Timestamp } = require('firebase-admin/firestore');
 
 // Document IDs
 const ASSESSMENT_FORM_DOC_ID = "assessmentForm";
@@ -180,7 +181,7 @@ const createSurvey = async (req, res) => {
     if (!doc.exists) {
       // create document with surveys object
       const surveys = {
-        [surveyName]: { description, questions: [], isReleased: false, totalScore: 0, processedBy, timeCreated: new Date(), schoolYear: currentSchoolYear },
+        [surveyName]: { description, questions: [], isReleased: false, totalScore: 0, processedBy, timeCreated: Timestamp.fromDate(new Date()), schoolYear: currentSchoolYear },
       };
       await docRef.set({ surveys });
       return res.status(201).send({ message: "Survey created", survey: surveys[surveyName] });
@@ -190,7 +191,7 @@ const createSurvey = async (req, res) => {
       if (surveys[surveyName]) {
         return res.status(409).send({ error: "Survey with this name already exists" });
       }
-      surveys[surveyName] = { description, questions: [], isReleased: false, totalScore: 0, processedBy, timeCreated: new Date(), schoolYear: currentSchoolYear };
+      surveys[surveyName] = { description, questions: [], isReleased: false, totalScore: 0, processedBy, timeCreated: Timestamp.fromDate(new Date()), schoolYear: currentSchoolYear };
       await docRef.update({ surveys });
       return res.status(201).send({ message: "Survey created", survey: surveys[surveyName] });
     }

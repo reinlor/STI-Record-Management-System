@@ -9,7 +9,7 @@ export default defineConfig({
     sourcemap: false,
   },
   server: {
-    allowedHosts: ['sti-gorms.duckdns.org'],
+    allowedHosts: ['sti-gorms.online'],
     host: true,
     proxy: {
        

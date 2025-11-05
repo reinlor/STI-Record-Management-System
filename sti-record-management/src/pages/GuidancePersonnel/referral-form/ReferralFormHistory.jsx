@@ -45,20 +45,66 @@ function ReferralFormHistory() {
 
   const formatDate = (timestamp) => {
     if (!timestamp) return "-";
-    if (timestamp.seconds) {
-      return new Date(timestamp.seconds * 1000).toLocaleString("en-US", {
-        month: "long",
-        day: "numeric",
-        year: "numeric",
-        hour: "numeric",
-        minute: "2-digit",
-        second: "2-digit",
-      });
+
+    // Handle Firebase Timestamp object or serialized map
+    if (typeof timestamp === "object" && timestamp !== null) {
+      const secs = timestamp.seconds || timestamp._seconds;
+      const nano = timestamp.nanoseconds || timestamp._nanoseconds || 0;
+
+      if (typeof secs === "number") {
+        const ms = secs * 1000 + nano / 1000000;
+        return new Date(ms).toLocaleString("en-US", {
+          timeZone: "Asia/Manila",
+          month: "long",
+          day: "numeric",
+          year: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+          second: "2-digit",
+        });
+      }
+
+      if (timestamp instanceof Date) {
+        return timestamp.toLocaleString("en-US", {
+          timeZone: "Asia/Manila",
+          month: "long",
+          day: "numeric",
+          year: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+          second: "2-digit",
+        });
+      }
     }
+
     if (typeof timestamp === "string") return timestamp;
+
     return "-";
   };
 
+
+  const getTimestampMs = (timestamp) => {
+    if (!timestamp) return 0;
+
+    if (typeof timestamp === "object" && timestamp !== null) {
+      const secs = timestamp.seconds || timestamp._seconds;
+      const nano = timestamp.nanoseconds || timestamp._nanoseconds || 0;
+
+      if (typeof secs === "number") {
+        return secs * 1000 + nano / 1000000;
+      }
+
+      if (timestamp instanceof Date) {
+        return timestamp.getTime();
+      }
+    }
+
+    if (typeof timestamp === "string") {
+      return new Date(timestamp).getTime();
+    }
+
+    return 0;
+  };
 
   // Filter and pagination logic
   const filtered = referralData.filter(
@@ -69,9 +115,12 @@ function ReferralFormHistory() {
         ref.studentName?.toLowerCase().includes(search.toLowerCase())
       )
   );
-  const totalRows = filtered.length;
+
+  const sorted = filtered.sort((a, b) => getTimestampMs(b.feedBackDate) - getTimestampMs(a.feedBackDate));
+
+  const totalRows = sorted.length;
   const totalPages = Math.ceil(totalRows / rowsPerPage);
-  const pagedReferrals = filtered.slice(
+  const pagedReferrals = sorted.slice(
     (currentPage - 1) * rowsPerPage,
     currentPage * rowsPerPage
   );
@@ -91,7 +140,7 @@ function ReferralFormHistory() {
         <td className="px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">{referrals.employeeID}</td>
         <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 break-words max-w-[150px] truncate align-middle">{referrals.reasonForReferral}</td>
         <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3">{referrals.studentName}</td>
-        <td className="px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">{formatDate(referrals.preparedDate)}</td>
+        <td className="px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">{formatDate(referrals.feedBackDate)}</td>
         <td className={`px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto font-semibold ${referrals.status === 'Resolved' ? 'text-green-600' : 'text-red-600'
           }`}>
           {referrals.status}
@@ -236,7 +285,7 @@ function ReferralFormHistory() {
                 <th className="sticky top-0 bg-[#0172bd] px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto font-bold whitespace-nowrap">Employee No.</th>
                 <th className="sticky top-0 bg-[#0172bd] px-2 sm:px-3 lg:px-4 py-2 sm:py-3 font-bold">Violation</th>
                 <th className="sticky top-0 bg-[#0172bd] px-2 sm:px-3 lg:px-4 py-2 sm:py-3 font-bold">Referred Student</th>
-                <th className="sticky top-0 bg-[#0172bd] px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto font-bold whitespace-nowrap">Date</th>
+                <th className="sticky top-0 bg-[#0172bd] px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto font-bold whitespace-nowrap">Processed Date</th>
                 <th className="sticky top-0 bg-[#0172bd] px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto font-bold whitespace-nowrap">Status</th>
                 <th className="sticky top-0 bg-[#0172bd] px-2 sm:px-3 lg:px-4 py-2 sm:py-3 font-bold"></th>
               </tr>

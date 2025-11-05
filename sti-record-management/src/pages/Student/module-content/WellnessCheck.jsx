@@ -11,7 +11,7 @@ export default function WellnessCheck({ setSelected }) {
     // Fetch Mind Check survey link (Card 1)
     const fetchSurveyLink = async () => {
       try {
-        const response = await axios.get("http://localhost:5000/content/wellness/get");
+        const response = await axios.get("/content/wellness/get");
         setWellnessLink(response.data.link);
       } catch (error) {
         console.error("Error fetching survey link:", error);

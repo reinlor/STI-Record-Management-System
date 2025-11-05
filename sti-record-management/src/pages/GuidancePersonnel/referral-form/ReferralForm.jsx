@@ -41,7 +41,7 @@ function ReferralFormProcessing() {
   const navigate = useNavigate();
 
   const [display, setDisplay] = useState(false);
-  const [isLoading, setIsLoading] = useState(true); 
+  const [isLoading, setIsLoading] = useState(true);
 
   const [isUpdating, setIsUpdating] = useState(false);
   const [updateToastId, setUpdateToastId] = useState(null);
@@ -61,7 +61,7 @@ function ReferralFormProcessing() {
   const [remarks, setRemarks] = useState("");
   const [emailTo, setEmailTo] = useState("");
   const [emailSubject, setEmailSubject] = useState("");
-  const [emailBody, setEmailBody] = useState(""); 
+  const [emailBody, setEmailBody] = useState("");
 
   const ROW_COLOR_CLASSES = {
     RED: "bg-red-100",
@@ -71,21 +71,43 @@ function ReferralFormProcessing() {
   };
 
   const formatDate = (timestamp) => {
-
     if (!timestamp) return "-";
 
-    if (timestamp.seconds) {
+    // Handle Firebase Timestamp object or serialized map
+    if (typeof timestamp === "object" && timestamp !== null) {
+      const secs = timestamp.seconds || timestamp._seconds;
+      const nano = timestamp.nanoseconds || timestamp._nanoseconds || 0;
 
-      return new Date(timestamp.seconds * 1000).toLocaleString("en-US", {
-        month: "long",
-        day: "numeric",
-        year: "numeric",
-        hour: "numeric",
-        minute: "2-digit",
-        second: "2-digit",
-      });
+      if (typeof secs === "number") {
+        const ms = secs * 1000 + nano / 1000000;
+        return new Date(ms).toLocaleString("en-US", {
+          timeZone: "Asia/Manila",
+          month: "long",
+          day: "numeric",
+          year: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+          second: "2-digit",
+        });
+      }
+
+      // Handle if it's a Date object
+      if (timestamp instanceof Date) {
+        return timestamp.toLocaleString("en-US", {
+          timeZone: "Asia/Manila",
+          month: "long",
+          day: "numeric",
+          year: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+          second: "2-digit",
+        });
+      }
     }
+
+    // If it's already a string, return as-is
     if (typeof timestamp === "string") return timestamp;
+
     return "-";
   };
 
@@ -171,7 +193,7 @@ function ReferralFormProcessing() {
     setDisplay(true);
   };
 
- 
+
 
   const closeForm = () => {
     setDisplay(false); // Hide the modal
@@ -269,13 +291,13 @@ function ReferralFormProcessing() {
     return <Navigate to="/error401" replace />
   }
 
- 
+
 
   if (isLoading) {
     return <LoadingDots />
   }
 
- 
+
 
   return (
     <div className="bg-gray-100 h-full p-3">
@@ -421,7 +443,7 @@ function ReferralFormProcessing() {
                       <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 break-words max-w-[120px] truncate align-middle">{ref.reasonForReferral}</td>
                       <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 lg:whitespace-nowrap">{ref.studentName}</td>
                       <td className="px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">{formatDate(ref.preparedDate)}</td>
-                      <td 
+                      <td
                         className={`px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto font-semibold ${ref.status === 'Resolved' ? 'text-green-600' : 'text-gray-600'}`}>
                         {ref.status}
                       </td>
@@ -487,7 +509,7 @@ function ReferralFormProcessing() {
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-2xl font-bold text-[#0172bd]">Referral Form</h2>
               <div className="flex items-center gap-4">
-{/* --- PRIORITY DROPDOWN LEFT OF STATUS --- */}
+                {/* --- PRIORITY DROPDOWN LEFT OF STATUS --- */}
                 <select
                   className="px-3 py-1 rounded-lg font-semibold text-xs sm:text-sm bg-gray-100 text-[#0172bd] hover:bg-blue-100"
                   value={priorityLevel || ""}
@@ -501,7 +523,7 @@ function ReferralFormProcessing() {
 
                 {/* --- STATUS --- */}
                 {selectedReferral && (
-                  <span 
+                  <span
                     className={`font-semibold text-lg ${selectedReferral.status === 'Resolved' ? 'text-[#28a745]' : 'text-gray-500'}`}
                   >
                     Status: {selectedReferral.status}
@@ -552,7 +574,7 @@ function ReferralFormProcessing() {
                       <span className="text-black">{selectedReferral.studentName || "-"}</span>
                     </p>
 
- 
+
 
                     <p>
                       <strong className="text-[#0172bd]">Program and Section:</strong>{" "}

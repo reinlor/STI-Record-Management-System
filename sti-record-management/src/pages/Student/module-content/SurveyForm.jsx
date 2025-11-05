@@ -209,9 +209,9 @@ export default function SurveyForm({ surveyName }) {
                 {(q.options || []).map((opt, oIndex) => (
                   <label
                     key={oIndex}
-                    className={`flex items-center gap-3 p-3 border rounded-md cursor-pointer transition-colors duration-200 ${responses[q._surveyIndex] === oIndex
-                      ? "bg-[#3473A4]/10 border-[#3473A4] text-gray-900 shadow-sm"
-                      : "bg-white border-gray-200 hover:bg-gray-50"
+                    className={`flex items-center gap-3 p-3 border rounded-md cursor-pointer transition-colors duration-200 text-gray-900 ${responses[q._surveyIndex] === oIndex
+                      ? "bg-[#3473A4]/10 border-[#3473A4] shadow-sm"
+                      : "bg-white border-gray-200 hover:bg-gray-50 "
                       }`}
                   >
                     <input

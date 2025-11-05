@@ -345,6 +345,7 @@ export default function StudentViewRequest() {
                 Clear filters
               </button>
             </div>
+            
           </div>
 
           {/* View Switcher Buttons */}
@@ -380,14 +381,14 @@ export default function StudentViewRequest() {
               <button
                 id="status-select"
                 onClick={() => setShowStatusDropdown(!showStatusDropdown)}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2 bg-white text-sm text-left flex items-center justify-between focus:ring-2 focus:ring-yellow-400 cursor-pointer"
+                className="w-full border border-gray-300 rounded-lg px-4 py-2 bg-white text-gray-700 text-sm text-left flex items-center justify-between focus:ring-2 focus:ring-yellow-400 cursor-pointer"
               >
                 {filters.statuses.length > 0 ? filters.statuses.join(", ") : "All"}
                 <ChevronDown size={16} className={`transform transition-transform ${showStatusDropdown ? 'rotate-180' : 'rotate-0'}`} />
               </button>
               {showStatusDropdown && (
                 <div className="absolute top-full left-0 mt-1 w-full bg-white border border-gray-300 rounded-lg p-2 shadow-lg z-20">
-                  <div className="flex flex-col gap-1">
+                  <div className="flex flex-col gap-1 text-gray-700">
                     {["Pending", "In Progress", "Resolved", "Approved", "Denied", "Cancelled", "Inactive"].map((status) => (
                       <label key={status} className="flex items-center gap-2 text-sm cursor-pointer select-none whitespace-nowrap">
                         <input
@@ -411,7 +412,7 @@ export default function StudentViewRequest() {
                 id="date-range-select"
                 value={filters.dateRange}
                 onChange={(e) => setFilters((p) => ({ ...p, dateRange: e.target.value }))}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2 bg-white text-sm focus:ring-2 focus:ring-yellow-400 cursor-pointer"
+                className="w-full border border-gray-300 rounded-lg px-4 py-2 bg-white text-gray-700 text-sm focus:ring-2 focus:ring-yellow-400 cursor-pointer"
               >
                 <option value="All">All Dates</option>
                 <option value="Today">Today</option>
@@ -429,7 +430,7 @@ export default function StudentViewRequest() {
                 id="sort-select"
                 value={sortOption}
                 onChange={(e) => setSortOption(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2 bg-white text-sm focus:ring-2 focus:ring-yellow-400 cursor-pointer"
+                className="w-full border border-gray-300 rounded-lg px-4 py-2 bg-white text-gray-700 text-sm focus:ring-2 focus:ring-yellow-400 cursor-pointer"
               >
                 <option value="Newest First">Newest First</option>
                 <option value="Oldest First">Oldest First</option>

@@ -1,5 +1,5 @@
 const Joi = require("joi");
-const { FieldValue } = require("firebase-admin/firestore");
+const { FieldValue, Timestamp } = require("firebase-admin/firestore");
 const {
   getIncidentReportCollection,
 } = require("../models/incidentReportModel");
@@ -7,6 +7,7 @@ const { getChartDataCollection } = require("../models/chartDataModel");
 const { getNotificationCollection } = require("../models/notificationModel.js");
 const { getContentManagementCollection } = require("../models/contentManagementModel.js");
 const cloudinary = require("../../../config/cloudinary.js");
+
 
 // Incident Report Form Schema
 const incidentReportSchema = Joi.object({
@@ -28,7 +29,7 @@ const incidentReportSchema = Joi.object({
   status: Joi.string().optional().empty(""),
   remarks: Joi.string().required().allow(""),
   attachmentUrl: Joi.array().items(Joi.string()).optional(),
-  timeCreated: Joi.date().required(),
+  timeCreated: Joi.required(),
 });
 
 const updateIncidentReportSchema = Joi.object({
@@ -50,7 +51,7 @@ const updateIncidentReportSchema = Joi.object({
   status: Joi.string().optional().empty(""),
   remarks: Joi.string().optional().empty(""),
   attachmentUrl: Joi.array().items(Joi.string()).optional(),
-  timeCreated: Joi.date().optional()
+  timeCreated: Joi.optional()
 });
 
 // Controller function for adding new incidents
@@ -76,7 +77,7 @@ const addIncident = async (req, res) => {
       ...req.body,
       attachmentUrl: attachmentUrls,
       status: "Pending",
-      timeCreated: new Date(),
+      timeCreated: Timestamp.fromDate(new Date()),
       attachmentCount: attachmentUrls.length
     };
 
@@ -126,7 +127,7 @@ const addIncident = async (req, res) => {
     }
 
     const newAdminNotification = {
-      date: new Date(),
+      date: Timestamp.fromDate(new Date()),
       from: 'Student',
       isRead: false,
       notifID: `adminRequest-${existingAdminNotification.length + 1}`,

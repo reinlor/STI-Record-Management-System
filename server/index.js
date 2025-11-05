@@ -56,7 +56,7 @@ const corsOptions = {
   origin: [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
-    "https://sti-gorms.duckdns.org",
+    "https://sti-gorms.online",
   ],
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
@@ -241,7 +241,7 @@ cron.schedule("0 0 * * *", async () => {
         }
 
         if (createdDate <= sevenDaysAgo) {
-          batch.update(doc.ref, { status: "Inactive", processedDate: new Date() });
+          batch.update(doc.ref, { status: "Inactive", processedDate: Timestamp.fromDate(new Date()) });
           updatedCount++;
         }
       });

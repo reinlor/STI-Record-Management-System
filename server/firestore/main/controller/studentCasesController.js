@@ -6,7 +6,7 @@ const { getStudentCollection } = require("../models/studentModel.js");
 const { getContentManagementCollection } = require("../models/contentManagementModel.js");
 
 const Joi = require("joi");
-const { FieldValue } = require("firebase-admin/firestore");
+const { FieldValue, Timestamp } = require("firebase-admin/firestore");
 const cloudinary = require("../../../config/cloudinary.js");
 const fs = require("fs");
 
@@ -27,7 +27,7 @@ const violationSchema = Joi.object({
   notes: Joi.string().optional().empty(""),
   proofUrl: Joi.string().optional().empty(""),
   priorityLevel: Joi.string().optional().empty(""),
-  timeCreated: Joi.date().optional().empty(""),
+  timeCreated: Joi.optional().empty(""),
   processedBy: Joi.string().optional().empty(""),
 });
 const updateSchema = Joi.object({
@@ -47,9 +47,9 @@ const updateSchema = Joi.object({
   notes: Joi.string().optional(),
   proofUrl: Joi.string().optional(),
   priorityLevel: Joi.string().optional().empty(""),
-  timeCreated: Joi.date().optional(),
+  timeCreated: Joi.optional(),
   processedBy: Joi.string().optional().empty(""),
-  lastUpdate: Joi.date().optional(),
+  lastUpdate: Joi.optional(),
 });
 
 async function assignViolationToStudent(sid, violationName) {
@@ -325,7 +325,7 @@ const addViolation = async (req, res) => {
     }
 
     const newAdminNotification = {
-      date: new Date(),
+      date: Timestamp.fromDate(new Date()),
       from: "Admin",
       notifID: `adminCase-${existingAdminNotification.length + 1}`,
       type: "Submission",
@@ -376,7 +376,7 @@ const updateViolation = async (req, res) => {
     await violationRef.set(
       {
         ...validatedUpdates,
-        lastUpdate: new Date(),
+        lastUpdate: Timestamp.fromDate(new Date()),
       },
       { merge: true }
     );
@@ -466,7 +466,7 @@ const updateViolation = async (req, res) => {
     };
 
     const newAdminNotification = {
-      date: new Date(),
+      date: Timestamp.fromDate(new Date()),
       from: "Admin",
       notifID: `adminCase-${existingAdminNotification.length + 1}`,
       type: "Submission",

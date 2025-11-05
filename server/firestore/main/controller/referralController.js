@@ -3,7 +3,7 @@ const { getReferralFormCollection } = require("../models/referralModel");
 const { getChartDataCollection } = require("../models/chartDataModel");
 const { getNotificationCollection } = require("../models/notificationModel");
 const { getContentManagementCollection } = require("../models/contentManagementModel");
-const { FieldValue } = require("firebase-admin/firestore");
+const { FieldValue, Timestamp } = require("firebase-admin/firestore");
 
 // Referral Schema
 const referralSchema = Joi.object({
@@ -46,7 +46,7 @@ const updateSchema = Joi.object({
   reasonForReferral: Joi.string().optional(),
   initialAction: Joi.string().optional().allow(''),
   preparedDate: Joi.optional(),
-  feedBackDate: Joi.date().optional().allow(''),
+  feedBackDate: Joi.optional().allow(''),
   receivedBy: Joi.string().optional().allow(''),
   remarks: Joi.string().optional().allow(''),
   counselorNote: Joi.string().optional().allow('')
@@ -61,7 +61,7 @@ const addReferral = async (req, res) => {
     if (error) {
       return res.status(400).json({ error: error.details[0].message });
     }
-    await getReferralFormCollection().doc().set({ preparedDate: new Date(), ...newReferral });
+    await getReferralFormCollection().doc().set({ preparedDate: Timestamp.fromDate(new Date()), ...newReferral });
 
 
 
@@ -76,7 +76,7 @@ const addReferral = async (req, res) => {
     }
 
     const newAdminNotification = {
-      date: new Date(),
+      date: Timestamp.fromDate(new Date()),
       from: 'Teacher',
       isRead: false,
       notifID: `adminReferral-${existingAdminNotification.length + 1}`,
@@ -123,7 +123,7 @@ const updateReferral = async (req, res) => {
       return res.status(404).json({ error: "Student not found" });
     }
 
-    await referralRef.set({ feedBackDate: new Date(), ...validatedUpdates }, { merge: true });
+    await referralRef.set({ feedBackDate: Timestamp.fromDate(new Date()), ...validatedUpdates }, { merge: true });
 
     // Notification
     const notifCollection = getNotificationCollection();
@@ -144,7 +144,7 @@ const updateReferral = async (req, res) => {
 
 
     const newTeacherNotification = {
-      date: new Date(),
+      date: Timestamp.fromDate(new Date()),
       from: name,
       isRead: false,
       notifID: `TR-${uid}-${existingNotifications.length + 1}`,
@@ -153,7 +153,7 @@ const updateReferral = async (req, res) => {
     };
 
     const newAdminNotification = {
-      date: new Date(),
+      date: Timestamp.fromDate(new Date()),
       from: name,
       isRead: false,
       notifID: `adminReferral-${existingAdminNotification.length + 1}`,
