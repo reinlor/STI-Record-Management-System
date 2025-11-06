@@ -527,16 +527,25 @@ function StudentList() {
         const excelData = data.map((s) => {
             const info = normalizeForUI(s);
 
+            const displayFullName = () => {
+                const excelLastName = s.studentProfile?.lastName ?? ""
+                const excelFirstName = s.studentProfile?.firstName ?? ""
+                const excelMiddleName = s.studentProfile?.middleName ?? ""
+                const excelSuffix = s.studentProfile?.suffix ?? ""
+
+                return `${excelLastName}, ${excelFirstName} ${excelMiddleName} ${excelSuffix}`
+            }
+
             return {
                 "Student Number": s.sid ?? s.id ?? "",
-                Name: s.studentProfile?.name ?? "",
+                Name: displayFullName(),
                 Gender: s.studentProfile?.gender ?? "",
                 Program: s.studentProfile?.program ?? "",
                 Section: s.studentProfile?.section ?? "",
                 "Academic Level": s.studentProfile?.academicLevel ?? "",
                 Status: s.isArchived ? "Inactive" : "Active",
                 Email: info.basic?.emailAddress ?? "",
-                "Contact No": info.basic?.mobilePhoneNumber ?? "",
+                "Contact No": info.basic?.contactNumber ?? "",
                 "Birth Date": info.basic?.birthDate ?? "",
                 "Personal Place of Birth": info.personal?.birthDate ?? "",
                 Address: info.basic?.address ?? "",
@@ -552,20 +561,20 @@ function StudentList() {
                 "Father Occupation": info.family?.fatherOccupation ?? "",
                 "Mother Name": info.family?.motherName ?? "",
                 "Mother Occupation": info.family?.motherOccupation ?? "",
-                "Guardian Name": info.family?.nameOfGuardian ?? "",
+                "Guardian Name": info.family?.guardianName ?? "",
                 "Guardian Contact": info.family?.guardianContactNumber ?? "",
                 Siblings: stringifyCell(info.family?.siblings),
-                "Elementary School": info.educational?.nameOfGradeSchool ?? "",
-                "Elementary Year Graduated": info.educational?.yearsAttendedGradeSchool ?? "",
-                "Junior High School": info.educational?.nameOfJuniorHighSchool ?? "",
-                "Junior High Year Graduated": info.educational?.yearsAttendedJuniorHighSchool ?? "",
-                "Senior High School": info.educational?.nameOfSeniorHighSchool ?? "",
-                "Senior High Year Graduated": info.educational?.yearsAttendedSeniorHighSchool ?? "",
-                "College School": info.educational?.nameOfCollege ?? "",
-                "College Year Graduated": info.educational?.yearsAttendedCollege ?? "",
-                "Work Company": info.work?.nameOfCompanyInstitution ?? "",
+                "Elementary School": info.educational?.elementarySchoolName ?? "",
+                "Elementary Year Graduated": info.educational?.elementaryYearEnrolled ?? "",
+                "Junior High School": info.educational?.juniorHighSchoolName ?? "",
+                "Junior High Year Graduated": info.educational?.juniorHighYearEnrolled ?? "",
+                "Senior High School": info.educational?.seniorHighSchoolName ?? "",
+                "Senior High Year Graduated": info.educational?.seniorHighYearEnrolled ?? "",
+                "College School": info.educational?.collegeSchoolName ?? "",
+                "College Year Graduated": info.educational?.collegeYearEnrolled ?? "",
+                "Work Company": info.work?.companyInstitution ?? "",
                 "Work description": info.work?.jobDescription ?? "",
-                "Work Years": info.work?.durationFromTo ?? "",
+                "Work Years": info.work?.duration ?? "",
                 Sports: stringifyCell(info.interests?.sports),
                 Hobbies: stringifyCell(info.interests?.hobbies),
                 Talents: stringifyCell(info.interests?.talents),
@@ -575,13 +584,12 @@ function StudentList() {
                 "Reason of Hospitalization": stringifyCell(info.health?.reason),
                 "Undergo an Operation": stringifyCell(info.health?.operation),
                 "Health Condition (detailed)": stringifyCell(info.health?.illness),
-                "Medical Certificate": stringifyCell(info.health?.medicalCert),
+                "Medical Certificate": stringifyCell(info.health?.medicalCert?.urls),
                 "Prescribed Drugs": stringifyCell(info.health?.prescribedDrug),
                 "Heriditary Illness": stringifyCell(info.health?.hereditary),
                 "Last Saw Doctor": stringifyCell(info.health?.doctorLastSeen),
                 "Recent Loss": info.life?.recentLoss ?? "",
                 "Current Concerns": info.life?.currentConcern ?? "",
-                Violations: info.violations ? JSON.stringify(info.violations) : "",
             };
         });
 
