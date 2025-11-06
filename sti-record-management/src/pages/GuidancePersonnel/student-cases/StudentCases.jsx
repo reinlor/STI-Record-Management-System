@@ -376,14 +376,14 @@ function StudentCases() {
                             </div>
                             <button
                                 onClick={clearFilters}
-                                className="flex items-center gap-1 px-3 py-2 bg-gray-200 hover:bg-gray-300 text-[#0172bd] rounded-lg font-semibold text-sm"
+                                className="flex items-center gap-1 px-3 py-2 bg-gray-200 hover:bg-gray-300 text-[#0172bd] rounded-lg font-semibold text-sm cursor-pointer"
                             >
                                 <SlidersHorizontal className="w-4 h-4 mr-1" /> Clear
                             </button>
                             {authData?.user?.access?.studentCases?.canEdit && (
                                 <button
                                     onClick={() => setShowAddModal(true)}
-                                    className="flex items-center bg-[#0172bd] hover:bg-blue-500 text-sm text-white font-bold py-2 px-4 rounded-lg shadow-md"
+                                    className="flex items-center bg-[#0172bd] hover:bg-blue-500 text-sm text-white font-bold py-2 px-4 rounded-lg shadow-md cursor-pointer"
                                 >
                                     Add Case <Plus className="w-4 h-4 ml-2" />
                                 </button>
@@ -401,7 +401,12 @@ function StudentCases() {
                         <div>
                             <div className={filterLabel}>Program/Strand</div>
                             <div className="relative">
-                                <select className={dropdownClass} value={selectedProgram} onChange={e => setSelectedProgram(e.target.value)}>
+                                {/* Program/Strand Filter */}
+                                <select
+                                    className={`${dropdownClass} cursor-pointer`}
+                                    value={selectedProgram}
+                                    onChange={e => setSelectedProgram(e.target.value)}
+                                >
                                     {programOptions.map(opt => (
                                         <option key={opt} value={opt}>{opt === "all" ? "All Programs" : opt}</option>
                                     ))}
@@ -412,7 +417,12 @@ function StudentCases() {
                         <div>
                             <div className={filterLabel}>Section</div>
                             <div className="relative">
-                                <select className={dropdownClass} value={selectedSection} onChange={e => setSelectedSection(e.target.value)}>
+                                {/* Section Filter */}
+                                <select
+                                    className={`${dropdownClass} cursor-pointer`}
+                                    value={selectedSection}
+                                    onChange={e => setSelectedSection(e.target.value)}
+                                >
                                     {sectionOptions.map(opt => (
                                         <option key={opt} value={opt}>{opt === "all" ? "All Sections" : opt}</option>
                                     ))}
@@ -424,7 +434,7 @@ function StudentCases() {
                             <div className={filterLabel}>Priority Order</div>
                             <button
                                 onClick={() => setPriorityOrder(prev => prev === "asc" ? "desc" : "asc")}
-                                className="flex items-center justify-center w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm text-[#0172bd] font-semibold text-sm bg-white"
+                                className="flex items-center justify-center w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm text-[#0172bd] font-semibold text-sm bg-white cursor-pointer"
                             >
                                 {priorityOrder === "desc" ? "High → Low" : "Low → High"}
                                 <ArrowUpDown className="w-4 h-4 ml-2" />
@@ -433,7 +443,12 @@ function StudentCases() {
                         <div>
                             <div className={filterLabel}>Status</div>
                             <div className="relative">
-                                <select className={dropdownClass} value={selectedStatus} onChange={e => setSelectedStatus(e.target.value)}>
+                                {/* Status Filter */}
+                                <select
+                                    className={`${dropdownClass} cursor-pointer`}
+                                    value={selectedStatus}
+                                    onChange={e => setSelectedStatus(e.target.value)}
+                                >
                                     {STATUS_OPTIONS.map(opt => (
                                         <option key={opt.value} value={opt.value}>{opt.label}</option>
                                     ))}
@@ -503,7 +518,7 @@ function StudentCases() {
                 <div className="w-full flex justify-center lg:justify-end items-center mt-2">
                     <nav className="flex items-center space-x-1">
                         <button
-                            className="px-2 py-1 rounded hover:bg-gray-200 text-[#0172bd] font-bold"
+                            className="px-2 py-1 rounded hover:bg-gray-200 text-[#0172bd] font-bold cursor-pointer"
                             onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                             disabled={currentPage === 1}
                         >
@@ -512,14 +527,14 @@ function StudentCases() {
                         {Array.from({ length: totalPages }, (_, i) => (
                             <button
                                 key={i + 1}
-                                className={`px-2 py-1 rounded ${currentPage === i + 1 ? 'bg-[#0172bd] text-white' : 'hover:bg-gray-200 text-[#0172bd]'}`}
+                                className={`px-2 py-1 rounded ${currentPage === i + 1 ? 'bg-[#0172bd] text-white' : 'hover:bg-gray-200 text-[#0172bd] cursor-pointer'}`}
                                 onClick={() => setCurrentPage(i + 1)}
                             >
                                 {i + 1}
                             </button>
                         ))}
                         <button
-                            className="px-2 py-1 rounded hover:bg-gray-200 text-[#0172bd] font-bold"
+                            className="px-2 py-1 rounded hover:bg-gray-200 text-[#0172bd] font-bold cursor-pointer"
                             onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                             disabled={currentPage === totalPages}
                         >
