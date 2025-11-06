@@ -218,6 +218,14 @@ const normalizeEducationalLevel = (raw) => {
   return ''; // invalid
 };
 
+const formatPhoneNumber = (raw) => {
+  const num = String(raw || '').replace(/\D/g, '');
+  if (num.startsWith('09') && num.length === 11) return '09' + num.slice(2);
+  if (num.length === 10 && num.startsWith('9')) return '09' + num.slice(1);
+  if (num.length === 11 && num.startsWith('09')) return num;
+  return ''; // Invalid format
+}
+
 // Joi schema for final student object (enough to validate main shape)
 const studentJoiSchema = Joi.object({
   sid: Joi.string().pattern(/^\d+$/).length(EXPECTED_SID_LENGTH).required(),
@@ -268,7 +276,7 @@ const studentJoiSchema = Joi.object({
 
 const bulkUpload = async (req, res) => {
   if (!req.file) return res.status(400).json({ error: "No file uploaded" });
-  
+
   try {
     const workbook = new ExcelJS.Workbook();
     await workbook.xlsx.load(req.file.buffer);
@@ -387,21 +395,21 @@ const bulkUpload = async (req, res) => {
         const currentAddress = capitalizeWords(studentRow.currentAddress || studentRow.address || '');
         const permanentAddress = capitalizeWords(studentRow.permanentAddress || '');
         const provincialAddress = capitalizeWords(studentRow.provincialAddress || '');
-        const mobileNo = (studentRow.mobilePhoneNo || studentRow.contactNo || '').toString().trim();
-        const homeNo = (studentRow.homeNo || '').toString().trim();
+        const mobileNo = formatPhoneNumber(studentRow.mobilePhoneNo || studentRow.contactNo || '');
+        const homeNo = formatPhoneNumber(studentRow.homeNo || '');
 
         // Emergency contact
         const emergencyName = capitalizeName(studentRow.emergencyContactName || '');
-        const emergencyNo = (studentRow.emergencyContactNo || '').toString().trim();
+        const emergencyNo = formatPhoneNumber(studentRow.emergencyContactNo || '');
 
         // Family
         const fatherName = capitalizeName(studentRow.fatherName || '');
-        const fatherContact = (studentRow.fatherNo || '').toString().trim();
+        const fatherContact = formatPhoneNumber(studentRow.fatherNo || '');
         const motherName = capitalizeName(studentRow.motherName || '');
-        const motherContact = (studentRow.motherNo || '').toString().trim();
+        const motherContact = formatPhoneNumber(studentRow.motherNo || '');
         const guardianName = capitalizeName(studentRow.guardianName || '');
         const guardianRelation = (studentRow.guardianRelation || '').toString().trim();
-        const guardianContact = (studentRow.guardianNo || '').toString().trim();
+        const guardianContact = formatPhoneNumber(studentRow.guardianNo || '');
 
         // Status/religion/nationality/gender fields
         const status = (studentRow.status || '').toString().trim();
@@ -616,24 +624,39 @@ const bulkUpload = async (req, res) => {
         };
 
         // Save to Firestore: create vs update
+        // Compare only the fields that would be updated
+        let hasChanges = false;
+        if (existingData) {
+          // Compare each field in updateData with existingData
+          for (const keyPath in updateData) {
+            // Support nested keys like 'studentProfile.firstName'
+            const keys = keyPath.split('.');
+            let existingValue = existingData;
+            for (const k of keys) {
+              if (existingValue && typeof existingValue === 'object') {
+                existingValue = existingValue[k];
+              } else {
+                existingValue = undefined;
+                break;
+              }
+            }
+            if (existingValue !== updateData[keyPath]) {
+              hasChanges = true;
+              break;
+            }
+          }
+        }
+
         if (existingSnap.exists) {
-          if (Object.keys(updateData).length > 0) {
+          if (hasChanges) {
             await docRef.update(updateData);
-            // ensure firebase user for status change or displayName changes
-            // if isArchived changed or no existingAuth -> call ensureFirebaseUser
             await ensureFirebaseUser(true);
             updated.push(`${studentId} - ${displayName || ''}`);
           } else {
-            // If no updates, but maybe the active/archive column exists and we need to sync firebase disabled state
-            if (('isArchived' in updateData) || (studentRow.activeStudent !== undefined) || (studentRow.archiveStudent !== undefined)) {
-              await ensureFirebaseUser(true);
-              updated.push(`${studentId} - ${displayName || ''} (status sync)`);
-            } else {
-              // nothing to do
-            }
+            // No changes, flag as skipped
+            skipped.push(`${studentId} - no changes`);
           }
         } else {
-          // create document
           await docRef.set(newDoc);
           await ensureFirebaseUser(false);
           added.push(`${studentId} - ${displayName || ''}`);
