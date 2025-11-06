@@ -16,7 +16,7 @@ const studentSchema = Joi.object({
     name: Joi.string().optional(),
     firstName: Joi.string().required(),
     lastName: Joi.string().required(),
-    middleName: Joi.string().optional(),
+    middleName: Joi.string().optional().empty(''),
     suffix: Joi.string().empty('').optional(),
     nickname: Joi.string().empty('').optional(),
     section: Joi.string().empty('').optional(),
@@ -725,7 +725,7 @@ const searchStudent = async (req, res) => {
     const raw = (req.query.name || "").trim();
     if (!raw || raw.length < 2) return res.json([]);
 
-    const collection = getStudentCollection(); 
+    const collection = getStudentCollection();
 
     const variants = new Set();
     variants.add(raw);
@@ -751,7 +751,7 @@ const searchStudent = async (req, res) => {
             .where(field, "<=", v + "\uf8ff")
             .limit(50)
             .get()
-            .catch(() => ({ empty: true, docs: [] })) 
+            .catch(() => ({ empty: true, docs: [] }))
         );
       }
     }
@@ -816,6 +816,42 @@ const searchStudent = async (req, res) => {
   }
 };
 
+// Controller Function to check if student number exists
+const checkStudentNumber = async (req, res) => {
+  try {
+    const { studentNumber } = req.params;
+    const snapshot = await getStudentCollection()
+      .where("sid", "==", studentNumber)
+      .get();
 
+    if (!snapshot.empty) {
+      return res.status(200).json({ exists: true });
+    }
+    return res.status(404).json({ exists: false });
 
-module.exports = { addStudent, getStudents, updateStudent, getStudent, getActiveStudent, getArchivedStudent, archiveStudent, restoreStudent, searchStudent };
+  } catch (error) {
+    console.error("Check student number error:", error);
+    res.status(500).json({ error: "Failed to check student number" });
+  }
+};
+
+// Controller Function to check if email exists
+const checkEmail = async (req, res) => {
+  try {
+    const { email } = req.query;
+    const snapshot = await getStudentCollection()
+      .where("contactInfo.email", "==", email)
+      .get();
+
+    if (!snapshot.empty) {
+      return res.status(200).json({ exists: true });
+    }
+    return res.status(404).json({ exists: false });
+
+  } catch (error) {
+    console.error("Check email error:", error);
+    res.status(500).json({ error: "Failed to check email" });
+  }
+};
+
+module.exports = { addStudent, getStudents, updateStudent, getStudent, getActiveStudent, getArchivedStudent, archiveStudent, restoreStudent, searchStudent, checkStudentNumber, checkEmail  };

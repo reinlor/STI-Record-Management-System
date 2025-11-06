@@ -3,7 +3,7 @@ const router = express.Router();
 const multer = require("multer");
 const path = require("path");
 
-const { addStudent, getStudents, updateStudent, getStudent, getActiveStudent, getArchivedStudent, archiveStudent, restoreStudent, searchStudent } = require("../controller/studentController.js");
+const { addStudent, getStudents, updateStudent, getStudent, getActiveStudent, getArchivedStudent, archiveStudent, restoreStudent, searchStudent, checkStudentNumber, checkEmail } = require("../controller/studentController.js");
 
 const upload = multer({ dest: path.join(__dirname, "../uploads") });
 
@@ -16,5 +16,7 @@ router.put("/update/:sid", upload.array("attachments", 5), updateStudent); // Ac
 router.put("/archiveData/:sid", archiveStudent);      // For archiving student data
 router.put("/restoreData/:sid", restoreStudent);      // For archiving student data
 router.get("/search", searchStudent)                // For autofill search
+router.get("/check/studentNumber/:studentNumber", checkStudentNumber);  // For checking student number
+router.get("/check/email", checkEmail);   
 
 module.exports = router;
