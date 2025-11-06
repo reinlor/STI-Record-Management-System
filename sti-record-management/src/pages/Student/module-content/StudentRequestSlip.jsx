@@ -114,9 +114,36 @@ export default function StudentRequestSlip() {
         return;
     }
 
-    setIsLoading(true);
+    let endpoint = "";
 
-    // Show loading toast
+    if (activeSlip === "Absent") {
+        const absentDays = getAbsentDays();
+
+        // Health-Related: require medical certificate only if 3 or more days
+        if (absentReason === "Health-Related") {
+            if (!excuseLetter || !parentID) {
+                toast.error("Excuse Letter and Parent's/Guardian's ID are required.");
+                return;
+            }
+            if (absentDays >= 3 && !medicalCertificate) {
+                toast.error("Medical Certificate is required for 3 or more days of Health-Related absence.");
+                return;
+            }
+        } else if (absentReason === "Non-Health-Related") {
+            if (!excuseLetter || !parentID) {
+                toast.error("Excuse Letter and Parent's/Guardian's ID are required.");
+                return;
+            }
+        } else {
+            toast.error("Please select a Reason for Absence.");
+            return;
+        }
+        endpoint = "/slip/absentSlip/add";
+    } else if (activeSlip === "Report") {
+        endpoint = "/incidentReport/add";
+    }
+
+    setIsLoading(true);
     const toastId = toast.loading("Submitting, please wait...");
 
     const form = new FormData();
@@ -126,50 +153,18 @@ export default function StudentRequestSlip() {
     form.append("program", formData.program);
     form.append("email", formData.email);
 
-    let endpoint = "";
-
     if (activeSlip === "Absent") {
         form.append("typeOfSlip", "Absent Slip");
         form.append("dateAbsentEnd", formData.dateAbsentEnd);
         form.append("dateAbsent", formData.dateAbsent);
         form.append("reason", absentReason);
 
-        const absentDays = getAbsentDays();
-
-        // Health-Related: require medical certificate only if 3 or more days
-        if (absentReason === "Health-Related") {
-            if (!excuseLetter || !parentID) {
-                toast.error("Excuse Letter and Parent's/Guardian's ID are required.");
-                setIsLoading(false);
-                return;
-            }
-            // NEW ORDER: Excuse Letter → Guardian ID → Medical Certificate
-            form.append("attachments", excuseLetter.file);
-            form.append("attachments", parentID.file);
-            if (absentDays >= 3) {
-                if (!medicalCertificate) {
-                    toast.error("Medical Certificate is required for 3 or more days of Health-Related absence.");
-                    setIsLoading(false);
-                    return;
-                }
-                form.append("attachments", medicalCertificate.file);
-            }
-        } else if (absentReason === "Non-Health-Related") {
-            if (!excuseLetter || !parentID) {
-                toast.error("Excuse Letter and Parent's/Guardian's ID are required.");
-                setIsLoading(false);
-                return;
-            }
-            // NEW ORDER: Excuse Letter → Guardian ID
-            form.append("attachments", excuseLetter.file);
-            form.append("attachments", parentID.file);
-        } else {
-            toast.error("Please select a Reason for Absence.");
-            setIsLoading(false);
-            return;
+        // Attachments
+        form.append("attachments", excuseLetter.file);
+        form.append("attachments", parentID.file);
+        if (absentReason === "Health-Related" && getAbsentDays() >= 3 && medicalCertificate) {
+            form.append("attachments", medicalCertificate.file);
         }
-
-        endpoint = "/slip/absentSlip/add";
     } else if (activeSlip === "Report") {
         form.append("typeOfSlip", "Incident Report");
         form.append("dateOfIncident", formData.incidentDate);
@@ -181,12 +176,9 @@ export default function StudentRequestSlip() {
         form.append("narrativeReport", formData.narrative);
         form.append("actionTaken", formData.actionsTaken);
         form.append("remarks", "");
-
         incidentEvidence.forEach((evidence) => {
             form.append("attachments", evidence.file);
         });
-
-        endpoint = "/incidentReport/add";
     }
 
     try {
