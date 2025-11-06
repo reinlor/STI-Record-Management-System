@@ -439,20 +439,22 @@ export default function StudentViewRequest() {
             </div>
           </div>
 
-          {/* Custom date range inputs (visible only when Custom selected) */}
-          {filters.dateRange === "Custom" && showFilters && (
+          {/* Custom date range inputs */}
+          {filters.dateRange === "Custom" && (
             <div className="flex flex-col md:flex-row gap-4 mb-4">
               <input
                 type="date"
                 value={filters.customStart}
                 onChange={(e) => setFilters((p) => ({ ...p, customStart: e.target.value }))}
-                className="border border-gray-300 rounded-lg px-4 py-2 bg-white text-sm w-full md:w-1/2 focus:ring-2 focus:ring-yellow-400"
+                placeholder="mm/dd/yyyy"
+                className="border border-gray-300 rounded-lg px-4 py-2 bg-white text-sm w-full md:w-1/2 focus:ring-2 focus:ring-yellow-400 placeholder-gray-500 text-gray-900"
               />
               <input
                 type="date"
                 value={filters.customEnd}
                 onChange={(e) => setFilters((p) => ({ ...p, customEnd: e.target.value }))}
-                className="border border-gray-300 rounded-lg px-4 py-2 bg-white text-sm w-full md:w-1/2 focus:ring-2 focus:ring-yellow-400"
+                placeholder="mm/dd/yyyy"
+                className="border border-gray-300 rounded-lg px-4 py-2 bg-white text-sm w-full md:w-1/2 focus:ring-2 focus:ring-yellow-400 placeholder-gray-500 text-gray-900"
               />
             </div>
           )}
