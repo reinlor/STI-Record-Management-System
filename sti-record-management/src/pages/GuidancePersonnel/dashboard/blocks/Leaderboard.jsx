@@ -40,7 +40,7 @@ function Leaderboard({ leaderboardData, availableYears = [], onChangeYear }) {
             <h2 className="text-lg font-bold mb-2 text-[#0172bd] flex justify-between items-center">
                 <span>Violation Overview</span>
                 <select
-                    className="text-sm border border-gray-300 rounded-md px-2 py-1 focus:outline-none"
+                    className="text-sm border border-gray-300 rounded-md px-2 py-1 focus:outline-none cursor-pointer"
                     value={localSchoolYear || ""}
                     onChange={(e) => {
                         const value = e.target.value;
