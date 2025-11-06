@@ -35,6 +35,12 @@ const DATE_FILTER_OPTIONS = [
   { value: "year", label: "This Year" },
 ];
 
+const STATUS_FILTER_OPTIONS = [
+  { value: "", label: "All Statuses" },
+  { value: "Pending", label: "Pending" },
+  { value: "In Progress", label: "In Progress" },
+];
+
 // Helper for date filtering, parse, format functions (kept same as original)
 function isWithinDate(ms, filter) {
   if (!ms) return false;
@@ -534,6 +540,7 @@ function RequestSlip() {
   const rowsPerPage = 10;
   const [filterSlipType, setFilterSlipType] = useState("");
   const [filterDate, setFilterDate] = useState("");
+  const [filterStatus, setFilterStatus] = useState("");
   const [body, setBody] = useState("Please proceed to the Guidance and Counseling Office");
   const [sortBy, setSortBy] = useState("oldest");
   const [loading, setLoading] = useState(true);
@@ -707,6 +714,10 @@ function RequestSlip() {
     .filter((slip) => {
       if (!filterDate) return true;
       return isWithinDate(slip.timeCreatedMs, filterDate);
+    })
+    .filter((slip) => {
+      if (!filterStatus) return true;
+      return slip.status === filterStatus;
     })
     .sort((a, b) => {
       if (sortBy === "newest") {
@@ -904,7 +915,7 @@ function RequestSlip() {
             <div className="relative w-full sm:w-64">
               <input
                 type="text"
-                placeholder="Name/ ID"
+                placeholder="Student Name/ ID"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="w-full border border-gray-300 rounded-lg px-4 py-2 pr-10 focus:outline-none focus:ring-1 focus:ring-[#0172bd]"
@@ -917,11 +928,11 @@ function RequestSlip() {
         </div>
 
         {/* Filter Row */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-4">
           <div>
             <label className="block text-xs font-semibold text-gray-500 mb-1">Type of Slip</label>
             <select
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-1 focus:ring-[#0172bd]"
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-1 focus:ring-[#0172bd] cursor-pointer"
               value={filterSlipType}
               onChange={e => setFilterSlipType(e.target.value)}
             >
@@ -931,9 +942,21 @@ function RequestSlip() {
             </select>
           </div>
           <div>
+            <label className="block text-xs font-semibold text-gray-500 mb-1">Status</label>
+            <select
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-1 focus:ring-[#0172bd] cursor-pointer"
+              value={filterStatus}
+              onChange={e => setFilterStatus(e.target.value)}
+            >
+              {STATUS_FILTER_OPTIONS.map(opt => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
+          </div>
+          <div>
             <label className="block text-xs font-semibold text-gray-500 mb-1">Date</label>
             <select
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-1 focus:ring-[#0172bd]"
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-1 focus:ring-[#0172bd] cursor-pointer"
               value={filterDate}
               onChange={e => setFilterDate(e.target.value)}
             >
@@ -945,7 +968,7 @@ function RequestSlip() {
           <div>
             <label className="block text-xs font-semibold text-gray-500 mb-1">Sort By</label>
             <select
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-1 focus:ring-[#0172bd]"
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-1 focus:ring-[#0172bd] cursor-pointer"
               value={sortBy}
               onChange={e => setSortBy(e.target.value)}
             >
@@ -960,7 +983,7 @@ function RequestSlip() {
           <table className="w-full text-left">
             <thead>
               <tr className=" text-white">
-                <th className="sticky bg-[#0172bd] top-0 px-2 sm:px-3 lg:px-4 py-2 sm:py-3 font-bold">Name</th>
+                <th className="sticky bg-[#0172bd] top-0 px-2 sm:px-3 lg:px-4 py-2 sm:py-3 font-bold">Student Name</th>
                 <th className="sticky bg-[#0172bd] top-0 px-0 py-0 text-[0px]  w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">Student No.</th>
                 <th className="sticky bg-[#0172bd] top-0 px-2 sm:px-3 lg:px-4 py-2 sm:py-3 font-bold">Type of Slip</th>
                 <th className="sticky bg-[#0172bd] top-0 px-0 py-0 text-[0px]  w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">Date</th>
@@ -969,6 +992,7 @@ function RequestSlip() {
                 <th className="sticky bg-[#0172bd] top-0 px-2 sm:px-3 lg:px-4 py-2 sm:py-3"></th>
               </tr>
             </thead>
+            {/* Table Rows */}
             <tbody>
               {pagedSlipData.length > 0 ? (
                 pagedSlipData.map((slips) => {
@@ -978,7 +1002,8 @@ function RequestSlip() {
                   return (
                     <tr
                       key={slips.id}
-                      className={`hover:bg-gray-50 transition border-b ${rowBgClass}`}
+                      className={`hover:bg-gray-50 transition border-b ${rowBgClass} cursor-pointer`}
+                      onClick={() => openSlip(slips._id)} // Optional: Add row click functionality
                     >
                       <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 lg:whitespace-nowrap font-semibold w-1/4">{slips.name}</td>
                       <td className="px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">{slips.sid}</td>
@@ -986,7 +1011,6 @@ function RequestSlip() {
                       <td className="px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">
                         {slips.timeCreatedFormatted || formatDate(slips.timeCreated)}
                       </td>
-
                       <td className={`px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto font-semibold ${slips.status === "Approved"
                         ? "text-green-600"
                         : slips.status === "Rejected"
@@ -996,9 +1020,7 @@ function RequestSlip() {
                       >
                         {slips.status}
                       </td>
-
                       <td className="px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">{slips.attachmentCount}</td>
-
                       {authData?.user?.access?.requestSlip && (
                         <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3">
                           <button
@@ -1034,7 +1056,7 @@ function RequestSlip() {
             {Array.from({ length: totalPages }, (_, i) => (
               <button
                 key={i + 1}
-                className={`px-2 py-1 rounded ${currentPage === i + 1 ? 'bg-[#0172bd] text-white' : 'hover:bg-gray-200 text-[#0172bd]'} cursor-pointer`}
+                className={`px-2 py-1 rounded ${currentPage === i + 1 ? 'bg-[#0172bd] text-white' : 'hover:bg-gray-200 text-[#0172bd] cursor-pointer'}`}
                 onClick={() => setCurrentPage(i + 1)}
               >
                 {i + 1}

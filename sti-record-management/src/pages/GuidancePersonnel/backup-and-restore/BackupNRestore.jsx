@@ -190,7 +190,7 @@ function BackNRestore() {
             <select
               value={schedule}
               onChange={handleScheduleChange}
-              className="border rounded-lg p-2 w-full sm:w-60"
+              className="border rounded-lg p-2 w-full sm:w-60 cursor-pointer"
             >
               <option value="none">Manual only</option>
               <option value="3hours">Every 3 hours</option>
@@ -215,7 +215,7 @@ function BackNRestore() {
           <button
             disabled={isExporting}
             onClick={backupNow}
-            className="flex-1 bg-[#0172bd] hover:bg-blue-500 text-white font-semibold py-3 rounded-xl shadow-md transition flex items-center justify-center gap-2 disabled:opacity-50"
+            className="flex-1 bg-[#0172bd] hover:bg-blue-500 text-white font-semibold py-3 rounded-xl shadow-md transition flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
           >
             <Play className="w-5 h-5" />
             {isExporting ? "Backing up..." : "Backup Now"}
@@ -223,7 +223,7 @@ function BackNRestore() {
           <button
             onClick={restoreLatestBackup}
             disabled={isRestoring}
-            className={`flex-1 bg-[#fef201] hover:bg-green-500 text-black font-semibold py-3 rounded-xl shadow-md transition flex items-center justify-center gap-2 ${isRestoring ? "opacity-50 cursor-not-allowed" : ""
+            className={`flex-1 bg-[#fef201] hover:bg-green-500 text-black font-semibold py-3 rounded-xl shadow-md transition flex items-center justify-center gap-2 cursor-pointer ${isRestoring ? "opacity-50 cursor-not-allowed" : ""
               }`}
           >
             <Database className="w-5 h-5" />
@@ -291,7 +291,7 @@ function BackNRestore() {
             <div className="w-full flex justify-center lg:justify-end items-center mt-3 pr-0 lg:pr-2">
               <nav className="flex items-center space-x-1">
                 <button
-                  className="px-2 py-1 rounded hover:bg-gray-200 text-[#0172bd] font-bold"
+                  className="px-2 py-1 rounded hover:bg-gray-200 text-[#0172bd] font-bold cursor-pointer"
                   onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                   disabled={currentPage === 1}
                 >
@@ -302,7 +302,7 @@ function BackNRestore() {
                     key={i + 1}
                     className={`px-2 py-1 rounded ${currentPage === i + 1
                       ? "bg-[#0172bd] text-white"
-                      : "hover:bg-gray-200 text-[#0172bd]"
+                      : "hover:bg-gray-200 text-[#0172bd] cursor-pointer"
                       }`}
                     onClick={() => setCurrentPage(i + 1)}
                   >
@@ -310,7 +310,7 @@ function BackNRestore() {
                   </button>
                 ))}
                 <button
-                  className="px-2 py-1 rounded hover:bg-gray-200 text-[#0172bd] font-bold"
+                  className="px-2 py-1 rounded hover:bg-gray-200 text-[#0172bd] font-bold cursor-pointer"
                   onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                   disabled={currentPage === totalPages}
                 >
