@@ -2,9 +2,8 @@ import { useState, useEffect, useContext } from "react";
 import { AuthContext } from '../../../AuthProvider.jsx';
 import { useNavigate, Navigate } from "react-router-dom";
 import axios from "axios";
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 import LoadingDots from "../../../component/Loading.jsx";
-import 'react-toastify/dist/ReactToastify.css';
 import {
   Search,
   X,
@@ -301,18 +300,6 @@ function ReferralFormProcessing() {
 
   return (
     <div className="bg-gray-100 h-full p-3">
-      <ToastContainer
-        position="top-right"
-        autoClose={5000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-      />
-
       <div className="bg-white shadow-md p-4 rounded-lg overflow-y-auto h-full">
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-4 gap-3">

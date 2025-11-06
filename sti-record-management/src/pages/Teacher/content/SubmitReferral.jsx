@@ -2,8 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 import { Loader2 } from "lucide-react";
 import LoadingDots from "../../../component/Loading";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { toast } from "react-toastify";
 
 // Debounce
 const useDebounce = (value, delay) => {
@@ -334,7 +333,6 @@ function SubmitReferralForm({ teacher = {}, onCancel }) {
 
   return (
     <div className="min-h-screen flex flex-col items-center py-12 px-4 bg-gray-100 font-sans">
-      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
       <div className="bg-white rounded-2xl shadow-xl p-8 w-full container mx-auto border border-gray-200">
         <div className="mb-8 pb-4 border-b border-gray-200">
           <h2 className="text-3xl font-extrabold text-gray-800 mb-2">

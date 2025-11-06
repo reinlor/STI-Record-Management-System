@@ -63,3 +63,18 @@
   animation: shake 0.3s ease-in-out;
 }
 
+/* Fix invisible date/time picker icons in dark mode */
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.4); /* Makes it gray and visible on both themes */
+  opacity: 1;
+  cursor: pointer;
+}
+
+/* Optional: Adjust icon color intensity */
+@media (prefers-color-scheme: dark) {
+  input[type="date"]::-webkit-calendar-picker-indicator,
+  input[type="time"]::-webkit-calendar-picker-indicator {
+    filter: invert(0.8);
+  }
+}

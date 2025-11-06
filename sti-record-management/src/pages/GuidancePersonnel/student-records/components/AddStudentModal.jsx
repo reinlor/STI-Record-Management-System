@@ -1,8 +1,7 @@
 import { useEffect, useState, useContext, useRef } from "react";
 import { X, Check, Calendar, Plus, ChevronLeft, ChevronRight, Trash } from "lucide-react";
 import axios from "axios";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { toast } from "react-toastify";
 import { AuthContext } from "../../../../AuthProvider.jsx";
 
 const defaultForm = {
@@ -572,7 +571,6 @@ const AddStudentModal = ({ visible, onClose, newStudentForm = null, clearForm = 
 
     return (
         <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <ToastContainer position="top-right" autoClose={5000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
             <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto custom-scrollbar">
                 <div className="flex justify-between items-center border-b border-[#0172bd] pb-3 mb-4">
                     <h3 className="text-2xl font-bold text-[#0172bd] ">

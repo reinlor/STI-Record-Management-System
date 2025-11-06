@@ -1,8 +1,7 @@
 import React, { useState, useContext } from 'react';
 import axios from 'axios';
 import { X, Check } from 'lucide-react';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { toast } from 'react-toastify';
 import { AuthContext } from "../../../../AuthProvider.jsx";
 
 const SectionTabs = ({ tabs, active, onChange }) => (
@@ -213,7 +212,6 @@ const PhotoToTextModal = ({ visible, onClose, onOCRSuccess }) => {
 
     return (
         <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <ToastContainer position="top-right" autoClose={3000} />
             <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] overflow-auto">
                 <div className="flex justify-between items-center border-b pb-3 mb-4">
                     <h3 className="text-2xl font-bold text-[#0172bd]">Photo-to-Text (OCR)</h3>

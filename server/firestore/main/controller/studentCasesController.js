@@ -45,7 +45,7 @@ const updateSchema = Joi.object({
   dateOfAction: Joi.string().optional(),
   status: Joi.string().optional(),
   notes: Joi.string().optional(),
-  proofUrl: Joi.string().optional(),
+  proofUrl: Joi.string().optional().empty(""),
   priorityLevel: Joi.string().optional().empty(""),
   timeCreated: Joi.optional(),
   processedBy: Joi.string().optional().empty(""),

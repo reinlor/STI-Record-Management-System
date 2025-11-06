@@ -6,9 +6,7 @@ import SubmitReferralForm from "./content/SubmitReferral";
 import ViewRequest from "./content/ViewRequest";
 import NotificationsPage from "../../component/NotificationPage.jsx";
 import { AuthContext } from "../../AuthProvider";
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-
+import { toast } from "react-toastify";
 // Firebase imports for real-time data
 import { collection, onSnapshot, query, where } from "firebase/firestore";
 import { db } from "../../firebaseClient.js";
@@ -102,18 +100,12 @@ export default function TeacherHomepage() {
           <NotificationsPage uid={authData.user.uid} userType='teacher' />
         );
       default:
-        return (
-          <div className="animate-fade-in text-center mt-12">
-            <p className="text-gray-600 text-xl">Module content will appear here.</p>
-          </div>
-        );
+        return <TeacherDashboard />
     }
   };
 
   return (
-    <div className="relative min-h-screen text-black bg-white bg-[url('/grid.svg')] bg-repeat">
-      <ToastContainer />
-      <div className="sticky top-0 z-50">
+    <div className="relative min-h-screen text-black bg-white bg-[url('/grid.svg')] bg-repeat">      <div className="sticky top-0 z-50">
         <TeacherTopbar
           selected={selected}
           setSelected={setSelected}

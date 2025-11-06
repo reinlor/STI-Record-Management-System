@@ -13,8 +13,7 @@ import {
   uiToServerAccess,
 } from './components/AccessUtils';
 
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { toast } from 'react-toastify';
 
 import { Search, Plus, Archive, Users as UserIcon } from 'lucide-react';
 import LoadingDots from '../../../component/Loading';
@@ -352,8 +351,6 @@ export default function Users() {
         }
         .toggle-checkbox:checked::before { transform: translateX(18px); }
       `}</style>
-
-      <ToastContainer position="top-right" autoClose={5000} />
 
       <div className="flex flex-col h-full bg-gray-100 p-2 lg:p-3 rounded-xl shadow-lg overflow-hidden border border-gray-200">
         <div className="bg-white shadow-md p-1 lg:p-4 rounded-lg flex flex-col" style={{ height: '90vh' }}>

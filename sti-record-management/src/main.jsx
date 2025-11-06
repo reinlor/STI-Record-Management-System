@@ -42,12 +42,13 @@ async function startApp() {
     // Render once Firebase is ready
     root.render(
       <StrictMode>
-        <App />
         <ToastContainer
           position="top-right"
           autoClose={3000}
           hideProgressBar={false}
+          style={{ zIndex: 9999 }}
         />
+        <App />
       </StrictMode>
     );
   } catch (error) {

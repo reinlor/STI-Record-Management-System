@@ -9,7 +9,7 @@ import WellnessCheck from "./module-content/WellnessCheck.jsx";
 import SurveyForm from "./module-content/SurveyForm.jsx";
 import NotificationsPage from "../../component/NotificationPage.jsx";
 import ConsentModal from "./ConsentModal.jsx";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import { AuthContext } from "../../AuthProvider.jsx";
 
 export default function StudentHomepage() {
@@ -60,11 +60,7 @@ export default function StudentHomepage() {
       case "notifications":
         return <NotificationsPage uid={authData.user.uid} />;
       default:
-        return (
-          <div className="animate-fade-in text-center mt-12">
-            <p className="text-gray-600 text-xl">Module content will appear here.</p>
-          </div>
-        );
+        return <StudentDashboard />;
     }
   };
 

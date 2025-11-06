@@ -2,8 +2,7 @@ import React, { useState, useEffect, useContext, useRef } from "react";
 import axios from "axios";
 import { FileText, Upload, Trash2, CircleCheck, IdCard, AlertTriangle } from "lucide-react";
 import { AuthContext } from "../../../AuthProvider.jsx";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { toast } from "react-toastify";
 import LoadingDots from "../../../component/Loading.jsx";
 
 export default function StudentRequestSlip() {
@@ -298,9 +297,7 @@ export default function StudentRequestSlip() {
     return <LoadingDots />;
   }
   return (
-    <div className="min-h-screen flex flex-col items-center py-12 px-4 bg-gray-100 font-sans">
-      <ToastContainer position="top-right" autoClose={5000} />
-      <div className="bg-white rounded-2xl shadow-xl p-8 w-full container mx-auto border border-gray-200">
+    <div className="min-h-screen flex flex-col items-center py-12 px-4 bg-gray-100 font-sans">      <div className="bg-white rounded-2xl shadow-xl p-8 w-full container mx-auto border border-gray-200">
         <div className="flex items-center justify-between mb-8 pb-4 border-b border-gray-200">
           <h2 className="text-3xl font-extrabold text-gray-900">Student Request Slip</h2>
           <CircleCheck className="text-yellow-400 w-8 h-8" />

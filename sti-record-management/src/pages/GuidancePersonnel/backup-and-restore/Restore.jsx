@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import closeB from '../../../assets/closeblack.png';
 import axios from 'axios';
 
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { toast } from 'react-toastify';
 
 import {X} from 'lucide-react';
 
@@ -49,17 +48,6 @@ const RestoreModal = ({ visible, onClick }) => {
 
     return (
         <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <ToastContainer
-                position="top-right"
-                autoClose={5000}
-                hideProgressBar={false}
-                newestOnTop={false}
-                closeOnClick
-                rtl={false}
-                pauseOnFocusLoss
-                draggable
-                pauseOnHover
-            />
             <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-lg">
                 <div className="flex justify-between items-center border-b pb-3">
                     <h3 className="text-2xl font-bold text-[#0172bd]">Insert Restore File</h3>

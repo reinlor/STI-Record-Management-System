@@ -2,8 +2,7 @@
 import React, { useState, useRef } from 'react';
 import { X } from 'lucide-react';
 import axios from 'axios';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { toast } from 'react-toastify';
 
 const BulkModal = ({ visible, onClose }) => {
     const fileInputRef = useRef(null);
@@ -76,8 +75,6 @@ const BulkModal = ({ visible, onClose }) => {
 
     return (
         <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <ToastContainer position="top-right" autoClose={5000} />
-
             <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
                 <div className="flex justify-between items-center border-b pb-3 mb-4">
                     <h3 className="text-2xl font-bold text-[#0172bd]">Bulk Add Students</h3>
