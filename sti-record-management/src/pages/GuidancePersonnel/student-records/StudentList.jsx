@@ -616,15 +616,15 @@ function StudentList() {
             {/* Top bar */}
             <div className="flex items-center gap-2 p-4 pb-2">
                 <div className="flex items-center gap-2">
-                    <button className={`flex items-center px-4 py-2 rounded-lg font-semibold transition ${activeLevel === "shs" ? "bg-[#0172bd] text-white shadow" : "bg-white text-[#0172bd] hover:bg-blue-100 cursor-pointer"} `} 
+                    <button className={`flex items-center px-4 py-2 rounded-lg font-semibold transition ${activeLevel === "shs" ? "bg-[#0172bd] text-white shadow" : "bg-white text-[#0172bd] hover:bg-blue-100 cursor-pointer"} `}
                         onClick={() => {
                             setActiveLevel("shs")
                             setCurrentPage(1)
-                            }}>
+                        }}>
                         Senior High School
                         <Building className="w-5 h-5 ml-2" />
                     </button>
-                    <button className={`flex items-center px-4 py-2 rounded-lg font-semibold transition ${activeLevel === "college" ? "bg-[#0172bd] text-white shadow" : "bg-white text-[#0172bd] hover:bg-blue-100 cursor-pointer"} `} 
+                    <button className={`flex items-center px-4 py-2 rounded-lg font-semibold transition ${activeLevel === "college" ? "bg-[#0172bd] text-white shadow" : "bg-white text-[#0172bd] hover:bg-blue-100 cursor-pointer"} `}
                         onClick={() => {
                             setActiveLevel("college")
                             setCurrentPage(1)
@@ -686,20 +686,21 @@ function StudentList() {
 
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 w-full">
                         {/* Add Student Buttons */}
-                        <div className="flex gap-2 mt-2 mb-2 flex-wrap">
-                            <button className="flex items-center gap-1 px-3 py-2 bg-[#0172bd] hover:bg-blue-500 text-white rounded-lg font-semibold text-sm shadow cursor-pointer" onClick={handleAddIndividual}>
-                                <UserPlus className="w-4 h-4" />
-                                Individual
-                            </button>
-                            <button className="flex items-center gap-1 px-3 py-2 bg-[#0172bd] hover:bg-blue-500 text-white rounded-lg font-semibold text-sm shadow cursor-pointer" onClick={handleAddBulk}>
-                                <UsersIcon className="w-4 h-4" />
-                                Bulk
-                            </button>
-                            <button className="flex items-center gap-1 px-3 py-2 bg-[#0172bd] hover:bg-blue-500 text-white rounded-lg font-semibold text-sm shadow cursor-pointer" onClick={handleAddPhoto}>
-                                <Camera className="w-4 h-4" />
-                                Photo OCR
-                            </button>
-                        </div>
+                        {authData?.user?.access?.studentRecords?.canEdit ? (
+                            <div className="flex gap-2 mt-2 mb-2 flex-wrap">
+                                <button className="flex items-center gap-1 px-3 py-2 bg-[#0172bd] hover:bg-blue-500 text-white rounded-lg font-semibold text-sm shadow cursor-pointer" onClick={handleAddIndividual}>
+                                    <UserPlus className="w-4 h-4" />
+                                    Individual
+                                </button>
+                                <button className="flex items-center gap-1 px-3 py-2 bg-[#0172bd] hover:bg-blue-500 text-white rounded-lg font-semibold text-sm shadow cursor-pointer" onClick={handleAddBulk}>
+                                    <UsersIcon className="w-4 h-4" />
+                                    Bulk
+                                </button>
+                                <button className="flex items-center gap-1 px-3 py-2 bg-[#0172bd] hover:bg-blue-500 text-white rounded-lg font-semibold text-sm shadow cursor-pointer" onClick={handleAddPhoto}>
+                                    <Camera className="w-4 h-4" />
+                                    Photo OCR
+                                </button>
+                            </div>) : null}
 
                         {/* Search and Filter */}
                         <div className="flex gap-2 w-full md:w-auto md:justify-end md:items-center">
@@ -936,13 +937,13 @@ function StudentList() {
                                 </div>
                                 {/* Buttons aligned right with name */}
                                 <div className="flex gap-2 mt-2 md:mt-0 flex-wrap justify-start md:justify-end">
-                                    <button
+                                    {authData?.user?.access?.studentRecords?.canEdit ? <button
                                         className="flex items-center gap-1 px-3 sm:px-4 py-2 bg-[#0172bd] hover:bg-blue-500 text-white rounded-lg font-semibold text-sm sm:text-base shadow"
                                         onClick={isEditing ? handleSaveEdit : handleEdit}
                                     >
                                         <Edit className="w-5 h-5" />
                                         {isEditing ? "Save" : "Edit Student"}
-                                    </button>
+                                    </button> : null}
                                     <button
                                         className="flex items-center gap-1 px-3 sm:px-4 py-2 bg-[#0172bd] hover:bg-blue-500 text-white rounded-lg font-semibold text-sm sm:text-base shadow"
                                         onClick={handleCaseButton}
@@ -950,7 +951,7 @@ function StudentList() {
                                         <FileText className="w-5 h-5" />
                                         {showCasesView ? "Go Back" : "Case"}
                                     </button>
-                                    <button
+                                    {authData?.user?.access?.studentRecords?.canEdit ? <button
                                         className={`flex items-center gap-1 px-3 sm:px-4 py-2 
                                                     ${modalStudent.isArchived
                                                 ? "bg-green-600 hover:bg-green-700"
@@ -960,7 +961,7 @@ function StudentList() {
                                     >
                                         <FileArchive className="w-5 h-5" />
                                         {modalStudent.isArchived ? "Restore" : "Archive"}
-                                    </button>
+                                    </button>: null}
 
                                 </div>
                             </div>
