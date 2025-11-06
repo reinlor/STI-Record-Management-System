@@ -574,25 +574,26 @@ function StudentCases() {
                                     </div>
                                 </div>
 
-                                <div className="flex gap-2 mt-2 md:mt-0">
-                                    <button
-                                        className="flex items-center gap-1 px-3 py-2 bg-[#0172bd] hover:bg-blue-500 text-white rounded-lg font-semibold text-sm shadow"
-                                        onClick={() => {
-                                            if (isEditing) handleSaveEdits();
-                                            setIsEditing(!isEditing);
-                                        }}
-                                    >
-                                        {isEditing ? "Save" : "Edit Case"}
-                                        <Pencil className="w-5 h-5 ml-1" />
-                                    </button>
-                                    <button
-                                        className="flex items-center gap-1 px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold text-sm shadow"
-                                        onClick={handleArchiveCase}
-                                    >
-                                        Resolve Case
-                                        <Archive className="w-5 h-5 ml-1" />
-                                    </button>
-                                </div>
+                                {authData?.user?.access?.studentCases?.canEdit ? (
+                                    <div className="flex gap-2 mt-2 md:mt-0">
+                                        <button
+                                            className="flex items-center gap-1 px-3 py-2 bg-[#0172bd] hover:bg-blue-500 text-white rounded-lg font-semibold text-sm shadow"
+                                            onClick={() => {
+                                                if (isEditing) handleSaveEdits();
+                                                setIsEditing(!isEditing);
+                                            }}
+                                        >
+                                            {isEditing ? "Save" : "Edit Case"}
+                                            <Pencil className="w-5 h-5 ml-1" />
+                                        </button>
+                                        <button
+                                            className="flex items-center gap-1 px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold text-sm shadow"
+                                            onClick={handleArchiveCase}
+                                        >
+                                            Resolve Case
+                                            <Archive className="w-5 h-5 ml-1" />
+                                        </button>
+                                    </div>) : null}
                             </div>
 
                             {/* Priority and Info Tabs */}

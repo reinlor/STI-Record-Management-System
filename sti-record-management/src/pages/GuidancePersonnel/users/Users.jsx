@@ -5,6 +5,7 @@ import Modal from './components/Modal';
 import AddUserModal from './components/AddUserModal';
 import EditUserModal from './components/EditUserModal';
 import UserTable from './components/UserTable';
+import WarningModal from './components/WarningModal';
 import {
   accessPermissions,
   initialNewUserAccess,
@@ -26,6 +27,8 @@ export default function Users() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [showArchived, setShowArchived] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [showUserManagementWarning, setShowUserManagementWarning] = useState(false);
+  const [pendingUserAction, setPendingUserAction] = useState(null);
 
   const [newUser, setNewUser] = useState({
     name: '',
@@ -128,6 +131,11 @@ export default function Users() {
   };
 
   const handleUserAccessToggle = (permission, subPermission = null) => {
+    if (permission === 'User Management' && !editedUser.access['User Management']) {
+      setPendingUserAction('edit');
+      setShowUserManagementWarning(true);
+      return;
+    }
     setEditedUser((prev) => {
       if (!prev) return prev;
       if (subPermission) {
@@ -153,7 +161,34 @@ export default function Users() {
     });
   };
 
+  const proceedUserManagementAccess = () => {
+    setShowUserManagementWarning(false);
+    if (pendingUserAction === 'create') {
+      setNewUser((prev) => ({
+        ...prev,
+        access: {
+          ...prev.access,
+          ['User Management']: true,
+        },
+      }));
+    } else if (pendingUserAction === 'edit') {
+      setEditedUser((prev) => ({
+        ...prev,
+        access: {
+          ...prev.access,
+          ['User Management']: true,
+        },
+      }));
+    }
+    setPendingUserAction(null);
+  };
+
   const handleAddUserAccessToggle = (permission, subPermission = null) => {
+    if (permission === 'User Management' && !newUser.access['User Management']) {
+      setPendingUserAction('create');
+      setShowUserManagementWarning(true);
+      return;
+    }
     setNewUser((prev) => {
       if (subPermission) {
         return {
@@ -425,6 +460,12 @@ export default function Users() {
             editedUser={editedUser}
             handleUserAccessToggle={handleUserAccessToggle}
             handleSaveChanges={handleSaveChanges}
+          />
+
+          <WarningModal
+            isOpen={showUserManagementWarning}
+            onClose={() => { setShowUserManagementWarning(false); setPendingUserAction(null); }}
+            onConfirm={proceedUserManagementAccess}
           />
         </div>
       </div>

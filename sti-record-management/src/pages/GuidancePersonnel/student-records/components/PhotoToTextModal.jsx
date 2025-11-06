@@ -67,8 +67,8 @@ const emptyTemplate = () => ({
 });
 
 const isValidEmail = (email) => {
-  if (!email) return false;
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    if (!email) return false;
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 };
 
 const PhotoToTextModal = ({ visible, onClose, onOCRSuccess }) => {
@@ -79,6 +79,93 @@ const PhotoToTextModal = ({ visible, onClose, onOCRSuccess }) => {
     const [defaultPassword, setDefaultPassword] = useState('student1234');
     const [showPassword, setShowPassword] = useState(false);
     const { authData } = useContext(AuthContext);
+
+    // Checking
+    const [emailExists, setEmailExists] = useState(false);
+    const [studentNumberExists, setStudentNumberExists] = useState(false);
+    const [checkingEmail, setCheckingEmail] = useState(false);
+    const [checkingStudentNumber, setCheckingStudentNumber] = useState(false);
+
+    const checkEmailExists = async (email) => {
+        if (!email) return setEmailExists(false);
+        setCheckingEmail(true);
+        try {
+            const res = await axios.get(`/student/check/email?email=${encodeURIComponent(email)}`);
+            setEmailExists(res.data.exists === true);
+        } catch (err) {
+            setEmailExists(false);
+        } finally {
+            setCheckingEmail(false);
+        }
+    };
+
+    const checkStudentNumberExists = async (sid) => {
+        if (!sid) return setStudentNumberExists(false);
+        setCheckingStudentNumber(true);
+        try {
+            const res = await axios.get(`/student/check/studentNumber/${encodeURIComponent(sid)}`);
+            setStudentNumberExists(res.data.exists === true);
+        } catch (err) {
+            setStudentNumberExists(false);
+        } finally {
+            setCheckingStudentNumber(false);
+        }
+    };
+
+    function buildStudentPayload(raw) {
+        return {
+            processedBy: authData?.user?.displayName,
+            sid: raw.sid,
+            isArchived: raw.isArchived,
+            studentProfile: {
+                lastName: raw.studentProfile?.lastName ?? "",
+                firstName: raw.studentProfile?.firstName ?? "",
+                middleName: raw.studentProfile?.middleName ?? "",
+                suffix: raw.studentProfile?.suffix ?? "",
+                nickname: raw.studentProfile?.nickname ?? "",
+                section: raw.studentProfile?.section ?? "",
+                academicLevel: raw.studentProfile?.academicLevel ?? "",
+                program: raw.studentProfile?.program ?? "",
+                birthday: raw.studentProfile?.birthday ?? "",
+                gender: raw.studentProfile?.gender ?? "",
+                status: raw.studentProfile?.status ?? "",
+                religion: raw.studentProfile?.religion ?? "",
+                nationality: raw.studentProfile?.nationality ?? "",
+            },
+            contactInfo: {
+                email: raw.contactInfo?.email ?? "",
+                contactNo: raw.contactInfo?.contactNo ?? "",
+                address: {
+                    currentAddress: raw.contactInfo?.address?.currentAddress ?? "",
+                    permanentAddress: raw.contactInfo?.address?.permanentAddress ?? "",
+                    provincialAddress: raw.contactInfo?.address?.provincialAddress ?? "",
+                }
+            },
+            familyBackground: {
+                fatherInfo: {
+                    name: raw.familyBackground?.fatherInfo?.name ?? "",
+                    religion: raw.familyBackground?.fatherInfo?.religion ?? "",
+                    nationality: raw.familyBackground?.fatherInfo?.nationality ?? "",
+                    occupation: raw.familyBackground?.fatherInfo?.occupation ?? "",
+                },
+                motherInfo: {
+                    name: raw.familyBackground?.motherInfo?.name ?? "",
+                    religion: raw.familyBackground?.motherInfo?.religion ?? "",
+                    nationality: raw.familyBackground?.motherInfo?.nationality ?? "",
+                    occupation: raw.familyBackground?.motherInfo?.occupation ?? "",
+                },
+                guardian: {
+                    name: raw.familyBackground?.guardian?.name ?? "",
+                    contactNo: raw.familyBackground?.guardian?.contactNo ?? "",
+                },
+                emergency: {
+                    name: raw.familyBackground?.emergency?.name ?? "",
+                    contactNo: raw.familyBackground?.emergency?.contactNo ?? "",
+                },
+                siblings: Array.isArray(raw.familyBackground?.siblings) ? raw.familyBackground.siblings : [],
+            }
+        };
+    }
 
     if (!visible) return null;
 
@@ -167,6 +254,13 @@ const PhotoToTextModal = ({ visible, onClose, onOCRSuccess }) => {
             });
             return next;
         });
+
+        if (path === 'contactInfo.email') {
+            checkEmailExists(value);
+        }
+        if (path === 'sid') {
+            checkStudentNumberExists(value);
+        }
     };
 
     const handleSave = async () => {
@@ -176,19 +270,7 @@ const PhotoToTextModal = ({ visible, onClose, onOCRSuccess }) => {
         }
         try {
             setIsSaving(true);
-            const archived = (ocrData?.sid?.toString()?.toLowerCase()?.includes('prd')) ?? false;
-            const final = {
-                ...ocrData,
-                processedBy: authData?.displayName ?? 'Admin',
-                sid: ocrData?.sid || "",
-                studentProfile: ocrData?.studentProfile || {},
-                contactInfo: ocrData?.contactInfo || { address: {} },
-                isArchived: archived
-            };
-
-            delete final._raw;
-            delete final._extra;
-
+            const final = buildStudentPayload(ocrData);
             await axios.post("/student/create", final);
             toast.success("Student created successfully.");
             setTimeout(() => {
@@ -243,6 +325,8 @@ const PhotoToTextModal = ({ visible, onClose, onOCRSuccess }) => {
                                         Student ID<span className='text-red-700'>*</span> <span className="text-gray-500">(Required)</span>
                                     </label>
                                     <NestedInput value={ocrData.sid} onChange={(v) => setNested('sid', v)} placeholder="SID" />
+                                    {checkingStudentNumber && <span className="text-blue-500 text-xs">Checking student number...</span>}
+                                    {studentNumberExists && <span className="text-red-500 text-xs">Student number already exists.</span>}
                                 </div>
 
                                 {/* Split Name Fields */}
@@ -369,7 +453,8 @@ const PhotoToTextModal = ({ visible, onClose, onOCRSuccess }) => {
                                         </select>
                                     ) : (
                                         <NestedInput value={ocrData.contactInfo.email} onChange={(v) => setNested('contactInfo.email', v)} />
-                                    )}
+                                    )}{checkingEmail && <span className="text-blue-500 text-xs">Checking email...</span>}
+                                    {emailExists && <span className="text-red-500 text-xs">Email already exists.</span>}
                                 </div>
                                 <div>
                                     <label className="text-sm">
@@ -511,12 +596,11 @@ const PhotoToTextModal = ({ visible, onClose, onOCRSuccess }) => {
                             {/* Save & Use Button */}
                             <button
                                 onClick={handleSave}
-                                disabled={!requiredCheck.valid || isSaving}
-                                className={`px-4 py-2 rounded flex items-center gap-2 transition duration-150 ease-in-out ${
-                                    !requiredCheck.valid || isSaving
-                                        ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
-                                        : 'bg-[#0172bd] text-white hover:bg-[#005fa3] cursor-pointer'
-                                }`}
+                                disabled={!requiredCheck.valid || isSaving || emailExists || studentNumberExists}
+                                className={`px-4 py-2 rounded flex items-center gap-2 transition duration-150 ease-in-out ${!requiredCheck.valid || isSaving
+                                    ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
+                                    : 'bg-[#0172bd] text-white hover:bg-[#005fa3] cursor-pointer'
+                                    }`}
                             >
                                 <Check className="w-4 h-4" /> {isSaving ? 'Saving...' : 'Save & Use'}
                             </button>

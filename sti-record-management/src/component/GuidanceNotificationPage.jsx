@@ -28,6 +28,60 @@ const GuidanceNotificationPage = () => {
   const pageSize = 10;
   const navigate = useNavigate();
 
+
+  const parseToDate = (val) => {
+    if (!val) return null;
+
+    // Firestore Timestamp object
+    if (val.toDate && typeof val.toDate === "function") {
+      return val.toDate();
+    }
+
+    // Firestore map format
+    if (typeof val === "object" && val._seconds) {
+      return new Date(val._seconds * 1000);
+    }
+
+    // String format: "November 6, 2025 at 11:37:49 PM UTC+8"
+    if (typeof val === "string") {
+      // Try to extract the date part before " at "
+      const [datePart, timePart] = val.split(" at ");
+      if (datePart && timePart) {
+        // Remove "UTC+8" or other timezone info for parsing
+        const timeClean = timePart.replace(/UTC.*$/, "").trim();
+        const combined = `${datePart} ${timeClean}`;
+        const d = new Date(combined);
+        if (!isNaN(d.getTime())) return d;
+      }
+      // Fallback: try parsing the string directly
+      const d = new Date(val);
+      if (!isNaN(d.getTime())) return d;
+    }
+
+    // Fallback: try parsing as Date
+    const d = new Date(val);
+    return isNaN(d.getTime()) ? null : d;
+  };
+
+  const formatDate = (val) => {
+    const d = parseToDate(val);
+    if (!d) return "-";
+
+    try {
+      return new Intl.DateTimeFormat("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+      }).format(d);
+    } catch (error) {
+      console.error("Date formatting error:", error);
+      return "N/A";
+    }
+  };
+
   useEffect(() => {
     setIsLoading(true);
 
@@ -58,7 +112,7 @@ const GuidanceNotificationPage = () => {
       const data = snap.exists() ? snap.data().data || [] : [];
       mergeData(data, "cases");
     });
-    
+
     const unsubRecord = onSnapshot(recordsRef, (snap) => {
       const data = snap.exists() ? snap.data().data || [] : [];
       mergeData(data, "records");
@@ -121,12 +175,12 @@ const GuidanceNotificationPage = () => {
                         navigate("/guidance/referral-form");
                       } else if (notif.collectionType === "cases") {
                         navigate("/guidance/student-cases");
-                      } else if (notif.collectionType === "request"){
+                      } else if (notif.collectionType === "request") {
                         navigate("/guidance/request-slip");
-                      } else if (notif.collectionType === "records"){
+                      } else if (notif.collectionType === "records") {
                         navigate("/guidance/student-records");
                       }
-                    }} 
+                    }}
                     className={`border-b last:border-b-0 cursor-pointer transition-colors ${highlight ? "bg-blue-50 hover:bg-blue-100" : "bg-white hover:bg-gray-50"
                       }`}
                   >
@@ -134,10 +188,10 @@ const GuidanceNotificationPage = () => {
                       <div className="flex items-center gap-3">
                         <div
                           className={`p-2 rounded-full ${notif.type === "Update"
-                              ? "bg-green-100 text-green-600"
-                              : notif.type === "Submission"
-                                ? "bg-red-100 text-red-600"
-                                : "bg-gray-100 text-gray-600"
+                            ? "bg-green-100 text-green-600"
+                            : notif.type === "Submission"
+                              ? "bg-red-100 text-red-600"
+                              : "bg-gray-100 text-gray-600"
                             }`}
                         >
                           {notif.type === "Update" ? (
@@ -153,7 +207,7 @@ const GuidanceNotificationPage = () => {
                     </td>
                     <td className="px-4 py-3 font-medium text-gray-700">{notif.subject}</td>
                     <td className="px-4 py-3 text-gray-500 hidden md:table-cell">
-                      {notifDate.toLocaleString()}
+                      {formatDate(notif.date)}
                     </td>
                   </tr>
                 );
@@ -182,8 +236,8 @@ const GuidanceNotificationPage = () => {
                   key={idx}
                   onClick={() => setCurrentPage(num)}
                   className={`px-3 py-1 rounded-md ${currentPage === num
-                      ? "bg-[#0B5793] text-white"
-                      : "bg-gray-200 hover:bg-gray-300"
+                    ? "bg-[#0B5793] text-white"
+                    : "bg-gray-200 hover:bg-gray-300"
                     }`}
                 >
                   {num}

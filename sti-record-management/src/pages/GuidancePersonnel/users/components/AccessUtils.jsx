@@ -28,7 +28,7 @@ export const serverAccessPresets = {
         referralForm: false, 
         backupRestore: true, 
         wellness: true, 
-        userManagement: true, 
+        userManagement: false, 
         contentManagement: false 
     }, 
     Disciplinary: { 
@@ -38,7 +38,7 @@ export const serverAccessPresets = {
         referralForm: false, 
         backupRestore: false, 
         wellness: false, 
-        userManagement: true, 
+        userManagement: false, 
         contentManagement: false 
     }, 
     Teacher: undefined, 

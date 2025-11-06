@@ -19,10 +19,10 @@ export default function UserTable({
       <table className="min-w-full table-fixed divide-y divide-gray-200 text-[10px] sm:text-xs md:text-sm lg:text-base">
         <thead className="bg-gray-50">
           <tr>
-            <th className="sticky top-0 z-10 bg-[#0172bd] text-white px-4 py-2 text-left font-semibold w-1/4">Name</th>
-            <th className="sticky top-0 z-10 bg-[#0172bd] text-white px-1 py-2 text-left font-semibold w-1/4">Roles</th>
-            <th className="sticky top-0 z-10 bg-[#0172bd] text-white px-1 py-2 text-left font-semibold w-1/4">Access</th>
-            <th className="sticky top-0 z-10 bg-[#0172bd] text-white px-1 py-2 text-right font-semibold w-1/4"></th>
+            <th className="sticky top-0 bg-[#0172bd] text-white px-4 py-2 text-left font-semibold w-1/4">Name</th>
+            <th className="sticky top-0 bg-[#0172bd] text-white px-1 py-2 text-left font-semibold w-1/4">Roles</th>
+            <th className="sticky top-0 bg-[#0172bd] text-white px-1 py-2 text-left font-semibold w-1/4">Access</th>
+            <th className="sticky top-0 bg-[#0172bd] text-white px-1 py-2 text-right font-semibold w-1/4"></th>
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">

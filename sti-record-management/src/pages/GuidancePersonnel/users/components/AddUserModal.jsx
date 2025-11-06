@@ -135,8 +135,7 @@ export default function AddUserModal({
                             name="adminPosition"
                             value={adminPosition}
                             onChange={(e) => onAdminPositionChange(e.target.value)}
-                            className="mt-1 block w-1/2 h-8 rounded-md shadow-sm focus:ring focus:ring-
-[#0172bd] hover:bg-gray-100"
+                            className="mt-1 block w-1/2 h-8 rounded-md shadow-sm focus:ring focus:ring-[#0172bd] hover:bg-gray-100"
                         >
                             <option value="">Select admin position (optional)</option>
                             <option value="Disciplinary">Disciplinary</option>
@@ -149,8 +148,7 @@ export default function AddUserModal({
                                 placeholder="Enter custom role name (e.g., Registrar)"
                                 value={customAdminPosition}
                                 onChange={onCustomAdminPositionInput}
-                                className="mt-2 block w-1/2 h-8 rounded-md shadow-sm border-blue-300 focus:ring 
-focus:ring-[#0172bd] hover:bg-gray-100"
+                                className="mt-2 block w-1/2 h-8 rounded-md shadow-sm border-blue-300 focus:ring focus:ring-[#0172bd] hover:bg-gray-100"
                             />
                         )}
                     </div>

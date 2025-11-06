@@ -37,7 +37,7 @@ const studentSchema = Joi.object({
     workNo: Joi.string().empty('').optional(),
     address: Joi.object({
       permanentAddress: Joi.string().empty('').optional(),
-      currentAddress: Joi.string().empty('').required(),
+      currentAddress: Joi.string().empty('').optional(),
       provincialAddress: Joi.string().empty('').optional()
     }).required()
   }).required(),

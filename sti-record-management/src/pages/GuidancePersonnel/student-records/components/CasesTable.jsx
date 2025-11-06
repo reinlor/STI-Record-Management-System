@@ -103,8 +103,8 @@ export default function CasesTable({ studentId }) {
             </tr>
           ) : error ? (
             <tr>
-              <td colSpan={4} className="text-center py-8 text-red-500">
-                Error loading cases. {error.message}
+              <td colSpan={4} className="text-center py-8 text-gray-500">
+                No cases found for this student.
               </td>
             </tr>
           ) : cases.length === 0 ? (

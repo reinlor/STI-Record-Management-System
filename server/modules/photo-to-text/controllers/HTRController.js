@@ -251,7 +251,7 @@ const FIELD_MAPPINGS = [
   { patterns: [/^m\.i\.|middle initial|middle name/i], path: 'studentProfile.middleName' },
   { patterns: [/^nickname$/i], path: 'studentProfile.nickname' },
   { patterns: [/^student no\.?|student number|id no\.?/i], path: 'sid' },
-  { patterns: [/^year$/i], path: 'studentProfile.year' },
+  { patterns: [/^year$/i], path: 'studentProfile.section' },
   { patterns: [/^program$/i, /course/i, /strand/i], path: 'studentProfile.program' },
   { patterns: [/^gender$/i], path: 'studentProfile.gender' },
   { patterns: [/^status$/i], path: 'studentProfile.status' },
@@ -272,7 +272,7 @@ const FIELD_MAPPINGS = [
   { patterns: [/^sibling order$/i], path: 'familyBackground.siblings' },
   { patterns: [/^name of spouse$/i], path: 'familyBackground.spouse.name' },
   { patterns: [/^occupation$/i], path: 'familyBackground.spouse.occupation' }, // Adjusted to spouse
-  { patterns: [/^age$/i], path: 'familyBackground.fatherInfo.age' },
+  // { patterns: [/^age$/i], path: 'familyBackground.fatherInfo.age' },
   { patterns: [/^contact number:?$/i], path: 'familyBackground.emergency.contactNo' },
   { patterns: [/^in case of emergency, please contact:?$/i], path: 'familyBackground.emergency.name' },
   { patterns: [/^contact number:?$/i, /emergency contact/i], path: 'familyBackground.emergency.contactNo' },
@@ -432,16 +432,16 @@ const mapToStudentSchema = (mergedKV, allLines) => {
       out.familyBackground.motherInfo.name = toPascalCase(familyLines[motherNameIdx + 1] || '');
     }
 
-    // Parse ages
-    const firstAgeIdx = familyLines.findIndex(l => l.toLowerCase().includes('age'));
-    if (firstAgeIdx !== -1) {
-      out.familyBackground.fatherInfo.age = familyLines[firstAgeIdx + 1] || '';
-    }
+    // // Parse ages
+    // const firstAgeIdx = familyLines.findIndex(l => l.toLowerCase().includes('age'));
+    // if (firstAgeIdx !== -1) {
+    //   out.familyBackground.fatherInfo.age = familyLines[firstAgeIdx + 1] || '';
+    // }
 
-    const secondAgeIdx = familyLines.findIndex((l, i) => i > firstAgeIdx && l.toLowerCase().includes('age'));
-    if (secondAgeIdx !== -1) {
-      out.familyBackground.motherInfo.age = familyLines[secondAgeIdx + 1] || '';
-    }
+    // const secondAgeIdx = familyLines.findIndex((l, i) => i > firstAgeIdx && l.toLowerCase().includes('age'));
+    // if (secondAgeIdx !== -1) {
+    //   out.familyBackground.motherInfo.age = familyLines[secondAgeIdx + 1] || '';
+    // }
 
     // Parse nationality/religion
     const firstNatIdx = familyLines.findIndex(l => l.toLowerCase().includes('nationality / religion'));
