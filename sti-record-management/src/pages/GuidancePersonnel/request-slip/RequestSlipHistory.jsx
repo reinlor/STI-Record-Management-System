@@ -97,7 +97,7 @@ function IncidentReportHistoryModal({ slip, onClose }) {
           </div>
           <button
             onClick={onClose}
-            className="text-2xl text-[#0172bd] hover:scale-110 hover:text-blue-500"
+            className="text-2xl text-[#0172bd] hover:scale-110 hover:text-blue-500 cursor-pointer"
           >
             <X className="w-10 h-10 object-cover rounded " />
           </button>
@@ -369,7 +369,7 @@ function RequestSlipHistory() {
             </div>
             <button
               onClick={() => setSelectedSlip(null)}
-              className="text-[#0172bd] hover:text-blue-500 transition-transform hover:scale-110"
+              className="text-[#0172bd] hover:text-blue-500 transition-transform hover:scale-110 cursor-pointer"
             >
               <X className="w-8 h-8" />
             </button>
@@ -448,8 +448,18 @@ function RequestSlipHistory() {
 
   // Update table row open logic:
   const displaySlipHistoryTable = pagedSlipData.map((slips, idx) => (
-    <tr key={idx} className="hover:bg-gray-100 transition">
-      {console.log(slips.status)}
+    <tr
+      key={idx}
+      className="hover:bg-gray-100 transition cursor-pointer"
+      onClick={() => {
+        if (slips.typeOfSlip === "Incident Report") {
+          setIncidentReportSlip(slips);
+          setShowIncidentReportModal(true);
+        } else {
+          setSelectedSlip(slips);
+        }
+      }}
+    >
       <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 lg:whitespace-nowrap font-semibold w-1/4">{slips.name}</td>
       <td className="px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">{slips.sid}</td>
       <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 lg:whitespace-nowrap">{slips.typeOfSlip}</td>
@@ -458,7 +468,8 @@ function RequestSlipHistory() {
       <td className="px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">{slips.attachmentCount}</td>
       <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3">
         <button
-          onClick={() => {
+          onClick={(e) => {
+            e.stopPropagation(); 
             if (slips.typeOfSlip === "Incident Report") {
               setIncidentReportSlip(slips);
               setShowIncidentReportModal(true);
@@ -466,7 +477,7 @@ function RequestSlipHistory() {
               setSelectedSlip(slips);
             }
           }}
-          className="bg-[#0172bd] text-white font-semibold px-3 sm:px-4 py-1 rounded-lg hover:bg-blue-500 transition w-full sm:w-auto"
+          className="bg-[#0172bd] text-white font-semibold px-3 sm:px-4 py-1 rounded-lg hover:bg-blue-500 transition w-full sm:w-auto cursor-pointer"
         >
           Open
         </button>
@@ -489,7 +500,7 @@ function RequestSlipHistory() {
                 <button
                   onClick={() => navigate('/guidance/request-slip')}
                   style={{ cursor: 'pointer' }}
-                  className='flex items-top justify-top hover:bg-gray-300 transition duration-200 rounded'
+                  className='flex items-top justify-top hover:bg-gray-300 transition duration-200 rounded cursor-pointer'
                 >
                   <ChevronLeft className="w-10 h-10 object-cover rounded text-[#0172bd] " />
                 </button>
@@ -503,7 +514,7 @@ function RequestSlipHistory() {
             <div className="relative w-full sm:w-64">
               <input
                 type="text"
-                placeholder="Name/ ID"
+                placeholder="Student Name/ ID"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="w-full border border-gray-300 rounded-lg px-4 py-2 pr-10 focus:outline-none focus:ring-1 focus:ring-[#0172bd]"
@@ -549,7 +560,7 @@ function RequestSlipHistory() {
         <div className="w-full flex justify-center lg:justify-end items-center mt-2 pr-0 lg:pr-2">
           <nav className="flex items-center space-x-1">
             <button
-              className="px-2 py-1 rounded hover:bg-gray-200 text-[#0172bd] font-bold"
+              className="px-2 py-1 rounded hover:bg-gray-200 text-[#0172bd] font-bold cursor-pointer"
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               disabled={currentPage === 1}
             >
@@ -558,14 +569,14 @@ function RequestSlipHistory() {
             {Array.from({ length: totalPages }, (_, i) => (
               <button
                 key={i + 1}
-                className={`px-2 py-1 rounded ${currentPage === i + 1 ? 'bg-[#0172bd] text-white' : 'hover:bg-gray-200 text-[#0172bd]'}`}
+                className={`px-2 py-1 rounded ${currentPage === i + 1 ? 'bg-[#0172bd] text-white' : 'hover:bg-gray-200 text-[#0172bd] cursor-pointer'}`}
                 onClick={() => setCurrentPage(i + 1)}
               >
                 {i + 1}
               </button>
             ))}
             <button
-              className="px-2 py-1 rounded hover:bg-gray-200 text-[#0172bd] font-bold"
+              className="px-2 py-1 rounded hover:bg-gray-200 text-[#0172bd] font-bold cursor-pointer"
               onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages}
             >
