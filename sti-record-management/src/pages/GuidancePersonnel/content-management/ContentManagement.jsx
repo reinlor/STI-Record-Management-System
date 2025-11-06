@@ -541,8 +541,8 @@ export default function ContentManagement() {
                     <button
                         key={btn.key}
                         onClick={() => setActivePanel(btn.key)}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition  ${activePanel === btn.key ? "bg-[#0172bd] text-white shadow" : "bg-white text-black hover:bg-gray-200"
-                            }  flex-1 min-w-[150px] justify-center`}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition  ${activePanel === btn.key ? "bg-[#0172bd] text-white shadow" : "bg-white text-black hover:bg-gray-200 hover:text-black cursor-pointer shadow-md"
+                            }  flex-1 min-w-[150px] justify-center `}
                     >
                         {btn.icon}
                         <span className="whitespace-nowrap">{btn.label}</span>
@@ -630,7 +630,7 @@ export default function ContentManagement() {
                         <div className="flex justify-end gap-2">
                             <button
                                 onClick={() => setConfirmModal({ isOpen: false, title: "", message: "", onConfirm: null })}
-                                className="px-4 py-2 rounded-lg bg-gray-200"
+                                className="px-4 py-2 rounded-lg bg-gray-200 cursor-pointer"
                             >
                                 Cancel
                             </button>
@@ -638,7 +638,7 @@ export default function ContentManagement() {
                                 onClick={() => {
                                     if (confirmModal.onConfirm) confirmModal.onConfirm();
                                 }}
-                                className="px-4 py-2 rounded-lg bg-red-600 text-white"
+                                className="px-4 py-2 rounded-lg bg-red-600 text-white cursor-pointer"
                             >
                                 Delete
                             </button>
