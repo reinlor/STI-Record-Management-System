@@ -1,5 +1,5 @@
 import { useEffect, useState, useContext, useRef } from "react";
-import { X, Check, Calendar, Plus, ChevronLeft, ChevronRight, Trash } from "lucide-react";
+import { X, Check, Calendar, Plus, ChevronLeft, ChevronRight, Trash, Eye, EyeOff } from "lucide-react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { AuthContext } from "../../../../AuthProvider.jsx";
@@ -42,6 +42,9 @@ const AddStudentModal = ({ visible, onClose, newStudentForm = null, clearForm = 
     const [step, setStep] = useState(0);
     const [form, setForm] = useState(defaultForm);
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const [defaultPassword, setDefaultPassword] = useState('student1234');
+    const [showPassword, setShowPassword] = useState(false);
 
     const yearLevelOptions = ["Tertiary", "Senior High School"];
     const [collegePrograms, setCollegePrograms] = useState([]);
@@ -591,6 +594,7 @@ const AddStudentModal = ({ visible, onClose, newStudentForm = null, clearForm = 
                 {/* Step content */}
                 {step === 0 && (
                     <form className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+                        {/* Existing fields */}
                         <div className="space-y-4">
                             <div>
                                 <label htmlFor="studentNumber" className="block text-sm font-medium text-gray-700">
@@ -791,6 +795,23 @@ const AddStudentModal = ({ visible, onClose, newStudentForm = null, clearForm = 
                                         focus:ring-blue-500 focus:border-blue-500`}></textarea>
                             </div>
                         </div>
+
+                        {/* Default Password Section */}
+                        <div className="col-span-2 mt-4">
+                            <label className="block text-sm font-medium text-[#0172bd]">Default Password</label>
+                            <div className="mt-1 flex items-center">
+                                <span className="block w-full h-8 rounded-md shadow-sm border-blue-300 focus:ring focus:ring-[#0172bd] hover:bg-gray-100 px-3 py-1 bg-gray-50 text-gray-900">
+                                    {showPassword ? defaultPassword : '******'}
+                                </span>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="ml-2 text-gray-600 hover:text-gray-800 cursor-pointer"
+                                >
+                                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                </button>
+                            </div>
+                        </div>
                     </form>
                 )}
 
@@ -979,7 +1000,7 @@ const AddStudentModal = ({ visible, onClose, newStudentForm = null, clearForm = 
                         )}
 
                         {step < 2 && (
-                            <button onClick={handleNext} className="bg-[#0172bd] hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg flex items-center">
+                            <button onClick={handleNext} className="bg-[#0172bd] hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg flex items-center cursor-pointer">
                                 Next <ChevronRight className="w-5 h-5 ml-2" />
                             </button>
                         )}

@@ -105,6 +105,15 @@ export default function StudentRequestSlip() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Validate date range
+    const startDate = new Date(formData.dateAbsent);
+    const endDate = new Date(formData.dateAbsentEnd);
+    if (endDate < startDate) {
+        toast.error("Invalid date range: End date cannot be earlier than the start date.");
+        return;
+    }
+
     setIsLoading(true);
 
     // Show loading toast
@@ -120,111 +129,111 @@ export default function StudentRequestSlip() {
     let endpoint = "";
 
     if (activeSlip === "Absent") {
-      form.append("typeOfSlip", "Absent Slip");
-      form.append("dateAbsentEnd", formData.dateAbsentEnd);
-      form.append("dateAbsent", formData.dateAbsent);
-      form.append("reason", absentReason);
+        form.append("typeOfSlip", "Absent Slip");
+        form.append("dateAbsentEnd", formData.dateAbsentEnd);
+        form.append("dateAbsent", formData.dateAbsent);
+        form.append("reason", absentReason);
 
-      const absentDays = getAbsentDays();
+        const absentDays = getAbsentDays();
 
-      // Health-Related: require medical certificate only if 3 or more days
-      if (absentReason === "Health-Related") {
-        if (!excuseLetter || !parentID) {
-          toast.error("Excuse Letter and Parent's/Guardian's ID are required.");
-          setIsLoading(false);
-          return;
-        }
-        // NEW ORDER: Excuse Letter → Guardian ID → Medical Certificate
-        form.append("attachments", excuseLetter.file);
-        form.append("attachments", parentID.file);
-        if (absentDays >= 3) {
-          if (!medicalCertificate) {
-            toast.error("Medical Certificate is required for 3 or more days of Health-Related absence.");
+        // Health-Related: require medical certificate only if 3 or more days
+        if (absentReason === "Health-Related") {
+            if (!excuseLetter || !parentID) {
+                toast.error("Excuse Letter and Parent's/Guardian's ID are required.");
+                setIsLoading(false);
+                return;
+            }
+            // NEW ORDER: Excuse Letter → Guardian ID → Medical Certificate
+            form.append("attachments", excuseLetter.file);
+            form.append("attachments", parentID.file);
+            if (absentDays >= 3) {
+                if (!medicalCertificate) {
+                    toast.error("Medical Certificate is required for 3 or more days of Health-Related absence.");
+                    setIsLoading(false);
+                    return;
+                }
+                form.append("attachments", medicalCertificate.file);
+            }
+        } else if (absentReason === "Non-Health-Related") {
+            if (!excuseLetter || !parentID) {
+                toast.error("Excuse Letter and Parent's/Guardian's ID are required.");
+                setIsLoading(false);
+                return;
+            }
+            // NEW ORDER: Excuse Letter → Guardian ID
+            form.append("attachments", excuseLetter.file);
+            form.append("attachments", parentID.file);
+        } else {
+            toast.error("Please select a Reason for Absence.");
             setIsLoading(false);
             return;
-          }
-          form.append("attachments", medicalCertificate.file);
         }
-      } else if (absentReason === "Non-Health-Related") {
-        if (!excuseLetter || !parentID) {
-          toast.error("Excuse Letter and Parent's/Guardian's ID are required.");
-          setIsLoading(false);
-          return;
-        }
-        // NEW ORDER: Excuse Letter → Guardian ID
-        form.append("attachments", excuseLetter.file);
-        form.append("attachments", parentID.file);
-      } else {
-        toast.error("Please select a Reason for Absence.");
-        setIsLoading(false);
-        return;
-      }
 
-      endpoint = "/slip/absentSlip/add";
+        endpoint = "/slip/absentSlip/add";
     } else if (activeSlip === "Report") {
-      form.append("typeOfSlip", "Incident Report");
-      form.append("dateOfIncident", formData.incidentDate);
-      form.append("incidentTime", formData.incidentTime);
-      form.append("locationOfIncident", formData.incidentLocation);
-      form.append("personInvolved", formData.personsInvolved);
-      form.append("witnessName", formData.witnessName);
-      form.append("witnessContact", formData.witnessContact);
-      form.append("narrativeReport", formData.narrative);
-      form.append("actionTaken", formData.actionsTaken);
-      form.append("remarks", "");
+        form.append("typeOfSlip", "Incident Report");
+        form.append("dateOfIncident", formData.incidentDate);
+        form.append("incidentTime", formData.incidentTime);
+        form.append("locationOfIncident", formData.incidentLocation);
+        form.append("personInvolved", formData.personsInvolved);
+        form.append("witnessName", formData.witnessName);
+        form.append("witnessContact", formData.witnessContact);
+        form.append("narrativeReport", formData.narrative);
+        form.append("actionTaken", formData.actionsTaken);
+        form.append("remarks", "");
 
-      incidentEvidence.forEach((evidence) => {
-        form.append("attachments", evidence.file);
-      });
+        incidentEvidence.forEach((evidence) => {
+            form.append("attachments", evidence.file);
+        });
 
-      endpoint = "/incidentReport/add";
+        endpoint = "/incidentReport/add";
     }
 
     try {
-      await axios.post(endpoint, form, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-      toast.update(toastId, { render: "Form submitted successfully!", type: "success", isLoading: false, autoClose: 2000 });
-      setFormData((prev) => ({
-        ...prev,
-        dateAbsent: "",
-        dateAbsentEnd: "",
-        incidentDate: "",
-        incidentTime: "",
-        incidentLocation: "",
-        personsInvolved: "",
-        witnessName: "",
-        witnessContact: "",
-        narrative: "",
-        actionsTaken: "",
-      }));
-      if (excuseLetter?.preview) URL.revokeObjectURL(excuseLetter.preview);
-      if (parentID?.preview) URL.revokeObjectURL(parentID.preview);
-      if (medicalCertificate?.preview) URL.revokeObjectURL(medicalCertificate.preview);
-      incidentEvidence.forEach(f => f.preview && URL.revokeObjectURL(f.preview));
+        await axios.post(endpoint, form, {
+            headers: { "Content-Type": "multipart/form-data" },
+        });
+        toast.update(toastId, { render: "Form submitted successfully!", type: "success", isLoading: false, autoClose: 2000 });
+        setFormData((prev) => ({
+            ...prev,
+            dateAbsent: "",
+            dateAbsentEnd: "",
+            incidentDate: "",
+            incidentTime: "",
+            incidentLocation: "",
+            personsInvolved: "",
+            witnessName: "",
+            witnessContact: "",
+            narrative: "",
+            actionsTaken: "",
+        }));
+        if (excuseLetter?.preview) URL.revokeObjectURL(excuseLetter.preview);
+        if (parentID?.preview) URL.revokeObjectURL(parentID.preview);
+        if (medicalCertificate?.preview) URL.revokeObjectURL(medicalCertificate.preview);
+        incidentEvidence.forEach(f => f.preview && URL.revokeObjectURL(f.preview));
 
-      setExcuseLetter(null);
-      setParentID(null);
-      setMedicalCertificate(null);
-      setIncidentEvidence([]);
-      setAbsentReason("");
+        setExcuseLetter(null);
+        setParentID(null);
+        setMedicalCertificate(null);
+        setIncidentEvidence([]);
+        setAbsentReason("");
     } catch (error) {
-      console.error("Submission error:", {
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status
-      });
+        console.error("Submission error:", {
+            message: error.message,
+            response: error.response?.data,
+            status: error.response?.status
+        });
 
-      toast.update(toastId, {
-        render: error.response?.data?.message ||
-          error.response?.data?.error ||
-          "Failed to submit form. Please try again.",
-        type: "error",
-        isLoading: false,
-        autoClose: 3000
-      });
+        toast.update(toastId, {
+            render: error.response?.data?.message ||
+                error.response?.data?.error ||
+                "Failed to submit form. Please try again.",
+            type: "error",
+            isLoading: false,
+            autoClose: 3000
+        });
     } finally {
-      setIsLoading(false);
+        setIsLoading(false);
     }
   };
 

@@ -1,4 +1,3 @@
-// ContentManagement.jsx (relevant portions / complete file replacement recommended)
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import {
@@ -42,6 +41,7 @@ export default function ContentManagement() {
     // State
     const [announcements, setAnnouncements] = useState([]);
     const [newAnnouncement, setNewAnnouncement] = useState({ title: "", body: "" });
+    const [editingAnnouncementId, setEditingAnnouncementId] = useState(null);
     const [tertiaryPrograms, setTertiaryPrograms] = useState([]);
     const [shsStrands, setShsStrands] = useState([]);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -134,12 +134,16 @@ export default function ContentManagement() {
     const handlePostAnnouncement = async () => {
         if (newAnnouncement.title && newAnnouncement.body) {
             try {
+                // Generate a unique id for the announcement
+                const id = Date.now().toString(); // or use uuid if available
                 await axios.post(`${API}/announcement/add`, {
+                    id, // <-- pass id to backend
                     title: newAnnouncement.title,
                     description: newAnnouncement.body,
                 });
                 setAnnouncements([
                     {
+                        id, // <-- include id in local state
                         title: newAnnouncement.title,
                         description: newAnnouncement.body,
                         timeCreated: new Date(),
@@ -155,6 +159,66 @@ export default function ContentManagement() {
         } else {
             showToast("Please fill out both title and body fields.", "error");
         }
+    };
+
+    const handleUpdateAnnouncement = async () => {
+        const { title, body } = newAnnouncement;
+        if (title && body && editingAnnouncementId) {
+            try {
+                await axios.put(`${API}/announcement/update`, {
+                    id: editingAnnouncementId,
+                    title,
+                    description: body,
+                });
+                setAnnouncements(
+                    announcements.map((ann) =>
+                        ann.id === editingAnnouncementId
+                            ? { ...ann, title, description: body }
+                            : ann
+                    )
+                );
+                setNewAnnouncement({ title: "", body: "" });
+                setEditingAnnouncementId(null);
+                showToast("Announcement updated successfully!", "success");
+            } catch (error) {
+                console.error("Error updating announcement:", error);
+                showToast("Failed to update announcement.", "error");
+            }
+        } else {
+            showToast("Please fill out both title and body fields.", "error");
+        }
+    };
+
+    const handleEditAnnouncement = (ann) => {
+        setNewAnnouncement({
+            title: ann.title,
+            body: ann.description || ann.body,
+        });
+        setEditingAnnouncementId(ann.id);
+    };
+
+    const handleDeleteAnnouncement = async (id) => {
+        if (!id) {
+            showToast("Cannot delete this announcement.", "error");
+            return;
+        }
+        setConfirmModal({
+            isOpen: true,
+            title: "Delete Announcement",
+            message: "Are you sure you want to delete this announcement? This action cannot be undone.",
+            onConfirm: async () => {
+                try {
+                    await axios.delete(`${API}/announcement/delete`, { data: { id } });
+                    setAnnouncements(announcements.filter((ann) => ann.id !== id));
+                    showToast("Announcement deleted.", "success");
+                } catch (error) {
+                    console.error("Error deleting announcement:", error);
+                    showToast("Failed to delete announcement.", "error");
+                } finally {
+                    setConfirmModal({ isOpen: false, title: "", message: "", onConfirm: null });
+                }
+            },
+        });
     };
 
 
@@ -494,6 +558,11 @@ export default function ContentManagement() {
                         newAnnouncement={newAnnouncement}
                         setNewAnnouncement={setNewAnnouncement}
                         handlePostAnnouncement={handlePostAnnouncement}
+                        handleUpdateAnnouncement={handleUpdateAnnouncement}
+                        handleEditAnnouncement={handleEditAnnouncement}
+                        handleDeleteAnnouncement={handleDeleteAnnouncement}
+                        editingId={editingAnnouncementId}
+                        setEditingId={setEditingAnnouncementId}
                     />
                 )}
 

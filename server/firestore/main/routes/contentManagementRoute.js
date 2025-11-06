@@ -25,7 +25,9 @@ const {
     updateProgram,
     deleteProgram,
     updateStrand,
-    deleteStrand
+    deleteStrand,
+    deleteAnnouncement,
+    updateAnnouncement
 } = require("../controller/contentManagementController.js");
 
 const upload = multer({ storage: multer.memoryStorage() });
@@ -47,7 +49,12 @@ router.put("/shsStudentHandbook/add", upload.single("file"), addShsStudentHandbo
 router.get("/program/get", getProgram);
 router.get("/strand/get", getStrand);
 router.get("/wellness/get", getWellnessLink);
+
 router.get("/announcement/get", getAnnouncement);
+router.delete("/announcement/delete", deleteAnnouncement)
+router.put("/announcement/update", updateAnnouncement)
+
+
 router.get("/studentHandbook/get", getCollegeStudentHandbook);
 router.get("/shsStudentHandbook/get", getShsStudentHandbook);
 

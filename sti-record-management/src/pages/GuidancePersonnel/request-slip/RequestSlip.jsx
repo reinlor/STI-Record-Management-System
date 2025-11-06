@@ -136,7 +136,7 @@ function StudentReportModal({ slip, onClose, remarks, setRemarks, pickupDate, se
   const { proofUrl, excuseLetterUrl, guardianValidIDUrl, medicalCertificateUrl } = slip;
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[9999]">
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[10]">
       <div className="bg-white w-full sm:max-w-350 lg:max-w-400 rounded-lg shadow-lg overflow-y-auto max-h-[92vh] p-6 sm:p-8 relative transform transition-all duration-300 ease-out scale-100 custom-scrollbar">
 
         {/* header */}
@@ -149,7 +149,7 @@ function StudentReportModal({ slip, onClose, remarks, setRemarks, pickupDate, se
           </div>
           <button
             onClick={onClose}
-            className="text-2xl text-[#0172bd] hover:scale-110 hover:text-blue-500"
+            className="text-2xl text-[#0172bd] hover:scale-110 hover:text-blue-500 cursor-pointer"
           >
             <X className="w-10 h-10 object-cover rounded " />
           </button>
@@ -210,7 +210,7 @@ function StudentReportModal({ slip, onClose, remarks, setRemarks, pickupDate, se
               )}
 
               {/* Excuse Letter */}
-              {excuseLetterUrl && (
+              {!excuseLetterUrl || excuseLetterUrl !== 'Empty' ? (
                 <div className="flex flex-col items-center">
                   <a href={excuseLetterUrl} target="_blank" rel="noopener noreferrer">
                     <img
@@ -223,10 +223,10 @@ function StudentReportModal({ slip, onClose, remarks, setRemarks, pickupDate, se
                     Excuse Letter
                   </span>
                 </div>
-              )}
+              ): null}
 
               {/* Medical Certificate */}
-              {medicalCertificateUrl && (
+              {!medicalCertificateUrl || medicalCertificateUrl !== 'Empty' ? (
                 <div className="flex flex-col items-center">
                   <a href={medicalCertificateUrl} target="_blank" rel="noopener noreferrer">
                     <img
@@ -239,10 +239,10 @@ function StudentReportModal({ slip, onClose, remarks, setRemarks, pickupDate, se
                     Medical Certificate
                   </span>
                 </div>
-              )}
+              ): null}
 
               {/* Guardian’s ID */}
-              {guardianValidIDUrl && (
+              {!guardianValidIDUrl || guardianValidIDUrl !== 'Empty' ? (
                 <div className="flex flex-col items-center">
                   <a href={guardianValidIDUrl} target="_blank" rel="noopener noreferrer">
                     <img
@@ -255,7 +255,7 @@ function StudentReportModal({ slip, onClose, remarks, setRemarks, pickupDate, se
                     Guardian’s ID
                   </span>
                 </div>
-              )}
+              ): null}
             </div>
 
           </div>
@@ -263,7 +263,7 @@ function StudentReportModal({ slip, onClose, remarks, setRemarks, pickupDate, se
           {/* RIGHT PANEL */}
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-bold mb-1 text-[#0172bd]">Remarks</label>
+              <label className="block text-sm font-bold mb-1 text-[#0172bd]">Remarks<span className='text-red-600'>*</span></label>
               <textarea
                 className="border rounded px-3 py-2 w-full h-16 sm:h-20 resize-none text-xs sm:text-sm"
                 value={remarks}
@@ -272,7 +272,7 @@ function StudentReportModal({ slip, onClose, remarks, setRemarks, pickupDate, se
               />
             </div>
             <div className="relative">
-              <label className="block text-sm font-bold mb-1 text-[#0172bd]">Pickup Date</label>
+              <label className="block text-sm font-bold mb-1 text-[#0172bd]">Pickup Date <span className='text-gray-500 text-[10px] font-semibold'>Required only on approval</span></label>
               <input
                 type="date"
                 value={pickupDate}
@@ -314,7 +314,7 @@ function StudentReportModal({ slip, onClose, remarks, setRemarks, pickupDate, se
             <div className="flex flex-col sm:flex-row gap-2 pt-6">
               <button
                 onClick={() => handleStatusChange(slip.typeOfSlip, slip._id, "Denied", slip)}
-                className="flex-1 flex items-center justify-center gap-2 bg-[#dc3545] hover:bg-red-600 text-white px-4 py-2 rounded"
+                className="flex-1 flex items-center justify-center gap-2 bg-[#dc3545] hover:bg-red-600 text-white px-4 py-2 rounded cursor-pointer"
               >
                 Deny
                 <img src={closeW} alt="closeW" className="w-4 h-4 object-cover rounded " />
@@ -322,7 +322,7 @@ function StudentReportModal({ slip, onClose, remarks, setRemarks, pickupDate, se
 
               <button
                 onClick={() => handleStatusChange(slip.typeOfSlip, slip._id, "Approved", slip)}
-                className="flex-1 flex items-center justify-center gap-2 bg-[#28a745] hover:bg-green-500 text-white px-4 py-2 rounded"
+                className="flex-1 flex items-center justify-center gap-2 bg-[#28a745] hover:bg-green-500 text-white px-4 py-2 rounded cursor-pointer"
               >
                 Approve
                 <img src={checkW} alt="checkW" className="w-4 h-4 object-cover rounded " />
@@ -354,7 +354,7 @@ function IncidentReportModal({ slip, onClose, remarks, setRemarks, body, setBody
           </div>
           <button
             onClick={onClose}
-            className="text-2xl text-[#0172bd] hover:scale-110 hover:text-blue-500"
+            className="text-2xl text-[#0172bd] hover:scale-110 hover:text-blue-500 cursor-pointer"
           >
             <X className="w-10 h-10 object-cover rounded " />
           </button>
@@ -503,14 +503,14 @@ function IncidentReportModal({ slip, onClose, remarks, setRemarks, body, setBody
             <div className="flex flex-col sm:flex-row gap-2 pt-6">
               <button
                 onClick={() => handleStatusChange(slip.typeOfSlip, slip._id, "In Progress", slip)}
-                className="flex-1 flex items-center justify-center gap-2 bg-[#0172bd] hover:bg-red-600 text-white px-4 py-2 rounded"
+                className="flex-1 flex items-center justify-center gap-2 bg-[#0172bd] hover:bg-red-600 text-white px-4 py-2 rounded cursor-pointer"
               >
                 Update
                 <X className="w-4 h-4 object-cover rounded " />
               </button>
               <button
                 onClick={() => handleStatusChange(slip.typeOfSlip, slip._id, "Resolved", slip)}
-                className="flex-1 flex items-center justify-center gap-2 bg-[#28a745] hover:bg-green-500 text-white px-4 py-2 rounded"
+                className="flex-1 flex items-center justify-center gap-2 bg-[#28a745] hover:bg-green-500 text-white px-4 py-2 rounded cursor-pointer"
               >
                 Solved
                 <Check className="w-4 h-4 object-cover rounded " />
@@ -559,8 +559,17 @@ function RequestSlip() {
 
   const handleStatusChange = async (slipType, slipId, status, slip) => {
     try {
-      console.log(slipType)
-      console.log(pickupDate)
+      if (remarks === '' || remarks === null) {
+        toast.error("Remarks should not be empty!");
+        return;
+      }
+
+      if (status === "Approved" && (!pickupDate || pickupDate.trim() === "")) {
+        toast.error("Pickup date is required when approving a request slip.");
+        return;
+      }
+
+
       const updatePayload = {
         status,
         remarks,
@@ -883,7 +892,7 @@ function RequestSlip() {
             {/* History button */}
             {authData?.user?.access?.requestSlip && (
               <button
-                className="flex items-center justify-center gap-2 bg-[#0172bd] text-white px-4 py-2 rounded-lg hover:bg-blue-500 transition w-full sm:w-auto shadow-lg font-semibold"
+                className="flex items-center justify-center gap-2 bg-[#0172bd] text-white px-4 py-2 rounded-lg hover:bg-blue-500 transition w-full sm:w-auto shadow-lg font-semibold cursor-pointer"
                 onClick={() => navigate("/guidance/request-slip-history")}
               >
                 History
@@ -993,7 +1002,7 @@ function RequestSlip() {
                       {authData?.user?.access?.requestSlip && (
                         <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3">
                           <button
-                            className="bg-[#0172bd] text-white font-bold px-3 sm:px-4 py-1 rounded-lg hover:bg-blue-500 transition w-full sm:w-auto"
+                            className="bg-[#0172bd] text-white font-bold px-3 sm:px-4 py-1 rounded-lg hover:bg-blue-500 transition w-full sm:w-auto cursor-pointer"
                             onClick={() => openSlip(slips._id)}
                           >
                             Open
@@ -1016,7 +1025,7 @@ function RequestSlip() {
         <div className="w-full flex justify-center lg:justify-end items-center mt-2 pr-0 lg:pr-2">
           <nav className="flex items-center space-x-1">
             <button
-              className="px-2 py-1 rounded hover:bg-gray-200 text-[#0172bd] font-bold"
+              className="px-2 py-1 rounded hover:bg-gray-200 text-[#0172bd] font-bold cursor-pointer"
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               disabled={currentPage === 1}
             >
@@ -1025,14 +1034,14 @@ function RequestSlip() {
             {Array.from({ length: totalPages }, (_, i) => (
               <button
                 key={i + 1}
-                className={`px-2 py-1 rounded ${currentPage === i + 1 ? 'bg-[#0172bd] text-white' : 'hover:bg-gray-200 text-[#0172bd]'}`}
+                className={`px-2 py-1 rounded ${currentPage === i + 1 ? 'bg-[#0172bd] text-white' : 'hover:bg-gray-200 text-[#0172bd]'} cursor-pointer`}
                 onClick={() => setCurrentPage(i + 1)}
               >
                 {i + 1}
               </button>
             ))}
             <button
-              className="px-2 py-1 rounded hover:bg-gray-200 text-[#0172bd] font-bold"
+              className="px-2 py-1 rounded hover:bg-gray-200 text-[#0172bd] font-bold cursor-pointer"
               onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages}
             >
@@ -1045,9 +1054,9 @@ function RequestSlip() {
       {/* Modals */}
       {displaySlipForm()}
       {showStudentReportModal && (
-        <StudentReportModal 
-          slip={studentReportSlip} 
-          onClose={closeStudentReportModal} 
+        <StudentReportModal
+          slip={studentReportSlip}
+          onClose={closeStudentReportModal}
           remarks={remarks}
           setRemarks={setRemarks}
           pickupDate={pickupDate}

@@ -290,7 +290,7 @@ const updateSlipStatus = async (req, res) => {
   const statusSchema = Joi.object({
     status: Joi.string().valid("Approved", "Denied", "In Progress", "Denied", "Cancelled", "Inactive", "Resolved").required(),
     remarks: Joi.string().required(),
-    pickUpDate: Joi.string(),
+    pickUpDate: Joi.string().optional().empty(''),
   });
 
   const { error } = statusSchema.validate({
@@ -300,6 +300,10 @@ const updateSlipStatus = async (req, res) => {
   });
   if (error) {
     return res.status(400).json({ error: error.details[0].message });
+  }
+
+  if (status === "Approved" && (!pickUpDate || pickUpDate.trim() === "")) {
+    return res.status(400).json({ error: "Pickup date is required when approving a request slip." });
   }
 
   let collectionRef;
@@ -325,14 +329,17 @@ const updateSlipStatus = async (req, res) => {
       return res.status(404).json({ error: "Slip not found." });
     }
 
-    const updateData = { 
-      status, 
-      remarks, 
+    const updateData = {
+      status,
+      remarks,
       processedDate: new Date(),
       processedBy: name
     };
-    
-    if (pickUpDate) updateData.pickUpDate = pickUpDate;
+
+
+    if (status === "Approved" && pickUpDate) {
+      updateData.pickUpDate = pickUpDate;
+    }
     await docRef.update(updateData);
 
     const notifCollection = getNotificationCollection();
@@ -428,6 +435,7 @@ const cancelRequestSlip = async (req, res) => {
 
     await docRef.update({
       status: "Cancelled",
+      processedDate: Timestamp.fromDate(new Date())
     });
 
     res

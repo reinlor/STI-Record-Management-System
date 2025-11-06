@@ -1,6 +1,6 @@
 import React, { useState, useContext } from 'react';
 import axios from 'axios';
-import { X, Check } from 'lucide-react';
+import { X, Check, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { AuthContext } from "../../../../AuthProvider.jsx";
 
@@ -76,6 +76,8 @@ const PhotoToTextModal = ({ visible, onClose, onOCRSuccess }) => {
     const [ocrData, setOcrData] = useState(null);
     const [activeTab, setActiveTab] = useState('profile');
     const [isSaving, setIsSaving] = useState(false);
+    const [defaultPassword, setDefaultPassword] = useState('student1234');
+    const [showPassword, setShowPassword] = useState(false);
     const { authData } = useContext(AuthContext);
 
     if (!visible) return null;
@@ -215,7 +217,7 @@ const PhotoToTextModal = ({ visible, onClose, onOCRSuccess }) => {
             <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] overflow-auto">
                 <div className="flex justify-between items-center border-b pb-3 mb-4">
                     <h3 className="text-2xl font-bold text-[#0172bd]">Photo-to-Text (OCR)</h3>
-                    <button className="p-2 rounded-lg hover:bg-gray-200" onClick={() => { setOcrData(null); onClose(); }}>
+                    <button className="p-2 rounded-lg hover:bg-gray-200 cursor-pointer" onClick={() => { setOcrData(null); onClose(); }}>
                         <X className="w-6 h-6 text-[#0172bd]" />
                     </button>
                 </div>
@@ -326,6 +328,23 @@ const PhotoToTextModal = ({ visible, onClose, onOCRSuccess }) => {
                                 <div>
                                     <label className="text-sm">Nationality</label>
                                     <NestedInput value={ocrData.studentProfile.nationality} onChange={(v) => setNested('studentProfile.nationality', v)} />
+                                </div>
+
+                                {/* Default Password Section */}
+                                <div className="col-span-2 mt-4">
+                                    <label className="block text-sm font-medium text-[#0172bd]">Default Password</label>
+                                    <div className="mt-1 flex items-center">
+                                        <span className="block w-full h-8 rounded-md shadow-sm border-blue-300 focus:ring focus:ring-[#0172bd] hover:bg-gray-100 px-3 py-1 bg-gray-50 text-gray-900">
+                                            {showPassword ? defaultPassword : '******'}
+                                        </span>
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                            className="ml-2 text-gray-600 hover:text-gray-800 cursor-pointer"
+                                        >
+                                            {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         )}
@@ -478,15 +497,31 @@ const PhotoToTextModal = ({ visible, onClose, onOCRSuccess }) => {
                         )}
 
                         <div className="flex justify-end gap-2 mt-6">
-                            <button onClick={() => { setOcrData(null); setActiveTab('profile'); }} className="px-4 py-2 rounded bg-gray-100">Scan Again</button>
+                            {/* Scan Again Button */}
+                            <button
+                                onClick={() => {
+                                    setOcrData(null);
+                                    setActiveTab('profile');
+                                }}
+                                className="px-4 py-2 rounded bg-gray-100 hover:bg-gray-200 cursor-pointer transition duration-150 ease-in-out"
+                            >
+                                Scan Again
+                            </button>
+
+                            {/* Save & Use Button */}
                             <button
                                 onClick={handleSave}
                                 disabled={!requiredCheck.valid || isSaving}
-                                className={`px-4 py-2 rounded flex items-center gap-2 ${!requiredCheck.valid || isSaving ? 'bg-gray-300 text-gray-600 cursor-not-allowed' : 'bg-[#0172bd] text-white cursor-pointer'}`}
+                                className={`px-4 py-2 rounded flex items-center gap-2 transition duration-150 ease-in-out ${
+                                    !requiredCheck.valid || isSaving
+                                        ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
+                                        : 'bg-[#0172bd] text-white hover:bg-[#005fa3] cursor-pointer'
+                                }`}
                             >
                                 <Check className="w-4 h-4" /> {isSaving ? 'Saving...' : 'Save & Use'}
                             </button>
                         </div>
+
                     </>
                 )}
             </div>

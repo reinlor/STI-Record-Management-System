@@ -578,7 +578,7 @@ const updateStudent = async (req, res) => {
     const adminDoc = notifCollection.doc('records');
     const adminDocData = await adminDoc.get();
 
-    if (processedBy !== null || processedBy !== undefined) {
+    if (processedBy !== null && processedBy !== undefined) {
       let existingAdminNotification = [];
       if (adminDocData.exists && adminDocData.data()['data']) {
         existingAdminNotification = adminDocData.data()['data'];

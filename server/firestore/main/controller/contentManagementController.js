@@ -11,9 +11,20 @@ const Joi = require("joi");
 
 // Schema for announcement
 const announcementSchema = Joi.object({
+  id: Joi.optional().empty(''),
   description: Joi.string().required().empty(""),
   timeCreated: Joi.string().optional().empty(""),
   title: Joi.string().required().empty(""),
+}).required();
+
+const updateAnnouncementSchema = Joi.object({
+  id: Joi.string().required(),
+  title: Joi.string().required(),
+  description: Joi.string().required(),
+}).required();
+
+const deleteAnnouncementSchema = Joi.object({
+  id: Joi.string().required(),
 }).required();
 
 // Schema for programStrand
@@ -53,18 +64,13 @@ const updateSchoolPeriodSchema = Joi.object({
 // Controller function for adding announcement
 const addAnnouncement = async (req, res) => {
   try {
-    const { error, value: newAnnouncementData } = announcementSchema.validate(
-      req.body
-    );
+    const { error, value: newAnnouncementData } = announcementSchema.validate(req.body);
 
     if (error) {
-      return res
-        .status(400)
-        .json({ error: "Invalid announcement data", details: error.details });
+      return res.status(400).json({ error: "Invalid announcement data", details: error.details });
     }
 
-    const announcementDocRef =
-      getContentManagementCollection().doc("announcement");
+    const announcementDocRef = getContentManagementCollection().doc("announcement");
     const docSnapshot = await announcementDocRef.get();
 
     const updatedData = docSnapshot.exists
@@ -72,8 +78,11 @@ const addAnnouncement = async (req, res) => {
       : { id: "announcement", messages: [] };
     const existingDataArray = updatedData.messages || [];
 
+    // Ensure id exists
+    const id = newAnnouncementData.id || Date.now().toString();
     existingDataArray.push({
       ...newAnnouncementData,
+      id,
       timeCreated: Timestamp.fromDate(new Date()),
     });
 
@@ -84,6 +93,69 @@ const addAnnouncement = async (req, res) => {
   } catch (error) {
     console.error("Error adding announcement:", error);
     res.status(500).json({ error: "Failed to add announcement." });
+  }
+};
+
+// Controller function for updating an announcement
+const updateAnnouncement = async (req, res) => {
+  try {
+    const { error, value } = updateAnnouncementSchema.validate(req.body);
+    if (error) {
+      return res.status(400).json({ error: "Invalid announcement data", details: error.details });
+    }
+
+    const { id, title, description } = value;
+
+    const announcementDocRef = getContentManagementCollection().doc("announcement");
+    const docSnapshot = await announcementDocRef.get();
+    if (!docSnapshot.exists) {
+      return res.status(404).json({ error: "Announcements document not found." });
+    }
+
+    let messages = docSnapshot.data().messages || [];
+    const index = messages.findIndex((m) => m.id === id);
+    if (index === -1) {
+      return res.status(404).json({ error: "Announcement not found." });
+    }
+
+    messages[index] = { ...messages[index], title, description };
+    await announcementDocRef.update({ messages });
+
+    res.status(200).json({ message: "Announcement updated successfully." });
+  } catch (error) {
+    console.error("Error updating announcement:", error);
+    res.status(500).json({ error: "Failed to update announcement." });
+  }
+};
+
+// Controller function for deleting an announcement
+const deleteAnnouncement = async (req, res) => {
+  try {
+    const { error, value } = deleteAnnouncementSchema.validate(req.body);
+    if (error) {
+      return res.status(400).json({ error: "Invalid data", details: error.details });
+    }
+
+    const { id } = value;
+
+    const announcementDocRef = getContentManagementCollection().doc("announcement");
+    const docSnapshot = await announcementDocRef.get();
+    if (!docSnapshot.exists) {
+      return res.status(404).json({ error: "Announcements document not found." });
+    }
+
+    let messages = docSnapshot.data().messages || [];
+    const updatedMessages = messages.filter((m) => m.id !== id);
+    if (updatedMessages.length === messages.length) {
+      return res.status(404).json({ error: "Announcement not found." });
+    }
+
+    await announcementDocRef.update({ messages: updatedMessages });
+
+    res.status(200).json({ message: "Announcement deleted successfully." });
+  } catch (error) {
+    console.error("Error deleting announcement:", error);
+    res.status(500).json({ error: "Failed to delete announcement." });
   }
 };
 
@@ -807,5 +879,7 @@ module.exports = {
   deleteViolationCategory,
   updateSchoolPeriod,
   getAllContent,
-  getAllOffenses
+  getAllOffenses,
+  updateAnnouncement,
+  deleteAnnouncement
 };

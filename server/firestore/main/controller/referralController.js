@@ -238,7 +238,8 @@ const cancelReferral = async (req, res) => {
     }
 
     await docRef.update({
-      status: "Cancelled"
+      status: "Cancelled",
+      feedBackDate: Timestamp.fromDate(new Date())
     });
 
     res.status(200).send({ message: `Referral ${referralId} has been successfully cancelled.` });
