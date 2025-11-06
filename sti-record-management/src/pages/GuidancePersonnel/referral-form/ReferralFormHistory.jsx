@@ -135,7 +135,11 @@ function ReferralFormHistory() {
       </tr>
     }
     return pagedReferrals.map((referrals) => (
-      <tr key={referrals.id} className="hover:bg-gray-100 transition">
+      <tr
+        key={referrals.id}
+        className="hover:bg-gray-100 transition cursor-pointer"
+        onClick={() => setSelectedReferral(referrals)}
+      >
         <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 font-semibold text-[#0172bd] w-1/4">{referrals.referredBy}</td>
         <td className="px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">{referrals.employeeID}</td>
         <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 break-words max-w-[150px] truncate align-middle">{referrals.reasonForReferral}</td>
@@ -147,8 +151,11 @@ function ReferralFormHistory() {
         </td>
         <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3">
           <button
-            onClick={() => setSelectedReferral(referrals)}
-            className="bg-[#0172bd] text-white font-semibold px-3 sm:px-4 py-1 rounded-lg hover:bg-blue-500 transition w-full sm:w-auto flex items-center justify-center gap-2"
+            onClick={(e) => {
+              e.stopPropagation();
+              setSelectedReferral(referrals);
+            }}
+            className="bg-[#0172bd] text-white font-semibold px-3 sm:px-4 py-1 rounded-lg hover:bg-blue-500 transition w-full sm:w-auto flex items-center justify-center gap-2 cursor-pointer"
           >
             Open
           </button>
@@ -175,7 +182,7 @@ function ReferralFormHistory() {
 
               <button
                 onClick={() => setSelectedReferral(null)}
-                className="text-[#0172bd] hover:text-blue-500 transition-transform hover:scale-110"
+                className="text-[#0172bd] hover:text-blue-500 transition-transform hover:scale-110 cursor-pointer"
               >
                 <X className="w-10 h-10 object-cover rounded" />
               </button>
@@ -251,7 +258,7 @@ function ReferralFormHistory() {
                 <button
                   onClick={() => navigate(-1)}
                   style={{ cursor: 'pointer' }}
-                  className='flex items-top justify-top hover:bg-gray-300 transition duration-200 rounded'
+                  className='flex items-top justify-top hover:bg-gray-300 transition duration-200 rounded cursor-pointer'
                 >
                   <ChevronLeft className="w-10 h-10 object-cover rounded text-[#0172bd] " />
                 </button>
@@ -303,7 +310,7 @@ function ReferralFormHistory() {
         <div className="w-full flex justify-center lg:justify-end items-center mt-2 pr-0 lg:pr-2">
           <nav className="flex items-center space-x-1">
             <button
-              className="px-2 py-1 rounded hover:bg-gray-200 text-[#0172bd] font-bold"
+              className="px-2 py-1 rounded hover:bg-gray-200 text-[#0172bd] font-bold cursor-pointer"
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               disabled={currentPage === 1}
             >
@@ -312,14 +319,14 @@ function ReferralFormHistory() {
             {Array.from({ length: totalPages }, (_, i) => (
               <button
                 key={i + 1}
-                className={`px-2 py-1 rounded ${currentPage === i + 1 ? 'bg-[#0172bd] text-white' : 'hover:bg-gray-200 text-[#0172bd]'}`}
+                className={`px-2 py-1 rounded ${currentPage === i + 1 ? 'bg-[#0172bd] text-white' : 'hover:bg-gray-200 text-[#0172bd] cursor-pointer'}`}
                 onClick={() => setCurrentPage(i + 1)}
               >
                 {i + 1}
               </button>
             ))}
             <button
-              className="px-2 py-1 rounded hover:bg-gray-200 text-[#0172bd] font-bold"
+              className="px-2 py-1 rounded hover:bg-gray-200 text-[#0172bd] font-bold cursor-pointer"
               onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages}
             >
