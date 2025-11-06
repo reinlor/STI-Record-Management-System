@@ -336,7 +336,7 @@ function ReferralFormProcessing() {
             {/* History Button */}
             {authData?.user?.access?.referralForm && (
               <button
-                className="flex items-center justify-center gap-2 bg-[#0172bd] text-white px-4 py-2 rounded-lg hover:bg-blue-500 transition w-full sm:w-auto shadow-lg font-semibold"
+                className="flex items-center justify-center gap-2 bg-[#0172bd] text-white px-4 py-2 rounded-lg hover:bg-blue-500 transition w-full sm:w-auto shadow-lg font-semibold cursor-pointer"
                 onClick={() => navigate("/guidance/referral-form-history")}
               >
                 History
@@ -365,7 +365,7 @@ function ReferralFormProcessing() {
           <div>
             <label className="block text-xs font-semibold text-gray-500 mb-1">Status</label>
             <select
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-1 focus:ring-[#0172bd]"
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-1 focus:ring-[#0172bd] cursor-pointer" // <-- Added cursor-pointer
               value={filterStatus}
               onChange={e => setFilterStatus(e.target.value)}
             >
@@ -377,7 +377,7 @@ function ReferralFormProcessing() {
           <div>
             <label className="block text-xs font-semibold text-gray-500 mb-1">Priority Level</label>
             <select
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-1 focus:ring-[#0172bd]"
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-1 focus:ring-[#0172bd] cursor-pointer" // <-- Added cursor-pointer
               value={filterPriority}
               onChange={e => setFilterPriority(e.target.value)}
             >
@@ -389,7 +389,7 @@ function ReferralFormProcessing() {
           <div>
             <label className="block text-xs font-semibold text-gray-500 mb-1">Sort By</label>
             <select
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-1 focus:ring-[#0172bd]"
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-1 focus:ring-[#0172bd] cursor-pointer" // <-- Added cursor-pointer
               value={sortBy}
               onChange={e => setSortBy(e.target.value)}
             >
@@ -421,7 +421,8 @@ function ReferralFormProcessing() {
                   return (
                     <tr
                       key={ref.id}
-                      className={`border-b transition-colors duration-150 ${rowBgClass} hover:brightness-95`}
+                      className={`border-b transition-colors duration-150 ${rowBgClass} hover:brightness-95 cursor-pointer`}
+                      onClick={() => openForm(ref)} 
                     >
                       <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 lg:whitespace-nowrap font-semibold w-1/4">
                         {ref.referredBy}
@@ -437,8 +438,8 @@ function ReferralFormProcessing() {
                       {authData?.user?.access?.referralForm && (
                         <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3">
                           <button
-                            className="bg-[#0172bd] text-white font-semibold px-3 sm:px-4 py-1 rounded-lg hover:bg-blue-500 transition w-full sm:w-auto"
-                            onClick={() => openForm(ref)}
+                            className="bg-[#0172bd] text-white font-semibold px-3 sm:px-4 py-1 rounded-lg hover:bg-blue-500 transition w-full sm:w-auto cursor-pointer"
+                            onClick={e => { e.stopPropagation(); openForm(ref); }}
                           >
                             Open
                           </button>
@@ -462,7 +463,7 @@ function ReferralFormProcessing() {
         <div className="w-full flex justify-center lg:justify-end items-center mt-2 pr-0 lg:pr-2">
           <nav className="flex items-center space-x-1">
             <button
-              className="px-2 py-1 rounded hover:bg-gray-200 text-[#0172bd] font-bold"
+              className="px-2 py-1 rounded hover:bg-gray-200 text-[#0172bd] font-bold cursor-pointer"
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               disabled={currentPage === 1}
             >
@@ -471,14 +472,14 @@ function ReferralFormProcessing() {
             {Array.from({ length: totalPages }, (_, i) => (
               <button
                 key={i + 1}
-                className={`px-2 py-1 rounded ${currentPage === i + 1 ? 'bg-[#0172bd] text-white' : 'hover:bg-gray-200 text-[#0172bd]'}`}
+                className={`px-2 py-1 rounded ${currentPage === i + 1 ? 'bg-[#0172bd] text-white' : 'hover:bg-gray-200 text-[#0172bd] cursor-pointer'}`}
                 onClick={() => setCurrentPage(i + 1)}
               >
                 {i + 1}
               </button>
             ))}
             <button
-              className="px-2 py-1 rounded hover:bg-gray-200 text-[#0172bd] font-bold"
+              className="px-2 py-1 rounded hover:bg-gray-200 text-[#0172bd] font-bold cursor-pointer"
               onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages}
             >
@@ -498,7 +499,7 @@ function ReferralFormProcessing() {
               <div className="flex items-center gap-4">
                 {/* --- PRIORITY DROPDOWN LEFT OF STATUS --- */}
                 <select
-                  className="px-3 py-1 rounded-lg font-semibold text-xs sm:text-sm bg-gray-100 text-[#0172bd] hover:bg-blue-100"
+                  className="px-3 py-1 rounded-lg font-semibold text-xs sm:text-sm bg-gray-100 text-[#0172bd] hover:bg-blue-100 cursor-pointer" // <-- Added cursor-pointer
                   value={priorityLevel || ""}
                   onChange={(e) => { setPriorityLevel(e.target.value) }}
                   disabled={selectedReferral?.status === "Resolved"}
@@ -518,7 +519,7 @@ function ReferralFormProcessing() {
                 )}
                 <button
                   onClick={closeForm}
-                  className="text-[#0172bd] transition-transform hover:scale-110 hover:text-blue-500"
+                  className="text-[#0172bd] transition-transform hover:scale-110 hover:text-blue-500 cursor-pointer"
                 >
                   <X className="w-10 h-10 object-cover rounded " />
                 </button>
@@ -686,7 +687,7 @@ function ReferralFormProcessing() {
 
                     <div className="flex flex-col sm:flex-row gap-2 mt-4">
                       <button
-                        className={`flex-1 ${isUpdating ? 'opacity-60 cursor-not-allowed' : ''} bg-[#0172bd] text-white px-4 py-2 rounded-lg hover:bg-blue-500 transition duration-200 shadow-md`}
+                        className={`flex-1 ${isUpdating ? 'opacity-60 cursor-not-allowed' : ''} bg-[#0172bd] text-white px-4 py-2 rounded-lg hover:bg-blue-500 transition duration-200 shadow-md cursor-pointer`}
                         onClick={() => handleUpdate("In Progress")}
                         disabled={isUpdating}
                       >
@@ -694,7 +695,7 @@ function ReferralFormProcessing() {
                       </button>
 
                       <button
-                        className={`flex-1 ${isUpdating ? 'opacity-60 cursor-not-allowed' : ''} bg-[#28a745] text-white px-4 py-2 rounded-lg hover:bg-green-500 transition duration-200 shadow-md`}
+                        className={`flex-1 ${isUpdating ? 'opacity-60 cursor-not-allowed' : ''} bg-[#28a745] text-white px-4 py-2 rounded-lg hover:bg-green-500 transition duration-200 shadow-md cursor-pointer`}
                         onClick={() => handleUpdate("Resolved")}
                         disabled={isUpdating}
                       >
@@ -726,7 +727,7 @@ function ReferralFormProcessing() {
 
             <div className="flex justify-center gap-4">
               <button
-                className="bg-[#0172bd] hover:bg-blue-600 text-white px-5 py-2 rounded-lg font-semibold transition"
+                className="bg-[#0172bd] hover:bg-blue-600 text-white px-5 py-2 rounded-lg font-semibold transition cursor-pointer"
                 onClick={() => {
                   if (!resolvedReferralData) return;
                   setShowRedirectPrompt(false);
@@ -752,7 +753,7 @@ function ReferralFormProcessing() {
                 Yes, Continue
               </button>
               <button
-                className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-5 py-2 rounded-lg font-semibold transition"
+                className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-5 py-2 rounded-lg font-semibold transition cursor-pointer"
                 onClick={() => setShowRedirectPrompt(false)}
               >
                 Cancel
