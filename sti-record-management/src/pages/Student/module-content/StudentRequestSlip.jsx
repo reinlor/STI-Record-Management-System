@@ -114,6 +114,18 @@ export default function StudentRequestSlip() {
         return;
     }
 
+    // Incident Report: Prevent future incident dates
+    if (activeSlip === "Report") {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // Remove time for strict date comparison
+      const incidentDate = new Date(formData.incidentDate);
+      incidentDate.setHours(0, 0, 0, 0);
+      if (incidentDate > today) {
+        toast.error("Incident date cannot be in the future.");
+        return;
+      }
+    }
+
     let endpoint = "";
 
     if (activeSlip === "Absent") {
