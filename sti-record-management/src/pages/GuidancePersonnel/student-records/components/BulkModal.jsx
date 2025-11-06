@@ -1,6 +1,6 @@
 // BulkModal.jsx (replace your component with this)
 import React, { useState, useRef } from 'react';
-import { X } from 'lucide-react';
+import { X, Eye, EyeOff } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 
@@ -15,6 +15,8 @@ const BulkModal = ({ visible, onClose }) => {
         skipped: [],
         skippedCount: 0,
     });
+    const [defaultPassword, setDefaultPassword] = useState('123456');
+    const [showPassword, setShowPassword] = useState(false);
 
     if (!visible) return null;
 
@@ -79,7 +81,7 @@ const BulkModal = ({ visible, onClose }) => {
                 <div className="flex justify-between items-center border-b pb-3 mb-4">
                     <h3 className="text-2xl font-bold text-[#0172bd]">Bulk Add Students</h3>
                     <button
-                        className={`p-2 rounded-lg ${isUploading ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-200"}`}
+                        className={`p-2 rounded-lg ${isUploading ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-200 cursor-pointer"}`}
                         disabled={isUploading}
                         onClick={() => {
                             if (isUploading) return;
@@ -129,6 +131,23 @@ const BulkModal = ({ visible, onClose }) => {
                     href="https://docs.google.com/spreadsheets/d/17zlRmtjL1YlJusBXpifd8U5cq5tIlfgK/edit?usp=sharing&ouid=102643336413636901319&rtpof=true&sd=true">
                     Download excel format
                 </a>
+
+                {/* Password Section */}
+                <div className="mt-4">
+                    <label className="block text-sm font-medium text-[#0172bd]">Default Password</label>
+                    <div className="mt-1 flex items-center">
+                        <span className="block w-full h-8 rounded-md shadow-sm border-blue-300 focus:ring focus:ring-[#0172bd] hover:bg-gray-100 px-3 py-1 bg-gray-50 text-gray-900">
+                            {showPassword ? defaultPassword : '******'}
+                        </span>
+                        <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="ml-2 text-gray-600 hover:text-gray-800 cursor-pointer"
+                        >
+                            {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                        </button>
+                    </div>
+                </div>
 
                 {/* Results */}
                 <div className="mt-4 border-t pt-2 max-h-40 overflow-y-auto text-sm">
