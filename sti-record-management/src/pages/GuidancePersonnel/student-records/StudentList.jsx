@@ -608,7 +608,7 @@ function StudentList() {
             {/* Top bar */}
             <div className="flex items-center gap-2 p-4 pb-2">
                 <div className="flex items-center gap-2">
-                    <button className={`flex items-center px-4 py-2 rounded-lg font-semibold transition ${activeLevel === "shs" ? "bg-[#0172bd] text-white shadow" : "bg-white text-[#0172bd] hover:bg-blue-100"} `} 
+                    <button className={`flex items-center px-4 py-2 rounded-lg font-semibold transition ${activeLevel === "shs" ? "bg-[#0172bd] text-white shadow" : "bg-white text-[#0172bd] hover:bg-blue-100 cursor-pointer"} `} 
                         onClick={() => {
                             setActiveLevel("shs")
                             setCurrentPage(1)
@@ -616,7 +616,7 @@ function StudentList() {
                         Senior High School
                         <Building className="w-5 h-5 ml-2" />
                     </button>
-                    <button className={`flex items-center px-4 py-2 rounded-lg font-semibold transition ${activeLevel === "college" ? "bg-[#0172bd] text-white shadow" : "bg-white text-[#0172bd] hover:bg-blue-100"} `} 
+                    <button className={`flex items-center px-4 py-2 rounded-lg font-semibold transition ${activeLevel === "college" ? "bg-[#0172bd] text-white shadow" : "bg-white text-[#0172bd] hover:bg-blue-100 cursor-pointer"} `} 
                         onClick={() => {
                             setActiveLevel("college")
                             setCurrentPage(1)
@@ -624,7 +624,7 @@ function StudentList() {
                         College
                         <GraduationCap className="w-6 h-6 ml-2" />
                     </button>
-                    <button className="flex items-center px-4 py-2 rounded-lg font-semibold bg-[#0172bd] text-white hover:bg-blue-500 ml-2 transition" onClick={() => setShowDownloadForm((f) => !f)} title="Download Student List">
+                    <button className="flex items-center px-4 py-2 rounded-lg font-semibold bg-[#0172bd] text-white hover:bg-blue-500 ml-2 transition cursor-pointer" onClick={() => setShowDownloadForm((f) => !f)} title="Download Student List">
                         <Download className="w-5 h-5 mr-2" />
                         Download
                     </button>
@@ -642,11 +642,11 @@ function StudentList() {
                         <input type="checkbox" checked={downloadCollege} onChange={(e) => setDownloadCollege(e.target.checked)} />
                         College
                     </label>
-                    <button className="flex items-center px-4 py-2 rounded-lg font-semibold bg-[#0172bd] text-white hover:bg-blue-500 transition" onClick={handleDownload}>
+                    <button className="flex items-center px-4 py-2 rounded-lg font-semibold bg-[#0172bd] text-white hover:bg-blue-500 transition cursor-pointer" onClick={handleDownload}>
                         <Download className="w-5 h-5 mr-2" />
                         Download Excel
                     </button>
-                    <button className="ml-auto text-gray-400 hover:text-gray-600" onClick={() => setShowDownloadForm(false)} title="Close">
+                    <button className="ml-auto text-gray-400 hover:text-gray-600 cursor-pointer" onClick={() => setShowDownloadForm(false)} title="Close">
                         <X className="w-6 h-6" />
                     </button>
                 </div>
@@ -679,15 +679,15 @@ function StudentList() {
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 w-full">
                         {/* Add Student Buttons */}
                         <div className="flex gap-2 mt-2 mb-2 flex-wrap">
-                            <button className="flex items-center gap-1 px-3 py-2 bg-[#0172bd] hover:bg-blue-500 text-white rounded-lg font-semibold text-sm shadow" onClick={handleAddIndividual}>
+                            <button className="flex items-center gap-1 px-3 py-2 bg-[#0172bd] hover:bg-blue-500 text-white rounded-lg font-semibold text-sm shadow cursor-pointer" onClick={handleAddIndividual}>
                                 <UserPlus className="w-4 h-4" />
                                 Individual
                             </button>
-                            <button className="flex items-center gap-1 px-3 py-2 bg-[#0172bd] hover:bg-blue-500 text-white rounded-lg font-semibold text-sm shadow" onClick={handleAddBulk}>
+                            <button className="flex items-center gap-1 px-3 py-2 bg-[#0172bd] hover:bg-blue-500 text-white rounded-lg font-semibold text-sm shadow cursor-pointer" onClick={handleAddBulk}>
                                 <UsersIcon className="w-4 h-4" />
                                 Bulk
                             </button>
-                            <button className="flex items-center gap-1 px-3 py-2 bg-[#0172bd] hover:bg-blue-500 text-white rounded-lg font-semibold text-sm shadow" onClick={handleAddPhoto}>
+                            <button className="flex items-center gap-1 px-3 py-2 bg-[#0172bd] hover:bg-blue-500 text-white rounded-lg font-semibold text-sm shadow cursor-pointer" onClick={handleAddPhoto}>
                                 <Camera className="w-4 h-4" />
                                 Photo OCR
                             </button>
@@ -699,7 +699,7 @@ function StudentList() {
                                 <input type="text" placeholder="Search Name/ID" value={search} onChange={(e) => setSearch(e.target.value)} className="w-full pr-10 pl-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#0172bd] focus:border-transparent text-sm" style={{ minWidth: 0 }} />
                                 <Search className="absolute right-3 top-2.5 text-gray-400 w-5 h-5" />
                             </div>
-                            <button onClick={clearFilters} className="flex items-center gap-1 px-3 py-2 bg-gray-200 hover:bg-gray-300 text-[#0172bd] rounded-lg font-semibold text-sm">
+                            <button onClick={clearFilters} className="flex items-center gap-1 px-3 py-2 bg-gray-200 hover:bg-gray-300 text-[#0172bd] rounded-lg font-semibold text-sm cursor-pointer">
                                 <SlidersHorizontal className="w-4 h-4 mr-2" />
                                 Clear Filters
                             </button>
@@ -713,8 +713,9 @@ function StudentList() {
                     <div>
                         <div className={filterLabel}>Program/Strand</div>
                         <div className="relative">
+                            {/* Program/Strand Filter */}
                             <select
-                                className={dropdownClass}
+                                className={`${dropdownClass} cursor-pointer`}
                                 value={selectedProgram}
                                 onChange={e => setSelectedProgram(e.target.value)}
                             >
@@ -730,8 +731,9 @@ function StudentList() {
                     <div>
                         <div className={filterLabel}>Section</div>
                         <div className="relative">
+                            {/* Section Filter */}
                             <select
-                                className={dropdownClass}
+                                className={`${dropdownClass} cursor-pointer`}
                                 value={selectedSection}
                                 onChange={e => setSelectedSection(e.target.value)}
                             >
@@ -747,8 +749,9 @@ function StudentList() {
                     <div>
                         <div className={filterLabel}>Gender</div>
                         <div className="relative">
+                            {/* Gender Filter */}
                             <select
-                                className={dropdownClass}
+                                className={`${dropdownClass} cursor-pointer`}
                                 value={selectedGender}
                                 onChange={e => setSelectedGender(e.target.value)}
                             >
@@ -763,8 +766,9 @@ function StudentList() {
                     <div>
                         <div className={filterLabel}>Status</div>
                         <div className="relative">
+                            {/* Status Filter */}
                             <select
-                                className={dropdownClass}
+                                className={`${dropdownClass} cursor-pointer`}
                                 value={selectedStatus}
                                 onChange={e => setSelectedStatus(e.target.value)}
                             >
@@ -861,7 +865,7 @@ function StudentList() {
                 <div className="w-full flex justify-center lg:justify-end items-center mt-2 pr-0 lg:pr-2">
                     <nav className="flex items-center space-x-1">
                         <button
-                            className="px-2 py-1 rounded hover:bg-gray-200 text-[#0172bd] font-bold"
+                            className="px-2 py-1 rounded hover:bg-gray-200 text-[#0172bd] font-bold cursor-pointer"
                             onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                             disabled={currentPage === 1}
                         >
@@ -870,14 +874,14 @@ function StudentList() {
                         {Array.from({ length: totalPages }, (_, i) => (
                             <button
                                 key={i + 1}
-                                className={`px-2 py-1 rounded ${currentPage === i + 1 ? 'bg-[#0172bd] text-white' : 'hover:bg-gray-200 text-[#0172bd]'}`}
+                                className={`px-2 py-1 rounded ${currentPage === i + 1 ? 'bg-[#0172bd] text-white' : 'hover:bg-gray-200 text-[#0172bd] cursor-pointer'}`}
                                 onClick={() => setCurrentPage(i + 1)}
                             >
                                 {i + 1}
                             </button>
                         ))}
                         <button
-                            className="px-2 py-1 rounded hover:bg-gray-200 text-[#0172bd] font-bold"
+                            className="px-2 py-1 rounded hover:bg-gray-200 text-[#0172bd] font-bold cursor-pointer"
                             onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                             disabled={currentPage === totalPages}
                         >
