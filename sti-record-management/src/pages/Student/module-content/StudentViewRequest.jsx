@@ -233,14 +233,14 @@ export default function StudentViewRequest() {
       );
     }
 
-    // Search (applies to reason, form type, status)
+    // Search (applies to reason, narrativeReport, status)
     if (search && search.trim() !== "") {
       const q = search.trim().toLowerCase();
       data = data.filter((r) => {
-        const typeMatch = (r.typeOfSlip || "").toLowerCase().includes(q);
         const reasonMatch = (r.reason || "").toLowerCase().includes(q);
+        const narrativeMatch = (r.narrativeReport || "").toLowerCase().includes(q);
         const statusMatch = (r.status || "").toLowerCase().includes(q);
-        return typeMatch || reasonMatch || statusMatch;
+        return reasonMatch || narrativeMatch || statusMatch;
       });
     }
 
@@ -318,14 +318,15 @@ export default function StudentViewRequest() {
             </div>
             {/* Search and Filters buttons */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
-              <div className="flex items-center w-full sm:min-w-[280px] md:min-w-[320px] lg:min-w-[400px] border border-gray-300 rounded-lg bg-gray-50 focus-within:ring-2 focus-within:ring-yellow-400 focus-within:border-yellow-400">
+              <div className="flex items-center w-full sm:min-w-[280px] md:min-w-[320px] lg:min-w-[600px] border border-gray-300 rounded-lg bg-gray-50 focus-within:ring-2 focus-within:ring-yellow-400 focus-within:border-yellow-400">
                 <Search className="ml-3 text-gray-400 w-5 h-5" />
                 <input
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder={`Search ${activeView.toLowerCase()}...`}
-                  className="w-full pl-3 pr-4 py-2 bg-transparent text-sm md:text-base focus:outline-none"
+                  placeholder={`Search by details or status (e.g. "health-related", "pending")`}
+                  className="w-full pl-3 pr-4 py-2 bg-transparent text-gray-900 placeholder-gray-400 text-sm md:text-base focus:outline-none"
                 />
+
               </div>
 
               {/* Toggle filter button for mobile view */}
@@ -407,7 +408,7 @@ export default function StudentViewRequest() {
 
             {/* Date range */}
             <div className="flex-grow">
-              <label htmlFor="date-range-select" className="block text-xs font-medium text-gray-500 mb-1">Date</label>
+              <label htmlFor="date-range-select" className="block text-xs font-medium text-gray-500 mb-1">Date Submitted</label>
               <select
                 id="date-range-select"
                 value={filters.dateRange}

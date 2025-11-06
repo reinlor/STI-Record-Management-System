@@ -178,9 +178,7 @@ export default function ViewRequest({ referralData = [], isLoading = false }) {
     if (search && search.trim() !== "") {
       const q = search.trim().toLowerCase();
       data = data.filter((row) =>
-        (row.referredBy || "").toLowerCase().includes(q) ||
         (row.studentName || "").toLowerCase().includes(q) ||
-        (row.employeeID || "").toLowerCase().includes(q) ||
         (row.status || "").toLowerCase().includes(q) ||
         (row.reasonForReferral || "").toLowerCase().includes(q)
       );
@@ -280,12 +278,12 @@ export default function ViewRequest({ referralData = [], isLoading = false }) {
             </div>
             {/* Search and Filters buttons */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
-              <div className="flex items-center w-full sm:min-w-[280px] md:min-w-[320px] lg:min-w-[400px] border border-gray-300 rounded-lg bg-gray-50 focus-within:ring-2 focus-within:ring-yellow-400 focus-within:border-yellow-400">
+              <div className="flex items-center w-full sm:min-w-[280px] md:min-w-[320px] lg:min-w-[600px] border border-gray-300 rounded-lg bg-gray-50 focus-within:ring-2 focus-within:ring-yellow-400 focus-within:border-yellow-400">
                 <Search className="ml-3 text-gray-400 w-5 h-5" />
                 <input
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search by name, ID, status, or reason"
+                  placeholder="Search by student name, status, or reason (e.g., 'John Doe', 'Pending')"
                   className="w-full pl-3 pr-4 py-2 bg-transparent text-sm md:text-base focus:outline-none"
                 />
               </div>
