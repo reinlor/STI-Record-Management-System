@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Send, Loader2 } from "lucide-react";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import { auth } from "../../../firebaseClient";
 import LoadingDots from "../../../component/Loading";
 
@@ -174,8 +174,6 @@ export default function SurveyForm({ surveyName }) {
 
   return (
     <div className="min-h-screen bg-[#E8E9EF] flex flex-col items-center p-4 font-sans">
-      {/* <ToastContainer /> */}
-
       <div className="max-w-3xl w-full mx-auto space-y-6">
         {/* Header Card */}
         <div className="bg-white p-6 rounded-lg shadow-md border-t-8 border-[#0B5793]">

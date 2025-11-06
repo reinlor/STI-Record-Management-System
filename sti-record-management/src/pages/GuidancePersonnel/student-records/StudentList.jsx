@@ -26,8 +26,7 @@ import AddStudentModal from "./components/AddStudentModal";
 import BulkModal from "./components/BulkModal";
 import PhotoToTextModal from "./components/PhotoToTextModal";
 import ArchiveConfirmModal from "./components/ArchiveConfirmModal";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { toast } from "react-toastify";
 import ViolationPanel from "./components/ViolationPanel";
 import CasesTable from "./components/CasesTable";
 import LoadingDots from "../../../component/Loading";
@@ -606,8 +605,6 @@ function StudentList() {
 
     return (
         <div className={`${grayBg} h-full flex flex-col pb-3`}>
-            <ToastContainer position="top-right" autoClose={4000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
-
             {/* Top bar */}
             <div className="flex items-center gap-2 p-4 pb-2">
                 <div className="flex items-center gap-2">

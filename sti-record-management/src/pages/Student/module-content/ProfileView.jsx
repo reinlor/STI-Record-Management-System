@@ -1,11 +1,10 @@
 import React, { useState, useMemo, useEffect, useContext } from "react";
 import { Menu, X } from "lucide-react";
-import { ToastContainer } from "react-toastify";
+import { toast } from "react-toastify";
 import axios from "axios";
 import { Info, School, Users, Briefcase, Lightbulb, HeartPulse, Pencil, Lock, Phone, UserRound, Leaf, PlusCircle, Trash2 } from "lucide-react";
 import { AuthContext } from "../../../AuthProvider.jsx";
 import LoadingDots from "../../../component/Loading.jsx";
-import "react-toastify/dist/ReactToastify.css";
 import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "../../../firebaseClient";
 
@@ -1927,7 +1926,6 @@ export default function ProfileView() {
   // Main layout
   return (
     <div className="flex flex-col lg:flex-row w-full min-h-screen font-sans p-4 sm:p-6 bg-gray-100 antialiased text-gray-900 gap-8 relative">
-      <ToastContainer />
 
       {/* Burger button for mobile/tablet (fixed bottom left, not in topbar) */}
       <button

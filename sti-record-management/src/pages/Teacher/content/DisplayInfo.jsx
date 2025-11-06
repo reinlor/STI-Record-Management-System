@@ -2,8 +2,7 @@ import React, { useState } from "react";
 import { X, User, Info, MessageSquare } from "lucide-react";
 import { getStatusClasses } from "../../Student/components/statusClasses";
 import axios from "axios";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { toast } from "react-toastify";
 
 export default function DisplayInfo({ data, onClose }) {
   const [isCancelling, setIsCancelling] = useState(false);
@@ -75,7 +74,6 @@ export default function DisplayInfo({ data, onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm bg-black/40 animate-fade-in-backdrop">
-      <ToastContainer theme="light" />
 
       <div className="relative flex flex-col bg-white rounded-3xl shadow-2xl w-full max-w-full md:max-w-3xl lg:max-w-5xl xl:max-w-6xl animate-fade-in border border-gray-200 max-h-[90vh] overflow-hidden">
         {/* Header (sticky) - close button inside header so it stays visible) */}

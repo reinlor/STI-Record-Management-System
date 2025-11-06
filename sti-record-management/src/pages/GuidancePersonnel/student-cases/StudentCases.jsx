@@ -15,8 +15,7 @@ import {
     SlidersHorizontal,
     ArrowUpDown,
 } from 'lucide-react';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { toast } from 'react-toastify';
 import AddCaseModal from "./components/AddCaseModal.jsx";
 import CaseInfoSection from "./components/CaseInfoSection.jsx";
 import {
