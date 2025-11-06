@@ -114,15 +114,36 @@ export default function StudentRequestSlip() {
         return;
     }
 
-    // Incident Report: Prevent future incident dates
+    // Incident Report: Prevent future incident dates/times
     if (activeSlip === "Report") {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0); // Remove time for strict date comparison
+      const now = new Date();
+      now.setSeconds(0, 0); // Remove seconds/milliseconds for strict comparison
+
+      // Validate incident date
       const incidentDate = new Date(formData.incidentDate);
       incidentDate.setHours(0, 0, 0, 0);
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
       if (incidentDate > today) {
         toast.error("Incident date cannot be in the future.");
         return;
+      }
+
+      // Validate incident time if date is today
+      if (formData.incidentDate) {
+        // Combine date and time for incident
+        const [hours, minutes] = (formData.incidentTime || "00:00").split(":");
+        const incidentDateTime = new Date(formData.incidentDate);
+        incidentDateTime.setHours(Number(hours), Number(minutes), 0, 0);
+
+        if (
+          incidentDateTime > now
+        ) {
+          toast.error("Incident time cannot be in the future.");
+          return;
+        }
       }
     }
 
