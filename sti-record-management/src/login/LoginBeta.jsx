@@ -59,7 +59,7 @@ function LoginBeta() {
   // Trigger toast only once when cooldown starts
   useEffect(() => {
     if (cooldown === 30) {
-      toast.error("Too many attempts. Please wait 30 seconds.");
+      toast.error("TToo many failed login attempts. Please try again in 30 seconds.");
     }
   }, [cooldown]);
 
