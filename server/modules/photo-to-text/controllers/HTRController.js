@@ -245,6 +245,52 @@ const FIELD_MAPPINGS = [
   { patterns: [/contact number of parent\/s or guardian\/s/i], path: 'familyBackground.guardian.contactNo' },
   { patterns: [/in case of emergency, please contact/i], path: 'familyBackground.emergency.name' },
   { patterns: [/contact #/i, /emergency contact/i], path: 'familyBackground.emergency.contactNo' },
+
+  { patterns: [/^surname$/i, /last name/i], path: 'studentProfile.lastName' },
+  { patterns: [/^first name$/i], path: 'studentProfile.firstName' },
+  { patterns: [/^m\.i\.|middle initial|middle name/i], path: 'studentProfile.middleName' },
+  { patterns: [/^nickname$/i], path: 'studentProfile.nickname' },
+  { patterns: [/^student no\.?|student number|id no\.?/i], path: 'sid' },
+  { patterns: [/^year$/i], path: 'studentProfile.year' },
+  { patterns: [/^program$/i, /course/i, /strand/i], path: 'studentProfile.program' },
+  { patterns: [/^gender$/i], path: 'studentProfile.gender' },
+  { patterns: [/^status$/i], path: 'studentProfile.status' },
+  { patterns: [/^religion$/i], path: 'studentProfile.religion' },
+  { patterns: [/^birthday$/i, /birthdate/i, /date of birth/i], path: 'studentProfile.birthday' },
+  { patterns: [/^nationality$/i], path: 'studentProfile.nationality' },
+  { patterns: [/^cellular number$/i, /cellphone/i, /mobile/i], path: 'contactInfo.contactNo' },
+  { patterns: [/^email add 1$/i, /email$/i], path: 'contactInfo.email' },
+  { patterns: [/^home number$/i, /home phone/i], path: 'contactInfo.homeNo' },
+  { patterns: [/^present address$/i], path: 'contactInfo.address.currentAddress' },
+  { patterns: [/^permanent address$/i], path: 'contactInfo.address.permanentAddress' },
+  { patterns: [/^provincial address$/i], path: 'contactInfo.address.provincialAddress' },
+  { patterns: [/^father'?s name$/i], path: 'familyBackground.fatherInfo.name' },
+  { patterns: [/^mother'?s name$/i], path: 'familyBackground.motherInfo.name' },
+  { patterns: [/^company$/i], path: 'familyBackground.spouse.company' }, // Adjusted to spouse for married students
+  { patterns: [/^monthly family income$/i], path: 'familyBackground.monthlyIncome' },
+  { patterns: [/^status of parent\/s$/i], path: 'familyBackground.statusOfParent' },
+  { patterns: [/^sibling order$/i], path: 'familyBackground.siblings' },
+  { patterns: [/^name of spouse$/i], path: 'familyBackground.spouse.name' },
+  { patterns: [/^occupation$/i], path: 'familyBackground.spouse.occupation' }, // Adjusted to spouse
+  { patterns: [/^age$/i], path: 'familyBackground.fatherInfo.age' },
+  { patterns: [/^contact number:?$/i], path: 'familyBackground.emergency.contactNo' },
+  { patterns: [/^in case of emergency, please contact:?$/i], path: 'familyBackground.emergency.name' },
+  { patterns: [/^contact number:?$/i, /emergency contact/i], path: 'familyBackground.emergency.contactNo' },
+
+  // New patterns added for better coverage of parent, spouse, and sibling variations
+  { patterns: [/^educational attainment$/i, /education/i], path: 'familyBackground.fatherInfo.educationalAttainment' },
+  { patterns: [/nationality \/ religion/i, /nationality.*religion/i], path: 'familyBackground.motherInfo.nationalityReligion' },
+  { patterns: [/^name$/i, /sibling name/i], path: 'familyBackground.siblings.0.name' },
+  { patterns: [/^course \/ occupation$/i, /course.*occupation/i], path: 'familyBackground.siblings.0.courseOccupation' },
+  { patterns: [/^school \/ company$/i, /school.*company/i], path: 'familyBackground.siblings.0.schoolCompany' },
+  { patterns: [/^age:?$/i], path: 'familyBackground.spouse.age' }, // For spouse age with optional colon
+  { patterns: [/^contact number$/i], path: 'familyBackground.spouse.contactNo' }, // Without colon for spouse
+  { patterns: [/^contact number:$/i], path: 'familyBackground.emergency.contactNo' }, // With colon for emergency
+  { patterns: [/^email add 2$/i], path: 'contactInfo.email2' }, // For secondary email if present
+  { patterns: [/academic year/i, /school year/i], path: 'studentProfile.academicYear' },
+  { patterns: [/interview date/i, /date of interview/i], path: '_extra.interviewDate' },
+  { patterns: [/time started/i], path: '_extra.timeStarted' },
+  { patterns: [/time ended/i], path: '_extra.timeEnded' },
 ];
 
 const mapToStudentSchema = (mergedKV, allLines) => {
@@ -252,7 +298,15 @@ const mapToStudentSchema = (mergedKV, allLines) => {
     sid: '',
     studentProfile: {},
     contactInfo: { address: {} },
-    familyBackground: { fatherInfo: {}, motherInfo: {}, guardian: {}, emergency: {}, siblings: [], statusOfParent: '' },
+    familyBackground: { 
+      fatherInfo: { age: '', nationality: '', religion: '', educationalAttainment: '', occupation: '', company: '' }, 
+      motherInfo: { age: '', nationality: '', religion: '', educationalAttainment: '', occupation: '', company: '' }, 
+      guardian: {}, 
+      emergency: {}, 
+      siblings: [], 
+      statusOfParent: '', 
+      spouse: {} 
+    },
     _extra: {}
   };
 
@@ -270,7 +324,10 @@ const mapToStudentSchema = (mergedKV, allLines) => {
             finalVal = norm;
           }
           if (map.path.includes('contactNo')) finalVal = normalizePhone(val);
-          setDeep(out, map.path, finalVal);
+          // Only set if the value is non-empty to avoid overwriting with blanks
+          if (finalVal.trim()) {
+            setDeep(out, map.path, finalVal);
+          }
           matched = true;
           break;
         }
@@ -288,7 +345,7 @@ const mapToStudentSchema = (mergedKV, allLines) => {
 
   // Handle multiple emails
   const email1 = mergedKV['Email add 1']?.trim();
-  const email2 = mergedKV['Email add 2']?.trim();
+  const email2 = mergedKV['Email add 2']?.trim() || out.contactInfo.email2;
   const emails = [];
   if (email1) emails.push(email1);
   if (email2) emails.push(email2);
@@ -339,6 +396,8 @@ const mapToStudentSchema = (mergedKV, allLines) => {
   else if (mergedKV['2nd'] === 'X') sem = 2;
   if (yearNum > 0 && sem > 0) {
     out.studentProfile.section = `${yearNum}.${sem}`;
+  } else if (yearRaw && !out.studentProfile.section) {
+    out.studentProfile.section = yearRaw.replace('-', '.');
   }
 
   // Status of parents
@@ -350,67 +409,128 @@ const mapToStudentSchema = (mergedKV, allLines) => {
     }
   }
 
+  // Spouse working status
+  if (mergedKV['Yes'] === 'X') {
+    out.familyBackground.spouse.working = true;
+  } else if (mergedKV['No'] === 'X') {
+    out.familyBackground.spouse.working = false;
+  }
+
   // Parse family from lines
   const familyIdx = allLines.findIndex(l => l.toLowerCase().includes('family background'));
   if (familyIdx !== -1) {
-    const familyLines = allLines.slice(familyIdx);
-    // Father
+    const familyLines = allLines.slice(familyIdx + 1); // Skip the header line
+
+    // Parse father and mother names
     const fatherNameIdx = familyLines.findIndex(l => l.toLowerCase().includes("father's name"));
     if (fatherNameIdx !== -1) {
-      const fatherName = familyLines[fatherNameIdx + 1]?.trim();
-      if (fatherName) out.familyBackground.fatherInfo.name = toPascalCase(fatherName);
-      let nrIdx = fatherNameIdx + 2; // skip age
-      while (nrIdx < familyLines.length && !familyLines[nrIdx].toLowerCase().includes('nationality/religion')) nrIdx++;
-      if (nrIdx < familyLines.length) {
-        const nrVal = familyLines[nrIdx + 1]?.trim() || '';
-        const [nat, rel] = nrVal.split('/').map(s => s.trim());
-        out.familyBackground.fatherInfo.nationality = toPascalCase(nat);
-        out.familyBackground.fatherInfo.religion = toPascalCase(rel);
-        let occIdx = nrIdx + 2;
-        while (occIdx < familyLines.length && !familyLines[occIdx].toLowerCase().includes('occupation')) occIdx++;
-        if (occIdx < familyLines.length) {
-          const occVal = familyLines[occIdx + 1]?.trim() || '';
-          out.familyBackground.fatherInfo.occupation = toPascalCase(occVal);
-        }
-      }
+      out.familyBackground.fatherInfo.name = toPascalCase(familyLines[fatherNameIdx + 1] || '');
     }
-    // Mother
+
     const motherNameIdx = familyLines.findIndex(l => l.toLowerCase().includes("mother's name"));
     if (motherNameIdx !== -1) {
-      const motherName = familyLines[motherNameIdx + 1]?.trim();
-      if (motherName) out.familyBackground.motherInfo.name = toPascalCase(motherName);
-      let nrIdx = motherNameIdx + 2;
-      while (nrIdx < familyLines.length && !familyLines[nrIdx].toLowerCase().includes('nationality/religion')) nrIdx++;
-      if (nrIdx < familyLines.length) {
-        const nrVal = familyLines[nrIdx + 1]?.trim() || '';
-        const [nat, rel] = nrVal.split('/').map(s => s.trim());
-        out.familyBackground.motherInfo.nationality = toPascalCase(nat);
-        out.familyBackground.motherInfo.religion = toPascalCase(rel);
-        let occIdx = nrIdx + 2;
-        while (occIdx < familyLines.length && !familyLines[occIdx].toLowerCase().includes('occupation')) occIdx++;
-        if (occIdx < familyLines.length) {
-          const occVal = familyLines[occIdx + 1]?.trim() || '';
-          out.familyBackground.motherInfo.occupation = toPascalCase(occVal);
-        }
-      }
+      out.familyBackground.motherInfo.name = toPascalCase(familyLines[motherNameIdx + 1] || '');
     }
-    // Siblings
+
+    // Parse ages
+    const firstAgeIdx = familyLines.findIndex(l => l.toLowerCase().includes('age'));
+    if (firstAgeIdx !== -1) {
+      out.familyBackground.fatherInfo.age = familyLines[firstAgeIdx + 1] || '';
+    }
+
+    const secondAgeIdx = familyLines.findIndex((l, i) => i > firstAgeIdx && l.toLowerCase().includes('age'));
+    if (secondAgeIdx !== -1) {
+      out.familyBackground.motherInfo.age = familyLines[secondAgeIdx + 1] || '';
+    }
+
+    // Parse nationality/religion
+    const firstNatIdx = familyLines.findIndex(l => l.toLowerCase().includes('nationality / religion'));
+    if (firstNatIdx !== -1) {
+      const nrVal = familyLines[firstNatIdx + 1] || '';
+      const [nat, rel] = nrVal.split('/').map(s => toPascalCase(s.trim()));
+      out.familyBackground.fatherInfo.nationality = nat;
+      out.familyBackground.fatherInfo.religion = rel;
+    }
+
+    const secondNatIdx = familyLines.findIndex((l, i) => i > firstNatIdx && l.toLowerCase().includes('nationality / religion'));
+    if (secondNatIdx !== -1) {
+      const nrVal = familyLines[secondNatIdx + 1] || '';
+      const [nat, rel] = nrVal.split('/').map(s => toPascalCase(s.trim()));
+      out.familyBackground.motherInfo.nationality = nat;
+      out.familyBackground.motherInfo.religion = rel;
+    }
+
+    // Parse educational attainment
+    const firstEdIdx = familyLines.findIndex(l => l.toLowerCase().includes('educational attainment'));
+    if (firstEdIdx !== -1) {
+      out.familyBackground.fatherInfo.educationalAttainment = toPascalCase(familyLines[firstEdIdx + 1] || '');
+    }
+
+    const secondEdIdx = familyLines.findIndex((l, i) => i > firstEdIdx && l.toLowerCase().includes('educational attainment'));
+    if (secondEdIdx !== -1) {
+      out.familyBackground.motherInfo.educationalAttainment = toPascalCase(familyLines[secondEdIdx + 1] || '');
+    }
+
+    // Parse occupation
+    const firstOccIdx = familyLines.findIndex(l => l.toLowerCase().includes('occupation'));
+    if (firstOccIdx !== -1) {
+      out.familyBackground.fatherInfo.occupation = toPascalCase(familyLines[firstOccIdx + 1] || '');
+    }
+
+    const secondOccIdx = familyLines.findIndex((l, i) => i > firstOccIdx && l.toLowerCase().includes('occupation'));
+    if (secondOccIdx !== -1) {
+      out.familyBackground.motherInfo.occupation = toPascalCase(familyLines[secondOccIdx + 1] || '');
+    }
+
+    // Parse company
+    const firstCompIdx = familyLines.findIndex(l => l.toLowerCase().includes('company'));
+    if (firstCompIdx !== -1) {
+      out.familyBackground.fatherInfo.company = toPascalCase(familyLines[firstCompIdx + 1] || '');
+    }
+
+    const secondCompIdx = familyLines.findIndex((l, i) => i > firstCompIdx && l.toLowerCase().includes('company'));
+    if (secondCompIdx !== -1) {
+      out.familyBackground.motherInfo.company = toPascalCase(familyLines[secondCompIdx + 1] || '');
+    }
+
+    // Siblings - only names
     const siblingIdx = familyLines.findIndex(l => l.toLowerCase().includes('sibling order'));
     if (siblingIdx !== -1) {
       const nameHeaderIdx = familyLines.findIndex((l, i) => i > siblingIdx && l.toLowerCase().includes('name'));
       if (nameHeaderIdx !== -1) {
-        let siblings = [];
         let i = nameHeaderIdx + 1;
         while (i < familyLines.length && !familyLines[i].toLowerCase().includes('in case of emergency') && familyLines[i].trim()) {
           const line = familyLines[i].trim();
-          if (/^[a-zA-Z\s\.'\-]+$/.test(line) && line.length > 2) {
-            siblings.push(toPascalCase(line));
+          if (/^[a-zA-Z\s\.'\-]+$/.test(line) && line.length > 2 && line.includes(' ')) {
+            out.familyBackground.siblings.push(toPascalCase(line));
           }
           i++;
         }
-        out.familyBackground.siblings = siblings;
       }
     }
+
+    // Emergency contact from lines if not set
+    const emergIdx = familyLines.findIndex(l => l.toLowerCase().includes('in case of emergency, please contact'));
+    if (emergIdx !== -1 && !out.familyBackground.emergency.name) {
+      const emergLine = familyLines[emergIdx];
+      const emergName = emergLine.split(':')[1]?.trim() || familyLines[emergIdx + 1]?.trim() || '';
+      out.familyBackground.emergency.name = toPascalCase(emergName);
+    }
+
+    const contactIdx = familyLines.findIndex((l, i) => i > emergIdx && l.toLowerCase().includes('contact number'));
+    if (contactIdx !== -1 && !out.familyBackground.emergency.contactNo) {
+      const contactLine = familyLines[contactIdx];
+      const emergContact = contactLine.split(':')[1]?.trim() || familyLines[contactIdx + 1]?.trim() || '';
+      out.familyBackground.emergency.contactNo = normalizePhone(emergContact);
+    }
+  }
+
+  // Handle nationality/religion from KV if captured (split for mother or father)
+  if (out.familyBackground.motherInfo.nationalityReligion) {
+    const [nat, rel] = out.familyBackground.motherInfo.nationalityReligion.split('/').map(s => toPascalCase(s.trim()));
+    out.familyBackground.motherInfo.nationality = nat || out.familyBackground.motherInfo.nationality;
+    out.familyBackground.motherInfo.religion = rel || out.familyBackground.motherInfo.religion;
+    delete out.familyBackground.motherInfo.nationalityReligion;
   }
 
   delete out.studentProfile.age;
