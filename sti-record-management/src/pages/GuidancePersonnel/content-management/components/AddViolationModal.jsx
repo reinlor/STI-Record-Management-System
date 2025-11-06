@@ -59,7 +59,7 @@ export default function AddViolationModal({
           <h3 className="text-xl font-bold text-[#0172bd]">
             {isEditing ? "Edit Violation Category" : "Add New Violation"}
           </h3>
-          <button onClick={() => setIsOpen(false)} className="text-gray-400 hover:text-gray-600 transition">
+          <button onClick={() => setIsOpen(false)} className="text-gray-400 hover:text-gray-600 transition cursor-pointer">
             <X className="w-6 h-6" />
           </button>
         </div>
@@ -85,7 +85,7 @@ export default function AddViolationModal({
                 required
                 value={newViolation.offense || ""}
                 onChange={(e) => setNewViolation({ ...newViolation, offense: e.target.value })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 cursor-pointer"
               >
                 <option value="">-- Select offense --</option>
                 {offenses.map((offenseName, idx) => (
@@ -103,7 +103,7 @@ export default function AddViolationModal({
                 required
                 value={newViolation.priority}
                 onChange={(e) => setNewViolation({ ...newViolation, priority: e.target.value })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 cursor-pointer"
               >
                 <option value="1">1</option>
                 <option value="2">2</option>
@@ -125,7 +125,7 @@ export default function AddViolationModal({
                 <button
                   type="button"
                   onClick={addItem}
-                  className="px-3 py-2 bg-[#0172bd] text-white rounded-md flex items-center gap-2"
+                  className="px-3 py-2 bg-[#0172bd] text-white rounded-md flex items-center gap-2 hover:bg-[#015a9c] transition cursor-pointer"
                 >
                   <Plus className="w-4 h-4" />
                   Add
@@ -142,7 +142,7 @@ export default function AddViolationModal({
                         <button
                           type="button"
                           onClick={() => removeItem(idx)}
-                          className="text-sm text-red-500 underline"
+                          className="text-sm text-red-500 underline hover:text-red-700 transition cursor-pointer"
                         >
                           Remove
                         </button>
@@ -161,14 +161,14 @@ export default function AddViolationModal({
             <button
               type="button"
               onClick={() => setIsOpen(false)}
-              className="flex items-center justify-center gap-2 bg-[#dc3545] text-white font-semibold py-2 px-4 rounded-lg hover:bg-red-600 transition duration-150 ease-in-out"
+              className="flex items-center justify-center gap-2 bg-[#dc3545] text-white font-semibold py-2 px-4 rounded-lg hover:bg-red-600 transition duration-150 ease-in-out cursor-pointer"
             >
               <span>Cancel</span>
               <X className="w-5 h-5" />
             </button>
             <button
               type="submit"
-              className="flex items-center justify-center gap-2 bg-[#28a745] text-white font-semibold py-2 px-4 rounded-lg hover:bg-green-500 transition duration-150 ease-in-out"
+              className="flex items-center justify-center gap-2 bg-[#28a745] text-white font-semibold py-2 px-4 rounded-lg hover:bg-green-500 transition duration-150 ease-in-out cursor-pointer"
             >
               <span>{isEditing ? "Save changes" : "Add"}</span>
               <Check className="w-5 h-5" />

@@ -26,7 +26,7 @@ export default function SchoolYearPanel({
               onChange={(e) =>
                 setTempSchoolYearData({ ...tempSchoolYearData, schoolYear: e.target.value })
               }
-              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#0172bd]"
+              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#0172bd] cursor-pointer"
             >
               <option value=''>Select School Year</option>
               <option value='2025-2026'>2025-2026</option>
@@ -44,7 +44,7 @@ export default function SchoolYearPanel({
               onChange={(e) =>
                 setTempSchoolYearData({ ...tempSchoolYearData, tertiary: e.target.value })
               }
-              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#0172bd]"
+              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#0172bd] cursor-pointer"
             >
               <option value="">Select Semester</option>
               <option value="1st Semester">1st Semester</option>
@@ -60,7 +60,7 @@ export default function SchoolYearPanel({
               onChange={(e) =>
                 setTempSchoolYearData({ ...tempSchoolYearData, seniorHigh: e.target.value })
               }
-              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#0172bd]"
+              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#0172bd] cursor-pointer"
             >
               <option value=''>Select Quarter</option>
               <option value='1st Quarter'>1st Quarter</option>
@@ -93,7 +93,7 @@ export default function SchoolYearPanel({
         {/* Update Button */}
         <button
           onClick={handleSetSchoolYear}
-          className="w-full px-6 py-2 bg-[#28a745] text-white font-semibold rounded-lg hover:bg-green-500 transition duration-150 ease-in-out"
+          className="w-full px-6 py-2 bg-[#28a745] text-white font-semibold rounded-lg hover:bg-green-500 transition duration-150 ease-in-out cursor-pointer"
         >
           Update
         </button>

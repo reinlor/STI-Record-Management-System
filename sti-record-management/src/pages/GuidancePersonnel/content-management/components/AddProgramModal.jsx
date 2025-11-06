@@ -23,7 +23,7 @@ export default function AddProgramModal({
           </h3>
           <button
             onClick={() => setIsOpen(false)}
-            className="text-gray-400 hover:text-gray-600 transition"
+            className="text-gray-400 hover:text-gray-600 transition cursor-pointer"
           >
             <X className="w-6 h-6" />
           </button>
@@ -73,14 +73,14 @@ export default function AddProgramModal({
             <button
               type="button"
               onClick={() => setIsOpen(false)}
-              className="flex items-center justify-center gap-2 bg-[#dc3545] text-white font-semibold py-2 px-4 rounded-lg hover:bg-red-600 transition duration-150 ease-in-out"
+              className="flex items-center justify-center gap-2 bg-[#dc3545] text-white font-semibold py-2 px-4 rounded-lg hover:bg-red-600 transition duration-150 ease-in-out cursor-pointer" 
             >
               <span>Cancel</span>
               <X className="w-5 h-5" />
             </button>
             <button
               type="submit"
-              className="flex items-center justify-center gap-2 bg-[#28a745] text-white font-semibold py-2 px-4 rounded-lg hover:bg-green-500 transition duration-150 ease-in-out"
+              className="flex items-center justify-center gap-2 bg-[#28a745] text-white font-semibold py-2 px-4 rounded-lg hover:bg-green-500 transition duration-150 ease-in-out cursor-pointer"
             >
               <span>{isEditing ? "Save Changes" : "Add"}</span>
               <Check className="w-5 h-5" />

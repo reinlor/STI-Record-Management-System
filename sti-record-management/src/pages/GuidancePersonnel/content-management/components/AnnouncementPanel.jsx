@@ -38,7 +38,7 @@ export default function AnnouncementPanel({
         <div className="flex justify-end gap-2">
           <button
             onClick={editingId ? handleUpdateAnnouncement : handlePostAnnouncement}
-            className="px-6 py-2 bg-[#0172bd] text-white font-semibold rounded-lg hover:bg-blue-500 transition duration-150 ease-in-out"
+            className="px-6 py-2 bg-[#0172bd] text-white font-semibold rounded-lg hover:bg-blue-500 transition duration-150 ease-in-out cursor-pointer"
           >
             {editingId ? "Update" : "Post"}
           </button>
@@ -48,7 +48,7 @@ export default function AnnouncementPanel({
                 setNewAnnouncement({ title: "", body: "" });
                 setEditingId(null);
               }}
-              className="px-6 py-2 bg-gray-300 text-black font-semibold rounded-lg hover:bg-gray-400 transition duration-150 ease-in-out"
+              className="px-6 py-2 bg-gray-300 text-black font-semibold rounded-lg hover:bg-gray-400 transition duration-150 ease-in-out cursor-pointer"
             >
               Cancel
             </button>
@@ -71,13 +71,13 @@ export default function AnnouncementPanel({
                   <div className="flex gap-2">
                     <button
                       onClick={() => handleEditAnnouncement(ann)}
-                      className="text-blue-500 hover:text-blue-700"
+                      className="text-blue-500 hover:text-blue-700 cursor-pointer"
                     >
                       <Edit size={16} />
                     </button>
                     <button
                       onClick={() => handleDeleteAnnouncement(ann.id)}
-                      className="text-red-500 hover:text-red-700"
+                      className="text-red-500 hover:text-red-700 cursor-pointer"
                     >
                       <Trash2 size={16} />
                     </button>

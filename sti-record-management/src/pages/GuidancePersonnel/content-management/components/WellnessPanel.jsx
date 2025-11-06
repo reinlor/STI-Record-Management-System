@@ -21,7 +21,7 @@ export default function WellnessPanel({ tempWellnessLink, setTempWellnessLink, h
       {/* Submit Button */}
       <button
         onClick={handleSetWellnessLink}
-        className="mt-4 px-6 py-2 bg-[#28a745] text-white font-semibold rounded-lg hover:bg-green-500 transition duration-150 ease-in-out self-end"
+        className="mt-4 px-6 py-2 bg-[#28a745] text-white font-semibold rounded-lg hover:bg-green-500 transition duration-150 ease-in-out self-end cursor-pointer"
       >
         Set
       </button>

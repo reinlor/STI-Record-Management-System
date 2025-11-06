@@ -19,7 +19,7 @@ export default function ProgramsPanel({
             <div className="flex items-center gap-2">
               <button
                 onClick={() => onEditProgram(item, type)}
-                className="px-3 py-1 rounded-lg bg-white border hover:bg-gray-50 flex items-center gap-2"
+                className="px-3 py-1 rounded-lg bg-white border hover:bg-gray-50 flex items-center gap-2 cursor-pointer"
                 title="Edit"
               >
                 <Edit2 className="w-4 h-4" />
@@ -27,7 +27,7 @@ export default function ProgramsPanel({
               </button>
               <button
                 onClick={() => onDeleteProgram(item, type)}
-                className="px-3 py-1 rounded-lg bg-white border hover:bg-gray-50 flex items-center gap-2"
+                className="px-3 py-1 rounded-lg bg-white border hover:bg-gray-50 flex items-center gap-2 cursor-pointer"
                 title="Delete"
               >
                 <Trash2 className="w-4 h-4 text-red-500" />
@@ -55,7 +55,7 @@ export default function ProgramsPanel({
           <div className="flex-1">{renderProgramList(tertiaryPrograms, "Tertiary")}</div>
           <button
             onClick={() => handleAddProgram("Tertiary")}
-            className="mt-4 px-6 py-2 bg-[#28a745] text-white font-semibold rounded-lg hover:bg-green-500 transition duration-150 ease-in-out flex items-center justify-center gap-2"
+            className="mt-4 px-6 py-2 bg-[#28a745] text-white font-semibold rounded-lg hover:bg-green-500 transition duration-150 ease-in-out flex items-center justify-center gap-2 cursor-pointer"
           >
             <Plus size={18} />
             <span>Add Program</span>
@@ -71,7 +71,7 @@ export default function ProgramsPanel({
           <div className="flex-1">{renderProgramList(shsStrands, "SHS")}</div>
           <button
             onClick={() => handleAddProgram("SHS")}
-            className="mt-4 px-6 py-2 bg-[#28a745] text-white font-semibold rounded-lg hover:bg-green-500 transition duration-150 ease-in-out flex items-center justify-center gap-2"
+            className="mt-4 px-6 py-2 bg-[#28a745] text-white font-semibold rounded-lg hover:bg-green-500 transition duration-150 ease-in-out flex items-center justify-center gap-2 cursor-pointer"
           >
             <Plus size={18} />
             <span>Add Strand</span>

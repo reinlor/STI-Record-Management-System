@@ -24,7 +24,7 @@ export default function ViolationsPanel({
       {/* Add button */}
       <button
         onClick={onOpenAddModal}
-        className="w-full px-6 py-2 bg-[#28a745] text-white font-semibold rounded-lg hover:bg-green-500 transition duration-150 ease-in-out flex items-center justify-center gap-2 mb-4"
+        className="w-full px-6 py-2 bg-[#28a745] text-white font-semibold rounded-lg hover:bg-green-500 transition duration-150 ease-in-out flex items-center justify-center gap-2 mb-4 cursor-pointer"
       >
         <Plus size={18} />
         <span>Add Violation</span>
@@ -49,7 +49,7 @@ export default function ViolationsPanel({
                   <div className="flex gap-2">
                     <button
                       onClick={() => onEditCategory(v)}
-                      className="px-3 py-1 rounded-lg bg-white border hover:bg-gray-50 flex items-center gap-2"
+                      className="px-3 py-1 rounded-lg bg-white border hover:bg-gray-50 flex items-center gap-2 cursor-pointer"
                       title="Edit"
                     >
                       <Edit2 className="w-4 h-4" />
@@ -57,7 +57,7 @@ export default function ViolationsPanel({
                     </button>
                     <button
                       onClick={() => onDeleteCategory(v)}
-                      className="px-3 py-1 rounded-lg bg-white border hover:bg-gray-50 flex items-center gap-2"
+                      className="px-3 py-1 rounded-lg bg-white border hover:bg-gray-50 flex items-center gap-2 cursor-pointer"
                       title="Delete"
                     >
                       <Trash2 className="w-4 h-4 text-red-500" />
@@ -65,7 +65,7 @@ export default function ViolationsPanel({
                     </button>
                     <button
                       onClick={() => toggleExpand(v.category)}
-                      className="px-2 py-1 rounded-lg bg-white border hover:bg-gray-50 flex items-center gap-1"
+                      className="px-2 py-1 rounded-lg bg-white border hover:bg-gray-50 flex items-center gap-1 cursor-pointer"
                       title="Toggle items"
                     >
                       {expanded[v.category] ? <ChevronUp /> : <ChevronDown />}
