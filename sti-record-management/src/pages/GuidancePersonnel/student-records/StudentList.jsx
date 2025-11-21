@@ -188,7 +188,12 @@ function StudentList() {
         const profile = student.studentProfile || {};
         if (activeLevel === "shs" && profile.academicLevel === "Tertiary") return false;
         if (activeLevel === "college" && profile.academicLevel !== "Tertiary") return false;
-        const searchStr = (profile.name || "") + (student.sid || "");
+        const searchStr =
+            (profile.lastName || "") + " " +
+            (profile.firstName || "") + " " +
+            (profile.middleName || "") + " " +
+            (profile.suffix || "") + " " +
+            (student.sid || "");
         if (search && !searchStr.toLowerCase().includes(search.toLowerCase())) return false;
         if (selectedProgram !== "all" && profile.program !== selectedProgram) return false;
         if (selectedSection !== "all" && profile.section !== selectedSection) return false;
@@ -961,7 +966,7 @@ function StudentList() {
                                     >
                                         <FileArchive className="w-5 h-5" />
                                         {modalStudent.isArchived ? "Restore" : "Archive"}
-                                    </button>: null}
+                                    </button> : null}
 
                                 </div>
                             </div>

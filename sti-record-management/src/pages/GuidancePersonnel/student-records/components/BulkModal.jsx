@@ -18,12 +18,69 @@ const BulkModal = ({ visible, onClose }) => {
     const [defaultPassword, setDefaultPassword] = useState('student1234');
     const [showPassword, setShowPassword] = useState(false);
 
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
+    const [pendingFile, setPendingFile] = useState(null);
+
     if (!visible) return null;
 
     const handleFileChange = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
+        setPendingFile(file);
+        setShowConfirmModal(true);
 
+        // const formData = new FormData();
+        // formData.append("file", file);
+
+        // try {
+        //     setIsUploading(true);
+        //     setStatusMessage("Uploading...");
+        //     setUploadProgress(0);
+
+        //     const response = await axios.post("/bulk-upload/students", formData, {
+        //         headers: { "Content-Type": "multipart/form-data" },
+        //         onUploadProgress: (progressEvent) => {
+        //             if (!progressEvent.total) return;
+        //             const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+        //             setUploadProgress(percent);
+        //         }
+        //     });
+
+        //     const resp = response.data || {};
+        //     const added = Array.isArray(resp.added) ? resp.added : [];
+        //     const updated = Array.isArray(resp.updated) ? resp.updated : [];
+
+        //     let skippedArr = [];
+        //     let skippedCount = 0;
+        //     if (Array.isArray(resp.skipped)) {
+        //         skippedArr = resp.skipped;
+        //         skippedCount = skippedArr.length;
+        //     } else if (typeof resp.skipped === 'number') {
+        //         skippedArr = [];
+        //         skippedCount = resp.skipped;
+        //     } else if (typeof resp.skipped === 'string' && resp.skipped.trim().length > 0) {
+        //         skippedArr = [resp.skipped];
+        //         skippedCount = skippedArr.length;
+        //     }
+
+        //     setUploadDetails({ added, updated, skipped: skippedArr, skippedCount });
+
+        //     const processed = typeof resp.processed === 'number' ? resp.processed : resp.processed || added.length;
+        //     setStatusMessage(`Uploaded! Processed: ${processed}, Skipped: ${skippedCount}`);
+        //     toast.success(`Upload successful! Processed: ${processed}, Skipped: ${skippedCount}`);
+        //     setUploadProgress(100);
+        // } catch (error) {
+        //     console.error("Upload error:", error);
+        //     toast.error("Upload failed. Check console for details.");
+        //     setStatusMessage("Upload failed. Check console.");
+        //     setUploadProgress(0);
+        // } finally {
+        //     if (fileInputRef.current) fileInputRef.current.value = "";
+        //     setIsUploading(false);
+        // }
+    };
+
+    const proceedBulkUpload = async (file) => {
         const formData = new FormData();
         formData.append("file", file);
 
@@ -72,11 +129,44 @@ const BulkModal = ({ visible, onClose }) => {
         } finally {
             if (fileInputRef.current) fileInputRef.current.value = "";
             setIsUploading(false);
+            setPendingFile(null);
         }
     };
 
     return (
         <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            {showConfirmModal && (
+                <div className="fixed inset-0 backdrop-blur-sm bg-opacity-30 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg p-6 max-w-md w-full">
+                        <h2 className="text-xl font-bold mb-2 text-[#0172bd]">Confirm Bulk Upload</h2>
+                        <p className="mb-4 text-gray-700">
+                            Are you sure you want to proceed with bulk uploading students? This action may update or add multiple records and cannot be undone.
+                        </p>
+                        <div className="flex justify-end gap-2">
+                            <button
+                                className="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400 text-gray-800 cursor-pointer"
+                                onClick={() => {
+                                    setShowConfirmModal(false);
+                                    setPendingFile(null);
+                                }}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                className="px-4 py-2 rounded bg-[#0172bd] text-white hover:bg-blue-700 cursor-pointer"
+                                onClick={() => {
+                                    setShowConfirmModal(false);
+                                    if (pendingFile) {
+                                        proceedBulkUpload(pendingFile);
+                                    }
+                                }}
+                            >
+                                Proceed
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
             <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
                 <div className="flex justify-between items-center border-b pb-3 mb-4">
                     <h3 className="text-2xl font-bold text-[#0172bd]">Bulk Add Students</h3>

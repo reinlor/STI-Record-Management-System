@@ -10,6 +10,7 @@ export default function AnnouncementPanel({
   handleEditAnnouncement,
   handleDeleteAnnouncement,
   editingId,
+  setEditingId,
 }) {
   return (
     <div className="bg-white p-4 rounded-xl shadow-lg flex flex-col h-full overflow-y-auto custom-scrollbar">

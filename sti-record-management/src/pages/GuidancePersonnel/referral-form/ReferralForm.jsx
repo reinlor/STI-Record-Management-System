@@ -16,7 +16,7 @@ import { collection, onSnapshot } from "firebase/firestore";
 import { db } from "../../../firebaseClient.js";
 
 const PRIORITY_LEVELS = [
-  { value: "0", label: "No Priority" },
+  { value: "", label: "All Priorities" },
   { value: "1", label: "Level 1" },
   { value: "2", label: "Level 2" },
   { value: "3", label: "Level 3" },
