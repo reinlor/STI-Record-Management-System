@@ -97,13 +97,6 @@ export default function StudentRequestSlip() {
       }
     }
 
-    // Validate End Date
-    if (endDate) {
-      if (endDate > today) {
-        errors.dateAbsentEnd = "End date cannot be in the future.";
-      }
-    }
-
     // Validate date range (End Date >= Start Date)
     if (startDate && endDate && endDate < startDate) {
       errors.dateAbsentEnd = "End date cannot be earlier than start date.";
