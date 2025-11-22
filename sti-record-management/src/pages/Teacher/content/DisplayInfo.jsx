@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { X, User, Info, MessageSquare } from "lucide-react";
+import { X, User, Info, MessageSquare, Bell } from "lucide-react";
 import { getStatusClasses } from "../../Student/components/statusClasses";
 import axios from "axios";
 import { toast } from "react-toastify";
@@ -7,6 +7,7 @@ import { toast } from "react-toastify";
 export default function DisplayInfo({ data, onClose }) {
   const [isCancelling, setIsCancelling] = useState(false);
   const [cancelSuccess, setCancelSuccess] = useState(false);
+  const [isFollowingUp, setIsFollowingUp] = useState(false);
 
   const renderField = (label, value) => (
     <div className="space-y-1">
@@ -69,6 +70,33 @@ export default function DisplayInfo({ data, onClose }) {
       });
     } finally {
       setIsCancelling(false);
+    }
+  };
+
+  // Handle follow up button click (UI-only for now)
+  const handleFollowUp = async () => {
+    setIsFollowingUp(true);
+    try {
+      // Placeholder for backend implementation
+      toast.info("Follow up reminder has been sent!", {
+        position: "top-right",
+        autoClose: 2000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+    } catch (err) {
+      toast.error("Failed to send follow up. Please try again.", {
+        position: "top-right",
+        autoClose: 2500,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+    } finally {
+      setIsFollowingUp(false);
     }
   };
 
@@ -216,20 +244,41 @@ export default function DisplayInfo({ data, onClose }) {
           </div>
         </div>
 
-        {/* Footer / Cancel Button */}
-        {(data.status === "Pending" || data.status === "In Progress") && (
-          <div className="sticky bottom-0 bg-white border-t border-gray-100 rounded-b-3xl p-4 flex justify-end z-30">
+        {/* Footer / Action Buttons */}
+        <div className="sticky bottom-0 bg-white border-t border-gray-100 rounded-b-3xl p-4 flex justify-end gap-3 z-30 flex-wrap">
+          {/* Follow Up Button - Show for Pending or In Progress status */}
+          {(data.status === "Pending" || data.status === "In Progress") && (
+            <button
+              onClick={handleFollowUp}
+              disabled={isFollowingUp}
+              className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold shadow transition-all text-white cursor-pointer ${
+                isFollowingUp
+                  ? "bg-blue-400"
+                  : "bg-blue-500 hover:bg-blue-600"
+              } disabled:cursor-not-allowed`}
+            >
+              <Bell size={18} />
+              {isFollowingUp ? "Sending..." : "Follow Up"}
+            </button>
+          )}
+
+          {/* Cancel Referral Button - Show for Pending or In Progress */}
+          {(data.status === "Pending" || data.status === "In Progress") && (
             <button
               onClick={handleCancelReferral}
               disabled={isCancelling || cancelSuccess}
               className={`px-8 py-3 rounded-lg font-semibold shadow transition-colors text-white cursor-pointer disabled:cursor-not-allowed ${
-                cancelSuccess ? "bg-green-500" : isCancelling ? "bg-gray-400" : "bg-red-500 hover:bg-red-600"
+                cancelSuccess
+                  ? "bg-green-500"
+                  : isCancelling
+                  ? "bg-gray-400"
+                  : "bg-red-500 hover:bg-red-600"
               }`}
             >
               {isCancelling ? "Cancelling..." : cancelSuccess ? "Cancelled!" : "Cancel Referral"}
             </button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       <style>{`
