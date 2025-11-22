@@ -15,13 +15,21 @@ export default function StudentRequestSlip() {
   const endDateRef = useRef(null);
 
   // Reason Combo Box
-  const [absentReason, setAbsentReason] = useState(""); // "Health-Related" or "Non-Health-Related"
+  const [absentReason, setAbsentReason] = useState("");
 
   // File states with preview
   const [excuseLetter, setExcuseLetter] = useState(null);
   const [parentID, setParentID] = useState(null);
   const [medicalCertificate, setMedicalCertificate] = useState(null);
   const [incidentEvidence, setIncidentEvidence] = useState([]);
+
+  // Real-time validation errors
+  const [dateErrors, setDateErrors] = useState({
+    dateAbsent: "",
+    dateAbsentEnd: "",
+    incidentDate: "",
+    incidentTime: "",
+  });
 
   const [formData, setFormData] = useState({
     name: "",
@@ -62,9 +70,99 @@ export default function StudentRequestSlip() {
     fetchStudentData();
   }, [authData]);
 
+  // Get today's date in YYYY-MM-DD format
+  const getTodayDate = () => {
+    const today = new Date();
+    return today.toISOString().split('T')[0];
+  };
+
+  // Get current time in HH:MM format
+  const getCurrentTime = () => {
+    const now = new Date();
+    return now.toTimeString().slice(0, 5);
+  };
+
+  // Validate absence dates
+  const validateAbsenceDates = (startDate, endDate) => {
+    const errors = { ...dateErrors };
+    const today = getTodayDate();
+
+    errors.dateAbsent = "";
+    errors.dateAbsentEnd = "";
+
+    // Validate Start Date
+    if (startDate) {
+      if (startDate > today) {
+        errors.dateAbsent = "Start date cannot be in the future.";
+      }
+    }
+
+    // Validate End Date
+    if (endDate) {
+      if (endDate > today) {
+        errors.dateAbsentEnd = "End date cannot be in the future.";
+      }
+    }
+
+    // Validate date range (End Date >= Start Date)
+    if (startDate && endDate && endDate < startDate) {
+      errors.dateAbsentEnd = "End date cannot be earlier than start date.";
+    }
+
+    setDateErrors(errors);
+  };
+
+  // Validate incident dates and time
+  const validateIncidentDateTime = (incidentDate, incidentTime) => {
+    const errors = { ...dateErrors };
+    const today = getTodayDate();
+    const now = new Date();
+    const currentTime = getCurrentTime();
+
+    errors.incidentDate = "";
+    errors.incidentTime = "";
+
+    // Validate Incident Date
+    if (incidentDate) {
+      if (incidentDate > today) {
+        errors.incidentDate = "Incident date cannot be in the future.";
+      }
+    }
+
+    // Validate Incident Time - Connected to Incident Date
+    if (incidentDate && incidentTime) {
+      // If incident date is today, time cannot be in the future
+      if (incidentDate === today) {
+        if (incidentTime > currentTime) {
+          errors.incidentTime = "Incident time cannot be in the future.";
+        }
+      }
+      // If incident date is in the past, any time is valid
+      // (we already validated the date above)
+    }
+
+    setDateErrors(errors);
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prevData) => ({ ...prevData, [name]: value }));
+
+    // Real-time validation
+    if (name === "dateAbsent" || name === "dateAbsentEnd") {
+      validateAbsenceDates(
+        name === "dateAbsent" ? value : formData.dateAbsent,
+        name === "dateAbsentEnd" ? value : formData.dateAbsentEnd
+      );
+    }
+
+    // Enhanced: Validate both date and time together when either changes
+    if (name === "incidentDate" || name === "incidentTime") {
+      validateIncidentDateTime(
+        name === "incidentDate" ? value : formData.incidentDate,
+        name === "incidentTime" ? value : formData.incidentTime
+      );
+    }
   };
 
   // Helper to compute absent days
@@ -103,23 +201,25 @@ export default function StudentRequestSlip() {
     setFile(null);
   };
 
+  // Check if there are any validation errors
+  const hasDateErrors = () => {
+    return Object.values(dateErrors).some(error => error !== "");
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validate date range
-    const startDate = new Date(formData.dateAbsent);
-    const endDate = new Date(formData.dateAbsentEnd);
-    if (endDate < startDate) {
-        toast.error("Invalid date range: End date cannot be earlier than the start date.");
-        return;
+    // Check for real-time validation errors before submission
+    if (hasDateErrors()) {
+      toast.error("Please fix all date validation errors before submitting.");
+      return;
     }
 
     // Incident Report: Prevent future incident dates/times
     if (activeSlip === "Report") {
       const now = new Date();
-      now.setSeconds(0, 0); // Remove seconds/milliseconds for strict comparison
+      now.setSeconds(0, 0);
 
-      // Validate incident date
       const incidentDate = new Date(formData.incidentDate);
       incidentDate.setHours(0, 0, 0, 0);
 
@@ -131,16 +231,12 @@ export default function StudentRequestSlip() {
         return;
       }
 
-      // Validate incident time if date is today
       if (formData.incidentDate) {
-        // Combine date and time for incident
         const [hours, minutes] = (formData.incidentTime || "00:00").split(":");
         const incidentDateTime = new Date(formData.incidentDate);
         incidentDateTime.setHours(Number(hours), Number(minutes), 0, 0);
 
-        if (
-          incidentDateTime > now
-        ) {
+        if (incidentDateTime > now) {
           toast.error("Incident time cannot be in the future.");
           return;
         }
@@ -152,7 +248,6 @@ export default function StudentRequestSlip() {
     if (activeSlip === "Absent") {
         const absentDays = getAbsentDays();
 
-        // Health-Related: require medical certificate only if 3 or more days
         if (absentReason === "Health-Related") {
             if (!excuseLetter || !parentID) {
                 toast.error("Excuse Letter and Parent's/Guardian's ID are required.");
@@ -192,7 +287,6 @@ export default function StudentRequestSlip() {
         form.append("dateAbsent", formData.dateAbsent);
         form.append("reason", absentReason);
 
-        // Attachments
         form.append("attachments", excuseLetter.file);
         form.append("attachments", parentID.file);
         if (absentReason === "Health-Related" && getAbsentDays() >= 3 && medicalCertificate) {
@@ -232,6 +326,12 @@ export default function StudentRequestSlip() {
             narrative: "",
             actionsTaken: "",
         }));
+        setDateErrors({
+          dateAbsent: "",
+          dateAbsentEnd: "",
+          incidentDate: "",
+          incidentTime: "",
+        });
         if (excuseLetter?.preview) URL.revokeObjectURL(excuseLetter.preview);
         if (parentID?.preview) URL.revokeObjectURL(parentID.preview);
         if (medicalCertificate?.preview) URL.revokeObjectURL(medicalCertificate.preview);
@@ -319,19 +419,32 @@ export default function StudentRequestSlip() {
     );
   };
 
+  // Enhanced input classes based on error state
+  const getInputClasses = (fieldName = "") => {
+    const baseClasses = "w-full p-3 border rounded-lg bg-gray-50 text-gray-800 focus:ring-2 transition-all duration-200";
+    const hasError = dateErrors[fieldName];
+    
+    if (hasError) {
+      return `${baseClasses} border-red-500 focus:ring-red-400 focus:border-red-500`;
+    }
+    return `${baseClasses} border-gray-300 focus:ring-yellow-400 focus:border-yellow-400`;
+  };
+
+  const inputClasses =
+    "w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-800 focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition-all duration-200";
+
   const slipTypes = [
     { id: "Absent", label: "Absent Slip", icon: FileText },
     { id: "Report", label: "Incident Report Form", icon: AlertTriangle },
   ];
 
-  const inputClasses =
-    "w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-800 focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition-all duration-200";
-
   if (!student) {
     return <LoadingDots />;
   }
+
   return (
-    <div className="min-h-screen flex flex-col items-center py-12 px-4 bg-gray-100 font-sans">      <div className="bg-white rounded-2xl shadow-xl p-8 w-full container mx-auto border border-gray-200">
+    <div className="min-h-screen flex flex-col items-center py-12 px-4 bg-gray-100 font-sans">      
+      <div className="bg-white rounded-2xl shadow-xl p-8 w-full container mx-auto border border-gray-200">
         <div className="flex items-center justify-between mb-8 pb-4 border-b border-gray-200">
           <h2 className="text-3xl font-extrabold text-gray-900">Student Request Slip</h2>
           <CircleCheck className="text-yellow-400 w-8 h-8" />
@@ -348,6 +461,12 @@ export default function StudentRequestSlip() {
                 setExcuseLetter(null);
                 setParentID(null);
                 setMedicalCertificate(null);
+                setDateErrors({
+                  dateAbsent: "",
+                  dateAbsentEnd: "",
+                  incidentDate: "",
+                  incidentTime: "",
+                });
               }}
               className={`flex items-center gap-2 py-3 px-4 rounded-xl text-sm font-semibold transition-all duration-300 cursor-pointer ${activeSlip === slip.id
                   ? "bg-yellow-400 text-black shadow-lg"
@@ -415,9 +534,15 @@ export default function StudentRequestSlip() {
                       name="dateAbsent"
                       value={formData.dateAbsent}
                       onChange={handleChange}
-                      className={`${inputClasses} cursor-pointer`}
+                      className={`${getInputClasses("dateAbsent")} cursor-pointer`}
                       required
                     />
+                    {dateErrors.dateAbsent && (
+                      <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                        <AlertTriangle className="w-3 h-3" />
+                        {dateErrors.dateAbsent}
+                      </p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -429,9 +554,15 @@ export default function StudentRequestSlip() {
                       name="dateAbsentEnd"
                       value={formData.dateAbsentEnd}
                       onChange={handleChange}
-                      className={`${inputClasses} cursor-pointer`}
+                      className={`${getInputClasses("dateAbsentEnd")} cursor-pointer`}
                       required
                     />
+                    {dateErrors.dateAbsentEnd && (
+                      <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                        <AlertTriangle className="w-3 h-3" />
+                        {dateErrors.dateAbsentEnd}
+                      </p>
+                    )}
                   </div>
                 </div>
                 {/* Reason Combo Box */}
@@ -466,9 +597,15 @@ export default function StudentRequestSlip() {
                       name="incidentDate"
                       value={formData.incidentDate}
                       onChange={handleChange}
-                      className={inputClasses}
+                      className={`${getInputClasses("incidentDate")} cursor-pointer`}
                       required
                     />
+                    {dateErrors.incidentDate && (
+                      <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                        <AlertTriangle className="w-3 h-3" />
+                        {dateErrors.incidentDate}
+                      </p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -479,9 +616,15 @@ export default function StudentRequestSlip() {
                       name="incidentTime"
                       value={formData.incidentTime}
                       onChange={handleChange}
-                      className={inputClasses}
+                      className={`${getInputClasses("incidentTime")} cursor-pointer`}
                       required
                     />
+                    {dateErrors.incidentTime && (
+                      <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                        <AlertTriangle className="w-3 h-3" />
+                        {dateErrors.incidentTime}
+                      </p>
+                    )}
                   </div>
                 </div>
 
@@ -692,7 +835,7 @@ export default function StudentRequestSlip() {
                   parentID,
                   setParentID,
                   "Parent's/Guardian's ID",
-                  "Upload a clear photo of your parent’s/guardian’s valid ID with visible signature. Required to verify the excuse letter."
+                  "Upload a clear photo of your parent's/guardian's valid ID with visible signature. Required to verify the excuse letter."
                 )}
                 {/* Medical Certificate (only for Health-Related) */}
                 {absentReason === "Health-Related" && (
@@ -741,6 +884,12 @@ export default function StudentRequestSlip() {
                 setMedicalCertificate(null);
                 setIncidentEvidence([]);
                 setAbsentReason("");
+                setDateErrors({
+                  dateAbsent: "",
+                  dateAbsentEnd: "",
+                  incidentDate: "",
+                  incidentTime: "",
+                });
               }}
               className="py-2.5 px-6 bg-gray-200 rounded-xl text-gray-800 font-semibold shadow-sm hover:bg-gray-300 cursor-pointer"
             >
@@ -748,8 +897,8 @@ export default function StudentRequestSlip() {
             </button>
             <button
               type="submit"
-              className="py-2.5 px-6 bg-yellow-400 text-black font-semibold rounded-xl shadow-lg hover:bg-yellow-500 hover:-translate-y-0.5 transform transition-all duration-200 cursor-pointer"
-              disabled={isLoading}
+              className="py-2.5 px-6 bg-yellow-400 text-black font-semibold rounded-xl shadow-lg hover:bg-yellow-500 hover:-translate-y-0.5 transform transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={isLoading || hasDateErrors()}
             >
               {isLoading ? "Submitting..." : "Submit"}
             </button>
