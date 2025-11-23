@@ -1,4 +1,3 @@
-// Dashboard.jsx
 import { useEffect, useMemo, useState } from "react";
 import {
     collection,
@@ -29,9 +28,11 @@ const App = () => {
         cases: 0,
         pendingSlips: 0,
         pendingForms: 0,
+        onGoingCases: 0,
         today: {
             pendingSlips: 0,
             pendingForms: 0,
+            onGoingCases: 0,
         },
     });
 
@@ -118,10 +119,19 @@ const App = () => {
         // --- On-going Cases ---
         const ongoingQuery = query(collection(db, "studentCases"), where("status", "==", "On-going"));
         const unsubOngoing = onSnapshot(ongoingQuery, (ongoingSnap) => {
-            setCounters((prev) => ({ ...prev, onGoingCases: ongoingSnap.size }));
+            const onGoingCases = ongoingSnap.size;
+            const todayOnGoing = ongoingSnap.docs.filter((d) => isToday(d.data().dateCreated || d.data().createdAt)).length;
+
+            setCounters((prev) => ({
+                ...prev,
+                onGoingCases,
+                today: {
+                    ...prev.today,
+                    onGoingCases: todayOnGoing,
+                },
+            }));
         });
 
-        // --- Pending Absent Slips ---
         // --- Pending Absent Slips ---
         const absentQuery = query(collection(db, "absentSlips"), where("status", "==", "Pending"));
         const unsubAbsent = onSnapshot(absentQuery, (absentSnap) => {
@@ -158,7 +168,6 @@ const App = () => {
             }));
         });
 
-
         // --- Pending Referral Forms ---
         const formQuery = query(collection(db, "referralForm"), where("status", "==", "Pending"));
         const unsubForms = onSnapshot(formQuery, (formSnap) => {
@@ -182,7 +191,6 @@ const App = () => {
         };
     }, []);
 
-
     // 🔹 Derived memoized stats (local)
     const { uniqueStudentsCount, casesCount, pendingSlipsCount, pendingFormsCount } = useMemo(() => {
         const uniqueStudents = new Set(allData.map((e) => e.sid).filter(Boolean));
@@ -194,35 +202,62 @@ const App = () => {
         };
     }, [allData, slipData, counters.pendingForms]);
 
+    // 🔹 Determine urgency levels based on NEW thresholds
+    const getUrgencyLevel = (count) => {
+        if (count === 0) return { urgency: "empty", note: "No pending items." };
+        if (count >= 1 && count <= 5) return { urgency: "normal", note: "Normal activity." };
+        if (count >= 6 && count <= 12) return { urgency: "warning", note: "Growing queue — check soon." };
+        if (count >= 13 && count <= 20) return { urgency: "high", note: "High load — needs attention." };
+        if (count >= 21) return { urgency: "critical", note: "Critical load— immediate attention required." };
+    };
+
+    const slipUrgency = getUrgencyLevel(counters.pendingSlips);
+    const formUrgency = getUrgencyLevel(counters.pendingForms);
+    const casesUrgency = getUrgencyLevel(counters.onGoingCases);
+
     if (isLoading) return <Loading />;
 
     return (
         <div className="bg-[#f3f4f6] p-4 h-full space-y-4 overflow-auto">
-            {/* Stat Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+            {/* Stat Cards with Enhanced Color Coding */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4">
                 <StatCard
                     title="No of Students"
                     value={counters.students}
                     note="Student Records"
                     to="/guidance/student-records"
+                    urgency="empty"
                 />
                 <StatCard
                     title="No of Cases"
                     value={counters.cases}
                     note="Student Cases"
                     to="/guidance/student-cases"
+                    urgency="empty"
+                />
+                <StatCard
+                    title="On-going Cases"
+                    value={counters.onGoingCases}
+                    note={casesUrgency.note}
+                    to="/guidance/student-cases"
+                    urgency={casesUrgency.urgency}
+                    todayCount={counters?.today?.onGoingCases ?? 0}
                 />
                 <StatCard
                     title="Pending Slips"
                     value={counters.pendingSlips}
-                    note={`Today: +${counters?.today?.pendingSlips ?? 0}`}
+                    note={slipUrgency.note}
                     to="/guidance/request-slip"
+                    urgency={slipUrgency.urgency}
+                    todayCount={counters?.today?.pendingSlips ?? 0}
                 />
                 <StatCard
                     title="Pending Forms"
                     value={counters.pendingForms}
-                    note={`Today: +${counters?.today?.pendingForms ?? 0}`}
+                    note={formUrgency.note}
                     to="/guidance/referral-form"
+                    urgency={formUrgency.urgency}
+                    todayCount={counters?.today?.pendingForms ?? 0}
                 />
             </div>
 
