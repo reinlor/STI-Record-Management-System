@@ -13,26 +13,41 @@ function TodoList({ counters }) {
         if (count >= 21) return "critical";
     };
 
+    const getIconColor = (urgency) => {
+        switch (urgency) {
+            case "critical":
+                return "text-red-600";
+            case "high":
+                return "text-orange-600";
+            case "warning":
+                return "text-yellow-600";
+            case "normal":
+                return "text-green-600";
+            default: // empty
+                return "text-gray-400";
+        }
+    };
+
     const todoItems = [
         {
             title: "On-going Student Cases",
             count: counters?.onGoingCases ?? 0,
             to: "/guidance/student-cases",
-            icon: <FileText size={20} className="text-red-600" />,
+            icon: <FileText size={20} />,
             urgency: getUrgencyLevel(counters?.onGoingCases ?? 0),
         },
         {
             title: "Pending Request Slips",
             count: counters?.pendingSlips ?? 0,
             to: "/guidance/request-slip",
-            icon: <ClipboardList size={20} className="text-blue-600" />,
+            icon: <ClipboardList size={20} />,
             urgency: getUrgencyLevel(counters?.pendingSlips ?? 0),
         },
         {
             title: "Pending Referral Forms",
             count: counters?.pendingForms ?? 0,
             to: "/guidance/referral-form",
-            icon: <FileEdit size={20} className="text-green-600" />,
+            icon: <FileEdit size={20} />,
             urgency: getUrgencyLevel(counters?.pendingForms ?? 0),
         },
     ];
@@ -96,7 +111,9 @@ function TodoList({ counters }) {
                         className={`group flex items-center justify-between p-4 rounded-lg cursor-pointer transition-all duration-200 ${getUrgencyBgColor(item.urgency)}`}
                     >
                         <div className="flex items-center space-x-3 flex-1">
-                            <div className="flex-shrink-0">{item.icon}</div>
+                            <div className={`flex-shrink-0 ${getIconColor(item.urgency)}`}>
+                                {item.icon}
+                            </div>
                             <div className="flex-1">
                                 <h3 className="font-semibold text-gray-700 text-sm">{item.title}</h3>
                                 {item.urgency !== "empty" && (
