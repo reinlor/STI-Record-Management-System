@@ -1,5 +1,20 @@
 const { getUserCollection } = require("../models/userModel.js");
 const { admin } = require("../../../firebase");
+const myAdmin = require("firebase-admin");
+
+const addAuditLog = async (processedBy, uid, position, action) => {
+  try {
+    await myAdmin.firestore().collection("auditLog").add({
+      name: processedBy,
+      employeeID: uid,
+      role: position,
+      action: action,
+      date: myAdmin.firestore.FieldValue.serverTimestamp()
+    });
+  } catch (error) {
+    console.error("Error adding audit log:", error);
+  }
+};
 
 // Controller Function to retrieve all users
 const getUsers = async (req, res) => {
@@ -43,7 +58,10 @@ const getUserByID = async (req, res) => {
 // Controller Function to create user
 const addUser = async (req, res) => {
   try {
-    const { displayName, email, password, role, uid, ...additionalUserData } = req.body;
+    const {
+      displayName, email, password, role, uid,
+      processedBy, processedUID, processedPosition, processedRole,
+      ...additionalUserData } = req.body;
 
     if (!uid || !email || !password) {
       return res.status(400).json({ error: "Missing required fields: uid, email, and password." });
@@ -78,6 +96,11 @@ const addUser = async (req, res) => {
       message: "User registered successfully",
       uid: accountID,
     });
+
+    // Audit Log
+    if (processedRole === "Admin") {
+      await addAuditLog(processedBy, processedUID, processedPosition, "Added a new user");
+    }
   } catch (error) {
     console.error("Registration error:", error);
     res.status(500).json({ error: error.message });
@@ -88,15 +111,17 @@ const addUser = async (req, res) => {
 const updateUser = async (req, res) => {
   try {
     const { uid } = req.params;
-    const updates = req.body;
+    const {processedBy, processedUID, processedPosition, processedRole, ...updates} = req.body;
+    message = `Updated a user with an ID of ${uid}`
 
     if (!updates || Object.keys(updates).length === 0) {
       return res.status(400).json({ error: "No update data provided" });
     }
     const studentRef = getUserCollection().doc(uid);
 
-    if (updates.isArchived){
+    if (updates.isArchived) {
       await admin.auth().updateUser(uid, { disabled: true });
+      message += " (Archived)"
     } else {
       await admin.auth().updateUser(uid, { disabled: false });
     }
@@ -113,6 +138,10 @@ const updateUser = async (req, res) => {
       id: uid,
       updates: updates,
     });
+    // Audit Log
+    if (processedRole === "Admin") {
+      await addAuditLog(processedBy, processedUID, processedPosition, message);
+    }
   } catch (error) {
     console.error("Update error:", error);
     res.status(500).json({ error: error.message });

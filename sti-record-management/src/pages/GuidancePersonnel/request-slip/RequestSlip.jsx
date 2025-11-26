@@ -44,7 +44,7 @@ const STATUS_FILTER_OPTIONS = [
 // Helper for date filtering, parse, format functions (kept same as original)
 function isWithinDate(ms, filter, followUpMs = null) {
   if (!ms && !followUpMs) return false;
-  
+
   const now = new Date();
   const date = new Date(ms || 0);
   const followUpDate = followUpMs ? new Date(followUpMs) : null;
@@ -243,7 +243,7 @@ function StudentReportModal({ slip, onClose, remarks, setRemarks, pickupDate, se
                     Excuse Letter
                   </span>
                 </div>
-              ): null}
+              ) : null}
 
               {/* Medical Certificate */}
               {!medicalCertificateUrl || medicalCertificateUrl !== 'Empty' ? (
@@ -259,7 +259,7 @@ function StudentReportModal({ slip, onClose, remarks, setRemarks, pickupDate, se
                     Medical Certificate
                   </span>
                 </div>
-              ): null}
+              ) : null}
 
               {/* Guardian’s ID */}
               {!guardianValidIDUrl || guardianValidIDUrl !== 'Empty' ? (
@@ -275,7 +275,7 @@ function StudentReportModal({ slip, onClose, remarks, setRemarks, pickupDate, se
                     Guardian’s ID
                   </span>
                 </div>
-              ): null}
+              ) : null}
             </div>
 
           </div>
@@ -600,7 +600,11 @@ function RequestSlip() {
         pickUpDate: pickupDate,
         name: authData?.user?.displayName ?? 'Admin',
         uid: slip.sid,
-        studentName: slip.name
+        studentName: slip.name,
+
+        processedUID: authData?.user?.uid ?? 'Admin',
+        position: authData?.user?.position ?? 'Admin',
+        role: authData?.user?.role ?? 'Admin',
       };
 
       if (!(slipType === 'Absent Slip')) {
@@ -722,7 +726,8 @@ function RequestSlip() {
     .filter((slip) => {
       const nameMatch = String(slip.name || '').toLowerCase().includes(search.toLowerCase());
       const sidMatch = String(slip.sid || '').toLowerCase().includes(search.toLowerCase());
-      return nameMatch || sidMatch;
+      const docidMatch = String(slip.id || '').toLowerCase().includes(search.toLowerCase());
+      return nameMatch || sidMatch || docidMatch;
     })
     .filter((slip) => {
       if (!filterSlipType) return true;
@@ -730,10 +735,10 @@ function RequestSlip() {
     })
     .filter((slip) => {
       if (!filterDate) return true;
-      
+
       // 🆕 Enhanced date filtering for follow-ups
       const slipCreatedMs = slip.timeCreatedMs;
-      const followUpMs = slip.lastFollowUpDate 
+      const followUpMs = slip.lastFollowUpDate
         ? parseToMillis(slip.lastFollowUpDate)
         : null;
 
@@ -1060,9 +1065,8 @@ function RequestSlip() {
                   return (
                     <tr
                       key={slips.id}
-                      className={`hover:bg-gray-50 transition border-b ${rowBgClass} cursor-pointer ${
-                        hasFollowUp ? "border-l-4 border-l-yellow-400" : ""
-                      }`}
+                      className={`hover:bg-gray-50 transition border-b ${rowBgClass} cursor-pointer ${hasFollowUp ? "border-l-4 border-l-yellow-400" : ""
+                        }`}
                       onClick={() => openSlip(slips._id)}
                     >
                       <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 lg:whitespace-nowrap font-semibold w-1/4">{slips.name}</td>

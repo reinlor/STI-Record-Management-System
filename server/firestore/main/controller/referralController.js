@@ -4,6 +4,7 @@ const { getChartDataCollection } = require("../models/chartDataModel");
 const { getNotificationCollection } = require("../models/notificationModel");
 const { getContentManagementCollection } = require("../models/contentManagementModel");
 const { FieldValue, Timestamp } = require("firebase-admin/firestore");
+const admin = require("firebase-admin");
 
 // Referral Schema
 const referralSchema = Joi.object({
@@ -51,6 +52,20 @@ const updateSchema = Joi.object({
   remarks: Joi.string().optional().allow(''),
   counselorNote: Joi.string().optional().allow('')
 });
+
+const addAuditLog = async (processedBy, uid, position, action) => {
+  try {
+    await admin.firestore().collection("auditLog").add({
+      name: processedBy,
+      employeeID: uid,
+      role: position,
+      action: action,
+      date: admin.firestore.FieldValue.serverTimestamp()
+    });
+  } catch (error) {
+    console.error("Error adding audit log:", error);
+  }
+};
 
 // Controller Function for adding
 const addReferral = async (req, res) => {
@@ -105,7 +120,8 @@ const addReferral = async (req, res) => {
 const updateReferral = async (req, res) => {
   try {
     const { id } = req.params;
-    const { id: _, name, uid, ...updates } = req.body;
+    const { id: _, name, uid,
+      processedUID, position, role, ...updates } = req.body;
 
     if (!updates || Object.keys(updates).length === 0) {
       return res.status(400).json({ error: "No update data provided" });
@@ -214,6 +230,11 @@ const updateReferral = async (req, res) => {
     //   }
     // }
     //
+
+    // Audit Log
+    if (role === "Admin") {
+      await addAuditLog(name, processedUID, position, `Change a referral form status of ID:${id} into ${updates.status}`);
+    }
 
     res.status(201).json({
       message: `Referral Form (${id}) successfully updated.`,

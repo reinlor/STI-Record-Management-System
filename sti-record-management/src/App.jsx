@@ -21,6 +21,7 @@ import OffensesTab from "./pages/GuidancePersonnel/offenses/OffensesList.jsx";
 import ContentManagement from "./pages/GuidancePersonnel/content-management/ContentManagement";
 import Users from "./pages/GuidancePersonnel/users/Users";
 import BackupNRestore from "./pages/GuidancePersonnel/backup-and-restore/BackupNRestore";
+import AuditLog from './pages/GuidancePersonnel/audit-log/AuditLog.jsx';
 
 import StudentHomepage from './pages/Student/StudentHomepage.jsx';
 
@@ -94,6 +95,7 @@ function App() {
             <Route path="content-management" element={<ContentManagement />} />
             <Route path="users" element={<Users />} />
             <Route path="backup-and-restore" element={<BackupNRestore />} />
+            <Route path="audit-log" element={<AuditLog/>}/>
           </Route>
 
           {/* Protected Student Routes */}

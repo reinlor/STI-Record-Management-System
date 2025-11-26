@@ -9,6 +9,7 @@ const Joi = require("joi");
 const { FieldValue, Timestamp } = require("firebase-admin/firestore");
 const cloudinary = require("../../../config/cloudinary.js");
 const fs = require("fs");
+const admin = require("firebase-admin");
 
 // Violation Schema
 const violationSchema = Joi.object({
@@ -156,6 +157,21 @@ async function assignViolationToStudent(sid, violationName) {
     return { category: null, newDegree: null, sanction: null };
   }
 }
+
+const addAuditLog = async (processedBy, uid, position, action) => {
+  try {
+    await admin.firestore().collection("auditLog").add({
+      name: processedBy,
+      employeeID: uid,
+      role: position,
+      action: action,
+      date: admin.firestore.FieldValue.serverTimestamp()
+    });
+  } catch (error) {
+    console.error("Error adding audit log:", error);
+  }
+};
+
 const getAllViolations = async (req, res) => {
   const snapshot = await getViolationsCollection().get();
 
@@ -343,6 +359,10 @@ const addViolation = async (req, res) => {
       message: `Added a new violation for Student: ${sid}`,
       proofUrl: proofUrl || "",
     });
+
+    if (req.body.role === "Admin") {
+      await addAuditLog(req.body.processedBy, req.body.uid, req.body.position, "Created a student case");
+    }
   } catch (error) {
     console.error("Error adding violation:", error);
     res.status(500).send({
@@ -355,7 +375,7 @@ const addViolation = async (req, res) => {
 const updateViolation = async (req, res) => {
   try {
     const { id } = req.params;
-    const updates = req.body;
+    const {role, position, uid, ...updates} = req.body;
 
     if (!updates || Object.keys(updates).length === 0) {
       return res.status(400).json({ error: "No update data provided" });
@@ -477,6 +497,11 @@ const updateViolation = async (req, res) => {
     const updateAdminPayload = { data: updatedAdminNotifications };
 
     await adminDoc.set(updateAdminPayload, { merge: true });
+
+    // Audit Log
+    if (req.body.role === "Admin") {
+      await addAuditLog(req.body.processedBy, req.body.uid, req.body.position, "Updated a student case");
+    }
 
     res.status(201).json({
       message: `Violation updated successfully!`,

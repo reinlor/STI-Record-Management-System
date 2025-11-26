@@ -298,6 +298,10 @@ function ReferralFormProcessing() {
         name: authData?.user?.displayName ?? "Admin",
         uid: selectedReferral.employeeID,
         receivedBy: authData?.user?.displayName ?? "Admin",
+
+        processedUID: authData?.user?.uid ?? 'Admin',
+        position: authData?.user?.position ?? 'Admin',
+        role: authData?.user?.role ?? 'Admin',
       };
       const emailData = {
         to: emailTo,
@@ -348,7 +352,8 @@ function ReferralFormProcessing() {
         (filterPriority === "" || String(ref.levelOfPriority || "") === String(filterPriority)) &&
         (
           ref.referredBy?.toLowerCase().includes(search.toLowerCase()) ||
-          ref.studentName?.toLowerCase().includes(search.toLowerCase())
+          ref.studentName?.toLowerCase().includes(search.toLowerCase()) ||
+          ref.id?.toLowerCase().includes(search.toLowerCase()) 
         )
     );
 
@@ -385,6 +390,7 @@ function ReferralFormProcessing() {
   }
 
 
+  console.log(authData)
 
   if (isLoading) {
     return <LoadingDots />
@@ -441,7 +447,7 @@ function ReferralFormProcessing() {
             <div className="relative w-full sm:w-64">
               <input
                 type="text"
-                placeholder="Name of Referrer or Student"
+                placeholder="Referrer, Student, or ID"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="w-full border border-gray-300 rounded-lg px-4 py-2 pr-10 focus:outline-none focus:ring-1 focus:ring-[#0172bd]"

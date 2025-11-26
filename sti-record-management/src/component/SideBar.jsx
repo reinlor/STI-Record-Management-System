@@ -12,7 +12,7 @@ import {
   RefreshCcw,
   HeartPulse,
   FileEdit,
-  FolderKanban,
+  History,
   User,
   CircleAlert,
   LayoutTemplate
@@ -38,6 +38,7 @@ export default function Sidebar() {
         "Wellness Assessment": <HeartPulse className="w-5 h-5 mr-3" />,
         "Content Manager": <LayoutTemplate className="w-5 h-5 mr-3" />,
         "Offenses List": <CircleAlert className="w-5 h-5 mr-3" />,
+        "Audit Log": <History className="w-5 h-5 mr-3" />,
     };
 
     if (!access) {
@@ -55,6 +56,7 @@ export default function Sidebar() {
             access.backupRestore ? { label: "Back Up and Restore", path: "/guidance/back-n-restore" } : null,
             access.wellness ? { label: "Wellness Assessment", path: "/guidance/wellness" } : null,
             access.contentManagement ? {label: "Content Manager", path: "/guidance/content-management" } : null,
+            {label: "Audit Log", path: "/guidance/audit-log" },
             {label: "Offenses List", path: "/guidance/offenses" },
         ].filter(Boolean);
     }

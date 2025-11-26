@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 
 import Modal from './components/Modal';
@@ -13,7 +13,7 @@ import {
   serverToUIAccess,
   uiToServerAccess,
 } from './components/AccessUtils';
-
+import { AuthContext } from "../../../AuthProvider.jsx";
 import { toast } from 'react-toastify';
 
 import { Search, Plus, Archive, Users as UserIcon } from 'lucide-react';
@@ -29,7 +29,7 @@ export default function Users() {
   const [loading, setLoading] = useState(true);
   const [showUserManagementWarning, setShowUserManagementWarning] = useState(false);
   const [pendingUserAction, setPendingUserAction] = useState(null);
-
+  const { authData } = useContext(AuthContext);
   const [newUser, setNewUser] = useState({
     name: '',
     roles: [],
@@ -218,7 +218,6 @@ export default function Users() {
     const position = userState.position || (role === 'Teacher' ? 'Teacher' : role);
     return { role, position };
   };
-
   const handleCreateUser = async () => {
     try {
       const uid = newUser.employeeNumber || `uid-${Date.now()}`;
@@ -235,6 +234,11 @@ export default function Users() {
         role,
         position,
         employeeNumber: newUser.employeeNumber || '',
+
+        processedBy: authData?.displayName ?? 'Admin',
+        processedUID: authData?.user?.uid ?? 'Admin',
+        processedPosition: authData?.user?.position ?? 'Admin',
+        processedRole: authData?.user?.role ?? 'Admin',
       };
 
       if (serverAccessPresets[position]) {
@@ -245,6 +249,7 @@ export default function Users() {
       }
 
       await axios.post('/user/create', payload);
+      console.log(payload)
       setShowAddUserModal(false);
       setNewUser({
         name: '',
@@ -279,6 +284,11 @@ export default function Users() {
         access: uiToServerAccess(editedUser.access || {}),
         employeeNumber: editedUser.employeeNumber,
         isArchived: !!editedUser.isArchived,
+
+        processedBy: authData?.displayName ?? 'Admin',
+        processedUID: authData?.user?.uid ?? 'Admin',
+        processedPosition: authData?.user?.position ?? 'Admin',
+        processedRole: authData?.user?.role ?? 'Admin',
       };
 
       await axios.put(`/user/update/${uid}`, payload);
@@ -297,7 +307,12 @@ export default function Users() {
       const uid = userToArchive.uid || userToArchive.id;
       setMockUsers((prev) => prev.map((user) => (user.id === userToArchive.id ? { ...user, isArchived: true } : user)));
       if (uid) {
-        await axios.put(`/user/update/${uid}`, { isArchived: true });
+        await axios.put(`/user/update/${uid}`, {
+          isArchived: true, processedBy: authData?.displayName ?? 'Admin',
+          processedUID: authData?.user?.uid ?? 'Admin',
+          processedPosition: authData?.user?.position ?? 'Admin',
+          processedRole: authData?.user?.role ?? 'Admin',
+        });
         await fetchUsers();
       }
       toast.success('User archived successfully!');
@@ -313,7 +328,13 @@ export default function Users() {
       const uid = userToRestore.uid || userToRestore.id;
       setMockUsers((prev) => prev.map((user) => (user.id === userToRestore.id ? { ...user, isArchived: false } : user)));
       if (uid) {
-        await axios.put(`/user/update/${uid}`, { isArchived: false });
+        await axios.put(`/user/update/${uid}`, {
+          isArchived: false,
+          processedBy: authData?.displayName ?? 'Admin',
+          processedUID: authData?.user?.uid ?? 'Admin',
+          processedPosition: authData?.user?.position ?? 'Admin',
+          processedRole: authData?.user?.role ?? 'Admin',
+        });
         await fetchUsers();
       }
       toast.success('User restored successfully!');

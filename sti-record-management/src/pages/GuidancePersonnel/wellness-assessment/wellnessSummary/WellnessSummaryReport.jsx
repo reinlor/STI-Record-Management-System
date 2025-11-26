@@ -31,6 +31,7 @@ export default function WellnessSummary({ onBack }) {
     const [loadingDetail, setLoadingDetail] = useState(false);
     const [error, setError] = useState(null);
     const [isExporting, setIsExporting] = useState(false)
+    const [aiInterpretations, setAiInterpretations] = useState({});
 
     const fetchSummaries = async () => {
         setLoading(true);
@@ -109,13 +110,46 @@ export default function WellnessSummary({ onBack }) {
     const getTextSummary = (q) => {
         if (!q.percentages) return "No percentage data available.";
         const sorted = Object.entries(q.percentages).sort(([, a], [, b]) => b - a);
-        return `Most common response: ${sorted[0][0]} (${sorted[0][1]}%). ` +
-            (sorted[1] ? `Followed by ${sorted[1][0]} (${sorted[1][1]}%).` : "");
+        let summary = `Response Distribution (out of ${q.totalResponses} total responses):\n`;
+        sorted.forEach(([option, percent]) => {
+            summary += `- ${option}: ${percent}%\n`;
+        });
+        summary += `\nThis distribution highlights the common responses among students, with the top response being "${sorted[0][0]}" at ${sorted[0][1]}%. `;
+        if (sorted[1]) {
+            summary += `The next most common is "${sorted[1][0]}" at ${sorted[1][1]}%. `;
+        }
+        summary += `These patterns provide context on overall student sentiment for this question.`;
+        if (aiInterpretations[q.question]) {
+            summary += `\n\nAI Interpretation and Recommendations (based on common responses):\n${aiInterpretations[q.question]}`;
+        }
+        return summary;
     };
 
     useEffect(() => {
         fetchSummaries();
     }, []);
+
+    const fetchAIInterpretation = async (question, stats) => {
+        try {
+            const res = await axios.post("/api/gemini/interpret", {
+                question,
+                stats,
+            });
+            setAiInterpretations(prev => ({ ...prev, [question]: res.data.interpretation }));
+        } catch (err) {
+            setAiInterpretations(prev => ({ ...prev, [question]: "AI interpretation unavailable." }));
+        }
+    };
+
+    useEffect(() => {
+        if (detail?.questions) {
+            detail.questions.forEach(q => {
+                if (!aiInterpretations[q.question]) {
+                    fetchAIInterpretation(q.question, q.percentages);
+                }
+            });
+        }
+    }, [detail]);
 
     return (
         <div className="bg-gray-100 h-full">
@@ -259,7 +293,7 @@ export default function WellnessSummary({ onBack }) {
                                             <Bar data={chartData} options={options} />
                                         </div>
                                         <div className="mt-4 text-sm text-gray-700">
-                                            <p className="mt-2">{getTextSummary(q)}</p>
+                                            <p className="mt-2" style={{ whiteSpace: 'pre-line' }}>{getTextSummary(q)}</p>
                                         </div>
                                         <button
                                             onClick={() =>

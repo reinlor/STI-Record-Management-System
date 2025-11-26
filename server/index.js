@@ -40,7 +40,7 @@ const summaryRoute = require("./modules/summary-generation/SummaryRoute");
 const restoreRoutes = require("./firestore/backup/routes/restoreRoutes");
 const configRoutes = require("./firestore/main/routes/firebaseClientConfigRoute");
 const surveySummary = require("./firestore/main/routes/surveyResponseRoute");
-
+const geminiApi = require('./modules/gemini-api-controller/apiController');
 const userController = require("./firestore/main/controller/userController")
 
 const app = express();
@@ -128,6 +128,7 @@ app.use("/slip", apiLimiter, authMiddleware, slipRoute);
 app.use("/email", apiLimiter, emailRoute);
 app.use("/photo-to-text", apiLimiter, authMiddleware, demoOCRRoute);
 app.use("/referral", apiLimiter, authMiddleware, referralRouter);
+app.use('/api/gemini', geminiApi);
 
 // Wellness-related routes
 safeUseRoute("/exam", authMiddleware, apiLimiter, assessmentExam);

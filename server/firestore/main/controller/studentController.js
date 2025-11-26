@@ -153,7 +153,7 @@ const updateSchema = Joi.object({
     firstName: Joi.string().empty('').optional(),
     lastName: Joi.string().empty('').optional(),
     middleName: Joi.string().empty('').optional(),
-    suffix: Joi.string().optional(),
+    suffix: Joi.string().optional().empty(''),
     nickname: Joi.string().empty('').optional(),
     section: Joi.string().empty('').optional(),
     academicLevel: Joi.string().empty('').optional(),
@@ -279,6 +279,20 @@ const updateSchema = Joi.object({
   deleteCerts: Joi.string().optional(),
 });
 
+const addAuditLog = async (processedBy, uid, position, action) => {
+  try {
+    await admin.firestore().collection("auditLog").add({
+      name: processedBy,
+      employeeID: uid,
+      role: position,
+      action: action,
+      date: admin.firestore.FieldValue.serverTimestamp()
+    });
+  } catch (error) {
+    console.error("Error adding audit log:", error);
+    // Don't throw, as audit log failure shouldn't block main operation
+  }
+};
 
 // Controller Function to retrieve active student data
 const getActiveStudent = async (req, res) => {
@@ -321,7 +335,12 @@ const addStudent = async (req, res) => {
   let publicIds = [];
 
   try {
-    const { processedBy, ...data } = req.body;
+    const { 
+      processedBy,
+      uid,
+      position,
+      role, 
+      ...data } = req.body;
     const { error, value: newStudent } = studentSchema.validate(data);
     if (error) {
       return res.status(400).json({ error: error.details[0].message });
@@ -405,6 +424,10 @@ const addStudent = async (req, res) => {
 
     await adminDoc.set(updateAdminPayload, { merge: true });
 
+    // Audit Log
+    if (role === "Admin") {
+      await addAuditLog(processedBy, uid, position, "Added a student");
+    }
   } catch (error) {
     console.error("Registration error:", error);
 
@@ -455,7 +478,12 @@ const updateStudent = async (req, res) => {
 
   try {
     const { sid } = req.params;
-    const { processedBy, ...updates } = req.body;
+    const { 
+      processedBy,
+      uid,
+      position,
+      role, 
+      ...updates } = req.body;
 
     if (typeof updates.health === "string") {
       try {
@@ -600,6 +628,10 @@ const updateStudent = async (req, res) => {
       await adminDoc.set(updateAdminPayload, { merge: true });
     }
 
+    // Audit Log
+    if (role === "Admin") {
+      await addAuditLog(processedBy, uid, position, `Updated a student with an ID of ${updates.sid}`);
+    }
 
   } catch (error) {
     console.error("Update error:", error);
@@ -618,7 +650,12 @@ const updateStudent = async (req, res) => {
 const archiveStudent = async (req, res) => {
   try {
     const { sid } = req.params;
-    const { processedBy } = req.body;
+    const {
+      processedBy,
+      uid,
+      position,
+      role
+    } = req.body;
     const studentRef = getStudentCollection().doc(sid);
 
     const doc = await studentRef.get();
@@ -661,6 +698,11 @@ const archiveStudent = async (req, res) => {
 
     await adminDoc.set(updateAdminPayload, { merge: true });
 
+    // Audit Log
+    if (role === "Admin") {
+      await addAuditLog(processedBy, uid, position, "Archived a student");
+    }
+
   } catch (error) {
     console.error("Archive error:", error);
     res.status(500).json({ error: error.message });
@@ -671,7 +713,12 @@ const archiveStudent = async (req, res) => {
 const restoreStudent = async (req, res) => {
   try {
     const { sid } = req.params;
-    const { processedBy } = req.body;
+    const {
+      processedBy,
+      uid,
+      position,
+      role
+    } = req.body;
     const studentRef = getStudentCollection().doc(sid);
 
     const doc = await studentRef.get();
@@ -714,6 +761,10 @@ const restoreStudent = async (req, res) => {
 
     await adminDoc.set(updateAdminPayload, { merge: true });
 
+    // Audit Log
+    if (role === "Admin") {
+      await addAuditLog(processedBy, uid, position, "Restored a student");
+    }
   } catch (error) {
     console.error("Restore error:", error);
     res.status(500).json({ error: error.message });
@@ -854,4 +905,4 @@ const checkEmail = async (req, res) => {
   }
 };
 
-module.exports = { addStudent, getStudents, updateStudent, getStudent, getActiveStudent, getArchivedStudent, archiveStudent, restoreStudent, searchStudent, checkStudentNumber, checkEmail  };
+module.exports = { addStudent, getStudents, updateStudent, getStudent, getActiveStudent, getArchivedStudent, archiveStudent, restoreStudent, searchStudent, checkStudentNumber, checkEmail };

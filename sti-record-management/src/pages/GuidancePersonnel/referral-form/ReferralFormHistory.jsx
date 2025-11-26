@@ -112,7 +112,8 @@ function ReferralFormHistory() {
       (ref.status === 'Resolved' || ref.status === 'Cancelled') &&
       (
         ref.referredBy?.toLowerCase().includes(search.toLowerCase()) ||
-        ref.studentName?.toLowerCase().includes(search.toLowerCase())
+        ref.studentName?.toLowerCase().includes(search.toLowerCase()) ||
+        ref.id?.toLowerCase().includes(search.toLowerCase())
       )
   );
 

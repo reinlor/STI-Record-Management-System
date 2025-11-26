@@ -3,6 +3,20 @@ const cloudinary = require("../../../config/cloudinary.js");
 const streamifier = require("streamifier");
 const admin = require('firebase-admin');
 
+const addAuditLog = async (processedBy, uid, position, action) => {
+  try {
+    await admin.firestore().collection("auditLog").add({
+      name: processedBy,
+      employeeID: uid,
+      role: position,
+      action: action,
+      date: admin.firestore.FieldValue.serverTimestamp()
+    });
+  } catch (error) {
+    console.error("Error adding audit log:", error);
+  }
+};
+
 const {
   getContentManagementCollection,
 } = require("../models/contentManagementModel.js");
@@ -64,7 +78,8 @@ const updateSchoolPeriodSchema = Joi.object({
 // Controller function for adding announcement
 const addAnnouncement = async (req, res) => {
   try {
-    const { error, value: newAnnouncementData } = announcementSchema.validate(req.body);
+    const { processedBy, uid, position, role, ...announcementData } = req.body
+    const { error, value: newAnnouncementData } = announcementSchema.validate(announcementData);
 
     if (error) {
       return res.status(400).json({ error: "Invalid announcement data", details: error.details });
@@ -90,6 +105,11 @@ const addAnnouncement = async (req, res) => {
     await announcementDocRef.set(updatedData, { merge: true });
 
     res.status(200).json({ message: "New announcement added successfully." });
+
+    // Audit Log
+    if (role === "Admin") {
+      await addAuditLog(processedBy, uid, position, `Posted an announcement`);
+    }
   } catch (error) {
     console.error("Error adding announcement:", error);
     res.status(500).json({ error: "Failed to add announcement." });
@@ -99,7 +119,8 @@ const addAnnouncement = async (req, res) => {
 // Controller function for updating an announcement
 const updateAnnouncement = async (req, res) => {
   try {
-    const { error, value } = updateAnnouncementSchema.validate(req.body);
+    const { processedBy, uid, position, role, ...announcementData } = req.body
+    const { error, value } = updateAnnouncementSchema.validate(announcementData);
     if (error) {
       return res.status(400).json({ error: "Invalid announcement data", details: error.details });
     }
@@ -122,6 +143,11 @@ const updateAnnouncement = async (req, res) => {
     await announcementDocRef.update({ messages });
 
     res.status(200).json({ message: "Announcement updated successfully." });
+
+    // Audit Log
+    if (role === "Admin") {
+      await addAuditLog(processedBy, uid, position, `Updated an announcement`);
+    }
   } catch (error) {
     console.error("Error updating announcement:", error);
     res.status(500).json({ error: "Failed to update announcement." });
@@ -131,7 +157,14 @@ const updateAnnouncement = async (req, res) => {
 // Controller function for deleting an announcement
 const deleteAnnouncement = async (req, res) => {
   try {
-    const { error, value } = deleteAnnouncementSchema.validate(req.body);
+    const { processedBy, uid, position, role, ...announcementData } = req.body
+
+    // Audit Log
+    if (role === "Admin") {
+      await addAuditLog(processedBy, uid, position, `Deleted an announcement`);
+    }
+
+    const { error, value } = deleteAnnouncementSchema.validate(announcementData);
     if (error) {
       return res.status(400).json({ error: "Invalid data", details: error.details });
     }
@@ -153,6 +186,7 @@ const deleteAnnouncement = async (req, res) => {
     await announcementDocRef.update({ messages: updatedMessages });
 
     res.status(200).json({ message: "Announcement deleted successfully." });
+
   } catch (error) {
     console.error("Error deleting announcement:", error);
     res.status(500).json({ error: "Failed to delete announcement." });
@@ -203,8 +237,9 @@ const getAnnouncement = async (req, res) => {
 // Controller function for adding program
 const addProgram = async (req, res) => {
   try {
+    const { processedBy, uid, position, role, ...updatedProgram } = req.body
     const { error, value: newProgramData } = programStrandSchema.validate(
-      req.body
+      updatedProgram
     );
 
     if (error) {
@@ -230,6 +265,11 @@ const addProgram = async (req, res) => {
     await programDocRef.set(updatedData, { merge: true });
 
     res.status(200).json({ message: "New program added successfully." });
+
+    // Audit Log
+    if (role === "Admin") {
+      await addAuditLog(processedBy, uid, position, `Added a new program named ${newProgramData.acronym}`);
+    }
   } catch (error) {
     console.error("Error adding program:", error);
     res.status(500).json({ error: "Failed to add program." });
@@ -239,7 +279,10 @@ const addProgram = async (req, res) => {
 // Controller function for updating a program
 const updateProgram = async (req, res) => {
   try {
-    const { oldAcronym, name, acronym } = req.body;
+    const {
+      oldAcronym, name, acronym,
+      processedBy, uid, position, role
+    } = req.body;
     const { error } = programStrandSchema.validate({ name, acronym });
     if (error) {
       return res.status(400).json({ error: "Invalid program data", details: error.details });
@@ -261,6 +304,15 @@ const updateProgram = async (req, res) => {
     await programDocRef.set({ program: programs }, { merge: true });
 
     res.status(200).json({ message: "Program updated successfully." });
+
+    // Audit Log
+    if (role === "Admin") {
+      message = `${oldAcronym}`
+      if (oldAcronym !== acronym) {
+        message = `${oldAcronym} to ${acronym}`
+      }
+      await addAuditLog(processedBy, uid, position, `Updated the program ${message}`);
+    }
   } catch (error) {
     console.error("Error updating program:", error);
     res.status(500).json({ error: "Internal server error" });
@@ -270,7 +322,7 @@ const updateProgram = async (req, res) => {
 // Controller function for deleting a program
 const deleteProgram = async (req, res) => {
   try {
-    const { acronym } = req.body || req.query || {};
+    const { acronym, processedBy, uid, position, role } = req.body || req.query || {};
     if (!acronym) return res.status(400).json({ error: "acronym required" });
 
     const programDocRef = getContentManagementCollection().doc("programStrand");
@@ -286,6 +338,11 @@ const deleteProgram = async (req, res) => {
     await programDocRef.set({ program: updated }, { merge: true });
 
     res.status(200).json({ message: "Program deleted successfully." });
+
+    // Audit Log
+    if (role === "Admin") {
+      await addAuditLog(processedBy, uid, position, `Deleted a program named ${acronym}`);
+    }
   } catch (error) {
     console.error("Error deleting program:", error);
     res.status(500).json({ error: "Internal server error" });
@@ -313,7 +370,10 @@ const getProgram = async (req, res) => {
 // Controller function for updating a Strand
 const updateStrand = async (req, res) => {
   try {
-    const { oldAcronym, name, acronym } = req.body;
+    const {
+      oldAcronym, name, acronym,
+      processedBy, uid, position, role
+    } = req.body;
     const { error } = programStrandSchema.validate({ name, acronym });
     if (error) return res.status(400).json({ error: "Invalid strand data", details: error.details });
 
@@ -333,6 +393,15 @@ const updateStrand = async (req, res) => {
     await strandDocRef.set({ strand: strands }, { merge: true });
 
     res.status(200).json({ message: "Strand updated successfully." });
+
+    // Audit Log
+    if (role === "Admin") {
+      message = `${oldAcronym}`
+      if (oldAcronym !== acronym) {
+        message = `${oldAcronym} to ${acronym}`
+      }
+      await addAuditLog(processedBy, uid, position, `Updated the strand ${message}`);
+    }
   } catch (error) {
     console.error("Error updating strand:", error);
     res.status(500).json({ error: "Internal server error" });
@@ -342,7 +411,7 @@ const updateStrand = async (req, res) => {
 // Controller function for deleting a Strand
 const deleteStrand = async (req, res) => {
   try {
-    const { acronym } = req.body || req.query || {};
+    const { acronym, processedBy, uid, position, role } = req.body || req.query || {};
     if (!acronym) return res.status(400).json({ error: "acronym required" });
 
     const strandDocRef = getContentManagementCollection().doc("programStrand");
@@ -358,6 +427,11 @@ const deleteStrand = async (req, res) => {
     await strandDocRef.set({ strand: updated }, { merge: true });
 
     res.status(200).json({ message: "Strand deleted successfully." });
+
+    // Audit Log
+    if (role === "Admin") {
+      await addAuditLog(processedBy, uid, position, `Deleted a strand named ${acronym}`);
+    }
   } catch (error) {
     console.error("Error deleting strand:", error);
     res.status(500).json({ error: "Internal server error" });
@@ -367,8 +441,9 @@ const deleteStrand = async (req, res) => {
 // Controller function for adding strand
 const addStrand = async (req, res) => {
   try {
+    const { processedBy, uid, position, role, ...updatedStrand } = req.body
     const { error, value: newStrandData } = programStrandSchema.validate(
-      req.body
+      updatedStrand
     );
 
     if (error) {
@@ -394,6 +469,10 @@ const addStrand = async (req, res) => {
     await strandDocRef.set(updatedData, { merge: true });
 
     res.status(200).json({ message: "New strand added successfully." });
+    // Audit Log
+    if (role === "Admin") {
+      await addAuditLog(processedBy, uid, position, `Added a new strand named ${newStrandData.acronym}`);
+    }
   } catch (error) {
     console.error("Error adding strand:", error);
     res.status(500).json({ error: "Failed to add strand." });
@@ -421,7 +500,8 @@ const getStrand = async (req, res) => {
 // Controller function for changing wellness link
 const changeWellnessLink = async (req, res) => {
   try {
-    const { error, value: newWellnessLink } = wellnessSchema.validate(req.body);
+    const {processedBy, uid, position, role, ...updatedLink} = req.body
+    const { error, value: newWellnessLink } = wellnessSchema.validate(updatedLink);
     if (error) {
       return res
         .status(400)
@@ -432,6 +512,11 @@ const changeWellnessLink = async (req, res) => {
 
     await wellnessDocRef.set({ link: newWellnessLink.link }, { merge: true });
     res.status(200).json({ message: "Wellness link updated successfully." });
+
+    // Audit Log
+    if (role === "Admin") {
+      await addAuditLog(processedBy, uid, position, `Wellness link updated`);
+    }
   } catch (error) {
     console.error("Error updating wellness link:", error);
     res.status(500).json({ error: "Failed to update wellness link." });
@@ -649,7 +734,12 @@ const getSchoolPeriod = async (req, res) => {
 // Controller function for adding
 const addViolationCategory = async (req, res) => {
   try {
-    const { violationCategoryName, priorityLevel, violations, offense } = req.body;
+    const {
+      violationCategoryName, priorityLevel, violations, offense,
+      processedBy, uid, position, role
+    } = req.body;
+
+    console.log(req.body)
 
     const { error } = violationCategorySchema.validate({
       violationCategory: violationCategoryName,
@@ -680,6 +770,10 @@ const addViolationCategory = async (req, res) => {
     res.status(200).json({
       message: `Violation Category ${violationCategoryName} added successfully!`,
     });
+
+    if (role === "Admin") {
+      await addAuditLog(processedBy, uid, position, `Created a violation entry`);
+    }
   } catch (error) {
     console.error("Error adding violation category:", error);
     res.status(500).json({ error: "Internal server error" });
@@ -689,7 +783,15 @@ const addViolationCategory = async (req, res) => {
 // Controller function for updating violation categories
 const updateViolationCategory = async (req, res) => {
   try {
-    const { oldCategoryName, violationCategoryName, priorityLevel, violations, offense } = req.body;
+    const {
+      oldCategoryName, violationCategoryName, priorityLevel, violations, offense,
+      processedBy, uid, position, role
+    } = req.body;
+
+
+    if (role === "Admin") {
+      await addAuditLog(processedBy, uid, position, `Updated a violation entry`);
+    }
 
     const { error } = violationCategoryUpdateSchema.validate({
       oldCategoryName,
@@ -754,6 +856,7 @@ const updateViolationCategory = async (req, res) => {
     res.status(200).json({
       message: `Violation Category ${violationCategoryName} updated successfully!`,
     });
+
   } catch (error) {
     console.error("Error updating violation category:", error);
     res.status(500).json({ error: "Internal server error" });
@@ -763,7 +866,9 @@ const updateViolationCategory = async (req, res) => {
 // Controller function for deleting a violation category
 const deleteViolationCategory = async (req, res) => {
   try {
-    const { violationCategoryName } = req.body || req.query || {};
+    const { violationCategoryName,
+      processedBy, uid, position, role
+    } = req.body || req.query || {};
 
     if (!violationCategoryName) {
       return res.status(400).json({ error: "violationCategoryName required" });
@@ -786,6 +891,9 @@ const deleteViolationCategory = async (req, res) => {
     });
 
     res.status(200).json({ message: `Violation Category ${violationCategoryName} deleted successfully.` });
+    if (role === "Admin") {
+      await addAuditLog(processedBy, uid, position, `Deleted a violation entry`);
+    }
   } catch (error) {
     console.error("Error deleting violation category:", error);
     res.status(500).json({ error: "Internal server error" });
@@ -796,8 +904,9 @@ const deleteViolationCategory = async (req, res) => {
 // Controller function for updating School Period
 const updateSchoolPeriod = async (req, res) => {
   try {
+    const { processedBy, uid, position, role, ...updatedPeriod } = req.body
     const { error, value: newSchoolPeriod } = updateSchoolPeriodSchema.validate(
-      req.body
+      updatedPeriod
     );
 
     if (error) {
@@ -817,6 +926,11 @@ const updateSchoolPeriod = async (req, res) => {
     await schoolPeriodDocRef.set(newSchoolPeriod, { merge: true });
 
     res.status(200).json({ message: `School period updated successfully!` })
+
+    // Audit Log
+    if (role === "Admin") {
+      await addAuditLog(processedBy, uid, position, `Updated school period to S.Y. ${newSchoolPeriod.schoolYear}`);
+    }
   } catch (error) {
     console.error("Error updating school period:", error);
     res.status(500).json({ error: "Internal server error" });

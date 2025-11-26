@@ -330,7 +330,8 @@ function RequestSlipHistory() {
       const searchLower = search.toLowerCase();
       return (
         slip.name?.toLowerCase().includes(searchLower) ||
-        slip.sid?.toLowerCase().includes(searchLower)
+        slip.sid?.toLowerCase().includes(searchLower) ||
+        slip.id?.toLowerCase().includes(searchLower)
       );
     });
 

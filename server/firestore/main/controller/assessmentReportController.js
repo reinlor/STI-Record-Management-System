@@ -69,7 +69,7 @@ const deleteAssessmentReport = async (req, res) => {
 
 // Controller Function for updating an assessment exam form
 const updateAssessmentReport = async (req, res) => {
-  const { id } = req.params; // Assume 'id' from req.params is the Firestore Document ID
+  const { id } = req.params;
   const updates = req.body;
 
   try {
@@ -77,7 +77,7 @@ const updateAssessmentReport = async (req, res) => {
       return res.status(400).send({ error: 'Assessment Report ID is required in the URL parameters for update.' });
     }
 
-    const { error, value: validatedUpdates } = updateSchema.validate(updates, { abortEarly: false }); // abortEarly: false to get all validation errors
+    const { error, value: validatedUpdates } = updateSchema.validate(updates, { abortEarly: false });
 
     if (error) {
       const errorMessages = error.details.map(detail => detail.message).join('; ');

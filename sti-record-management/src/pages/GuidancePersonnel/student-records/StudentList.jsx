@@ -387,8 +387,11 @@ function StudentList() {
                 delete healthPayload.medicalCert;
                 formData.append("health", JSON.stringify(healthPayload));
 
-                // processedBy
+                // Admin Data
                 formData.append("processedBy", authData?.displayName ?? "Admin");
+                formData.append("uid", authData?.user?.uid ?? "Admin");
+                formData.append("position", authData?.user?.position ?? "Admin");
+                formData.append("role", authData?.user?.role ?? "Admin");
 
                 // Append files under "attachments" (server route expects upload.array("attachments"))
                 for (const f of newFiles) {
@@ -408,7 +411,13 @@ function StudentList() {
                     delete payload.health.medicalCert;
                 }
 
-                await axios.put(`/student/update/${sidParam}`, { processedBy: authData?.displayName ?? "Admin", ...payload });
+                await axios.put(`/student/update/${sidParam}`, {
+                    processedBy: authData?.displayName ?? 'Admin',
+                    uid: authData?.user?.uid ?? 'Admin',
+                    position: authData?.user?.position ?? 'Admin',
+                    role: authData?.user?.role ?? 'Admin',
+                    ...payload
+                });
             }
 
             // Fetch the saved student from server to reflect persisted values (medicalCert urls/ids)
@@ -437,7 +446,12 @@ function StudentList() {
     const handleArchive = async () => {
         if (!modalStudent) return;
         try {
-            await axios.put(`/student/archiveData/${modalStudent.id}`, { processedBy: authData?.displayName ?? "Admin" });
+            await axios.put(`/student/archiveData/${modalStudent.id}`, {
+                processedBy: authData?.displayName ?? 'Admin',
+                uid: authData?.user?.uid ?? 'Admin',
+                position: authData?.user?.position ?? 'Admin',
+                role: authData?.user?.role ?? 'Admin',
+            });
             setStudents((students) => students.map((s) => (s.id === modalStudent.id ? { ...s, isArchived: true } : s)));
             setShowArchiveModal(false);
             closeStudentModal();
@@ -450,7 +464,12 @@ function StudentList() {
     const handleRestore = async () => {
         if (!modalStudent) return;
         try {
-            await axios.put(`/student/restoreData/${modalStudent.id}`, { processedBy: authData?.displayName ?? "Admin" });
+            await axios.put(`/student/restoreData/${modalStudent.id}`, {
+                processedBy: authData?.displayName ?? 'Admin',
+                uid: authData?.user?.uid ?? 'Admin',
+                position: authData?.user?.position ?? 'Admin',
+                role: authData?.user?.role ?? 'Admin',
+            });
             setStudents((students) => students.map((s) => (s.id === modalStudent.id ? { ...s, isArchived: false } : s)));
             setShowArchiveModal(false);
             closeStudentModal();

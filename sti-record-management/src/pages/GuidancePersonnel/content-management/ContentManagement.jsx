@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import axios from "axios";
 import {
     Plus,
@@ -12,6 +12,7 @@ import {
     CalendarDays,
     FileText,
 } from "lucide-react";
+import { AuthContext } from '../../../AuthProvider.jsx';
 
 // Components
 import Toast from "./components/Toast";
@@ -37,6 +38,7 @@ const PANEL = {
 
 export default function ContentManagement() {
     const [activePanel, setActivePanel] = useState(PANEL.ANNOUNCEMENT);
+    const { authData, logout } = useContext(AuthContext);
 
     // State
     const [announcements, setAnnouncements] = useState([]);
@@ -136,10 +138,16 @@ export default function ContentManagement() {
             try {
                 // Generate a unique id for the announcement
                 const id = Date.now().toString(); // or use uuid if available
+                console.log(authData)
                 await axios.post(`${API}/announcement/add`, {
                     id, // <-- pass id to backend
                     title: newAnnouncement.title,
                     description: newAnnouncement.body,
+
+                    processedBy: authData?.user?.displayName ?? "Admin",
+                    uid: authData?.user?.uid ?? 'Admin',
+                    position: authData?.user?.position ?? 'Admin',
+                    role: authData?.user?.role ?? 'Admin',
                 });
                 setAnnouncements([
                     {
@@ -169,6 +177,11 @@ export default function ContentManagement() {
                     id: editingAnnouncementId,
                     title,
                     description: body,
+
+                    processedBy: authData?.user?.displayName ?? "Admin",
+                    uid: authData?.user?.uid ?? 'Admin',
+                    position: authData?.user?.position ?? 'Admin',
+                    role: authData?.user?.role ?? 'Admin',
                 });
                 setAnnouncements(
                     announcements.map((ann) =>
@@ -208,7 +221,16 @@ export default function ContentManagement() {
             message: "Are you sure you want to delete this announcement? This action cannot be undone.",
             onConfirm: async () => {
                 try {
-                    await axios.delete(`${API}/announcement/delete`, { data: { id } });
+                    const payload = {
+                        data: {
+                            id,
+                            processedBy: authData?.user?.displayName ?? "Admin",
+                            uid: authData?.user?.uid ?? 'Admin',
+                            position: authData?.user?.position ?? 'Admin',
+                            role: authData?.user?.role ?? 'Admin',
+                        },
+                    }
+                    await axios.delete(`${API}/announcement/delete`, payload);
                     setAnnouncements(announcements.filter((ann) => ann.id !== id));
                     showToast("Announcement deleted.", "success");
                 } catch (error) {
@@ -237,6 +259,11 @@ export default function ContentManagement() {
                 priorityLevel: violationObj.priority,
                 violations: violationObj.violations || [],
                 offense: violationObj.offense || "",
+
+                processedBy: authData?.user?.displayName ?? "Admin",
+                uid: authData?.user?.uid ?? 'Admin',
+                position: authData?.user?.position ?? 'Admin',
+                role: authData?.user?.role ?? 'Admin',
             });
             // optimistic update
             setViolations((prev) => [
@@ -279,6 +306,11 @@ export default function ContentManagement() {
                 priorityLevel: violationObj.priority,
                 violations: violationObj.violations || [],
                 offense: violationObj.offense || "",
+
+                processedBy: authData?.user?.displayName ?? "Admin",
+                uid: authData?.user?.uid ?? 'Admin',
+                position: authData?.user?.position ?? 'Admin',
+                role: authData?.user?.role ?? 'Admin',
             });
 
             // Update local state: handle rename if happened
@@ -311,7 +343,15 @@ export default function ContentManagement() {
             message: `Are you sure you want to delete the entire category "${v.category}"? This action cannot be undone.`,
             onConfirm: async () => {
                 try {
-                    await axios.delete(`${API}/violations/delete`, { data: { violationCategoryName: v.category } });
+                    await axios.delete(`${API}/violations/delete`, {
+                        data: {
+                            violationCategoryName: v.category,
+                            processedBy: authData?.user?.displayName ?? "Admin",
+                            uid: authData?.user?.uid ?? 'Admin',
+                            position: authData?.user?.position ?? 'Admin',
+                            role: authData?.user?.role ?? 'Admin',
+                        }
+                    });
                     setViolations((prev) => prev.filter((p) => p.category !== v.category));
                     showToast("Violation category deleted.", "success");
                 } catch (err) {
@@ -354,6 +394,11 @@ export default function ContentManagement() {
                         oldAcronym: newItem.oldAcronym,
                         name: newItem.name,
                         acronym: newItem.acronym,
+
+                        processedBy: authData?.user?.displayName ?? "Admin",
+                        uid: authData?.user?.uid ?? 'Admin',
+                        position: authData?.user?.position ?? 'Admin',
+                        role: authData?.user?.role ?? 'Admin',
                     });
                     setTertiaryPrograms((prev) =>
                         prev.map((p) =>
@@ -368,6 +413,11 @@ export default function ContentManagement() {
                         oldAcronym: newItem.oldAcronym,
                         name: newItem.name,
                         acronym: newItem.acronym,
+
+                        processedBy: authData?.user?.displayName ?? "Admin",
+                        uid: authData?.user?.uid ?? 'Admin',
+                        position: authData?.user?.position ?? 'Admin',
+                        role: authData?.user?.role ?? 'Admin',
                     });
                     setShsStrands((prev) =>
                         prev.map((s) =>
@@ -383,6 +433,11 @@ export default function ContentManagement() {
                     await axios.post(`${API}/program/add`, {
                         name: newItem.name,
                         acronym: newItem.acronym,
+
+                        processedBy: authData?.user?.displayName ?? "Admin",
+                        uid: authData?.user?.uid ?? 'Admin',
+                        position: authData?.user?.position ?? 'Admin',
+                        role: authData?.user?.role ?? 'Admin',
                     });
                     setTertiaryPrograms((prev) => [
                         ...prev,
@@ -393,6 +448,11 @@ export default function ContentManagement() {
                     await axios.post(`${API}/strand/add`, {
                         name: newItem.name,
                         acronym: newItem.acronym,
+
+                        processedBy: authData?.user?.displayName ?? "Admin",
+                        uid: authData?.user?.uid ?? 'Admin',
+                        position: authData?.user?.position ?? 'Admin',
+                        role: authData?.user?.role ?? 'Admin',
                     });
                     setShsStrands((prev) => [
                         ...prev,
@@ -420,7 +480,13 @@ export default function ContentManagement() {
                 try {
                     if (type === "Tertiary") {
                         await axios.delete(`${API}/program/delete`, {
-                            data: { acronym: item.acronym },
+                            data: {
+                                acronym: item.acronym,
+                                processedBy: authData?.user?.displayName ?? "Admin",
+                                uid: authData?.user?.uid ?? 'Admin',
+                                position: authData?.user?.position ?? 'Admin',
+                                role: authData?.user?.role ?? 'Admin',
+                            },
                         });
                         setTertiaryPrograms((prev) =>
                             prev.filter((p) => p.acronym !== item.acronym)
@@ -428,7 +494,13 @@ export default function ContentManagement() {
                         showToast("Program deleted.", "success");
                     } else {
                         await axios.delete(`${API}/strand/delete`, {
-                            data: { acronym: item.acronym },
+                            data: {
+                                acronym: item.acronym,
+                                processedBy: authData?.user?.displayName ?? "Admin",
+                                uid: authData?.user?.uid ?? 'Admin',
+                                position: authData?.user?.position ?? 'Admin',
+                                role: authData?.user?.role ?? 'Admin',
+                            },
                         });
                         setShsStrands((prev) =>
                             prev.filter((s) => s.acronym !== item.acronym)
@@ -454,7 +526,14 @@ export default function ContentManagement() {
 
     const handleSetSchoolYear = async () => {
         try {
-            await axios.put(`${API}/schoolPeriod/update`, schoolYearData)
+            await axios.put(`${API}/schoolPeriod/update`, {
+                processedBy: authData?.user?.displayName ?? "Admin",
+                uid: authData?.user?.uid ?? 'Admin',
+                position: authData?.user?.position ?? 'Admin',
+                role: authData?.user?.role ?? 'Admin',
+
+                ...schoolYearData
+            })
             setSchoolYearData(schoolYearData);
             showToast("School year and academic period successfully updated!", "success");
         } catch (error) {
@@ -491,7 +570,13 @@ export default function ContentManagement() {
     const handleSetWellnessLink = async () => {
         if (tempWellnessLink) {
             try {
-                await axios.put(`${API}/wellness/change`, { link: tempWellnessLink });
+                await axios.put(`${API}/wellness/change`, {
+                    link: tempWellnessLink,
+                    processedBy: authData?.user?.displayName ?? "Admin",
+                    uid: authData?.user?.uid ?? 'Admin',
+                    position: authData?.user?.position ?? 'Admin',
+                    role: authData?.user?.role ?? 'Admin',
+                });
                 showToast("Wellness Program link successfully updated!", "success");
             } catch (error) {
                 console.error("Error updating wellness link:", error);

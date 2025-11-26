@@ -1,6 +1,6 @@
 const Joi = require("joi");
 const { Timestamp } = require('firebase-admin/firestore');
-
+const admin = require("firebase-admin");
 const cloudinary = require("../../../config/cloudinary.js");
 const fs = require("fs");
 
@@ -13,7 +13,19 @@ const {
 const { getChartDataCollection } = require("../models/chartDataModel");
 const { getNotificationCollection } = require("../models/notificationModel.js");
 const { getContentManagementCollection } = require("../models/contentManagementModel.js");
-
+const addAuditLog = async (processedBy, uid, position, action) => {
+  try {
+    await admin.firestore().collection("auditLog").add({
+      name: processedBy,
+      employeeID: uid,
+      role: position,
+      action: action,
+      date: admin.firestore.FieldValue.serverTimestamp()
+    });
+  } catch (error) {
+    console.error("Error adding audit log:", error);
+  }
+};
 // SLIPS / Passes Schema
 const absentSlipSchema = Joi.object({
   sid: Joi.string().required(),
@@ -285,7 +297,10 @@ const getAllSlipsById = async (req, res) => {
 // Controller Function for updating slips/passes
 const updateSlipStatus = async (req, res) => {
   const { slipType, slipId } = req.params;
-  const { status, remarks, uid, name, studentName, pickUpDate } = req.body;
+  const {
+    status, remarks, uid, name, studentName, pickUpDate,
+    processedUID, position, role
+  } = req.body;
 
   const statusSchema = Joi.object({
     status: Joi.string().valid("Approved", "Denied", "In Progress", "Denied", "Cancelled", "Inactive", "Resolved").required(),
@@ -401,6 +416,11 @@ const updateSlipStatus = async (req, res) => {
       .send({
         message: `Slip ${slipId} status updated to ${status}. Notification sent to ${name}.`,
       });
+
+    // Audit Log
+    if (role === "Admin") {
+      await addAuditLog(name, processedUID, position, `Change a ${slipType} status of ID:${slipId} into ${status}`);
+    }
   } catch (error) {
     res.status(500).send({ error: error.message });
   }
@@ -528,5 +548,5 @@ module.exports = {
   getAllSlipsById,
   updateSlipStatus,
   cancelRequestSlip,
-  followUpSlip, 
+  followUpSlip,
 };
