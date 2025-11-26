@@ -1,6 +1,6 @@
 // BulkModal.jsx (replace your component with this)
 import React, { useState, useRef } from 'react';
-import { X, Eye, EyeOff } from 'lucide-react';
+import { X, Eye, EyeOff, FileSpreadsheet } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 
@@ -28,56 +28,14 @@ const BulkModal = ({ visible, onClose }) => {
         if (!file) return;
         setPendingFile(file);
         setShowConfirmModal(true);
+    };
 
-        // const formData = new FormData();
-        // formData.append("file", file);
-
-        // try {
-        //     setIsUploading(true);
-        //     setStatusMessage("Uploading...");
-        //     setUploadProgress(0);
-
-        //     const response = await axios.post("/bulk-upload/students", formData, {
-        //         headers: { "Content-Type": "multipart/form-data" },
-        //         onUploadProgress: (progressEvent) => {
-        //             if (!progressEvent.total) return;
-        //             const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-        //             setUploadProgress(percent);
-        //         }
-        //     });
-
-        //     const resp = response.data || {};
-        //     const added = Array.isArray(resp.added) ? resp.added : [];
-        //     const updated = Array.isArray(resp.updated) ? resp.updated : [];
-
-        //     let skippedArr = [];
-        //     let skippedCount = 0;
-        //     if (Array.isArray(resp.skipped)) {
-        //         skippedArr = resp.skipped;
-        //         skippedCount = skippedArr.length;
-        //     } else if (typeof resp.skipped === 'number') {
-        //         skippedArr = [];
-        //         skippedCount = resp.skipped;
-        //     } else if (typeof resp.skipped === 'string' && resp.skipped.trim().length > 0) {
-        //         skippedArr = [resp.skipped];
-        //         skippedCount = skippedArr.length;
-        //     }
-
-        //     setUploadDetails({ added, updated, skipped: skippedArr, skippedCount });
-
-        //     const processed = typeof resp.processed === 'number' ? resp.processed : resp.processed || added.length;
-        //     setStatusMessage(`Uploaded! Processed: ${processed}, Skipped: ${skippedCount}`);
-        //     toast.success(`Upload successful! Processed: ${processed}, Skipped: ${skippedCount}`);
-        //     setUploadProgress(100);
-        // } catch (error) {
-        //     console.error("Upload error:", error);
-        //     toast.error("Upload failed. Check console for details.");
-        //     setStatusMessage("Upload failed. Check console.");
-        //     setUploadProgress(0);
-        // } finally {
-        //     if (fileInputRef.current) fileInputRef.current.value = "";
-        //     setIsUploading(false);
-        // }
+    const handleCancelConfirm = () => {
+        setShowConfirmModal(false);
+        setPendingFile(null);
+        if (fileInputRef.current) {
+            fileInputRef.current.value = "";
+        }
     };
 
     const proceedBulkUpload = async (file) => {
@@ -137,23 +95,36 @@ const BulkModal = ({ visible, onClose }) => {
         <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-4">
             {showConfirmModal && (
                 <div className="fixed inset-0 backdrop-blur-sm bg-opacity-30 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg p-6 max-w-md w-full">
-                        <h2 className="text-xl font-bold mb-2 text-[#0172bd]">Confirm Bulk Upload</h2>
+                    <div className="bg-white rounded-lg p-6 max-w-md w-full shadow-xl">
+                        <h2 className="text-xl font-bold mb-4 text-[#0172bd]">Confirm Bulk Upload</h2>
+                        
+                        {/* File Name Display */}
+                        <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                            <p className="text-sm text-gray-600 mb-2">Selected File:</p>
+                            <div className="flex items-center gap-2">
+                                <FileSpreadsheet className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                                <p className="font-semibold text-gray-900 break-all">
+                                    {pendingFile?.name || 'No file selected'}
+                                </p>
+                            </div>
+                            <p className="text-xs text-gray-500 mt-2">
+                                Size: {pendingFile ? `${(pendingFile.size / 1024).toFixed(2)} KB` : 'N/A'}
+                            </p>
+                        </div>
+
                         <p className="mb-4 text-gray-700">
-                            Are you sure you want to proceed with bulk uploading students? This action may update or add multiple records and cannot be undone.
+                            Are you sure you want to proceed with bulk uploading students from this file? This action may update or add multiple records and cannot be undone.
                         </p>
+                        
                         <div className="flex justify-end gap-2">
                             <button
-                                className="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400 text-gray-800 cursor-pointer"
-                                onClick={() => {
-                                    setShowConfirmModal(false);
-                                    setPendingFile(null);
-                                }}
+                                className="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400 text-gray-800 cursor-pointer font-medium"
+                                onClick={handleCancelConfirm}
                             >
                                 Cancel
                             </button>
                             <button
-                                className="px-4 py-2 rounded bg-[#0172bd] text-white hover:bg-blue-700 cursor-pointer"
+                                className="px-4 py-2 rounded bg-[#0172bd] text-white hover:bg-blue-500 cursor-pointer font-medium"
                                 onClick={() => {
                                     setShowConfirmModal(false);
                                     if (pendingFile) {
@@ -161,12 +132,13 @@ const BulkModal = ({ visible, onClose }) => {
                                     }
                                 }}
                             >
-                                Proceed
+                                Proceed with Upload
                             </button>
                         </div>
                     </div>
                 </div>
             )}
+            
             <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
                 <div className="flex justify-between items-center border-b pb-3 mb-4">
                     <h3 className="text-2xl font-bold text-[#0172bd]">Bulk Add Students</h3>
@@ -184,7 +156,6 @@ const BulkModal = ({ visible, onClose }) => {
                     >
                         <X className="w-10 h-10 text-[#0172bd]" />
                     </button>
-
                 </div>
 
                 <div className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-8 mb-4">
