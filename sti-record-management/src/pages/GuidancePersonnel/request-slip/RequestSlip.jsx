@@ -16,7 +16,7 @@ import {
   ChevronLeft,
   ChevronRight,
   ClipboardList,
-  Calendar
+  Calendar,
 } from 'lucide-react';
 
 import { toast } from 'react-toastify';
@@ -42,36 +42,50 @@ const STATUS_FILTER_OPTIONS = [
 ];
 
 // Helper for date filtering, parse, format functions (kept same as original)
-function isWithinDate(ms, filter) {
-  if (!ms) return false;
+function isWithinDate(ms, filter, followUpMs = null) {
+  if (!ms && !followUpMs) return false;
+  
   const now = new Date();
-  const date = new Date(ms);
-  switch (filter) {
-    case "today":
-      return (
-        date.getFullYear() === now.getFullYear() &&
-        date.getMonth() === now.getMonth() &&
-        date.getDate() === now.getDate()
-      );
-    case "week": {
-      const startOfWeek = new Date(now);
-      startOfWeek.setDate(now.getDate() - now.getDay());
-      startOfWeek.setHours(0, 0, 0, 0);
-      const endOfWeek = new Date(startOfWeek);
-      endOfWeek.setDate(startOfWeek.getDate() + 6);
-      endOfWeek.setHours(23, 59, 59, 999);
-      return date >= startOfWeek && date <= endOfWeek;
+  const date = new Date(ms || 0);
+  const followUpDate = followUpMs ? new Date(followUpMs) : null;
+
+  // Helper to check if a date falls within the filter range
+  const checkDateInRange = (checkDate) => {
+    switch (filter) {
+      case "today":
+        return (
+          checkDate.getFullYear() === now.getFullYear() &&
+          checkDate.getMonth() === now.getMonth() &&
+          checkDate.getDate() === now.getDate()
+        );
+      case "week": {
+        const startOfWeek = new Date(now);
+        startOfWeek.setDate(now.getDate() - now.getDay());
+        startOfWeek.setHours(0, 0, 0, 0);
+        const endOfWeek = new Date(startOfWeek);
+        endOfWeek.setDate(startOfWeek.getDate() + 6);
+        endOfWeek.setHours(23, 59, 59, 999);
+        return checkDate >= startOfWeek && checkDate <= endOfWeek;
+      }
+      case "month":
+        return (
+          checkDate.getFullYear() === now.getFullYear() &&
+          checkDate.getMonth() === now.getMonth()
+        );
+      case "year":
+        return checkDate.getFullYear() === now.getFullYear();
+      default:
+        return true;
     }
-    case "month":
-      return (
-        date.getFullYear() === now.getFullYear() &&
-        date.getMonth() === now.getMonth()
-      );
-    case "year":
-      return date.getFullYear() === now.getFullYear();
-    default:
-      return true;
+  };
+
+  // If checking follow-up items, check BOTH dates
+  if (followUpDate) {
+    return checkDateInRange(date) || checkDateInRange(followUpDate);
   }
+
+  // Otherwise just check the original date
+  return checkDateInRange(date);
 }
 
 function parseToMillis(dateInput) {
@@ -548,6 +562,9 @@ function RequestSlip() {
   const [remarks, setRemarks] = useState("");
   const [pickupDate, setPickupDate] = useState("");
 
+  // Add this near your other filter options
+  const [filterFollowUp, setFilterFollowUp] = useState(""); // Add state
+
   const ROW_COLOR_CLASSES = {
     RED: "bg-red-100",
     YELLOW: "bg-yellow-100",
@@ -713,13 +730,38 @@ function RequestSlip() {
     })
     .filter((slip) => {
       if (!filterDate) return true;
-      return isWithinDate(slip.timeCreatedMs, filterDate);
+      
+      // 🆕 Enhanced date filtering for follow-ups
+      const slipCreatedMs = slip.timeCreatedMs;
+      const followUpMs = slip.lastFollowUpDate 
+        ? parseToMillis(slip.lastFollowUpDate)
+        : null;
+
+      // If follow-up filter is active and slip is followed up, check BOTH dates
+      if (filterFollowUp === "followed-up" && slip.isFollowedUp) {
+        return isWithinDate(slipCreatedMs, filterDate, followUpMs);
+      }
+
+      // Otherwise just check slip creation date
+      return isWithinDate(slipCreatedMs, filterDate);
     })
     .filter((slip) => {
       if (!filterStatus) return true;
       return slip.status === filterStatus;
     })
+    .filter((slip) => {
+      // Follow-up filter
+      if (!filterFollowUp) return true;
+      if (filterFollowUp === "followed-up") return slip.isFollowedUp;
+      if (filterFollowUp === "not-followed-up") return !slip.isFollowedUp;
+      return true;
+    })
     .sort((a, b) => {
+      // Prioritize followed-up slips first
+      if ((b.isFollowedUp || false) !== (a.isFollowedUp || false)) {
+        return (b.isFollowedUp ? 1 : 0) - (a.isFollowedUp ? 1 : 0);
+      }
+      // Then sort by sort preference
       if (sortBy === "newest") {
         return (b.timeCreatedMs || 0) - (a.timeCreatedMs || 0);
       } else {
@@ -928,7 +970,7 @@ function RequestSlip() {
         </div>
 
         {/* Filter Row */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-4">
           <div>
             <label className="block text-xs font-semibold text-gray-500 mb-1">Type of Slip</label>
             <select
@@ -965,6 +1007,19 @@ function RequestSlip() {
               ))}
             </select>
           </div>
+          {/* 🆕 Follow-Up Filter - ADD THIS */}
+          <div>
+            <label className="block text-xs font-semibold text-gray-500 mb-1">Follow-Up Status</label>
+            <select
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-1 focus:ring-[#0172bd] cursor-pointer"
+              value={filterFollowUp}
+              onChange={e => setFilterFollowUp(e.target.value)}
+            >
+              <option value="">All Requests</option>
+              <option value="followed-up">Followed Up Only</option>
+              <option value="not-followed-up">Not Followed Up</option>
+            </select>
+          </div>
           <div>
             <label className="block text-xs font-semibold text-gray-500 mb-1">Sort By</label>
             <select
@@ -988,6 +1043,7 @@ function RequestSlip() {
                 <th className="sticky bg-[#0172bd] top-0 px-2 sm:px-3 lg:px-4 py-2 sm:py-3 font-bold">Type of Slip</th>
                 <th className="sticky bg-[#0172bd] top-0 px-0 py-0 text-[0px]  w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">Date</th>
                 <th className="sticky bg-[#0172bd] top-0 px-0 py-0 text-[0px]  w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">Status</th>
+                <th className="sticky bg-[#0172bd] top-0 px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">Follow-Up</th>
                 <th className="sticky bg-[#0172bd] top-0 px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">Attachments</th>
                 <th className="sticky bg-[#0172bd] top-0 px-2 sm:px-3 lg:px-4 py-2 sm:py-3"></th>
               </tr>
@@ -998,12 +1054,16 @@ function RequestSlip() {
                 pagedSlipData.map((slips) => {
                   const days = getDateDifference(slips.timeCreatedMs ?? slips.timeCreated);
                   const rowBgClass = getRowColor(days);
+                  const hasFollowUp = slips.isFollowedUp || false;
+                  const followUpCount = slips.followUpCount || 0;
 
                   return (
                     <tr
                       key={slips.id}
-                      className={`hover:bg-gray-50 transition border-b ${rowBgClass} cursor-pointer`}
-                      onClick={() => openSlip(slips._id)} // Optional: Add row click functionality
+                      className={`hover:bg-gray-50 transition border-b ${rowBgClass} cursor-pointer ${
+                        hasFollowUp ? "border-l-4 border-l-yellow-400" : ""
+                      }`}
+                      onClick={() => openSlip(slips._id)}
                     >
                       <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 lg:whitespace-nowrap font-semibold w-1/4">{slips.name}</td>
                       <td className="px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">{slips.sid}</td>
@@ -1020,6 +1080,15 @@ function RequestSlip() {
                       >
                         {slips.status}
                       </td>
+                      <td className="px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">
+                        {hasFollowUp && (
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-semibold text-yellow-600">
+                              🔔 Followed Up: {followUpCount}
+                            </span>
+                          </div>
+                        )}
+                      </td>
                       <td className="px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">{slips.attachmentCount}</td>
                       {authData?.user?.access?.requestSlip && (
                         <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3">
@@ -1035,7 +1104,7 @@ function RequestSlip() {
                   );
                 })) :
                 <tr>
-                  <td colSpan="7" className="text-center py-4 text-gray-500">
+                  <td colSpan="8" className="text-center py-4 text-gray-500">
                     No pending request slip forms found.
                   </td>
                 </tr>

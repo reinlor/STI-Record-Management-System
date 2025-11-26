@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   X,
   User,
@@ -17,6 +17,46 @@ export default function ViewRequestModal({ data, onClose }) {
   const [isCancelling, setIsCancelling] = useState(false);
   const [cancelSuccess, setCancelSuccess] = useState(false);
   const [isFollowingUp, setIsFollowingUp] = useState(false);
+  const [followUpSuccess, setFollowUpSuccess] = useState(false);
+  const [showFollowUpConfirm, setShowFollowUpConfirm] = useState(false);
+  const [followUpCooldown, setFollowUpCooldown] = useState(0);
+
+  useEffect(() => {
+    // Check if user has already followed up in the last 24 hours
+    const lastFollowUpTime = localStorage.getItem(`followup_${data._id || data.id}`);
+    if (lastFollowUpTime) {
+      const now = Date.now();
+      const elapsed = now - parseInt(lastFollowUpTime);
+      const twentyFourHours = 24 * 60 * 60 * 1000;
+      
+      if (elapsed < twentyFourHours) {
+        const remaining = twentyFourHours - elapsed;
+        setFollowUpCooldown(remaining);
+        setFollowUpSuccess(true);
+
+        // Update cooldown timer every second
+        const interval = setInterval(() => {
+          setFollowUpCooldown((prev) => {
+            if (prev <= 1000) {
+              clearInterval(interval);
+              setFollowUpSuccess(false);
+              return 0;
+            }
+            return prev - 1000;
+          });
+        }, 1000);
+
+        return () => clearInterval(interval);
+      }
+    }
+  }, [data._id, data.id]);
+
+  const formatCooldownTime = (ms) => {
+    const hours = Math.floor(ms / (60 * 60 * 1000));
+    const minutes = Math.floor((ms % (60 * 60 * 1000)) / (60 * 1000));
+    const seconds = Math.floor((ms % (60 * 1000)) / 1000);
+    return `${hours}h ${minutes}m ${seconds}s`;
+  };
 
   const renderField = (label, value, isDate = false) => (
     <div className="space-y-1">
@@ -48,7 +88,6 @@ export default function ViewRequestModal({ data, onClose }) {
     return d ? d.toLocaleString() : "N/A";
   };
 
-  // Updated cancel request (using react-toastify)
   const handleCancelRequest = async () => {
     setIsCancelling(true);
     try {
@@ -59,10 +98,6 @@ export default function ViewRequestModal({ data, onClose }) {
       toast.success("Request successfully cancelled!", {
         position: "top-right",
         autoClose: 1500,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
       });
       setTimeout(() => {
         onClose();
@@ -71,37 +106,52 @@ export default function ViewRequestModal({ data, onClose }) {
       toast.error("Failed to cancel request. Please try again.", {
         position: "top-right",
         autoClose: 2500,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
       });
     } finally {
       setIsCancelling(false);
     }
   };
 
-  // Handle follow up button click (UI-only for now)
-  const handleFollowUp = async () => {
+  const handleFollowUpConfirm = async () => {
     setIsFollowingUp(true);
     try {
-      // Placeholder for backend implementation
-      toast.info("Follow up reminder has been sent!", {
+      const slipId = data._id || data.id;
+      const slipType = data.typeOfSlip;
+      
+      await axios.post(`/slip/followup/${encodeURIComponent(slipType)}/${slipId}`, {
+        studentName: data.name,
+        studentId: data.sid,
+        email: data.email
+      });
+      
+      // Set 24-hour cooldown in localStorage
+      localStorage.setItem(`followup_${slipId}`, Date.now().toString());
+      
+      setFollowUpSuccess(true);
+      setFollowUpCooldown(24 * 60 * 60 * 1000);
+      setShowFollowUpConfirm(false);
+      
+      // Start countdown timer
+      const interval = setInterval(() => {
+        setFollowUpCooldown((prev) => {
+          if (prev <= 1000) {
+            clearInterval(interval);
+            setFollowUpSuccess(false);
+            localStorage.removeItem(`followup_${slipId}`);
+            return 0;
+          }
+          return prev - 1000;
+        });
+      }, 1000);
+
+      toast.success("Follow-up sent!", {
         position: "top-right",
         autoClose: 2000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
       });
     } catch (err) {
-      toast.error("Failed to send follow up. Please try again.", {
+      toast.error("Failed to send follow-up. Please try again.", {
         position: "top-right",
         autoClose: 2500,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
       });
     } finally {
       setIsFollowingUp(false);
@@ -110,9 +160,40 @@ export default function ViewRequestModal({ data, onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm bg-black/40 animate-fade-in-backdrop">
+      {/* Follow-Up Confirmation Modal */}
+      {showFollowUpConfirm && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50">
+          <div className="bg-white rounded-xl p-6 max-w-sm w-full shadow-xl animate-fade-in border border-gray-200">
+            <div className="flex items-center gap-2 mb-4">
+              <Bell className="w-6 h-6 text-blue-600" />
+              <h3 className="text-lg font-bold text-gray-800">Send Follow-Up?</h3>
+            </div>
+            <p className="text-gray-600 text-sm mb-6">
+              Your request will be pushed to the top of the admin's pending list.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setShowFollowUpConfirm(false)}
+                className="px-4 py-2 rounded-lg bg-gray-200 text-gray-800 font-semibold hover:bg-gray-300 transition cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleFollowUpConfirm}
+                disabled={isFollowingUp}
+                className={`px-4 py-2 rounded-lg font-semibold text-white transition cursor-pointer ${
+                  isFollowingUp ? "bg-blue-400" : "bg-blue-600 hover:bg-blue-700"
+                } disabled:cursor-not-allowed`}
+              >
+                {isFollowingUp ? "Sending..." : "Confirm"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="relative flex flex-col bg-white rounded-3xl shadow-2xl w-full max-w-full md:max-w-3xl lg:max-w-5xl xl:max-w-6xl animate-fade-in border border-gray-200 max-h-[90vh] overflow-hidden">
-        {/* Header (sticky) - close button moved inside header so it stays visible when content scrolls) */}
+        {/* Header */}
         <div className="sticky top-0 bg-white border-b border-gray-100 text-center p-6 md:p-8 rounded-t-3xl z-30">
           <button
             type="button"
@@ -143,7 +224,7 @@ export default function ViewRequestModal({ data, onClose }) {
           </div>
         </div>
 
-        {/* Scrollable Content (fills remaining modal space) */}
+        {/* Scrollable Content */}
         <div className="overflow-y-auto custom-scrollbar px-6 md:px-10 py-6 flex-1">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
             {/* Left Content */}
@@ -249,7 +330,6 @@ export default function ViewRequestModal({ data, onClose }) {
                 <div className="space-y-2 text-sm text-gray-700 max-h-[150px] overflow-y-auto pr-2 -mr-2 custom-scrollbar">
                   {isAbsentSlip && hasAbsentAttachments ? (
                     <>
-                      {/* Excuse Letter */}
                       {data.excuseLetterUrl && data.excuseLetterUrl !== "Empty" && (
                         <a
                           href={data.excuseLetterUrl}
@@ -260,7 +340,6 @@ export default function ViewRequestModal({ data, onClose }) {
                           Excuse Letter
                         </a>
                       )}
-                      {/* Guardian ID */}
                       {data.guardianValidIDUrl && data.guardianValidIDUrl !== "Empty" && (
                         <a
                           href={data.guardianValidIDUrl}
@@ -271,7 +350,6 @@ export default function ViewRequestModal({ data, onClose }) {
                           Guardian ID
                         </a>
                       )}
-                      {/* Medical Certificate */}
                       {data.medicalCertificateUrl && data.medicalCertificateUrl !== "Empty" && (
                         <a
                           href={data.medicalCertificateUrl}
@@ -308,41 +386,51 @@ export default function ViewRequestModal({ data, onClose }) {
 
         {/* Footer / Action Buttons */}
         <div className="sticky bottom-0 bg-white border-t border-gray-100 rounded-b-3xl p-4 flex justify-end gap-3 z-30 flex-wrap">
-          {/* Follow Up Button - Show for Pending or In Progress status */}
           {(data.status === "Pending" || data.status === "In Progress") && (
-            <button
-              onClick={handleFollowUp}
-              disabled={isFollowingUp}
-              className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold shadow transition-all text-white cursor-pointer ${
-                isFollowingUp
-                  ? "bg-blue-400"
-                  : "bg-blue-500 hover:bg-blue-600"
-              } disabled:cursor-not-allowed`}
-            >
-              <Bell size={18} />
-              {isFollowingUp ? "Sending..." : "Follow Up"}
-            </button>
-          )}
+            <>
+              {/* Follow Up Button */}
+              <button
+                onClick={() => !followUpSuccess && setShowFollowUpConfirm(true)}
+                disabled={followUpSuccess}
+                title={followUpSuccess ? `Available in ${formatCooldownTime(followUpCooldown)}` : ""}
+                className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold shadow transition-all text-white cursor-pointer ${
+                  followUpSuccess
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-blue-500 hover:bg-blue-600"
+                }`}
+              >
+                <Bell size={18} />
+                {followUpSuccess ? (
+                  <>
+                    <span>Followed Up</span>
+                    <span className="text-xs ml-1 bg-gray-500 px-2 py-1 rounded">
+                      {formatCooldownTime(followUpCooldown)}
+                    </span>
+                  </>
+                ) : (
+                  "Follow Up"
+                )}
+              </button>
 
-          {/* Cancel Request Button - Show for Pending or In Progress */}
-          {(data.status === "Pending" || data.status === "In Progress") && (
-            <button
-              onClick={handleCancelRequest}
-              disabled={isCancelling || cancelSuccess}
-              className={`px-8 py-3 rounded-lg font-semibold shadow transition-colors text-white cursor-pointer disabled:cursor-not-allowed ${
-                cancelSuccess
-                  ? "bg-green-500"
-                  : isCancelling
-                  ? "bg-gray-400"
-                  : "bg-red-500 hover:bg-red-600"
-              }`}
-            >
-              {isCancelling
-                ? "Cancelling..."
-                : cancelSuccess
-                ? "Cancelled!"
-                : "Cancel Request"}
-            </button>
+              {/* Cancel Request Button */}
+              <button
+                onClick={handleCancelRequest}
+                disabled={isCancelling || cancelSuccess}
+                className={`px-8 py-3 rounded-lg font-semibold shadow transition-colors text-white cursor-pointer disabled:cursor-not-allowed ${
+                  cancelSuccess
+                    ? "bg-green-500"
+                    : isCancelling
+                    ? "bg-gray-400"
+                    : "bg-red-500 hover:bg-red-600"
+                }`}
+              >
+                {isCancelling
+                  ? "Cancelling..."
+                  : cancelSuccess
+                  ? "Cancelled!"
+                  : "Cancel Request"}
+              </button>
+            </>
           )}
         </div>
       </div>

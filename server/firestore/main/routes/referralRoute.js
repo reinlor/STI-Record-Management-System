@@ -6,7 +6,8 @@ const {
   getAllReferral,
   getReferral,
   getReferralById,
-  cancelReferral
+  cancelReferral,
+  followUpReferral
 } = require("../controller/referralController");
 
 const router = express.Router();
@@ -17,5 +18,6 @@ router.get("/getAll", getAllReferral); // For retrieving all Referral submission
 router.get("/get/:id", getReferral); // For retrieving a specific Referral submission by ID
 router.get("/get/employee/:employeeID", getReferralById); // For retrieving a specific Referral submission by ID
 router.put("/cancel/:referralId", cancelReferral); // For cancelling a specific Referral submission
+router.post("/followup/:referralId", followUpReferral); // For follow-up on referrals
 
 module.exports = router;

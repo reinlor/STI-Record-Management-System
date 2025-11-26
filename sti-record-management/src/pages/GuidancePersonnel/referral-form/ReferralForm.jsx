@@ -35,6 +35,86 @@ const SORT_OPTIONS = [
   { value: "newest", label: "Newest First" },
 ];
 
+// Add this near your other filter options
+const FOLLOW_UP_FILTER_OPTIONS = [
+  { value: "", label: "All Requests" },
+  { value: "followed-up", label: "Followed Up Only" },
+  { value: "not-followed-up", label: "Not Followed Up" },
+];
+
+// Helper function for date filtering with follow-ups
+function isWithinDateWithFollowUp(ms, filter, followUpMs = null) {
+  if (!ms && !followUpMs) return false;
+  
+  const now = new Date();
+  const date = new Date(ms || 0);
+  const followUpDate = followUpMs ? new Date(followUpMs) : null;
+
+  const checkDateInRange = (checkDate) => {
+    switch (filter) {
+      case "today":
+        return (
+          checkDate.getFullYear() === now.getFullYear() &&
+          checkDate.getMonth() === now.getMonth() &&
+          checkDate.getDate() === now.getDate()
+        );
+      case "week": {
+        const startOfWeek = new Date(now);
+        startOfWeek.setDate(now.getDate() - now.getDay());
+        startOfWeek.setHours(0, 0, 0, 0);
+        const endOfWeek = new Date(startOfWeek);
+        endOfWeek.setDate(startOfWeek.getDate() + 6);
+        endOfWeek.setHours(23, 59, 59, 999);
+        return checkDate >= startOfWeek && checkDate <= endOfWeek;
+      }
+      case "month":
+        return (
+          checkDate.getFullYear() === now.getFullYear() &&
+          checkDate.getMonth() === now.getMonth()
+        );
+      case "year":
+        return checkDate.getFullYear() === now.getFullYear();
+      default:
+        return true;
+    }
+  };
+
+  if (followUpDate) {
+    return checkDateInRange(date) || checkDateInRange(followUpDate);
+  }
+
+  return checkDateInRange(date);
+}
+
+function toMillisSafe(input) {
+  if (input == null) return null;
+
+  if (typeof input === "number") {
+    return input > 1e12 ? input : input * 1000;
+  }
+
+  if (input instanceof Date) return input.getTime();
+
+  if (typeof input === "object" && typeof input.toDate === "function") {
+    try {
+      return input.toDate().getTime();
+    } catch (e) { }
+  }
+
+  if (typeof input === "object" && (input.seconds !== undefined || input._seconds !== undefined)) {
+    const seconds = Number(input.seconds ?? input._seconds ?? 0);
+    const nanos = Number(input.nanoseconds ?? input._nanoseconds ?? 0);
+    return seconds * 1000 + Math.floor(nanos / 1e6);
+  }
+
+  if (typeof input === "string") {
+    const parsed = Date.parse(input);
+    if (!isNaN(parsed)) return parsed;
+  }
+
+  return null;
+}
+
 function ReferralFormProcessing() {
   const { authData, logout } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -118,6 +198,8 @@ function ReferralFormProcessing() {
   const [filterStatus, setFilterStatus] = useState("");
   const [filterPriority, setFilterPriority] = useState("");
   const [sortBy, setSortBy] = useState("oldest"); // <-- Add sort state
+  // Add this near your other filter states
+  const [filterFollowUp, setFilterFollowUp] = useState("");
 
   // For Color Indicator
   const toMillisSafe = (input) => {
@@ -258,27 +340,39 @@ function ReferralFormProcessing() {
   };
 
   // filter logic with status and priority
-  const filtered = referralData.filter(
-    (ref) =>
-      (filterStatus === "" || ref.status === filterStatus) &&
-      (filterPriority === "" || String(ref.levelOfPriority || "") === String(filterPriority)) &&
-      (
-        ref.referredBy?.toLowerCase().includes(search.toLowerCase()) ||
-        ref.studentName?.toLowerCase().includes(search.toLowerCase())
-      )
-  );
+  const filtered = referralData
+    .filter((ref) => ref.status !== 'Resolved' && ref.status !== 'Cancelled')
+    .filter(
+      (ref) =>
+        (filterStatus === "" || ref.status === filterStatus) &&
+        (filterPriority === "" || String(ref.levelOfPriority || "") === String(filterPriority)) &&
+        (
+          ref.referredBy?.toLowerCase().includes(search.toLowerCase()) ||
+          ref.studentName?.toLowerCase().includes(search.toLowerCase())
+        )
+    );
 
-  // Sort logic
+  // Sort logic with follow-up prioritization
   const sorted = [...filtered].sort((a, b) => {
+    // Prioritize followed-up items first
+    if ((b.isFollowedUp || false) !== (a.isFollowedUp || false)) {
+      return (b.isFollowedUp ? 1 : 0) - (a.isFollowedUp ? 1 : 0);
+    }
+    
     const aMs = toMillisSafe(a.preparedDate ?? a.createdAt ?? 0) || 0;
     const bMs = toMillisSafe(b.preparedDate ?? b.createdAt ?? 0) || 0;
     return sortBy === "newest" ? bMs - aMs : aMs - bMs;
   });
 
-  // Remove resolved from display
-  const filteredPending = sorted.filter(
-    (ref) => ref.status !== 'Resolved' && ref.status !== 'Cancelled'
-  );
+  // Apply follow-up filter
+  const filteredByFollowUp = sorted.filter((ref) => {
+    if (!filterFollowUp) return true;
+    if (filterFollowUp === "followed-up") return ref.isFollowedUp;
+    if (filterFollowUp === "not-followed-up") return !ref.isFollowedUp;
+    return true;
+  });
+
+  const filteredPending = filteredByFollowUp;
   const totalRows = filteredPending.length;
   const totalPages = Math.ceil(totalRows / rowsPerPage);
   const pagedReferrals = filteredPending.slice(
@@ -365,7 +459,7 @@ function ReferralFormProcessing() {
           <div>
             <label className="block text-xs font-semibold text-gray-500 mb-1">Status</label>
             <select
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-1 focus:ring-[#0172bd] cursor-pointer" // <-- Added cursor-pointer
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-1 focus:ring-[#0172bd] cursor-pointer"
               value={filterStatus}
               onChange={e => setFilterStatus(e.target.value)}
             >
@@ -377,7 +471,7 @@ function ReferralFormProcessing() {
           <div>
             <label className="block text-xs font-semibold text-gray-500 mb-1">Priority Level</label>
             <select
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-1 focus:ring-[#0172bd] cursor-pointer" // <-- Added cursor-pointer
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-1 focus:ring-[#0172bd] cursor-pointer"
               value={filterPriority}
               onChange={e => setFilterPriority(e.target.value)}
             >
@@ -386,10 +480,23 @@ function ReferralFormProcessing() {
               ))}
             </select>
           </div>
+          {/* 🆕 Follow-Up Filter */}
+          <div>
+            <label className="block text-xs font-semibold text-gray-500 mb-1">Follow-Up Status</label>
+            <select
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-1 focus:ring-[#0172bd] cursor-pointer"
+              value={filterFollowUp}
+              onChange={e => setFilterFollowUp(e.target.value)}
+            >
+              {FOLLOW_UP_FILTER_OPTIONS.map(opt => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
+          </div>
           <div>
             <label className="block text-xs font-semibold text-gray-500 mb-1">Sort By</label>
             <select
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-1 focus:ring-[#0172bd] cursor-pointer" // <-- Added cursor-pointer
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-1 focus:ring-[#0172bd] cursor-pointer"
               value={sortBy}
               onChange={e => setSortBy(e.target.value)}
             >
@@ -410,19 +517,27 @@ function ReferralFormProcessing() {
                 <th className="sticky bg-[#0172bd] top-0 px-2 sm:px-3 lg:px-4 py-2 sm:py-3 font-bold">Student</th>
                 <th className="sticky bg-[#0172bd] top-0 px-0 py-0 text-[0px]  w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">Date</th>
                 <th className="sticky bg-[#0172bd] top-0 px-0 py-0 text-[0px]  w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">Status</th>
-                <th className="sticky bg-[#0172bd] top-0 px-2 sm:px-3 lg:px-4 py-2 sm:py-3 font-bold"></th>
+                <th className="sticky bg-[#0172bd] top-0 px-0 py-0 text-[0px]  w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">Follow-Up</th>
+                <th className="sticky bg-[#0172bd] top-0 px-2 sm:px-3 lg:px-4 py-2 sm:py-3"></th>
               </tr>
             </thead>
             <tbody>
               {pagedReferrals.length > 0 ? (
                 pagedReferrals.map((ref) => {
-                  const days = getDateDifference(ref.preparedDate || ref.createdAt);
+                  const hasFollowUp = ref.isFollowedUp || false;
+                  const followUpCount = ref.followUpCount || 0;
+                  
+                  // 🆕 Calculate days and get row color
+                  const days = getDateDifference(ref.preparedDate);
                   const rowBgClass = getRowColor(days);
+
                   return (
                     <tr
                       key={ref.id}
-                      className={`border-b transition-colors duration-150 ${rowBgClass} hover:brightness-95 cursor-pointer`}
-                      onClick={() => openForm(ref)} 
+                      className={`border-b transition-colors duration-150 hover:brightness-95 cursor-pointer ${rowBgClass} ${
+                        hasFollowUp ? "border-l-4 border-l-yellow-400" : ""
+                      }`}
+                      onClick={() => openForm(ref)}
                     >
                       <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 lg:whitespace-nowrap font-semibold w-1/4">
                         {ref.referredBy}
@@ -431,9 +546,17 @@ function ReferralFormProcessing() {
                       <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 break-words max-w-[120px] truncate align-middle">{ref.reasonForReferral}</td>
                       <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 lg:whitespace-nowrap">{ref.studentName}</td>
                       <td className="px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">{formatDate(ref.preparedDate)}</td>
-                      <td
-                        className={`px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto font-semibold ${ref.status === 'Resolved' ? 'text-green-600' : 'text-gray-600'}`}>
+                      <td className={`px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto font-semibold ${ref.status === 'Resolved' ? 'text-green-600' : 'text-gray-600'}`}>
                         {ref.status}
+                      </td>
+                      <td className="px-0 py-0 text-[0px] w-0 lg:px-4 lg:py-3 lg:text-base lg:w-auto">
+                        {hasFollowUp && (
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-semibold text-yellow-600">
+                              🔔 Followed Up: {followUpCount}
+                            </span>
+                          </div>
+                        )}
                       </td>
                       {authData?.user?.access?.referralForm && (
                         <td className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3">
@@ -450,7 +573,7 @@ function ReferralFormProcessing() {
                 })
               ) : (
                 <tr>
-                  <td colSpan="7" className="text-center py-4 text-gray-500">
+                  <td colSpan="8" className="text-center py-4 text-gray-500">
                     No pending referral forms found.
                   </td>
                 </tr>

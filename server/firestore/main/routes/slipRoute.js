@@ -9,7 +9,8 @@ const {
   getAllSlips,
   getAllSlipsById,
   updateSlipStatus,
-  cancelRequestSlip
+  cancelRequestSlip,
+  followUpSlip
 } = require("../controller/slipController");
 
 const router = express.Router();
@@ -21,10 +22,11 @@ router.post("/absentSlip/add/", upload.array("attachments", 3), addAbsentSlip);
 router.get("/absentSlip", getAllAbsentSlip);
 router.get("/absentSlip/:sid", getAbsentSlip);
 
-//All Slips
+// All Slips
 router.get('/allSlips', getAllSlips);
 router.get('/allSlips/:sid', getAllSlipsById);
-router.put('/update/:slipType/:slipId', updateSlipStatus)   // For updating slips
-router.put('/cancel/:slipType/:slipId', cancelRequestSlip)   // For cancelling slips
+router.put('/update/:slipType/:slipId', updateSlipStatus);   // For updating slips
+router.put('/cancel/:slipType/:slipId', cancelRequestSlip);  // For cancelling slips
+router.post('/followup/:slipType/:slipId', followUpSlip);    // For follow-up on slips
 
 module.exports = router;

@@ -446,6 +446,80 @@ const cancelRequestSlip = async (req, res) => {
   }
 };
 
+// Controller function for follow-up request
+const followUpSlip = async (req, res) => {
+  const { slipType, slipId } = req.params;
+  const { studentName, studentId, email } = req.body;
+
+  let collectionRef;
+  switch (slipType) {
+    case "Absent Slip":
+      collectionRef = getAbsentSlipsCollection();
+      break;
+    case "Incident Report":
+      collectionRef = getIncidentReportCollection();
+      break;
+    default:
+      return res.status(400).json({ error: "Invalid slip type provided." });
+  }
+
+  try {
+    const docRef = collectionRef.doc(slipId);
+    const doc = await docRef.get();
+
+    if (!doc.exists) {
+      return res.status(404).json({ error: "Slip not found." });
+    }
+
+    const currentData = doc.data();
+    const followUpCount = (currentData.followUpCount || 0) + 1;
+    const followUpDates = currentData.followUpDates || [];
+    followUpDates.push(Timestamp.fromDate(new Date()));
+
+    // Update slip with follow-up info
+    await docRef.update({
+      followUpCount,
+      followUpDates,
+      isFollowedUp: true,
+      lastFollowUpDate: Timestamp.fromDate(new Date()),
+    });
+
+    // Add admin notification
+    const notifCollection = getNotificationCollection();
+    const adminDoc = notifCollection.doc("request");
+    const adminDocData = await adminDoc.get();
+
+    let existingAdminNotification = [];
+    if (adminDocData.exists && adminDocData.data()["data"]) {
+      existingAdminNotification = adminDocData.data()["data"];
+    }
+
+    const newAdminNotification = {
+      date: Timestamp.fromDate(new Date()),
+      from: "Student",
+      isRead: false,
+      notifID: `adminRequest-${existingAdminNotification.length + 1}`,
+      type: "Follow-Up",
+      subject: `Student Follow-Up: ${studentName} requested an update for ${slipType}`,
+    };
+
+    const updatedAdminNotifications = [
+      ...existingAdminNotification,
+      newAdminNotification,
+    ];
+
+    await adminDoc.set({ data: updatedAdminNotifications }, { merge: true });
+
+    res.status(200).json({
+      message: "Follow-up sent successfully",
+      followUpCount,
+    });
+  } catch (error) {
+    console.error("Follow-up error:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
 module.exports = {
   addAbsentSlip,
   getAllAbsentSlip,
@@ -454,4 +528,5 @@ module.exports = {
   getAllSlipsById,
   updateSlipStatus,
   cancelRequestSlip,
+  followUpSlip, 
 };

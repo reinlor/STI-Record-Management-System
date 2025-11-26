@@ -1,13 +1,55 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { X, User, Info, MessageSquare, Bell } from "lucide-react";
 import { getStatusClasses } from "../../Student/components/statusClasses";
+import { AuthContext } from '../../../AuthProvider.jsx';
 import axios from "axios";
 import { toast } from "react-toastify";
 
 export default function DisplayInfo({ data, onClose }) {
+  const { authData } = useContext(AuthContext);
   const [isCancelling, setIsCancelling] = useState(false);
   const [cancelSuccess, setCancelSuccess] = useState(false);
   const [isFollowingUp, setIsFollowingUp] = useState(false);
+  const [followUpSuccess, setFollowUpSuccess] = useState(false);
+  const [showFollowUpConfirm, setShowFollowUpConfirm] = useState(false);
+  const [followUpCooldown, setFollowUpCooldown] = useState(0);
+
+  useEffect(() => {
+    // Check if user has already followed up in the last 24 hours
+    const lastFollowUpTime = localStorage.getItem(`followup_referral_${data.id}`);
+    if (lastFollowUpTime) {
+      const now = Date.now();
+      const elapsed = now - parseInt(lastFollowUpTime);
+      const twentyFourHours = 24 * 60 * 60 * 1000;
+      
+      if (elapsed < twentyFourHours) {
+        const remaining = twentyFourHours - elapsed;
+        setFollowUpCooldown(remaining);
+        setFollowUpSuccess(true);
+
+        // Update cooldown timer every second
+        const interval = setInterval(() => {
+          setFollowUpCooldown((prev) => {
+            if (prev <= 1000) {
+              clearInterval(interval);
+              setFollowUpSuccess(false);
+              return 0;
+            }
+            return prev - 1000;
+          });
+        }, 1000);
+
+        return () => clearInterval(interval);
+      }
+    }
+  }, [data.id]);
+
+  const formatCooldownTime = (ms) => {
+    const hours = Math.floor(ms / (60 * 60 * 1000));
+    const minutes = Math.floor((ms % (60 * 60 * 1000)) / (60 * 1000));
+    const seconds = Math.floor((ms % (60 * 1000)) / 1000);
+    return `${hours}h ${minutes}m ${seconds}s`;
+  };
 
   const renderField = (label, value) => (
     <div className="space-y-1">
@@ -73,27 +115,46 @@ export default function DisplayInfo({ data, onClose }) {
     }
   };
 
-  // Handle follow up button click (UI-only for now)
-  const handleFollowUp = async () => {
+  // Handle follow up confirmation
+  const handleFollowUpConfirm = async () => {
     setIsFollowingUp(true);
     try {
-      // Placeholder for backend implementation
-      toast.info("Follow up reminder has been sent!", {
+      const referralId = data.id || data._id;
+      
+      await axios.post(`/referral/followup/${referralId}`, {
+        teacherName: authData?.user?.displayName || "Teacher",
+        teacherId: data.employeeID,
+        email: data.email
+      });
+      
+      // Set 24-hour cooldown in localStorage
+      localStorage.setItem(`followup_referral_${referralId}`, Date.now().toString());
+      
+      setFollowUpSuccess(true);
+      setFollowUpCooldown(24 * 60 * 60 * 1000);
+      setShowFollowUpConfirm(false);
+      
+      // Start countdown timer
+      const interval = setInterval(() => {
+        setFollowUpCooldown((prev) => {
+          if (prev <= 1000) {
+            clearInterval(interval);
+            setFollowUpSuccess(false);
+            localStorage.removeItem(`followup_referral_${referralId}`);
+            return 0;
+          }
+          return prev - 1000;
+        });
+      }, 1000);
+
+      toast.success("Follow-up sent!", {
         position: "top-right",
         autoClose: 2000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
       });
     } catch (err) {
-      toast.error("Failed to send follow up. Please try again.", {
+      toast.error("Failed to send follow-up. Please try again.", {
         position: "top-right",
         autoClose: 2500,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
       });
     } finally {
       setIsFollowingUp(false);
@@ -103,8 +164,40 @@ export default function DisplayInfo({ data, onClose }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm bg-black/40 animate-fade-in-backdrop">
 
+      {/* Follow-Up Confirmation Modal */}
+      {showFollowUpConfirm && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50">
+          <div className="bg-white rounded-xl p-6 max-w-sm w-full shadow-xl animate-fade-in border border-gray-200">
+            <div className="flex items-center gap-2 mb-4">
+              <Bell className="w-6 h-6 text-blue-600" />
+              <h3 className="text-lg font-bold text-gray-800">Send Follow-Up?</h3>
+            </div>
+            <p className="text-gray-600 text-sm mb-6">
+              Your follow-up request will be pushed to the top of the counselor's pending list.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setShowFollowUpConfirm(false)}
+                className="px-4 py-2 rounded-lg bg-gray-200 text-gray-800 font-semibold hover:bg-gray-300 transition cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleFollowUpConfirm}
+                disabled={isFollowingUp}
+                className={`px-4 py-2 rounded-lg font-semibold text-white transition cursor-pointer ${
+                  isFollowingUp ? "bg-blue-400" : "bg-blue-600 hover:bg-blue-700"
+                } disabled:cursor-not-allowed`}
+              >
+                {isFollowingUp ? "Sending..." : "Confirm"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="relative flex flex-col bg-white rounded-3xl shadow-2xl w-full max-w-full md:max-w-3xl lg:max-w-5xl xl:max-w-6xl animate-fade-in border border-gray-200 max-h-[90vh] overflow-hidden">
-        {/* Header (sticky) - close button inside header so it stays visible) */}
+        {/* Header (sticky) */}
         <div className="sticky top-0 bg-white border-b border-gray-100 text-center p-6 md:p-8 rounded-t-3xl z-20">
           <button
             type="button"
@@ -249,16 +342,26 @@ export default function DisplayInfo({ data, onClose }) {
           {/* Follow Up Button - Show for Pending or In Progress status */}
           {(data.status === "Pending" || data.status === "In Progress") && (
             <button
-              onClick={handleFollowUp}
-              disabled={isFollowingUp}
+              onClick={() => !followUpSuccess && setShowFollowUpConfirm(true)}
+              disabled={followUpSuccess}
+              title={followUpSuccess ? `Available in ${formatCooldownTime(followUpCooldown)}` : ""}
               className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold shadow transition-all text-white cursor-pointer ${
-                isFollowingUp
-                  ? "bg-blue-400"
+                followUpSuccess
+                  ? "bg-gray-400 cursor-not-allowed"
                   : "bg-blue-500 hover:bg-blue-600"
-              } disabled:cursor-not-allowed`}
+              }`}
             >
               <Bell size={18} />
-              {isFollowingUp ? "Sending..." : "Follow Up"}
+              {followUpSuccess ? (
+                <>
+                  <span>Followed Up</span>
+                  <span className="text-xs ml-1 bg-gray-500 px-2 py-1 rounded">
+                    {formatCooldownTime(followUpCooldown)}
+                  </span>
+                </>
+              ) : (
+                "Follow Up"
+              )}
             </button>
           )}
 

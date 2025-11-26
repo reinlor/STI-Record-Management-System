@@ -323,4 +323,74 @@ const getReferralById = async (req, res) => {
   }
 }
 
-module.exports = { addReferral, updateReferral, getAllReferral, getReferral, getReferralById, cancelReferral };
+// Controller function for follow-up request
+const followUpReferral = async (req, res) => {
+  const { referralId } = req.params;
+  const { teacherName, teacherId, email } = req.body;
+
+  try {
+    const docRef = getReferralFormCollection().doc(referralId);
+    const doc = await docRef.get();
+
+    if (!doc.exists) {
+      return res.status(404).json({ error: "Referral not found." });
+    }
+
+    const currentData = doc.data();
+    const followUpCount = (currentData.followUpCount || 0) + 1;
+    const followUpDates = currentData.followUpDates || [];
+    followUpDates.push(Timestamp.fromDate(new Date()));
+
+    // Update referral with follow-up info
+    await docRef.update({
+      followUpCount,
+      followUpDates,
+      isFollowedUp: true,
+      lastFollowUpDate: Timestamp.fromDate(new Date()),
+    });
+
+    // Add admin notification
+    const notifCollection = getNotificationCollection();
+    const adminDoc = notifCollection.doc("referral");
+    const adminDocData = await adminDoc.get();
+
+    let existingAdminNotification = [];
+    if (adminDocData.exists && adminDocData.data()["data"]) {
+      existingAdminNotification = adminDocData.data()["data"];
+    }
+
+    const newAdminNotification = {
+      date: Timestamp.fromDate(new Date()),
+      from: "Teacher",
+      isRead: false,
+      notifID: `adminReferral-${existingAdminNotification.length + 1}`,
+      type: "Follow-Up",
+      subject: `Teacher Follow-Up: ${teacherName} requested an update for ${currentData.studentName}'s referral`,
+    };
+
+    const updatedAdminNotifications = [
+      ...existingAdminNotification,
+      newAdminNotification,
+    ];
+
+    await adminDoc.set({ data: updatedAdminNotifications }, { merge: true });
+
+    res.status(200).json({
+      message: "Follow-up sent successfully",
+      followUpCount,
+    });
+  } catch (error) {
+    console.error("Follow-up error:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+module.exports = { 
+  addReferral, 
+  updateReferral, 
+  getAllReferral, 
+  getReferral, 
+  getReferralById, 
+  cancelReferral,
+  followUpReferral  // Add this export
+};
