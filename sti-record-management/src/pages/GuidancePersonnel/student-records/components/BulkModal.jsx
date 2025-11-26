@@ -179,14 +179,27 @@ const BulkModal = ({ visible, onClose }) => {
                     </label>
                 </div>
 
-                <div className="w-full bg-gray-200 rounded-full h-4 mb-2">
-                    <div
-                        className="bg-[#fef201] h-4 rounded-full transition-all duration-300"
-                        style={{ width: `${uploadProgress}%` }}
-                    ></div>
+                {/* Progress Bar with Percentage */}
+                <div className="mb-4">
+                    <div className="w-full bg-gray-200 rounded-full h-4 mb-2 overflow-hidden">
+                        <div
+                            className="bg-[#fef201] h-4 rounded-full transition-all duration-300 flex items-center justify-center"
+                            style={{ width: `${uploadProgress}%` }}
+                        >
+                            {uploadProgress > 10 && (
+                                <span className="text-xs font-bold text-gray-800">
+                                    {uploadProgress}%
+                                </span>
+                            )}
+                        </div>
+                    </div>
+                    <div className="flex justify-between items-center">
+                        <p className="text-gray-500 text-center flex-1">{statusMessage}</p>
+                        <span className="text-sm font-semibold text-[#0172bd] ml-2">
+                            {uploadProgress}%
+                        </span>
+                    </div>
                 </div>
-
-                <p className="text-gray-500 text-center">{statusMessage}</p>
 
                 <a className="text-blue-500 hover:underline mt-4 block text-center" target="_blank" rel="noreferrer"
                     href="https://docs.google.com/spreadsheets/d/17zlRmtjL1YlJusBXpifd8U5cq5tIlfgK/edit?usp=sharing&ouid=102643336413636901319&rtpof=true&sd=true">
