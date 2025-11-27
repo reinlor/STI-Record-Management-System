@@ -47,6 +47,13 @@ const BulkModal = ({ visible, onClose }) => {
             setStatusMessage("Uploading...");
             setUploadProgress(0);
 
+            const progressInterval = setInterval(() => {
+                setUploadProgress(prev => {
+                    const next = prev + Math.random() * 30;
+                    return next > 90 ? 90 : next; 
+                });
+            }, 300);
+
             const response = await axios.post("/bulk-upload/students", formData, {
                 headers: { "Content-Type": "multipart/form-data" },
                 onUploadProgress: (progressEvent) => {
@@ -55,6 +62,8 @@ const BulkModal = ({ visible, onClose }) => {
                     setUploadProgress(percent);
                 }
             });
+
+            clearInterval(progressInterval);
 
             const resp = response.data || {};
             const added = Array.isArray(resp.added) ? resp.added : [];
@@ -75,10 +84,12 @@ const BulkModal = ({ visible, onClose }) => {
 
             setUploadDetails({ added, updated, skipped: skippedArr, skippedCount });
 
+            setUploadProgress(100);
             const processed = typeof resp.processed === 'number' ? resp.processed : resp.processed || added.length;
             setStatusMessage(`Uploaded! Processed: ${processed}, Skipped: ${skippedCount}`);
             toast.success(`Upload successful! Processed: ${processed}, Skipped: ${skippedCount}`);
-            setUploadProgress(100);
+            
+            await new Promise(resolve => setTimeout(resolve, 1500));
         } catch (error) {
             console.error("Upload error:", error);
             toast.error("Upload failed. Check console for details.");
@@ -184,11 +195,11 @@ const BulkModal = ({ visible, onClose }) => {
                     <div className="w-full bg-gray-200 rounded-full h-4 mb-2 overflow-hidden">
                         <div
                             className="bg-[#fef201] h-4 rounded-full transition-all duration-300 flex items-center justify-center"
-                            style={{ width: `${uploadProgress}%` }}
+                            style={{ width: `${Math.round(uploadProgress)}%` }}
                         >
-                            {uploadProgress > 10 && (
+                            {Math.round(uploadProgress) > 10 && (
                                 <span className="text-xs font-bold text-gray-800">
-                                    {uploadProgress}%
+                                    {Math.round(uploadProgress)}%
                                 </span>
                             )}
                         </div>
@@ -196,7 +207,7 @@ const BulkModal = ({ visible, onClose }) => {
                     <div className="flex justify-between items-center">
                         <p className="text-gray-500 text-center flex-1">{statusMessage}</p>
                         <span className="text-sm font-semibold text-[#0172bd] ml-2">
-                            {uploadProgress}%
+                            {Math.round(uploadProgress)}%
                         </span>
                     </div>
                 </div>

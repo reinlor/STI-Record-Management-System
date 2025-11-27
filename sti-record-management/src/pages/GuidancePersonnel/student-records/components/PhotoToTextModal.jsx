@@ -78,6 +78,8 @@ const PhotoToTextModal = ({ visible, onClose, onOCRSuccess }) => {
     const [isSaving, setIsSaving] = useState(false);
     const [defaultPassword, setDefaultPassword] = useState('student1234');
     const [showPassword, setShowPassword] = useState(false);
+    const [scanProgress, setScanProgress] = useState(0);
+    const [scanStatus, setScanStatus] = useState('Waiting for scan...');
     const { authData } = useContext(AuthContext);
 
     // Checking
@@ -198,10 +200,27 @@ const PhotoToTextModal = ({ visible, onClose, onOCRSuccess }) => {
         files.forEach(f => formData.append('files', f));
         try {
             setLoading(true);
+            setScanProgress(0);
+            setScanStatus('Scanning images...');
+            
+            const progressInterval = setInterval(() => {
+                setScanProgress(prev => {
+                    const next = prev + Math.random() * 30;
+                    return next > 90 ? 90 : next; 
+                });
+            }, 300);
+            
             const res = await axios.post('/photo-to-text/ocr', formData, {
                 headers: { 'Content-Type': 'multipart/form-data' },
             });
-            setLoading(false);
+            
+            clearInterval(progressInterval);
+            
+            setScanProgress(100);
+            setScanStatus('Scan completed!');
+
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            
             if (res.data && res.data.success && res.data.ocr) {
                 const base = res.data.ocr || {};
                 const ensure = {
@@ -231,12 +250,18 @@ const PhotoToTextModal = ({ visible, onClose, onOCRSuccess }) => {
                 };
                 setOcrData(ensure);
                 setActiveTab('profile');
+                setLoading(false);
             } else {
                 toast.error('OCR returned no usable data.');
+                setScanProgress(0);
+                setScanStatus('Scan failed');
+                setLoading(false);
             }
         } catch (err) {
-            setLoading(false);
+            setScanProgress(0);
+            setScanStatus('Scan failed');
             toast.error(`OCR failed. ${err?.message || ''}`);
+            setLoading(false);
         }
     };
 
@@ -311,6 +336,29 @@ const PhotoToTextModal = ({ visible, onClose, onOCRSuccess }) => {
                         <label htmlFor="photoToTextInput" className="cursor-pointer bg-blue-100 hover:bg-blue-200 text-blue-800 px-4 py-2 rounded-lg">
                             {loading ? "Scanning..." : "Select Images"}
                         </label>
+
+                        {loading && (
+                            <div className="mt-6 w-full">
+                                <div className="w-full bg-gray-200 rounded-full h-4 mb-2 overflow-hidden">
+                                    <div
+                                        className="bg-[#fef201] h-4 rounded-full transition-all duration-300 flex items-center justify-center"
+                                        style={{ width: `${Math.round(scanProgress)}%` }}
+                                    >
+                                        {Math.round(scanProgress) > 10 && (
+                                            <span className="text-xs font-bold text-gray-800">
+                                                {Math.round(scanProgress)}%
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <p className="text-gray-500 text-center flex-1">{scanStatus}</p>
+                                    <span className="text-sm font-semibold text-[#0172bd] ml-2">
+                                        {Math.round(scanProgress)}%
+                                    </span>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 )}
 
