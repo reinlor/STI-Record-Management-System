@@ -207,11 +207,18 @@ function LoginBeta() {
 
   return (
     <div className="relative min-h-screen flex items-center justify-center font-sans p-4 md:p-8 overflow-hidden">
+
       {/* Blurred background */}
       <div
         className="absolute inset-0 bg-cover bg-center filter blur-sm scale-105"
         style={{ backgroundImage: `url(${stiBg})` }}
       ></div>
+
+      <div className="fixed top-0 right-0 bg-white text-black p-3 m-2 rounded-2xl text-sm z-99999">
+        <p className="mb-2 font-bold">Login Test Credential</p>
+        <p><span className="font-semibold">Email: </span>test.010@dasmarinas.sti.edu.ph</p>
+        <p><span className="font-semibold">Pass: </span>123456</p>
+      </div>
 
       {/* Main Card */}
       <div className="relative z-10 flex flex-col md:flex-row w-full max-w-5xl rounded-3xl shadow-3xl bg-white/90 backdrop-blur-sm overflow-hidden">

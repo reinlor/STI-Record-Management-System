@@ -90,10 +90,10 @@ export default function StudentRequestSlip() {
     errors.dateAbsent = "";
     errors.dateAbsentEnd = "";
 
-    // Validate Start Date
+    // Start Date
     if (startDate) {
-      if (startDate > today) {
-        errors.dateAbsent = "Start date cannot be in the future.";
+      if (startDate < today) {
+        errors.dateAbsent = "Starting date cannot be earlier than today";
       }
     }
 

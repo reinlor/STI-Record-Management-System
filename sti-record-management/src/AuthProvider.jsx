@@ -6,7 +6,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
 export const AuthContext = createContext(null);
-const SESSION_TIMEOUT = 15 * 60 * 1000;
+const SESSION_TIMEOUT = 100 * 60 * 1000;
 
 const AuthProvider = ({ children }) => {
   const [authData, setAuthData] = useState({

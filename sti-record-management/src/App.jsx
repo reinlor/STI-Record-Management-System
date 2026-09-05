@@ -1,5 +1,4 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import React, { useState, useEffect, createContext } from 'react';
 
 import LoginBeta from './login/LoginBeta.jsx';
 
@@ -65,10 +64,6 @@ import AuthProvider from './AuthProvider.jsx';
 import ProtectedRoute from './ProtectedRoute.jsx';
 
 function App() {
-  const stored = (() => {
-    try { return JSON.parse(localStorage.getItem('currentUser')); } catch (e) { return null; }
-  })();
-  const [user, setUser] = useState(stored);
 
   return (
     <Router>
@@ -95,7 +90,7 @@ function App() {
             <Route path="content-management" element={<ContentManagement />} />
             <Route path="users" element={<Users />} />
             <Route path="backup-and-restore" element={<BackupNRestore />} />
-            <Route path="audit-log" element={<AuditLog/>}/>
+            <Route path="audit-log" element={<AuditLog />} />
           </Route>
 
           {/* Protected Student Routes */}
