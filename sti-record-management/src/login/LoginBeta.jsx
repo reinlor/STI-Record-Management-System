@@ -217,7 +217,7 @@ function LoginBeta() {
       <div className="fixed top-0 right-0 bg-white text-black p-3 m-2 rounded-2xl text-sm z-99999">
         <p className="mb-2 font-bold">Login Test Credential</p>
         <p><span className="font-semibold">Email: </span>test.010@dasmarinas.sti.edu.ph</p>
-        <p><span className="font-semibold">Pass: </span>123456</p>
+        <p><span className="font-semibold">Pass: </span>TestAdmin@123</p>
       </div>
 
       {/* Main Card */}
