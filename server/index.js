@@ -11,8 +11,8 @@ const axios = require("axios");
 const authMiddleware = require("./authentication");
 const securityHeaders = require("./securityHeader");
 const { admin } = require("./firebase");
-const { getFirestore, Timestamp } = require('firebase-admin/firestore');
 const db = admin.firestore();
+const { Timestamp } = admin.firestore;
 const backupController = require("./firestore/backup/controller/backupController");
 
 const userRoute = require("./firestore/main/routes/userRoute");
@@ -51,18 +51,29 @@ app.use(cookieParser());
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://127.0.0.1:5173",
+  "https://sti-gorms.online",
+  "https://sti-record-management-system.vercel.app",
+  process.env.CLIENT_URL,
+].filter(Boolean);
+
 const corsOptions = {
-  origin: [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-    "https://sti-gorms.online",
-    'https://sti-record-management-system.vercel.app'
-  ],
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin) || origin.endsWith(".vercel.app")) {
+      return callback(null, true);
+    }
+
+    return callback(new Error("Not allowed by CORS"));
+  },
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
 };
-app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
 
 
 // Authentication limiter
@@ -238,7 +249,7 @@ cron.schedule("0 0 * * *", async () => {
           createdDate = new Date(timeCreated._seconds * 1000 + timeCreated._nanoseconds / 1e6);
         } else {
           console.warn(`Unsupported timeCreated format for doc ${doc.id}`);
-          return; 
+          return;
         }
 
         if (createdDate <= sevenDaysAgo) {
