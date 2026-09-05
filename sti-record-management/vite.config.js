@@ -9,7 +9,7 @@ export default defineConfig({
     sourcemap: false,
   },
   server: {
-    allowedHosts: ['sti-gorms.online'],
+    allowedHosts: ['sti-gorms.online', 'https://sti-record-management-system.vercel.app'],
     host: true,
     proxy: {
        
