@@ -6,6 +6,7 @@ import App from './App.jsx';
 import { onAuthStateChanged } from 'firebase/auth';
 import axios from 'axios';
 import { initializeFirebase } from './firebaseClient';
+import LoadingDots from './component/Loading.jsx';
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -15,6 +16,13 @@ axios.defaults.headers.common["Accept"] = "application/json";
 
 // Initialize app with error boundary
 const root = createRoot(document.getElementById('root'));
+
+// Paint immediately while the Render-hosted API and Firebase initialize.
+root.render(
+  <StrictMode>
+    <LoadingDots />
+  </StrictMode>
+);
 
 async function startApp() {
   try {
