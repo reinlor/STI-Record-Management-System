@@ -4,7 +4,7 @@ const axios = require('axios');
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY; 
 
-const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent';
+const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent';
 
 router.post('/interpret', async (req, res) => {
     const { question, stats } = req.body;
