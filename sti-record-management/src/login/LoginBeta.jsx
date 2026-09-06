@@ -212,7 +212,7 @@ function LoginBeta() {
       <div
         className="absolute inset-0 bg-cover bg-center filter blur-sm scale-105"
         style={{ backgroundImage: `url(${stiBg})` }}
-      ></div>
+      ></div> 
 
       <div className="fixed top-0 right-0 bg-white text-black p-3 m-2 rounded-2xl text-sm z-99999">
         <p className="mb-2 font-bold">Login Test Credential</p>
