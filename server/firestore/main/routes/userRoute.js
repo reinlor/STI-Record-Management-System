@@ -1,4 +1,5 @@
 const express = require("express");
+const authMiddleware = require("../../../authentication");
 const { 
   getUsers, 
   addUser, 
@@ -13,13 +14,15 @@ const {
 
 const router = express.Router();
 
+router.post("/authenticate", authenticateUser);
+router.post("/logout", logoutUser);
+router.use(authMiddleware);
+
 router.get("/", getUsers);                        // Get all users
 router.get("/get/:id", getUserByID);              // Get user by ID
 router.post("/create", addUser);                  // Add a user
 router.delete("/:id", deleteUser);                // Delete a user by ID
 router.put("/update/:uid", updateUser);           // Update a user by UID (changed param to uid + method to PUT)
-router.post("/authenticate", authenticateUser);   // Authenticate user (changed to POST)
-router.post("/logout", logoutUser);               // clear user logins
 router.get("/me", getSessionUser);                // get user session
 
 module.exports = router;

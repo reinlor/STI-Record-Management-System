@@ -243,13 +243,18 @@ const logoutUser = (req, res) => {
 // Controller function to get login sessions
 const getSessionUser = async (req, res) => {
   try {
-    const sessionCookie = req.cookies.session || "";
-    if (!sessionCookie) {
-      return res.status(401).json({ error: "Unauthorized - No cookie" });
+    let uid = req.user?.uid;
+
+    if (!uid) {
+      const sessionCookie = req.cookies.session || "";
+      if (!sessionCookie) {
+        return res.status(401).json({ error: "Unauthorized - No credentials" });
+      }
+      const decodedClaims = await admin.auth().verifySessionCookie(sessionCookie, true);
+      uid = decodedClaims.uid;
     }
 
-    const decodedClaims = await admin.auth().verifySessionCookie(sessionCookie, true);
-    const userDoc = await getUserCollection().doc(decodedClaims.uid).get();
+    const userDoc = await getUserCollection().doc(uid).get();
 
     if (!userDoc.exists) {
       return res.status(404).json({ error: "User not found" });

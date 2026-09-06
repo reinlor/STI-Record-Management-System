@@ -2,10 +2,10 @@
   "name": "firebase-express-server",
   "version": "1.0.0",
   "description": "A simple Express server connected to Firebase",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
-    "start": "node index.js",
-    "dev": "nodemon index.js"
+    "start": "node server.js",
+    "dev": "nodemon server.js"
   },
   "dependencies": {
     "@aws-sdk/client-textract": "^3.906.0",
