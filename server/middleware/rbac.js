@@ -1,4 +1,4 @@
-const guidanceRoles = ["Admin", "Disciplinary", "Super Admin"];
+const guidanceRoles = ["Admin", "Disciplinary", "Super Admin", "Teacher"];
 
 function requireRole(roles) {
   const allowedRoles = Array.isArray(roles) ? roles : [roles];
